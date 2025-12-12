@@ -12,10 +12,8 @@ This directory orchestrates all Python data processing scripts from various work
 Master_Automation/
 ├── README.md                    # This file
 ├── CHANGELOG.md                 # Version history and updates
-├── VERIFICATION_SUMMARY.md     # Migration verification summary
-├── MIGRATION_VERIFICATION.md    # Detailed verification guide
-├── CURSOR_AI_PROMPT.md          # AI assistant prompt for verification
 ├── verify_migration.ps1         # Automated verification script
+├── SUMMARY.md                   # Project summary / quick reference
 ├── config/
 │   ├── scripts.json            # Configuration for all ETL scripts
 │   └── scripts.json.bak        # Backup of previous config
@@ -23,6 +21,10 @@ Master_Automation/
 │   ├── run_all_etl.ps1         # PowerShell orchestrator (recommended)
 │   ├── run_all_etl.bat         # Batch file orchestrator
 │   └── run_etl_script.ps1      # Helper script to run individual scripts
+│   ├── overtime_timeoff_with_backfill.py     # Overtime/TimeOff monthly wrapper (v10 + backfill)
+│   ├── restore_fixed_from_backfill.py        # Restores history into FIXED_monthly_breakdown
+│   └── compare_vcs_time_report_exports.py    # Diff tool for visual exports/backfill validation
+├── docs/                        # Project documentation (migration, verification, guides)
 └── logs/
     └── .gitkeep                # ETL execution logs go here (auto-created)
 ```
@@ -59,7 +61,7 @@ Edit `config/scripts.json` to add, remove, or modify ETL scripts:
     {
       "name": "Arrests",
       "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Arrests",
-      "script": "process_arrests.py",
+      "script": "arrest_python_processor.py",
       "enabled": true,
       "output_to_powerbi": true,
       "order": 1
@@ -67,10 +69,18 @@ Edit `config/scripts.json` to add, remove, or modify ETL scripts:
     {
       "name": "Community Engagement",
       "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagment",
-      "script": "process_engagement.py",
+      "script": "deploy_production.py",
       "enabled": true,
       "output_to_powerbi": true,
       "order": 2
+    },
+    {
+      "name": "Overtime TimeOff",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\scripts",
+      "script": "overtime_timeoff_with_backfill.py",
+      "enabled": true,
+      "output_to_powerbi": false,
+      "order": 3
     }
   ]
 }
@@ -123,10 +133,8 @@ Logs are saved to:
 
 ### New Files Added
 - `verify_migration.ps1` - Automated verification script
-- `MIGRATION_VERIFICATION.md` - Detailed verification guide
-- `VERIFICATION_SUMMARY.md` - Quick reference summary
 - `CHANGELOG.md` - Version history
-- `CURSOR_AI_PROMPT.md` - AI assistant prompt for workspace verification
+- Documentation moved under `docs/` (migration + verification + guides)
 
 ### Configuration Updates
 - `powerbi_drop_path` updated to: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports`
@@ -135,6 +143,17 @@ Logs are saved to:
 
 ### Verification
 Run `.\verify_migration.ps1` to verify all paths and configurations are correct.
+
+### Overtime TimeOff: Backfill + Processed Month Now Stable ✅
+- The Power BI visual requires **two sources** to be fully populated for the 13-month view:
+  - `...\Overtime_TimeOff\output\FIXED_monthly_breakdown_*.csv` (legacy usage rows)
+  - `...\Overtime_TimeOff\analytics_output\monthly_breakdown.csv` (accrual rows)
+- `scripts/overtime_timeoff_with_backfill.py` now:
+  - Runs the production v10 script
+  - Restores historical months into the FIXED output from `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\...`
+  - Backfills `analytics_output\monthly_breakdown.csv` for prior 12 months from the same export (preserving the current month from v10)
+- Validation helper:
+  - `scripts/compare_vcs_time_report_exports.py` can diff a refreshed visual export against a known-good baseline (e.g., Oct-24 monthly export)
 
 ---
 

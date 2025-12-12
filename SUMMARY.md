@@ -1,0 +1,321 @@
+# Master_Automation Project Summary
+
+**Last Updated:** 2025-12-11  
+**Status:** ✅ Production Ready  
+**Version:** 1.0.0
+
+---
+
+## Project Overview
+
+Master_Automation is a centralized orchestration hub for running all Python ETL scripts that feed into Power BI reports. It provides automated execution, error handling, logging, and Power BI integration for multiple data processing workflows.
+
+---
+
+## Quick Facts
+
+| Item | Details |
+|------|---------|
+| **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
+| **Purpose** | ETL Script Orchestration & Power BI Integration |
+| **Language** | PowerShell, Python |
+| **Status** | ✅ Production Ready |
+| **ETL Scripts** | 5 Enabled, 3 Disabled |
+
+---
+
+## Key Features
+
+✅ **Sequential Execution** - Runs scripts in specified order  
+✅ **Error Handling** - Continues on errors, logs failures  
+✅ **Logging** - Detailed logs for each script execution  
+✅ **Power BI Integration** - Automatically copies outputs to Power BI drop folder  
+✅ **Selective Execution** - Run all, or specific scripts  
+✅ **Status Reporting** - Summary of what succeeded/failed  
+✅ **Dry Run Mode** - Preview what would execute  
+✅ **OneDrive Sync** - All paths synced for cloud backup  
+
+---
+
+## Enabled ETL Scripts
+
+| # | Script Name | Filename | Status |
+|---|-------------|----------|--------|
+| 1 | Arrests | `arrest_python_processor.py` | ✅ Enabled |
+| 2 | Community Engagement | `deploy_production.py` | ✅ Enabled |
+| 3 | Overtime TimeOff | `overtime_timeoff_with_backfill.py` | ✅ Enabled |
+| 4 | Response Times | `response_time_diagnostic.py` | ✅ Enabled |
+| 5 | Summons | `main_orchestrator.py` | ✅ Enabled |
+
+### Disabled Scripts
+
+| Script Name | Reason |
+|-------------|--------|
+| Policy Training Monthly | No Python files found |
+| Arrest Data Source | Only test files found |
+| NIBRS | No Python files found |
+
+---
+
+## Directory Structure
+
+```
+Master_Automation/
+├── README.md                    # Main documentation
+├── SUMMARY.md                   # This file
+├── CHANGELOG.md                 # Version history
+├── config/                      # Configuration files
+│   ├── scripts.json            # ETL script configuration
+│   └── scripts.json.bak        # Backup configuration
+├── scripts/                     # PowerShell execution scripts
+│   ├── run_all_etl.ps1         # Main orchestrator
+│   ├── run_all_etl.bat         # Batch wrapper
+│   └── run_etl_script.ps1      # Single script runner
+├── logs/                        # ETL execution logs
+├── docs/                        # Documentation files
+├── chatlogs/                    # AI chat logs
+├── _DropExports/                # Temporary staging (optional)
+└── verify_migration.ps1        # Migration verification script
+```
+
+---
+
+## Quick Start
+
+### Run All ETL Scripts
+
+```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+.\scripts\run_all_etl.ps1
+```
+
+### Run Specific Script
+
+```powershell
+.\scripts\run_etl_script.ps1 -ScriptName "Arrests"
+```
+
+### Dry Run (Preview)
+
+```powershell
+.\scripts\run_all_etl.ps1 -DryRun
+```
+
+### Verify Configuration
+
+```powershell
+.\verify_migration.ps1
+```
+
+---
+
+## Configuration
+
+**Main Config File:** `config\scripts.json`
+
+**Key Settings:**
+- `powerbi_drop_path` - Where ETL outputs are copied
+- `python_executable` - Python command to use
+- `continue_on_error` - Whether to stop on errors
+- `log_directory` - Where logs are saved
+
+**Script Configuration:**
+- `name` - Display name
+- `path` - Script directory path
+- `script` - Python filename
+- `enabled` - Whether script runs
+- `order` - Execution order
+- `timeout_minutes` - Maximum execution time
+
+---
+
+## Workflow
+
+1. **Configure** - Edit `config\scripts.json` with script paths
+2. **Run** - Execute `run_all_etl.ps1` or `run_all_etl.bat`
+3. **Process** - Scripts execute in order, outputs logged
+4. **Integrate** - Successful outputs copied to Power BI Date repository
+5. **Organize** - Run `organize_backfill_exports.ps1` in PowerBI_Date
+6. **Review** - Check logs for any failures or warnings
+
+---
+
+## Overtime TimeOff (Backfill + Processed Month)
+
+The 13-month “Monthly Accrual and Usage Summary” visual is built from **two inputs**:
+
+- **Legacy usage rows** (Comp/Sick/IOD/Mil/SAT) from:  
+  `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_*.csv`
+- **Accrual rows** (Accrued Comp/OT split by Sworn/NonSworn) from:  
+  `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\analytics_output\monthly_breakdown.csv`
+
+To prevent “null/0” in prior months, the wrapper `scripts/overtime_timeoff_with_backfill.py`:
+- runs the production v10 script for the current month
+- restores historical months into the FIXED file from `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\...`
+- backfills `monthly_breakdown.csv` for the prior 12 months from the same backfill export (preserving the current month from v10)
+
+Validation tool:
+- `scripts/compare_vcs_time_report_exports.py` compares a refreshed export against a known-good baseline (e.g., Oct-24 monthly export) for the prior 12 months.
+
+---
+
+## Output Integration
+
+**ETL Outputs:**
+- Written to: `PowerBI_Date\_DropExports\`
+- Format: CSV files
+- Naming: As specified by each ETL script
+
+**Organization:**
+- Run `PowerBI_Date\tools\organize_backfill_exports.ps1`
+- Files moved to: `Backfill\YYYY_MM\category\`
+- Files renamed with month prefix
+
+---
+
+## Logging
+
+**Log Location:** `logs\`
+
+**Log Files:**
+- `YYYY-MM-DD_HH-MM-SS_ETL_Run.log` - Overall execution log
+- `YYYY-MM-DD_HH-MM-SS_[ScriptName].log` - Individual script logs
+
+**Log Contents:**
+- Execution start/end times
+- Script paths and configurations
+- Success/failure status
+- Error messages
+- Output file information
+
+---
+
+## Error Handling
+
+- Scripts run independently (failure of one doesn't stop others)
+- Errors logged with details
+- Summary report shows success/failure status
+- Failed scripts can be re-run individually
+- `continue_on_error` setting controls behavior
+
+---
+
+## Migration Status
+
+✅ **Complete** - PowerBI_Date migrated to OneDrive
+
+**Migration Details:**
+- **From:** `C:\Dev\PowerBI_Date_Merged`
+- **To:** `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date`
+- **Date:** 2025-12-11
+- **Status:** All paths updated and verified
+
+**Verification:**
+- ✅ Config paths correct
+- ✅ Script paths updated
+- ✅ Junction created
+- ✅ Documentation updated
+- ✅ Script filenames verified
+
+---
+
+## Key Paths
+
+| Purpose | Path |
+|---------|------|
+| **Workspace** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
+| **Config** | `config\scripts.json` |
+| **Logs** | `logs\` |
+| **PowerBI Drop** | `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports` |
+| **ETL Scripts** | `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\*` |
+| **Data Sources** | `C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\*` |
+
+---
+
+## Documentation
+
+**Main Documentation:**
+- `README.md` - Project overview and quick start
+- `SUMMARY.md` - This file (project summary)
+- `CHANGELOG.md` - Version history
+
+**Detailed Documentation (in `docs\`):**
+- `QUICK_START.md` - Quick reference guide
+- `VERIFICATION_REPORT.md` - Migration verification details
+- `MIGRATION_VERIFICATION.md` - Migration verification guide
+- `PROJECT_STRUCTURE.md` - Directory structure details
+
+---
+
+## Troubleshooting
+
+### Script Not Found
+- Check path in `config\scripts.json`
+- Verify script file exists at specified path
+- Check filename matches configuration
+
+### Python Not Found
+- Set `python_executable` in config
+- Options: `python`, `python3`, `py`, or full path
+- Verify Python is in PATH
+
+### Timeout Issues
+- Increase `timeout_minutes` for slow scripts
+- Check script execution time in logs
+- Verify script is actually running
+
+### Output Not Copied
+- Check `powerbi_drop_path` exists
+- Verify OneDrive sync status
+- Check file permissions
+
+---
+
+## Recent Updates
+
+### 2025-12-11
+- ✅ Migrated PowerBI_Date to OneDrive
+- ✅ Updated all path references
+- ✅ Verified script filenames
+- ✅ Created folder structure (docs, chatlogs)
+- ✅ Organized documentation
+- ✅ Initialized git repository
+- ✅ Stabilized Overtime TimeOff: backfill + processed-month combined correctly (FIXED + monthly_breakdown)
+
+### 2025-12-09
+- ✅ Initial workspace setup
+- ✅ ETL orchestrator scripts created
+- ✅ Configuration file created
+- ✅ Basic documentation added
+
+---
+
+## Next Steps
+
+### Immediate
+- [ ] Test ETL execution with actual scripts
+- [ ] Verify Power BI integration
+- [ ] Review logs after first run
+
+### Future Enhancements
+- [ ] ETL script filename auto-detection
+- [ ] Enhanced error reporting
+- [ ] Performance monitoring
+- [ ] Automated testing suite
+- [ ] Power BI refresh scheduling integration
+
+---
+
+## Support
+
+**Configuration Issues:** Check `config\scripts.json`  
+**Path Issues:** Run `.\verify_migration.ps1`  
+**Script Issues:** Check logs in `logs\`  
+**Documentation:** See `docs\` folder  
+
+---
+
+**Maintained by:** R. A. Carucci  
+**Last Updated:** 2025-12-11  
+**Version:** 1.0.0
+

@@ -1,0 +1,49 @@
+# Logs
+logs/*.log
+logs/*.err
+logs/archive/
+
+# Temporary files
+_DropExports/*
+!_DropExports/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Workspace files
+*.code-workspace
+
+# Chat logs (optional - uncomment to ignore)
+# chatlogs/*.md
+
+# Configuration backups
+config/*.bak
+
+# Local one-off exports / validation artifacts (keep out of git)
+/*.csv
+/*.m
+

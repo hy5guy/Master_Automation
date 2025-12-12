@@ -1,0 +1,147 @@
+{
+  "settings": {
+    "powerbi_drop_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\_DropExports",
+    "log_directory": "logs",
+    "python_executable": "python",
+    "continue_on_error": true,
+    "cleanup_temp_files": true
+  },
+  "scripts": [
+    {
+      "name": "Arrests",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Arrests",
+      "script": "arrest_python_processor.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 1,
+      "timeout_minutes": 30,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "arrest",
+        "court"
+      ]
+    },
+    {
+      "name": "Community Engagement",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagment",
+      "script": "deploy_production.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 2,
+      "timeout_minutes": 15,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "community",
+        "outreach",
+        "engagement"
+      ]
+    },
+    {
+      "name": "Overtime TimeOff",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\scripts",
+      "script": "overtime_timeoff_with_backfill.py",
+      "enabled": true,
+      "output_to_powerbi": false,
+      "order": 3,
+      "timeout_minutes": 45,
+      "output_patterns": [
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\output\\FIXED_monthly_breakdown_*.csv",
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\analytics_output\\monthly_breakdown.csv",
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\analytics_output\\executive_summary.csv"
+      ],
+      "keywords": [
+        "vcs",
+        "time",
+        "overtime",
+        "accrual"
+      ]
+    },
+    {
+      "name": "Policy Training Monthly",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Policy_Training_Monthly",
+      "script": "main.py",
+      "enabled": false,
+      "output_to_powerbi": true,
+      "order": 4,
+      "timeout_minutes": 15,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "policy",
+        "training"
+      ]
+    },
+    {
+      "name": "Response Times",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Response_Times",
+      "script": "response_time_diagnostic.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 5,
+      "timeout_minutes": 30,
+      "output_patterns": [
+        "diagnostic_output\\response_time_comparison_*.xlsx",
+        "diagnostic_output\\supervisor_brief_*.txt",
+        "diagnostic_output\\unmapped_incidents*.csv"
+      ],
+      "keywords": [
+        "response",
+        "time"
+      ]
+    },
+    {
+      "name": "Summons",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Summons",
+      "script": "main_orchestrator.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 6,
+      "timeout_minutes": 15,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "summon",
+        "violation",
+        "moving",
+        "parking"
+      ]
+    },
+    {
+      "name": "Arrest Data Source",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\01_DataSources\\ARREST_DATA",
+      "script": "main.py",
+      "enabled": false,
+      "output_to_powerbi": false,
+      "order": 7,
+      "timeout_minutes": 20,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "arrest"
+      ]
+    },
+    {
+      "name": "NIBRS",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\01_DataSources\\NIBRS",
+      "script": "main.py",
+      "enabled": false,
+      "output_to_powerbi": true,
+      "order": 8,
+      "timeout_minutes": 25,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "nibrs"
+      ]
+    }
+  ]
+}
+
