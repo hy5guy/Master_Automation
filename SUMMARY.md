@@ -51,7 +51,7 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 
 | Script Name | Reason |
 |-------------|--------|
-| Policy Training Monthly | No Python files found |
+| Policy Training Monthly | Not orchestrated from Master_Automation (run from its own project folder) |
 | Arrest Data Source | Only test files found |
 | NIBRS | No Python files found |
 
@@ -156,6 +156,70 @@ To prevent “null/0” in prior months, the wrapper `scripts/overtime_timeoff_w
 
 Validation tool:
 - `scripts/compare_vcs_time_report_exports.py` compares a refreshed export against a known-good baseline (e.g., Oct-24 monthly export) for the prior 12 months.
+
+---
+
+## Policy Training Monthly (Backfill + Current Month)
+
+Policy Training is managed in its own project folder:
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Policy_Training_Monthly`
+
+Key output:
+- `...\output\policy_training_outputs.xlsx` (sheet `Delivery_Cost_By_Month`)
+
+Expected behavior:
+- Backfill months match the prior-month backfill export (e.g., `PowerBI_Date\Backfill\2025_10\policy_training\...`)
+- ETL computes **only the new month** (e.g., 11-25) from the source workbook
+
+Validation helper:
+- `scripts/compare_policy_training_delivery.py` (visual export vs ETL output; history vs backfill)
+
+---
+
+## Summons (Backfill + Current Month From E-Ticket)
+
+**Status (2025-12-12):** ✅ All Issues Resolved - System Healthy
+
+Power BI source:
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx` (sheet `Summons_Data`)
+
+Current month source:
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket\YY_MM_e_ticketexport.csv`
+
+History/backfill source:
+- `PowerBI_Date\Backfill\YYYY_MM\summons\...` (e.g. Dept-Wide Moving/Parking CSVs)
+
+**Recent Fixes (2025-12-12):**
+- ✅ WG2 column: Fixed - 134,144 rows populated (42.52%), 181,363 null (historical - expected)
+- ✅ M Code queries: All 3 queries working correctly, handling missing columns dynamically
+- ✅ Missing columns: TICKET_COUNT and ASSIGNMENT_FOUND correctly don't exist (each row = 1 ticket)
+- ✅ Top 5 queries: Returning data correctly for Moving and Parking violations
+- ✅ DAX measure: Corrected to `___Total Tickets = COUNTROWS('___Summons')`
+- ⚠️ Missing months: 03-25, 10-25, 11-25 identified - ETL script needs to merge backfill + current month
+
+**Data Validation (2025-12-12):**
+- Total rows: 315,507
+- Moving violations (M): 311,588 (98.76%)
+- Parking violations (P): 3,910 (1.24%)
+- Other violations (C): 9 (0.00%)
+- Most recent month: September 2025 (4,599 tickets)
+
+Validation helpers:
+- `scripts/compare_summons_deptwide.py` (Dept-Wide visual export vs backfill history + ETL current month)
+- `scripts/compare_summons_all_bureaus.py` (All Bureaus visual vs ETL output)
+- `scripts/diagnose_summons_blank_bureau.py` (find blank `WG2` rows → blank Bureau in visuals)
+- `scripts/diagnose_summons_assignment_mapping.py` (diagnose WG2 assignment mapping issues)
+- `scripts/diagnose_summons_missing_months.py` (identify missing months in staging workbook)
+- `scripts/diagnose_summons_top5_vs_deptwide.py` (validate Top 5 queries vs Dept-Wide data)
+- `scripts/fix_summons_wg2_from_assignment.py` (fix WG2 column from WG2_ASSIGN)
+
+Operational helper:
+- `scripts/run_summons_with_overrides.py` injects badge overrides (e.g. badge 1711 mapped to Traffic Bureau) and regenerates the workbook prior to refresh.
+
+Documentation:
+- `claude_code_summons.md` - Comprehensive troubleshooting guide
+- `SUMMONS_DIAGNOSTIC_REPORT_2025_12_12.md` - Complete diagnostic report
+- `SUMMONS_DAX_MEASURES_CORRECTED.txt` - Corrected DAX measure instructions
 
 ---
 
@@ -281,6 +345,9 @@ Validation tool:
 - ✅ Organized documentation
 - ✅ Initialized git repository
 - ✅ Stabilized Overtime TimeOff: backfill + processed-month combined correctly (FIXED + monthly_breakdown)
+- ✅ Verified Policy Training Delivery Cost: history matches backfill; ETL computes 11-25
+- ✅ Verified Summons Dept-Wide Moving/Parking: history matches backfill; ETL computes 11-25 from e-ticket
+- ✅ Fixed Summons blank Bureau row by injecting badge override for 1711 (WG2)
 
 ### 2025-12-09
 - ✅ Initial workspace setup

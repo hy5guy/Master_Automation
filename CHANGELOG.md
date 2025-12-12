@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Validation / QC helpers**
+  - `scripts/compare_policy_training_delivery.py` - Policy Training Delivery Cost: visual export vs ETL output vs backfill history
+  - `scripts/compare_summons_deptwide.py` - Summons Dept-Wide Moving/Parking: visual export vs backfill history + ETL current month
+  - `scripts/diagnose_summons_blank_bureau.py` - Summons: detect blank `WG2` (Bureau) rows that appear as blank Bureau in visuals
+  - `scripts/run_summons_with_overrides.py` - Summons: run ETL with injected badge overrides (without editing upstream project)
+  - `scripts/diagnose_summons_assignment_mapping.py` - Diagnose WG2 assignment mapping issues
+  - `scripts/fix_summons_wg2_from_assignment.py` - Fix WG2 column by copying from WG2_ASSIGN
+  - `scripts/diagnose_summons_missing_months.py` - Identify missing months in staging workbook
+  - `scripts/diagnose_summons_top5_vs_deptwide.py` - Validate Top 5 queries vs Dept-Wide data
+  - `scripts/compare_summons_all_bureaus.py` - Compare All Bureaus visual vs ETL output
+
+- **Documentation**
+  - `claude_code_summons.md` - Comprehensive troubleshooting guide for Summons Power BI issues
+  - `SUMMONS_DIAGNOSTIC_REPORT_2025_12_12.md` - Complete diagnostic report with findings
+  - `SUMMONS_DAX_MEASURES_CORRECTED.txt` - Corrected DAX measure with instructions
+  - `DAX_MEASURES_FIXED.txt` - Alternative DAX measure versions
+  - `DAX_MEASURE_FIXED_FINAL.txt` - Final DAX measure recommendations
+
+### Verified
+- Policy Training Monthly: Delivery Cost history matches backfill; ETL computed the new month (11-25)
+- Summons: Dept-Wide Moving/Parking history matches backfill; ETL computed 11-25 from e-ticket export
+- **Summons Data Quality (2025-12-12):**
+  - WG2 column: 134,144 rows (42.52%) have bureau assignments (expected behavior)
+  - M Code queries: All 3 queries working correctly, handling missing columns properly
+  - Missing columns: TICKET_COUNT and ASSIGNMENT_FOUND correctly don't exist (each row = 1 ticket)
+  - Top 5 queries: Returning data correctly for Moving and Parking violations
+  - Data validation: 315,507 total rows, 311,588 Moving (98.76%), 3,910 Parking (1.24%)
+
+### Fixed
+- Summons "blank Bureau" row caused by missing assignment enrichment for badge 1711
+  - Added a run wrapper that injects a badge override (maps 1711 → Traffic Bureau) and regenerates `summons_powerbi_latest.xlsx`
+- **Summons Power BI Issues (2025-12-12):**
+  - Fixed WG2 column population: WG2 now populated from WG2_ASSIGN (134,144 rows fixed)
+  - Fixed M Code queries: Updated to handle missing TICKET_COUNT and ASSIGNMENT_FOUND columns dynamically
+  - Fixed Top 5 Moving Violations: Excludes Traffic Bureau officers, handles null TYPE values
+  - Fixed Top 5 Parking Violations: Handles null TYPE values, uses correct aggregation
+  - Fixed DAX measure: Provided corrected `___Total Tickets = COUNTROWS('___Summons')` formula
+  - All M code queries verified working correctly with proper column filtering
+
+### Known Issues
+- **Summons Missing Months (2025-12-12):**
+  - Missing months identified: 03-25, 10-25, 11-25
+  - Root cause: ETL script needs to merge backfill data with current month exports
+  - Action required: Run Summons ETL script to regenerate staging workbook with all months
+  - Diagnostic script created: `scripts/diagnose_summons_missing_months.py`
+
 ## [1.0.0] - 2025-12-11
 
 ### Added
@@ -174,6 +223,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 **Maintained by:** R. A. Carucci  
-**Last Updated:** 2025-12-11  
-**Current Version:** 1.0.0
+**Last Updated:** 2025-12-12  
+**Current Version:** 1.0.1
 

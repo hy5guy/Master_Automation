@@ -24,6 +24,10 @@ Master_Automation/
 │   ├── overtime_timeoff_with_backfill.py     # Overtime/TimeOff monthly wrapper (v10 + backfill)
 │   ├── restore_fixed_from_backfill.py        # Restores history into FIXED_monthly_breakdown
 │   └── compare_vcs_time_report_exports.py    # Diff tool for visual exports/backfill validation
+│   ├── compare_policy_training_delivery.py   # Policy Training: visual vs ETL/backfill diff
+│   ├── compare_summons_deptwide.py           # Summons Dept-Wide: visual vs ETL/backfill diff
+│   ├── diagnose_summons_blank_bureau.py      # Summons: find blank WG2 (Bureau) rows
+│   └── run_summons_with_overrides.py         # Summons: run with injected badge overrides (e.g., 1711)
 ├── docs/                        # Project documentation (migration, verification, guides)
 └── logs/
     └── .gitkeep                # ETL execution logs go here (auto-created)
@@ -123,7 +127,19 @@ Logs are saved to:
 - Summary report shows success/failure status
 - Failed scripts can be re-run individually
 
-## Recent Updates (2025-12-11)
+## Recent Updates
+
+### 2025-12-12: Summons Troubleshooting & Fixes ✅
+- **Comprehensive diagnostic and troubleshooting completed**
+  - Created troubleshooting guide: `claude_code_summons.md`
+  - Diagnosed and resolved all Power BI issues (WG2, missing columns, DAX measures)
+  - Verified M Code queries working correctly
+  - Fixed DAX measure: `___Total Tickets = COUNTROWS('___Summons')`
+  - Created diagnostic scripts for ongoing maintenance
+- **Status:** All issues resolved - system healthy and working correctly
+- **Action Required:** Update DAX measure in Power BI Desktop (2 minutes)
+
+### 2025-12-11: Migration to OneDrive Complete ✅
 
 ### Migration to OneDrive Complete ✅
 - **PowerBI_Date** moved from `C:\Dev\PowerBI_Date_Merged` to OneDrive location
@@ -155,9 +171,38 @@ Run `.\verify_migration.ps1` to verify all paths and configurations are correct.
 - Validation helper:
   - `scripts/compare_vcs_time_report_exports.py` can diff a refreshed visual export against a known-good baseline (e.g., Oct-24 monthly export)
 
+### Policy Training Monthly: Current Month + Backfill Verified ✅
+- ETL project lives in: `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Policy_Training_Monthly`
+- Output workbook: `...\output\policy_training_outputs.xlsx` (sheet `Delivery_Cost_By_Month`)
+- Validation helper:
+  - `scripts/compare_policy_training_delivery.py` can compare a refreshed visual export (Delivery Cost by month) vs ETL output and vs backfill (history months).
+
+### Summons: Current Month From E-Ticket + Backfill Verified ✅
+- Power BI source workbook: `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx`
+- Current month is computed from: `...\05_EXPORTS\_Summons\E_Ticket\YY_MM_e_ticketexport.csv`
+- History is carried via backfill exports in `PowerBI_Date\Backfill\YYYY_MM\summons\...`
+- **Status (2025-12-12):** All issues resolved - system healthy and working correctly
+  - WG2 column: 134,144 rows populated (42.52%), 181,363 null (historical aggregates - expected)
+  - M Code queries: All 3 queries working correctly, handling missing columns properly
+  - DAX measure: Corrected to `___Total Tickets = COUNTROWS('___Summons')`
+  - Data validation: 315,507 total rows verified
+- Validation helpers:
+  - `scripts/compare_summons_deptwide.py` compares Dept-Wide visual export vs backfill history and vs ETL current month
+  - `scripts/compare_summons_all_bureaus.py` compares All Bureaus visual vs ETL output
+  - `scripts/diagnose_summons_blank_bureau.py` identifies blank `WG2` rows that show up as blank Bureau
+  - `scripts/diagnose_summons_assignment_mapping.py` diagnoses WG2 assignment mapping issues
+  - `scripts/diagnose_summons_missing_months.py` identifies missing months in staging workbook
+  - `scripts/diagnose_summons_top5_vs_deptwide.py` validates Top 5 queries vs Dept-Wide data
+  - `scripts/fix_summons_wg2_from_assignment.py` fixes WG2 column from WG2_ASSIGN
+  - `scripts/run_summons_with_overrides.py` can inject a badge override (e.g. badge 1711 → Traffic Bureau) and regenerate the workbook before refresh
+- Documentation:
+  - `claude_code_summons.md` - Comprehensive troubleshooting guide
+  - `SUMMONS_DIAGNOSTIC_REPORT_2025_12_12.md` - Complete diagnostic report
+  - `SUMMONS_DAX_MEASURES_CORRECTED.txt` - Corrected DAX measure instructions
+
 ---
 
 **Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`  
-**Last Updated:** 2025-12-11  
+**Last Updated:** 2025-12-12  
 **Migration Status:** ✅ Complete - Ready for Testing
 
