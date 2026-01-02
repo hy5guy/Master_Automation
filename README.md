@@ -20,7 +20,8 @@ Master_Automation/
 ├── scripts/
 │   ├── run_all_etl.ps1         # PowerShell orchestrator (recommended)
 │   ├── run_all_etl.bat         # Batch file orchestrator
-│   └── run_etl_script.ps1      # Helper script to run individual scripts
+│   ├── run_etl_script.ps1      # Helper script to run individual scripts
+│   ├── _archive/                # Archived old/unused scripts
 │   ├── overtime_timeoff_with_backfill.py     # Overtime/TimeOff monthly wrapper (v10 + backfill)
 │   ├── restore_fixed_from_backfill.py        # Restores history into FIXED_monthly_breakdown
 │   └── compare_vcs_time_report_exports.py    # Diff tool for visual exports/backfill validation
@@ -54,6 +55,19 @@ scripts\run_all_etl.bat
 ```powershell
 .\scripts\run_etl_script.ps1 -ScriptName "Arrests"
 ```
+
+### Preview Execution (Dry Run with Validation)
+
+Preview what would execute and validate required input files:
+
+```powershell
+.\scripts\run_all_etl.ps1 -DryRun
+```
+
+This will:
+- Show which scripts would execute
+- Validate that required export files exist (e-ticket exports, CAD exports, etc.)
+- Report any missing files before execution
 
 ## Configuration
 
@@ -98,6 +112,8 @@ Edit `config/scripts.json` to add, remove, or modify ETL scripts:
 - **Power BI Integration:** Automatically copies outputs to Power BI drop folder
 - **Selective Execution:** Run all, or specific scripts
 - **Status Reporting:** Summary of what succeeded/failed
+- **Input Validation:** Validates required export files exist before execution (`-ValidateInputs` or automatic with `-DryRun`)
+- **Dry Run Mode:** Preview execution without running scripts (`-DryRun`)
 
 ## Workflow
 

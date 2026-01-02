@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2026-01-02
+
+### Added
+- **Input Validation Feature**
+  - Added `-ValidateInputs` parameter to `run_all_etl.ps1`
+  - Automatic input validation when using `-DryRun` mode
+  - Validates required export files exist before execution:
+    - Summons: E-ticket exports in `05_EXPORTS\_Summons\E_Ticket\YYYY\YYYY_MM_eticket_export.csv`
+    - Response Times: CAD monthly exports in `05_EXPORTS\_CAD\monthly_export\YYYY\YYYY_MM_Monthly_CAD.xlsx`
+  - Shows helpful error messages with available files when expected files are missing
+
+- **Badge Normalization Diagnostics**
+  - `scripts/diagnose_badge_normalization.py` - Comprehensive badge number format validation
+  - `scripts/find_missing_badge.py` - Quick script to find badges in e-ticket not in Assignment Master
+  - `scripts/fix_assignment_master.py` - Fixes PADDED_BADGE_NUMBER format and adds missing entries
+  - `scripts/verify_assignment_fix.py` - Verifies Assignment Master fixes
+
+- **Script Archive**
+  - Created `scripts/_archive/` directory for old/unused scripts
+  - Archived `run_all_etl-PD_BCI_LTP.ps1` (old version superseded by main script)
+
+### Changed
+- **E-Ticket Export Path Structure**
+  - Updated scripts to handle new e-ticket export naming convention:
+    - Old: `YY_MM_e_ticketexport.csv` (e.g., `25_12_e_ticketexport.csv`)
+    - New: `YYYY_MM_eticket_export.csv` in year subdirectories (e.g., `2025\2025_12_eticket_export.csv`)
+  - Updated `diagnose_summons_missing_months.py` to search year subdirectories
+  - Updated `count_patrol_m_p_from_eticket.py` help text
+
+- **Response Times Validation**
+  - Fixed filename pattern from `YYYY_MM_Monthly_CAD.xlsx.xlsx` to `YYYY_MM_Monthly_CAD.xlsx`
+  - Updated validation to check correct year subdirectory structure
+
+- **Assignment Master Fix**
+  - Fixed `Assignment_Master_V2.csv` PADDED_BADGE_NUMBER column (ensured all values are 4-digit padded)
+  - Added badge 1711 entry for PEO JOHN SQUILLACE (TRAFFIC BUREAU)
+
+### Fixed
+- E-ticket export path validation now correctly searches year subdirectories
+- Response Times validation now uses correct filename format (single .xlsx extension)
+- Badge 1711 missing from Assignment Master (now added with correct bureau assignment)
+- All PADDED_BADGE_NUMBER values verified as correctly formatted (4-digit strings, no floats)
+
+### Verified
+- All e-ticket exports correctly formatted (4-digit Officer Id values)
+- Assignment Master PADDED_BADGE_NUMBER column correctly formatted
+- Badge 1711 now matches between e-ticket export and Assignment Master
+- Input validation correctly identifies missing export files
+
 ## [Unreleased]
 
 ### Added
@@ -223,6 +272,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 **Maintained by:** R. A. Carucci  
-**Last Updated:** 2025-12-12  
-**Current Version:** 1.0.1
+**Last Updated:** 2026-01-02  
+**Current Version:** 1.1.0
 

@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2025-12-11  
+**Last Updated:** 2026-01-02  
 **Status:** ✅ Production Ready  
-**Version:** 1.0.0
+**Version:** 1.1.0
 
 ---
 
@@ -33,6 +33,7 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 ✅ **Selective Execution** - Run all, or specific scripts  
 ✅ **Status Reporting** - Summary of what succeeded/failed  
 ✅ **Dry Run Mode** - Preview what would execute  
+✅ **Input Validation** - Validates required export files before execution  
 ✅ **OneDrive Sync** - All paths synced for cloud backup  
 
 ---
@@ -184,7 +185,8 @@ Power BI source:
 - `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx` (sheet `Summons_Data`)
 
 Current month source:
-- `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket\YY_MM_e_ticketexport.csv`
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket\YYYY\YYYY_MM_eticket_export.csv`
+- Example: `2025\2025_12_eticket_export.csv` for December 2025
 
 History/backfill source:
 - `PowerBI_Date\Backfill\YYYY_MM\summons\...` (e.g. Dept-Wide Moving/Parking CSVs)

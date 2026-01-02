@@ -4,7 +4,8 @@
 param(
     [string[]]$ScriptNames = @(),  # Run only specified scripts (empty = all)
     [switch]$DryRun,  # Preview what would run
-    [switch]$SkipPowerBI  # Skip Power BI integration step
+    [switch]$SkipPowerBI,  # Skip Power BI integration step
+    [switch]$ValidateInputs  # Validate required input files exist
 )
 
 $ErrorActionPreference = 'Stop'
@@ -41,6 +42,130 @@ function Write-Step([string]$msg) { Write-Host "$Cyan>> $msg$Reset" }
 function Write-Success([string]$msg) { Write-Host "$Green[OK] $msg$Reset" }
 function Write-Warn([string]$msg) { Write-Host "$Yellow[WARN] $msg$Reset" }
 function Write-Fail([string]$msg) { Write-Host "$Red[FAIL] $msg$Reset" }
+
+function Test-RequiredInputs {
+    <#
+    .SYNOPSIS
+    Validates that required input files exist for each ETL script.
+    #>
+    param(
+        [object]$ScriptConfig
+    )
+    
+    $scriptName = $ScriptConfig.name
+    $validationResults = @()
+    $allValid = $true
+    
+    # Calculate previous month (rolling window typically ends on previous month)
+    $now = Get-Date
+    $prevMonth = $now.AddMonths(-1)
+    $year = $prevMonth.Year
+    $month = $prevMonth.Month.ToString("00")
+    
+    Write-Step "Validating input files for: $scriptName"
+    
+    switch ($scriptName) {
+        "Summons" {
+            # New format: YYYY/YYYY_MM_eticket_export.csv
+            $eticketBase = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket"
+            $eticketPath = Join-Path $eticketBase "$year\$($year)_$($month)_eticket_export.csv"
+            
+            if (Test-Path $eticketPath) {
+                Write-Success "  E-ticket export found: $eticketPath"
+                $validationResults += [pscustomobject]@{ File = "E-ticket Export"; Path = $eticketPath; Status = "Found" }
+            }
+            else {
+                Write-Fail "  E-ticket export NOT found: $eticketPath"
+                $validationResults += [pscustomobject]@{ File = "E-ticket Export"; Path = $eticketPath; Status = "Missing" }
+                $allValid = $false
+                
+                # Check if directory exists and list available files
+                $yearDir = Join-Path $eticketBase $year
+                if (Test-Path $yearDir) {
+                    $availableFiles = Get-ChildItem -Path $yearDir -Filter "*.csv" -ErrorAction SilentlyContinue
+                    if ($availableFiles) {
+                        Write-Warn "    Available files in ${yearDir}:"
+                        foreach ($file in $availableFiles) {
+                            Write-Host "      - $($file.Name)" -ForegroundColor Gray
+                        }
+                    }
+                }
+                else {
+                    Write-Warn "    Year directory not found: ${yearDir}"
+                }
+            }
+        }
+        
+        "Response Times" {
+            # Format: YYYY/YYYY_MM_Monthly_CAD.xlsx (single .xlsx extension)
+            $cadBase = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\monthly_export"
+            $cadPath = Join-Path $cadBase "$year\$($year)_$($month)_Monthly_CAD.xlsx"
+            
+            if (Test-Path $cadPath) {
+                Write-Success "  CAD monthly export found: $cadPath"
+                $validationResults += [pscustomobject]@{ File = "CAD Monthly Export"; Path = $cadPath; Status = "Found" }
+            }
+            else {
+                Write-Fail "  CAD monthly export NOT found: $cadPath"
+                $validationResults += [pscustomobject]@{ File = "CAD Monthly Export"; Path = $cadPath; Status = "Missing" }
+                $allValid = $false
+                
+                # Check if directory exists and list available files
+                $yearDir = Join-Path $cadBase $year
+                if (Test-Path $yearDir) {
+                    $availableFiles = Get-ChildItem -Path $yearDir -Filter "*Monthly_CAD*" -ErrorAction SilentlyContinue
+                    if ($availableFiles) {
+                        Write-Warn "    Available files in ${yearDir}:"
+                        foreach ($file in $availableFiles) {
+                            Write-Host "      - $($file.Name)" -ForegroundColor Gray
+                        }
+                    }
+                }
+                else {
+                    Write-Warn "    Year directory not found: ${yearDir}"
+                }
+            }
+        }
+        
+        "Overtime TimeOff" {
+            # Check for VCS time report exports (if known location)
+            $vcsBase = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS"
+            $vcsPath = Join-Path $vcsBase "_VCS_Time_Report"
+            
+            if (Test-Path $vcsPath) {
+                Write-Success "  VCS Time Report export directory found: $vcsPath"
+                $validationResults += [pscustomobject]@{ File = "VCS Time Report Directory"; Path = $vcsPath; Status = "Found" }
+            }
+            else {
+                Write-Warn "  VCS Time Report export directory not found: $vcsPath (may use different location)"
+                $validationResults += [pscustomobject]@{ File = "VCS Time Report Directory"; Path = $vcsPath; Status = "Unknown" }
+            }
+        }
+        
+        "Arrests" {
+            # Arrests script may have specific input requirements - add if known
+            Write-Host "  No specific input file validation configured for Arrests" -ForegroundColor Gray
+            $validationResults += [pscustomobject]@{ File = "Arrest Data"; Path = "Unknown"; Status = "Not Validated" }
+        }
+        
+        "Community Engagement" {
+            # Community Engagement may have specific input requirements - add if known
+            Write-Host "  No specific input file validation configured for Community Engagement" -ForegroundColor Gray
+            $validationResults += [pscustomobject]@{ File = "Community Engagement Data"; Path = "Unknown"; Status = "Not Validated" }
+        }
+        
+        default {
+            Write-Host "  No input validation configured for: $scriptName" -ForegroundColor Gray
+            $validationResults += [pscustomobject]@{ File = "Input Files"; Path = "Unknown"; Status = "Not Validated" }
+        }
+    }
+    
+    return @{
+        ScriptName = $scriptName
+        AllValid = $allValid
+        Results = $validationResults
+    }
+}
 
 # Load configuration
 if (-not (Test-Path $configPath)) {
@@ -85,6 +210,79 @@ Write-Log ""
 if ($DryRun) {
     Write-Warn "DRY RUN MODE - No scripts will execute"
     Write-Log "DRY RUN MODE"
+}
+
+# Validate input files if requested
+if ($ValidateInputs -or $DryRun) {
+    Write-Log ""
+    Write-Log "=== Input File Validation ==="
+    Write-Host ""
+    Write-Host "=== Input File Validation ===" -ForegroundColor Cyan
+    Write-Host ""
+    
+    $validationSummary = @()
+    $allInputsValid = $true
+    
+    foreach ($scriptConfig in $scripts) {
+        $validation = Test-RequiredInputs -ScriptConfig $scriptConfig
+        $validationSummary += $validation
+        
+        if (-not $validation.AllValid) {
+            $allInputsValid = $false
+        }
+        Write-Host ""
+    }
+    
+    Write-Host "=== Validation Summary ===" -ForegroundColor Cyan
+    Write-Log "=== Validation Summary ==="
+    
+    foreach ($validation in $validationSummary) {
+        if ($validation.AllValid) {
+            Write-Success "$($validation.ScriptName): All required inputs found"
+            Write-Log "$($validation.ScriptName): All required inputs found"
+        }
+        else {
+            Write-Fail "$($validation.ScriptName): Missing required inputs"
+            Write-Log "$($validation.ScriptName): Missing required inputs"
+            foreach ($result in $validation.Results) {
+                if ($result.Status -eq "Missing") {
+                    Write-Log "  MISSING: $($result.File) - $($result.Path)"
+                }
+            }
+        }
+    }
+    
+    Write-Host ""
+    
+    if (-not $allInputsValid) {
+        Write-Fail "Some required input files are missing!"
+        Write-Log "Validation failed: Some required input files are missing"
+        if (-not $DryRun) {
+            Write-Host ""
+            Write-Host "You can still proceed, but scripts may fail if inputs are missing." -ForegroundColor Yellow
+            $response = Read-Host "Continue anyway? (y/N)"
+            if ($response -ne "y" -and $response -ne "Y") {
+                Write-Host "Exiting..." -ForegroundColor Yellow
+                exit 1
+            }
+        }
+        else {
+            Write-Warn "Dry run mode: Fix missing files before running actual ETL"
+        }
+    }
+    else {
+        Write-Success "All required input files validated!"
+        Write-Log "Validation passed: All required input files found"
+    }
+    
+    Write-Host ""
+    Write-Log ""
+    
+    # If only validation was requested (without dry run), exit here
+    if ($ValidateInputs -and -not $DryRun) {
+        Write-Host "Validation complete. Use -DryRun to also preview script execution." -ForegroundColor Cyan
+        exit 0
+    }
 }
 
 # Track results
