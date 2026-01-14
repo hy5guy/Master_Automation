@@ -17,6 +17,79 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.0] - 2026-01-14
+
+### Added
+- **Response Time ETL Enhanced Filtering (v2.0.0)**
+  - New JSON configuration file (`config/response_time_filters.json`) for centralized filter rules
+  - Added `load_filter_config()` function for JSON configuration loading with validation
+  - Updated `load_mapping_file()` to return Category_Type mapping along with Response_Type
+  - Added "How Reported" filter - excludes "Self-Initiated" records from response time calculations
+  - Added Category_Type filtering with inclusion override logic
+  - Added specific incident filtering from configuration file
+  - Added comprehensive data verification step (Step 7) with quality checks
+  - Added `--config` command line argument for custom filter configuration path
+
+### Changed
+- **Response Time Monthly Generator Script (v1.0.0 → v2.0.0)**
+  - Script: `02_ETL_Scripts/Response_Times/response_time_monthly_generator.py`
+  - Updated `process_cad_data()` signature to accept new filter parameters
+  - Processing pipeline expanded from 6 steps to 12 steps for enhanced filtering
+  - Changed unmapped incident handling from error to warning (allows processing to continue)
+  - Category_Type now mapped alongside Response_Type for better categorization
+
+### Filter Logic
+- **How Reported Filter**: Excludes "Self-Initiated" records (exact match, case-sensitive)
+- **Category_Type Filter**: Excludes entire categories:
+  - Regulatory and Ordinance
+  - Administrative and Support
+  - Investigations and Follow-Ups
+  - Community Engagement
+- **Inclusion Overrides**: 14 incidents kept despite category exclusion (Suspicious Person, Missing Person, etc.)
+- **Specific Incident Filter**: 42 specific incidents excluded from non-filtered categories
+
+### Processing Pipeline (12 Steps)
+1. Deduplication by ReportNumberNew
+2. How Reported filter (exclude "Self-Initiated")
+3. YearMonth creation from cYear/cMonth
+4. Date range filter (2024-12 to 2025-12)
+5. Admin incident filter (existing)
+6. Response time calculation
+7. Time window filter (0-10 minutes)
+8. Response Type + Category_Type mapping
+9. Category_Type filter (with inclusion overrides)
+10. Specific incident filter
+11. Data verification
+12. Final validation (valid Response_Type only)
+
+### Configuration Files
+- **New**: `config/response_time_filters.json` - JSON configuration for all filter rules
+- **Updated**: Response Time ETL script now reads from configuration file
+
+---
+
+## [1.6.0] - 2026-01-14
+
+### Fixed
+- **Response Time ETL and Power BI Query Update**
+  - Updated M code (`m_code/response_time_calculator.m`) to use correct OneDrive paths
+  - Changed base path from `C:\Dev\PowerBI_Date\` to `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\`
+  - Expanded data coverage from 2 months to full 13-month range (Dec 2024 - Dec 2025)
+  - Added graceful handling for missing monthly files
+  - Fixed deduplication to prevent double-counting when files overlap
+  - Updated query name reference from `___ResponseTimeCalculator` to `response_time_calculator`
+
+### Added
+- **Response Time Monthly Generator Script**
+  - New ETL script: `02_ETL_Scripts/Response_Times/response_time_monthly_generator.py`
+  - Processes consolidated CAD export file
+  - Deduplicates by ReportNumberNew (fixes multiple officer issue)
+  - Filters 80+ administrative incident types
+  - Calculates response times with fallback logic
+  - Generates monthly CSV files in the correct directory structure
+
+---
+
 ## [1.5.0] - 2026-01-14
 
 ### Fixed
