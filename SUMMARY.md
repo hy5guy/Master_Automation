@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-01-02  
+**Last Updated:** 2026-01-14  
 **Status:** ✅ Production Ready  
-**Version:** 1.1.0
+**Version:** 1.5.0
 
 ---
 
@@ -339,6 +339,19 @@ Documentation:
 
 ## Recent Updates
 
+### 2026-01-14: v1.5.0
+- ✅ Fixed Summons ESU organizational structure update
+- ✅ Updated Assignment_Master_V2.csv: OFFICE OF SPECIAL OPERATIONS → PATROL BUREAU (4 officers)
+- ✅ Updated summons_all_bureaus.m M code to combine ESU with Patrol Division
+- ✅ Fixed M code syntax errors (removed invalid backslashes, fixed file path formatting)
+- ✅ ESU totals now correctly combined with Patrol Division in Power BI visuals
+
+### 2026-01-13: v1.4.0
+- ✅ Fixed December 2025 high values issue (file format conversion duplicates)
+- ✅ Added file preference logic (process .xlsx only when multiple formats exist)
+- ✅ Improved deduplication with parsed dates/hours for accurate matching
+- ✅ Removed 32,749 duplicate rows preventing double/triple counting
+
 ### 2025-12-11
 - ✅ Migrated PowerBI_Date to OneDrive
 - ✅ Updated all path references
@@ -385,6 +398,6 @@ Documentation:
 ---
 
 **Maintained by:** R. A. Carucci  
-**Last Updated:** 2025-12-11  
-**Version:** 1.0.0
+**Last Updated:** 2026-01-14  
+**Version:** 1.5.0
 

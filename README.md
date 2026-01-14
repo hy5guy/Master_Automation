@@ -145,6 +145,16 @@ Logs are saved to:
 
 ## Recent Updates
 
+### 2026-01-14: v1.5.0 - Summons ESU Organizational Update ✅
+- **Fixed Summons ESU organizational structure**
+  - Updated Assignment_Master_V2.csv: OFFICE OF SPECIAL OPERATIONS now maps to PATROL BUREAU
+  - Updated 4 officers (RYAN CONLON 354, MASSIMO DIMARTINO 144, JOHN KNAPP 141, DANE MARBLE 271)
+  - ESU (OFFICE OF SPECIAL OPERATIONS) totals now correctly combined with Patrol Division
+  - Updated summons_all_bureaus.m M code to combine ESU with Patrol Division
+  - Fixed M code syntax errors (removed invalid backslashes, fixed file path formatting)
+- **Status:** ESU now part of Patrol Division, totals combined correctly
+- See [CHANGELOG.md](CHANGELOG.md) for full details
+
 ### 2025-12-12: Summons Troubleshooting & Fixes ✅
 - **Comprehensive diagnostic and troubleshooting completed**
   - Created troubleshooting guide: `claude_code_summons.md`
@@ -219,6 +229,7 @@ Run `.\verify_migration.ps1` to verify all paths and configurations are correct.
 ---
 
 **Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`  
-**Last Updated:** 2025-12-12  
+**Last Updated:** 2026-01-14  
+**Version:** 1.5.0  
 **Migration Status:** ✅ Complete - Ready for Testing
 
