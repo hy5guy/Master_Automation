@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-01-14  
-**Status:** ✅ Production Ready  
-**Version:** 1.5.0
+**Last Updated:** 2026-01-14
+**Status:** ✅ Production Ready
+**Version:** 1.7.0
 
 ---
 
@@ -339,6 +339,16 @@ Documentation:
 
 ## Recent Updates
 
+### 2026-01-14: v1.7.0
+- ✅ **Response Time ETL Enhanced Filtering** - Updated `response_time_monthly_generator.py` to v2.0.0
+- ✅ Added JSON configuration file (`config/response_time_filters.json`) for centralized filter rules
+- ✅ Added "How Reported" filter - excludes "Self-Initiated" records from response time calculations
+- ✅ Added Category_Type filtering with inclusion override logic (14 incidents kept despite category exclusion)
+- ✅ Added specific incident filtering (42 incidents excluded from non-filtered categories)
+- ✅ Added comprehensive data verification step with quality checks
+- ✅ Processing pipeline expanded from 6 steps to 12 steps for enhanced filtering
+- ✅ Added `--config` command line argument for custom filter configuration path
+
 ### 2026-01-14: v1.5.0
 - ✅ Fixed Summons ESU organizational structure update
 - ✅ Updated Assignment_Master_V2.csv: OFFICE OF SPECIAL OPERATIONS → PATROL BUREAU (4 officers)
@@ -397,7 +407,7 @@ Documentation:
 
 ---
 
-**Maintained by:** R. A. Carucci  
-**Last Updated:** 2026-01-14  
-**Version:** 1.5.0
+**Maintained by:** R. A. Carucci
+**Last Updated:** 2026-01-14
+**Version:** 1.7.0
 

@@ -145,6 +145,19 @@ Logs are saved to:
 
 ## Recent Updates
 
+### 2026-01-14: v1.7.0 - Response Time ETL Enhanced Filtering ✅
+- **Response Time ETL Enhanced Filtering**
+  - Updated `response_time_monthly_generator.py` to v2.0.0
+  - Added JSON configuration file (`config/response_time_filters.json`) for centralized filter rules
+  - Added "How Reported" filter - excludes "Self-Initiated" records from response time calculations
+  - Added Category_Type filtering with inclusion override logic (14 incidents kept despite category exclusion)
+  - Added specific incident filtering (42 incidents excluded from non-filtered categories)
+  - Added comprehensive data verification step with quality checks
+  - Processing pipeline expanded from 6 steps to 12 steps for enhanced filtering
+  - Added `--config` command line argument for custom filter configuration path
+- **Status:** Enhanced filtering system with improved data quality controls
+- See [docs/CHANGELOG.md](docs/CHANGELOG.md) for full details
+
 ### 2026-01-14: v1.5.0 - Summons ESU Organizational Update ✅
 - **Fixed Summons ESU organizational structure**
   - Updated Assignment_Master_V2.csv: OFFICE OF SPECIAL OPERATIONS now maps to PATROL BUREAU
@@ -153,7 +166,7 @@ Logs are saved to:
   - Updated summons_all_bureaus.m M code to combine ESU with Patrol Division
   - Fixed M code syntax errors (removed invalid backslashes, fixed file path formatting)
 - **Status:** ESU now part of Patrol Division, totals combined correctly
-- See [CHANGELOG.md](CHANGELOG.md) for full details
+- See [docs/CHANGELOG.md](docs/CHANGELOG.md) for full details
 
 ### 2025-12-12: Summons Troubleshooting & Fixes ✅
 - **Comprehensive diagnostic and troubleshooting completed**
@@ -230,6 +243,6 @@ Run `.\verify_migration.ps1` to verify all paths and configurations are correct.
 
 **Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`  
 **Last Updated:** 2026-01-14  
-**Version:** 1.5.0  
+**Version:** 1.7.0  
 **Migration Status:** ✅ Complete - Ready for Testing
 
