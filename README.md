@@ -12,24 +12,48 @@ This directory orchestrates all Python data processing scripts from various work
 Master_Automation/
 ├── README.md                    # This file
 ├── CHANGELOG.md                 # Version history and updates
-├── verify_migration.ps1         # Automated verification script
 ├── SUMMARY.md                   # Project summary / quick reference
+├── Claude.md                    # AI assistant guide
+├── verify_migration.ps1         # Automated verification script
+├── Master_Automation.code-workspace  # VS Code workspace
+├── .gitignore                   # Git ignore rules
 ├── config/
 │   ├── scripts.json            # Configuration for all ETL scripts
+│   ├── response_time_filters.json  # Response Time filter configuration
 │   └── scripts.json.bak        # Backup of previous config
 ├── scripts/
 │   ├── run_all_etl.ps1         # PowerShell orchestrator (recommended)
 │   ├── run_all_etl.bat         # Batch file orchestrator
 │   ├── run_etl_script.ps1      # Helper script to run individual scripts
-│   ├── _archive/                # Archived old/unused scripts
 │   ├── overtime_timeoff_with_backfill.py     # Overtime/TimeOff monthly wrapper (v10 + backfill)
 │   ├── restore_fixed_from_backfill.py        # Restores history into FIXED_monthly_breakdown
-│   └── compare_vcs_time_report_exports.py    # Diff tool for visual exports/backfill validation
+│   ├── compare_vcs_time_report_exports.py    # Diff tool for visual exports/backfill validation
 │   ├── compare_policy_training_delivery.py   # Policy Training: visual vs ETL/backfill diff
 │   ├── compare_summons_deptwide.py           # Summons Dept-Wide: visual vs ETL/backfill diff
 │   ├── diagnose_summons_blank_bureau.py      # Summons: find blank WG2 (Bureau) rows
-│   └── run_summons_with_overrides.py         # Summons: run with injected badge overrides (e.g., 1711)
+│   ├── run_summons_with_overrides.py         # Summons: run with injected badge overrides
+│   └── _testing/                             # Benchmark and debug scripts
 ├── docs/                        # Project documentation (migration, verification, guides)
+│   ├── response_time/          # Response Time documentation and reports
+│   ├── archived_workflows/     # Archived workflow files
+│   └── (migration guides, verification reports, troubleshooting docs)
+├── m_code/                      # Power BI M code queries
+│   ├── archive/                # Archived/old M code versions
+│   └── (active .m query files)
+├── outputs/                     # Organized output files
+│   ├── arrests/                # Arrest-related exports
+│   ├── visual_exports/         # Power BI visual exports
+│   ├── summons_validation/     # Summons testing data
+│   ├── metadata/               # Configuration and verification metadata
+│   ├── community_engagement/   # Community engagement data
+│   ├── misc/                   # Miscellaneous output files
+│   └── large_exports/          # Large Excel exports
+├── verifications/               # ETL verification framework
+│   ├── reports/                # Verification markdown reports
+│   ├── etl_verification_framework.py
+│   ├── arrests_verifier.py
+│   ├── overtime_timeoff_verifier.py
+│   └── run_all_verifications.py
 └── logs/
     └── .gitkeep                # ETL execution logs go here (auto-created)
 ```
@@ -145,6 +169,57 @@ Logs are saved to:
 
 ## Recent Updates
 
+### 2026-02-05: December 2025 Power BI Visual Export Processing & Diagnostics ✅
+- **December 2025 Visual Exports Organized**
+  - Processed and organized 36 CSV exports from December 2025 Power BI report
+  - Added `2025_12_` prefix to all exported files
+  - Organized 53 total files into 16 categories in `PowerBI_Date\Backfill\2025_12\`
+  - Cleaned `_DropExports\` folder for next monthly export
+- **Critical Data Quality Issues Identified**
+  - Issue #1: "Engagement Initiatives by Bureau" - Blank export (expected 22 events, 71 attendees)
+  - Issue #2: "Chief's Projects & Initiatives" - Blank export
+  - Issue #3: "Department-Wide Summons" - Missing 4 months of 2025 data (03-25, 07-25, 10-25, 11-25)
+  - Root cause: Date filters using `TODAY()` or relative date logic in Power BI visuals
+- **Comprehensive Diagnostic Reports Created**
+  - `DECEMBER_2025_VISUAL_EXPORT_DIAGNOSTIC_REPORT.md` - Complete analysis of all issues
+  - `ENGAGEMENT_INITIATIVES_BLANK_EXPORT_INVESTIGATION.md` - Technical troubleshooting guide
+  - `DECEMBER_2025_EXPORT_QUICK_SUMMARY.md` - Quick reference action guide
+  - Documented 4 fix options with DAX/M code examples
+  - Created export validation checklist for future use
+- **Files Organized:**
+  - Arrests (3 files), Summons (11 files), Response Time (10 files)
+  - Community Engagement (2 files), Use of Force (3 files), NIBRS (2 files)
+  - Patrol (1 file), Traffic (4 files), Detective (4 files)
+  - Crime Suppression (1 file), Training (2 files), Records (1 file)
+  - Safe Streets (2 files), Drones (2 files), School (2 files), Chief (3 files)
+- **Status:** Files organized, issues documented, fixes pending in Power BI
+
+### 2026-02-04: v1.8.0 - Major Directory Consolidation & Cleanup ✅
+- **Root Directory Cleanup**
+  - Reduced from 91 files to 7 essential files (92% reduction)
+  - Organized 84 files into appropriate subdirectories
+  - Deleted 50 temporary Claude Code marker files
+  - Deleted 6 unnecessary temporary files
+- **Directory Consolidation**
+  - Merged `output/` → `outputs/` (eliminated duplicate directory)
+  - Merged `verification_reports/` → `verifications/reports/`
+  - Created organized subdirectory structure under `outputs/`
+  - Maintained `m_code/` in root for Power BI query access
+- **Documentation Consolidation**
+  - Merged README, CHANGELOG, SUMMARY versions (desktop + laptop)
+  - Deleted 4 redundant documentation files
+  - Created comprehensive cleanup and consolidation reports
+- **New Directory Structure:**
+  - `docs/response_time/` - Response Time docs (13 files)
+  - `outputs/arrests/`, `outputs/visual_exports/`, `outputs/summons_validation/`, etc.
+  - `verifications/reports/` - Verification reports (2 files)
+  - `scripts/_testing/` - Benchmark/debug scripts (4 files)
+- **Updated Documentation:**
+  - Updated `.gitignore` for new structure
+  - Updated `verifications/README.md`
+  - Created 6 new documentation files in `docs/`
+- **Status:** Professional directory structure, zero data loss, all files preserved
+
 ### 2026-01-14: v1.7.0 - Response Time ETL Enhanced Filtering ✅
 - **Response Time ETL Enhanced Filtering**
   - Updated `response_time_monthly_generator.py` to v2.0.0
@@ -241,8 +316,21 @@ Run `.\verify_migration.ps1` to verify all paths and configurations are correct.
 
 ---
 
+## System Manifest
+
+A comprehensive system manifest (`manifest.json`) is maintained that includes:
+- Complete system configuration and settings
+- All ETL scripts with their settings, execution order, and status
+- Execution statistics and recent log history
+- Directory structure and file metadata
+- Documentation index
+
+The manifest provides a machine-readable reference for the entire Master Automation system and can be used for system auditing, documentation generation, or integration with other tools.
+
+---
+
 **Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`  
-**Last Updated:** 2026-01-14  
-**Version:** 1.7.0  
-**Migration Status:** ✅ Complete - Ready for Testing
+**Last Updated:** 2026-02-05  
+**Version:** 1.8.1  
+**Status:** ✅ Production Ready
 

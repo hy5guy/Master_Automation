@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-01-14
+**Last Updated:** 2026-02-05
 **Status:** ✅ Production Ready
-**Version:** 1.7.0
+**Version:** 1.8.1
 
 ---
 
@@ -20,7 +20,9 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
 | **Status** | ✅ Production Ready |
+| **Version** | 1.8.1 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
+| **Root Files** | 7 (92% cleaner after consolidation) |
 
 ---
 
@@ -65,18 +67,41 @@ Master_Automation/
 ├── README.md                    # Main documentation
 ├── SUMMARY.md                   # This file
 ├── CHANGELOG.md                 # Version history
+├── Claude.md                    # AI assistant guide
+├── verify_migration.ps1         # Migration verification
+├── Master_Automation.code-workspace  # VS Code workspace
+├── .gitignore                   # Git ignore rules
 ├── config/                      # Configuration files
 │   ├── scripts.json            # ETL script configuration
+│   ├── response_time_filters.json  # Response Time filters
 │   └── scripts.json.bak        # Backup configuration
 ├── scripts/                     # PowerShell execution scripts
 │   ├── run_all_etl.ps1         # Main orchestrator
 │   ├── run_all_etl.bat         # Batch wrapper
-│   └── run_etl_script.ps1      # Single script runner
-├── logs/                        # ETL execution logs
+│   ├── run_etl_script.ps1      # Single script runner
+│   ├── (helper Python scripts)
+│   └── _testing/               # Benchmark/debug scripts (4 files)
 ├── docs/                        # Documentation files
-├── chatlogs/                    # AI chat logs
-├── _DropExports/                # Temporary staging (optional)
-└── verify_migration.ps1        # Migration verification script
+│   ├── response_time/          # Response Time docs (13 files)
+│   ├── archived_workflows/     # Archived workflows
+│   └── (migration guides, reports, troubleshooting)
+├── m_code/                      # Power BI M code queries
+│   ├── archive/                # Archived M code (16 files)
+│   └── (13 active .m files)
+├── outputs/                     # Organized output files
+│   ├── arrests/                # Arrest exports (3 files)
+│   ├── visual_exports/         # Power BI exports (23 files)
+│   ├── summons_validation/     # Summons data (11 files)
+│   ├── metadata/               # Config/verification (6 files)
+│   ├── community_engagement/   # Community data (6 files)
+│   ├── misc/                   # Miscellaneous (9 files)
+│   └── large_exports/          # Large files (2 files, 37MB)
+├── verifications/               # ETL verification framework
+│   ├── reports/                # Verification reports (2 files)
+│   ├── (5 Python verifier files)
+│   └── __pycache__/
+├── logs/                        # ETL execution logs
+└── chatlogs/                    # AI chat logs
 ```
 
 ---
@@ -337,7 +362,58 @@ Documentation:
 
 ---
 
-## Recent Updates
+## Recent Updates (2026-02-05)
+
+### v1.8.1 - December 2025 Power BI Visual Export Processing & Diagnostics
+- ✅ **December 2025 Export Organization** - Processed and organized 36 CSV exports from December 2025 monthly report
+- ✅ **File Categorization** - Organized 53 total files into 16 categories in `PowerBI_Date\Backfill\2025_12\`
+- ✅ **Data Quality Issues Identified** - Documented 3 critical issues (2 blank exports, 1 data gap)
+- ✅ **Comprehensive Diagnostics** - Created 3 detailed reports with root cause analysis and fix recommendations
+- ⚠️ **Action Required** - Fix Power BI date filters before January 2026 export
+
+### Critical Issues Documented:
+1. **Engagement Initiatives by Bureau** - Blank export (expected 22 events)
+   - Root cause: Date filter using `TODAY()` function
+   - Status: Documented with 4 fix options
+   
+2. **Chief's Projects & Initiatives** - Blank export
+   - Same root cause as Issue #1
+   - Status: Fix applies to both visuals
+   
+3. **Department-Wide Summons** - Missing 4 months (03-25, 07-25, 10-25, 11-25)
+   - Root cause: Source data gap
+   - Status: Requires ETL backfill investigation
+
+### Reports Created:
+- `DECEMBER_2025_VISUAL_EXPORT_DIAGNOSTIC_REPORT.md` - Full analysis
+- `ENGAGEMENT_INITIATIVES_BLANK_EXPORT_INVESTIGATION.md` - Technical guide
+- `DECEMBER_2025_EXPORT_QUICK_SUMMARY.md` - Quick reference
+
+---
+
+## Recent Updates (2026-02-04)
+
+### v1.8.0 - Major Directory Consolidation & Cleanup
+- ✅ **Root Directory Cleanup** - Reduced from 91 files to 7 essential files (92% cleaner)
+- ✅ **Directory Consolidation** - Merged duplicate directories (`output/` → `outputs/`, `verification_reports/` → `verifications/reports/`)
+- ✅ **Documentation Consolidation** - Merged README, CHANGELOG, SUMMARY from desktop + laptop versions
+- ✅ **Organized Structure** - Created 9 new subdirectories for proper file organization
+- ✅ **Temporary File Cleanup** - Deleted 50 Claude Code marker files + 6 unnecessary temp files
+- ✅ **All Data Preserved** - 100% of files preserved, just better organized
+- ✅ **Professional Structure** - Industry-standard directory layout with clear separation of concerns
+
+### Recent System Status
+- **Version**: 1.8.1
+- **Status**: ✅ Production Ready
+- **Root Directory**: Clean (7 files only)
+- **Organized Subdirectories**: 9 categories
+- **Documentation**: Consolidated and current
+- **December 2025 Exports**: Organized (53 files, 16 categories)
+- **Issues Tracked**: 3 (documented with fixes)
+
+---
+
+## Recent Updates (2026-01-14)
 
 ### 2026-01-14: v1.7.0
 - ✅ **Response Time ETL Enhanced Filtering** - Updated `response_time_monthly_generator.py` to v2.0.0
@@ -407,7 +483,20 @@ Documentation:
 
 ---
 
-**Maintained by:** R. A. Carucci
-**Last Updated:** 2026-01-14
-**Version:** 1.7.0
+## System Manifest
+
+A comprehensive system manifest (`manifest.json`) is maintained that includes:
+- Complete system configuration and settings
+- All ETL scripts with their settings, execution order, and status
+- Execution statistics and recent log history
+- Directory structure and file metadata
+- Documentation index
+
+The manifest provides a machine-readable reference for the entire Master Automation system and can be used for system auditing, documentation generation, or integration with other tools.
+
+---
+
+**Maintained by:** R. A. Carucci  
+**Last Updated:** 2026-02-05  
+**Version:** 1.8.1
 
