@@ -35,10 +35,16 @@ let
     // ========================================================================
     
     // Try multiple possible paths for aggregated response time data
+    // Priority order:
+    // 1. Fresh calculator output (_DropExports - PREFERRED)
+    // 2. Visual exports location (manual exports)
+    // 3. Backfill location (legacy/historical only)
+    
     PossiblePaths = {
-        "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill",
+        "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports",
+        "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\data\visual_export",
         "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\outputs\visual_exports",
-        "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\data\visual_export"
+        "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill"
     },
     
     // Find which path exists and has files
@@ -47,7 +53,7 @@ let
             PossiblePaths,
             each try Folder.Files(_)[Name]{0}? <> null otherwise false
         ),
-        "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\outputs\visual_exports"
+        "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports"
     ),
     
     BackfillBasePath = FindValidPath,
@@ -58,13 +64,13 @@ let
     
     AllFilesRaw = Folder.Files(BackfillBasePath),
     
-    // Filter: response_time subdirectories OR root directory, CSV files with "Average" or "Response Time"
+    // Filter: response_time subdirectories OR _DropExports root, CSV files with "Average" or "Response Time"
     ResponseTimeFiles = Table.AddColumn(
         Table.SelectRows(
             AllFilesRaw,
             each (Text.Contains([Folder Path], "response_time") or 
-                  Text.Contains([Folder Path], "visual_export") or
-                  Text.Contains([Folder Path], "2026_12")) and
+                  Text.Contains([Folder Path], "_DropExports") or
+                  Text.Contains([Folder Path], "visual_export")) and
                  Text.EndsWith(Text.Lower([Name]), ".csv") and
                  (Text.Contains([Name], "Average") or 
                   Text.Contains([Name], "Response Time"))

@@ -26,7 +26,7 @@
     {
       "name": "Community Engagement",
       "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagment",
-      "script": "deploy_production.py",
+      "script": "src\\main_processor.py",
       "enabled": true,
       "output_to_powerbi": true,
       "order": 2,
@@ -77,11 +77,11 @@
       ]
     },
     {
-      "name": "Response Times",
+      "name": "Response Times Diagnostic",
       "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Response_Times",
       "script": "response_time_diagnostic.py",
-      "enabled": true,
-      "output_to_powerbi": true,
+      "enabled": false,
+      "output_to_powerbi": false,
       "order": 5,
       "timeout_minutes": 30,
       "output_patterns": [
@@ -91,8 +91,49 @@
       ],
       "keywords": [
         "response",
-        "time"
-      ]
+        "time",
+        "diagnostic"
+      ],
+      "notes": "Diagnostic script for comparing backfill vs recalculated data. Disabled by default."
+    },
+    {
+      "name": "Response Times Monthly Generator (Legacy)",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Response_Times",
+      "script": "response_time_monthly_generator.py",
+      "enabled": false,
+      "output_to_powerbi": false,
+      "order": 5.5,
+      "timeout_minutes": 30,
+      "output_patterns": [
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\Backfill\\*\\response_time\\*_Average_Response_Times__Values_are_in_mmss.csv"
+      ],
+      "keywords": [
+        "response",
+        "time",
+        "monthly",
+        "average"
+      ],
+      "notes": "LEGACY: Old generator using pre-aggregated CAD exports. Replaced by Fresh Calculator v3.0.0."
+    },
+    {
+      "name": "Response Times Fresh Calculator",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\scripts",
+      "script": "response_time_fresh_calculator.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 5.6,
+      "timeout_minutes": 60,
+      "output_patterns": [
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\_DropExports\\*_Average_Response_Times__Values_are_in_mmss.csv"
+      ],
+      "keywords": [
+        "response",
+        "time",
+        "fresh",
+        "calculator",
+        "timereport"
+      ],
+      "notes": "v3.0.0 - Recalculates response times from raw timereport data (yearly + monthly). Replaces backfill with consistent calculations. Requires: timereport/yearly/YYYY/*.xlsx and timereport/monthly/*.xlsx"
     },
     {
       "name": "Summons",
@@ -110,6 +151,28 @@
         "violation",
         "moving",
         "parking"
+      ]
+    },
+    {
+      "name": "Summons Derived Outputs (PowerBI_Date CSVs)",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\scripts",
+      "script": "summons_derived_outputs.py",
+      "enabled": true,
+      "output_to_powerbi": false,
+      "order": 6.5,
+      "timeout_minutes": 10,
+      "output_patterns": [
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\backfill_summons_summary.csv",
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\wg2_movers_parkers_nov2025.csv",
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\top5_moving_1125.csv",
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\top5_parking_1125.csv"
+      ],
+      "keywords": [
+        "summons",
+        "derived",
+        "wg2",
+        "top5",
+        "backfill"
       ]
     },
     {
