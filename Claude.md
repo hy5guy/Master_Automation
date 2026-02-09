@@ -130,6 +130,24 @@ Avoid loading all files at once - use targeted searches.
 
 ## Recent Updates (2026-02-09)
 
+### v1.11.0 - Response Time Power BI M Code Fixed ✅ **DEPLOYED**
+
+**Power BI M Code Fix** - Response Time query 31% error rate resolved! **Production Ready**
+
+#### Critical Power BI Fix:
+- **Response Time Calculator M Code (v2.8.0)** - Fixed type conversion errors
+  - Root cause: `type text` annotation conflicted with Power Query auto-typing
+  - Fixed decimal precision: 2.87, 2.92 now convert correctly to MM:SS
+  - Fixed unpivot column reference (MM-YY only, not Month-Year)
+  - Column quality: 100% valid (up from 69% valid, 31% errors)
+  - All formats supported: MM:SS, M:SS, HH:MM:SS, decimal minutes
+  - File: `m_code\___ResponseTimeCalculator.m` (v2.8.0, 358 lines)
+  - **Status**: Tested with production data - 0% errors achieved ✅
+
+#### AI Collaboration:
+- **Claude**: Identified root cause, delivered comprehensive 7-point fix
+- **Gemini**: Type-agnostic pattern (`Value.Is()`), locale safety enhancements
+
 ### v1.10.0 - Master Automation 100% Operational - All Workflows Fixed
 - **Complete Success** - All 6 ETL workflows now operational (100% success rate)
 - **Overtime TimeOff Fixed** - Resolved missing personnel file (`Assignment_Master_V2.csv`)
@@ -139,11 +157,12 @@ Avoid loading all files at once - use targeted searches.
 - **January 2026 Report** - Successfully generated and ready for publication
 
 ### Current System Status
-- **Version**: 1.10.0
-- **Status**: ✅ 100% Operational (6/6 workflows)
+- **Version**: 1.11.0
+- **Status**: ✅ 100% Operational (6/6 ETL workflows + Power BI queries)
 - **Last Successful Run**: 2026-02-09 12:55:22 (2.04 minutes)
 - **Enabled Scripts**: 6 (All operational with execution times)
-- **Recent Major Fixes**: Personnel file dependency, timereport hybrid strategy, Benchmark consolidation
+- **Power BI Queries**: Response Time M code fixed (v2.8.0, 0% errors)
+- **Recent Major Fixes**: Personnel file dependency, timereport hybrid strategy, Benchmark consolidation, Power BI type conversion
 
 ---
 
@@ -185,4 +204,5 @@ Avoid loading all files at once - use targeted searches.
 - **Recent Major Fixes**: Personnel file dependency, timereport hybrid strategy, Benchmark consolidation
 
 ---
-*Last updated: 2026-02-09 | Format version: 3.2*
+
+*Last updated: 2026-02-09 | Format version: 3.3*

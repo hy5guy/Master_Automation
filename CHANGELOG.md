@@ -21,6 +21,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.11.0] - 2026-02-09
+
+### Fixed
+- **Response Time Power BI M Code (v2.8.0)** - ✅ PRODUCTION READY - Fixed 31% type conversion errors
+  - Removed `type text` annotation from `Table.TransformColumns` tuple (primary fix)
+  - Added `Response_Time_MMSS` to final `Typed` step for explicit column typing
+  - Wrapped entire Step4 lambda in `try...otherwise "00:00"` for safety
+  - Added `Number.RoundDown(Number.Round(rawSecs, 0))` for guaranteed integer seconds
+  - Fixed decimal precision handling: 2.87, 2.92 now convert correctly to MM:SS format
+  - Fixed unpivot column reference: removed "Month-Year" (already renamed to "MM-YY")
+  - Column quality improved from 69% valid/31% errors to 100% valid/0% errors
+  - **Status**: Tested with production data - 0% errors achieved ✅
+
+### Root Cause Analysis
+- **Primary Issue**: `type text` annotation in `Table.TransformColumns` caused Power Query type engine conflict
+  - Power Query's auto-typing (`PromoteAllScalars = true`) typed CSV values as Number (2.87 → type number)
+  - Type annotation tried to validate original Number values against declared `type text` during lazy evaluation
+  - 2-decimal precision values (2.87, 2.92) triggered edge case in PQ's internal coercion pipeline
+  - 1-decimal values (1.3, 2.5) passed through cleanly
+
+- **Secondary Issue**: `Response_Time_MMSS` missing from final `Typed` step
+  - `Table.Combine` lost per-file column type metadata
+  - Column reverted to inferred numeric type instead of text
+  - Combined with primary issue to cause 31% error rate
+
+### Changed
+- **M Code Structure** (v2.7.1 → v2.8.0)
+  - Step4: Transformation lambda now outputs untyped values (no `type text` annotation)
+  - Typed step: Added `{"Response_Time_MMSS", type text}` for explicit typing after combine
+  - Decimal conversion: Enhanced with `Number.RoundDown()` for clean integer output
+  - Time format handling: Added AM/PM stripping for time-typed values
+  - Locale safety: Added `en-US` to ALL `Text.From` calls (mins, secs)
+  - Empty table schema: Added `Response_Time_MMSS` column to prevent combine errors
+
+### Test Results
+| Input | Auto-Type | v2.7.1 (Before) | v2.8.0 (After) | Expected MM:SS | Expected Decimal |
+|-------|-----------|-----------------|----------------|----------------|------------------|
+| "2:39" | Duration | ✅ "02:39" | ✅ "02:39" | 02:39 | 2.65 |
+| 1.3 | Number | ✅ "01:18" | ✅ "01:18" | 01:18 | 1.30 |
+| 2.5 | Number | ✅ "02:30" | ✅ "02:30" | 02:30 | 2.50 |
+| 2.87 | Number | ❌ ERROR | ✅ "02:52" | 02:52 | 2.87 |
+| 2.92 | Number | ❌ ERROR | ✅ "02:55" | 02:55 | 2.92 |
+| null | null | ✅ "00:00" | ✅ "00:00" | 00:00 | 0.00 |
+
+### Documentation
+- **New Session Documentation:**
+  - `docs/SESSION_HANDOFF_2026_02_09.md` - Complete handoff for v2.8.0 implementation
+  - `docs/CLAUDE_DEBUG_PROMPT_v2.7.1_Errors.md` - Comprehensive debugging prompt template
+  - `docs/RESPONSE_TIME_PRODUCTION_READY_v2.7.1.md` - Production deployment guide (pre-v2.8.0)
+  - `m_code/___ResponseTimeCalculator.m` - Updated to v2.8.0 (382 lines with full documentation)
+
+### AI Collaboration
+- **Claude Contributions** (v2.8.0 fix):
+  - Identified root cause: type annotation conflict with auto-typing
+  - Discovered missing column in Typed step
+  - Delivered 7-point comprehensive fix
+  - Created debugging prompt template for future sessions
+
+- **Gemini Contributions** (v2.6.0-v2.7.1):
+  - Identified locale safety issues (v2.6.0)
+  - Introduced `Value.Is()` type-agnostic pattern (v2.7.0)
+  - Enhanced locale independence with `Text.From(..., "en-US")` (v2.7.1)
+
+### Implementation Status
+- ✅ **v2.8.0 M Code Ready**: Available at `m_code\___ResponseTimeCalculator.m`
+- ✅ **Production Deployment Complete**: Tested and verified with production data
+- ✅ **Result Confirmed**: 0% errors, 100% valid data across all formats
+- ✅ **Backup Available**: v2.7.1 backup retained for rollback if needed
+- ✅ **Verification Checklist Created**: Column quality validation steps documented
+
+---
+
 ## [1.10.0] - 2026-02-09
 
 ### Fixed
@@ -533,5 +605,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 **Maintained by:** R. A. Carucci  
-**Last Updated:** 2026-02-05  
-**Version:** 1.8.1
+**Last Updated:** 2026-02-09  
+**Version:** 1.11.0

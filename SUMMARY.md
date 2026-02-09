@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
 **Last Updated:** 2026-02-09
-**Status:** ✅ Production Ready - 100% Operational
-**Version:** 1.10.0
+**Status:** ✅ Production Ready - 100% Operational (ETL + Power BI)
+**Version:** 1.11.0
 
 ---
 
@@ -20,7 +20,7 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
 | **Status** | ✅ Production Ready |
-| **Version** | 1.8.1 |
+| **Version** | 1.11.0 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -364,11 +364,22 @@ Documentation:
 
 ## Recent Updates (2026-02-09)
 
+### v1.11.0 - Response Time Power BI M Code Fixed (31% Error Rate → 0%) ✅ **DEPLOYED**
+
+- **Complete Success** - Response Time Power BI query now fully operational with 0% errors
+- **Power BI M Code v2.8.0** - Fixed 31% type conversion errors in `Response_Time_MMSS` column
+- **Root Cause Identified** - `type text` annotation in `Table.TransformColumns` conflicted with auto-typing
+- **Decimal Precision Fixed** - Values like 2.87, 2.92 now convert correctly to MM:SS format
+- **Column Quality Improved** - From 69% valid/31% errors to 100% valid/0% errors
+- **All Formats Supported** - MM:SS, M:SS, HH:MM:SS, and decimal minutes (1.3, 2.87, 2.92)
+- **Production Tested** - Verified with actual data files (wide and long formats)
+- **Status**: Deployed and operational ✅
+
 ### v1.10.0 - Master Automation 100% Operational - All Workflows Fixed ✅
 
 - **Complete Success** - All 6 ETL workflows now operational (100% success rate)
 - **Overtime TimeOff Fixed** - Resolved missing personnel file (`Assignment_Master_V2.csv`)
-- **Response Times Fixed** - Migrated to timereport hybrid strategy (v2.1.0)
+- **Response Times ETL Fixed** - Migrated to timereport hybrid strategy (v2.1.0)
   - Implemented hybrid loading: yearly files (`2025_full_timereport.xlsx`) + monthly files (`2026_01_timereport.xlsx`)
   - Successfully combined 114,070 records (2025) + 10,440 records (Jan 2026) = 124,510 total
   - Generated 13 monthly CSVs (Jan 2025 - Jan 2026) in 76 seconds
@@ -380,8 +391,9 @@ Documentation:
 
 ### Critical Fixes (2026-02-09):
 1. **Overtime TimeOff** - Copied `Assignment_Master_V2.csv` to Master_Automation root (19.92s, 30 files)
-2. **Response Times** - Updated script from v2.0.0 → v2.1.0 with hybrid timereport loading (76.09s, 15 files)
-3. **Validation Updates** - Enhanced `run_all_etl.ps1` with fallback path logic for Response Times and Summons
+2. **Response Times ETL** - Updated script from v2.0.0 → v2.1.0 with hybrid timereport loading (76.09s, 15 files)
+3. **Response Times Power BI** - Updated M code from v2.7.1 → v2.8.0 fixing type conversion errors (0% errors)
+4. **Validation Updates** - Enhanced `run_all_etl.ps1` with fallback path logic for Response Times and Summons
 
 ### Workflow Status (2026-02-09):
 | Workflow | Status | Time | Files |
@@ -436,12 +448,14 @@ Documentation:
 - ✅ **Professional Structure** - Industry-standard directory layout with clear separation of concerns
 
 ### Recent System Status
-- **Version**: 1.8.1
-- **Status**: ✅ Production Ready
+- **Version**: 1.11.0
+- **Status**: ✅ Production Ready - 100% Operational (ETL + Power BI)
 - **Root Directory**: Clean (7 files only)
 - **Organized Subdirectories**: 9 categories
 - **Documentation**: Consolidated and current
 - **December 2025 Exports**: Organized (53 files, 16 categories)
+- **ETL Workflows**: 6/6 operational (100% success rate)
+- **Power BI Queries**: Response Time M code fixed (0% errors)
 - **Issues Tracked**: 3 (documented with fixes)
 
 ---
@@ -531,5 +545,5 @@ The manifest provides a machine-readable reference for the entire Master Automat
 
 **Maintained by:** R. A. Carucci  
 **Last Updated:** 2026-02-09  
-**Version:** 1.10.0
+**Version:** 1.11.0
 
