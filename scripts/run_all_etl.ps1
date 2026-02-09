@@ -43,6 +43,94 @@ function Write-Success([string]$msg) { Write-Host "$Green[OK] $msg$Reset" }
 function Write-Warn([string]$msg) { Write-Host "$Yellow[WARN] $msg$Reset" }
 function Write-Fail([string]$msg) { Write-Host "$Red[FAIL] $msg$Reset" }
 
+function Save-MonthlyReport {
+    <#
+    .SYNOPSIS
+    Saves a copy of the monthly Power BI report to the correct directory structure.
+    #>
+    
+    # Calculate previous month (subtract 1 calendar month from current date)
+    $now = Get-Date
+    $prevMonth = $now.AddMonths(-1)
+    $year = $prevMonth.Year
+    $monthNum = $prevMonth.Month.ToString("00")
+    $monthName = $prevMonth.ToString("MMMM")
+    $monthNameLower = $monthName.ToLower()
+    
+    # Format: YYYY_MM_Monthly_FINAL_LAP.pbix (e.g., 2025_12_Monthly_FINAL_LAP.pbix for December 2025)
+    $reportFileName = "${year}_${monthNum}_Monthly_FINAL_LAP.pbix"
+    
+    # Base paths
+    $templatesDir = "C:\Users\carucci_r\OneDrive - City of Hackensack\15_Templates"
+    $monthlyReportsBase = "C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports"
+    
+    # Target directory: YEAR\MONTH_NUMBER_monthname (e.g., 2025\12_december)
+    $targetDir = Join-Path $monthlyReportsBase $year
+    $targetDir = Join-Path $targetDir "${monthNum}_${monthNameLower}"
+    
+    # Find source template/report file
+    $sourceFile = $null
+    
+    # First, check if there's a template in 15_Templates
+    # Prioritize files with "Template" in the name
+    $templateFiles = Get-ChildItem -Path $templatesDir -Filter "*.pbix" -ErrorAction SilentlyContinue
+    if ($templateFiles) {
+        # Look for files with "Template" in the name first
+        $templateNamed = $templateFiles | Where-Object { $_.Name -like "*Template*" }
+        if ($templateNamed) {
+            # Use the most recent template-named file
+            $sourceFile = $templateNamed | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            Write-Log "Found template file: $($sourceFile.FullName)"
+        }
+        else {
+            # Fall back to most recent file in Templates folder
+            $sourceFile = $templateFiles | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            Write-Log "Found template file: $($sourceFile.FullName)"
+        }
+    }
+    
+    # If no template found, look for the most recent report in Monthly Reports
+    if (-not $sourceFile) {
+        $existingReports = Get-ChildItem -Path $monthlyReportsBase -Filter "*.pbix" -Recurse -ErrorAction SilentlyContinue
+        if ($existingReports) {
+            $sourceFile = $existingReports | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            Write-Log "Found existing report file: $($sourceFile.FullName)"
+        }
+    }
+    
+    if (-not $sourceFile) {
+        Write-Warn "No template or existing report found. Skipping monthly report save."
+        Write-Log "WARNING: No template or existing report found. Expected locations:"
+        Write-Log "  - Template: $templatesDir\*.pbix"
+        Write-Log "  - Existing report: $monthlyReportsBase\**\*.pbix"
+        return
+    }
+    
+    try {
+        # Create target directory if it doesn't exist
+        if (-not (Test-Path $targetDir)) {
+            New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+            Write-Log "Created directory: $targetDir"
+        }
+        
+        # Copy to monthly reports directory
+        $targetFile = Join-Path $targetDir $reportFileName
+        Copy-Item -Path $sourceFile.FullName -Destination $targetFile -Force
+        Write-Success "Saved monthly report: $targetFile"
+        Write-Log "Copied report to: $targetFile"
+        
+        Write-Host ""
+        Write-Host "Monthly Report Saved:" -ForegroundColor Cyan
+        Write-Host "  Report: $targetFile" -ForegroundColor Gray
+        Write-Host "  Source: $($sourceFile.FullName)" -ForegroundColor Gray
+        
+    }
+    catch {
+        Write-Fail "Error saving monthly report: $_"
+        Write-Log "ERROR saving monthly report: $_"
+    }
+}
+
 function Test-RequiredInputs {
     <#
     .SYNOPSIS
@@ -66,8 +154,10 @@ function Test-RequiredInputs {
     
     switch ($scriptName) {
         "Summons" {
-            # New format: YYYY/YYYY_MM_eticket_export.csv
+            # Format: YYYY/YYYY_MM_eticket_export.csv OR YYYY/month/YYYY_MM_eticket_export.csv
             $eticketBase = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket"
+            
+            # Try direct path first (e.g., 2026/2026_01_eticket_export.csv)
             $eticketPath = Join-Path $eticketBase "$year\$($year)_$($month)_eticket_export.csv"
             
             if (Test-Path $eticketPath) {
@@ -75,54 +165,122 @@ function Test-RequiredInputs {
                 $validationResults += [pscustomobject]@{ File = "E-ticket Export"; Path = $eticketPath; Status = "Found" }
             }
             else {
-                Write-Fail "  E-ticket export NOT found: $eticketPath"
-                $validationResults += [pscustomobject]@{ File = "E-ticket Export"; Path = $eticketPath; Status = "Missing" }
-                $allValid = $false
+                # Try month subfolder path (e.g., 2026/month/2026_01_eticket_export.csv)
+                $eticketPath = Join-Path $eticketBase "$year\month\$($year)_$($month)_eticket_export.csv"
                 
-                # Check if directory exists and list available files
-                $yearDir = Join-Path $eticketBase $year
-                if (Test-Path $yearDir) {
-                    $availableFiles = Get-ChildItem -Path $yearDir -Filter "*.csv" -ErrorAction SilentlyContinue
-                    if ($availableFiles) {
-                        Write-Warn "    Available files in ${yearDir}:"
-                        foreach ($file in $availableFiles) {
-                            Write-Host "      - $($file.Name)" -ForegroundColor Gray
-                        }
-                    }
+                if (Test-Path $eticketPath) {
+                    Write-Success "  E-ticket export found: $eticketPath"
+                    $validationResults += [pscustomobject]@{ File = "E-ticket Export"; Path = $eticketPath; Status = "Found" }
                 }
                 else {
-                    Write-Warn "    Year directory not found: ${yearDir}"
+                    Write-Fail "  E-ticket export NOT found"
+                    Write-Host "    Checked: $eticketBase\$year\$($year)_$($month)_eticket_export.csv" -ForegroundColor Gray
+                    Write-Host "    Checked: $eticketBase\$year\month\$($year)_$($month)_eticket_export.csv" -ForegroundColor Gray
+                    $validationResults += [pscustomobject]@{ File = "E-ticket Export"; Path = "Multiple paths checked"; Status = "Missing" }
+                    $allValid = $false
+                    
+                    # Check if directory exists and list available files
+                    $yearDir = Join-Path $eticketBase $year
+                    if (Test-Path $yearDir) {
+                        $availableFiles = Get-ChildItem -Path $yearDir -Filter "*.csv" -Recurse -ErrorAction SilentlyContinue
+                        if ($availableFiles) {
+                            Write-Warn "    Available files in ${yearDir}:"
+                            foreach ($file in $availableFiles) {
+                                $relativePath = $file.FullName.Replace($yearDir, "").TrimStart('\')
+                                Write-Host "      - $relativePath" -ForegroundColor Gray
+                            }
+                        }
+                    }
+                    else {
+                        Write-Warn "    Year directory not found: ${yearDir}"
+                    }
                 }
             }
         }
         
         "Response Times" {
-            # Format: YYYY/YYYY_MM_Monthly_CAD.xlsx (single .xlsx extension)
-            $cadBase = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\monthly_export"
-            $cadPath = Join-Path $cadBase "$year\$($year)_$($month)_Monthly_CAD.xlsx"
+            # NOTE: Source moved to timereport folder (2026-02-09)
+            # Current structure: timereport/monthly/YYYY_MM_timereport.xlsx
+            # Fallback: timereport/YYYY/YYYY_MM_Monthly_CAD.xlsx
+            $cadBase = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\timereport"
+            
+            # Try monthly folder first (preferred structure)
+            $monthlyFolder = Join-Path $cadBase "monthly"
+            $cadPath = Join-Path $monthlyFolder "$($year)_$($month)_timereport.xlsx"
             
             if (Test-Path $cadPath) {
-                Write-Success "  CAD monthly export found: $cadPath"
-                $validationResults += [pscustomobject]@{ File = "CAD Monthly Export"; Path = $cadPath; Status = "Found" }
+                Write-Success "  CAD timereport export found: $cadPath"
+                $validationResults += [pscustomobject]@{ File = "CAD Timereport Export"; Path = $cadPath; Status = "Found" }
             }
             else {
-                Write-Fail "  CAD monthly export NOT found: $cadPath"
-                $validationResults += [pscustomobject]@{ File = "CAD Monthly Export"; Path = $cadPath; Status = "Missing" }
-                $allValid = $false
+                # Fallback: Try year-based structure
+                $cadPath = Join-Path $cadBase "$year\$($year)_$($month)_Monthly_CAD.xlsx"
                 
-                # Check if directory exists and list available files
-                $yearDir = Join-Path $cadBase $year
-                if (Test-Path $yearDir) {
-                    $availableFiles = Get-ChildItem -Path $yearDir -Filter "*Monthly_CAD*" -ErrorAction SilentlyContinue
-                    if ($availableFiles) {
-                        Write-Warn "    Available files in ${yearDir}:"
-                        foreach ($file in $availableFiles) {
-                            Write-Host "      - $($file.Name)" -ForegroundColor Gray
+                if (Test-Path $cadPath) {
+                    Write-Success "  CAD timereport export found: $cadPath"
+                    $validationResults += [pscustomobject]@{ File = "CAD Timereport Export"; Path = $cadPath; Status = "Found" }
+                }
+                else {
+                    Write-Fail "  CAD timereport export NOT found"
+                    Write-Host "    Checked: $monthlyFolder\$($year)_$($month)_timereport.xlsx" -ForegroundColor Gray
+                    Write-Host "    Checked: $cadBase\$year\$($year)_$($month)_Monthly_CAD.xlsx" -ForegroundColor Gray
+                    $validationResults += [pscustomobject]@{ File = "CAD Timereport Export"; Path = "Multiple paths checked"; Status = "Missing" }
+                    $allValid = $false
+                    
+                    # List available files in monthly folder
+                    if (Test-Path $monthlyFolder) {
+                        $availableFiles = Get-ChildItem -Path $monthlyFolder -Filter "*timereport.xlsx" -ErrorAction SilentlyContinue
+                        if ($availableFiles) {
+                            Write-Warn "    Available files in monthly folder:"
+                            foreach ($file in $availableFiles) {
+                                Write-Host "      - $($file.Name)" -ForegroundColor Gray
+                            }
                         }
                     }
                 }
+            }
+        }
+        
+        "Response Times Monthly Generator" {
+            # Alias case - same validation as "Response Times"
+            # NOTE: Source moved to timereport folder (2026-02-09)
+            # Current structure: timereport/monthly/YYYY_MM_timereport.xlsx
+            # Fallback: timereport/YYYY/YYYY_MM_Monthly_CAD.xlsx
+            $cadBase = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\timereport"
+            
+            # Try monthly folder first (preferred structure)
+            $monthlyFolder = Join-Path $cadBase "monthly"
+            $cadPath = Join-Path $monthlyFolder "$($year)_$($month)_timereport.xlsx"
+            
+            if (Test-Path $cadPath) {
+                Write-Success "  CAD timereport export found: $cadPath"
+                $validationResults += [pscustomobject]@{ File = "CAD Timereport Export"; Path = $cadPath; Status = "Found" }
+            }
+            else {
+                # Fallback: Try year-based structure
+                $cadPath = Join-Path $cadBase "$year\$($year)_$($month)_Monthly_CAD.xlsx"
+                
+                if (Test-Path $cadPath) {
+                    Write-Success "  CAD timereport export found: $cadPath"
+                    $validationResults += [pscustomobject]@{ File = "CAD Timereport Export"; Path = $cadPath; Status = "Found" }
+                }
                 else {
-                    Write-Warn "    Year directory not found: ${yearDir}"
+                    Write-Fail "  CAD timereport export NOT found"
+                    Write-Host "    Checked: $monthlyFolder\$($year)_$($month)_timereport.xlsx" -ForegroundColor Gray
+                    Write-Host "    Checked: $cadBase\$year\$($year)_$($month)_Monthly_CAD.xlsx" -ForegroundColor Gray
+                    $validationResults += [pscustomobject]@{ File = "CAD Timereport Export"; Path = "Multiple paths checked"; Status = "Missing" }
+                    $allValid = $false
+                    
+                    # List available files in monthly folder
+                    if (Test-Path $monthlyFolder) {
+                        $availableFiles = Get-ChildItem -Path $monthlyFolder -Filter "*timereport.xlsx" -ErrorAction SilentlyContinue
+                        if ($availableFiles) {
+                            Write-Warn "    Available files in monthly folder:"
+                            foreach ($file in $availableFiles) {
+                                Write-Host "      - $($file.Name)" -ForegroundColor Gray
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -162,8 +320,8 @@ function Test-RequiredInputs {
     
     return @{
         ScriptName = $scriptName
-        AllValid = $allValid
-        Results = $validationResults
+        AllValid   = $allValid
+        Results    = $validationResults
     }
 }
 
@@ -479,8 +637,16 @@ Write-Log "=== Master ETL Orchestrator Completed ==="
 Write-Host ""
 Write-Host "Full log: $logFile" -ForegroundColor Gray
 
+# Save monthly report copy (always attempt, regardless of script results)
+Write-Log ""
+Write-Log "=== Saving Monthly Report ==="
+Write-Host ""
+Write-Host "=== Saving Monthly Report ===" -ForegroundColor Cyan
+Save-MonthlyReport
+
 if ($successCount -eq $results.Count) {
     Write-Success "All scripts completed successfully!"
+    
     if (-not $SkipPowerBI) {
         Write-Host ""
         Write-Host "Next step: Run Power BI organization script" -ForegroundColor Cyan

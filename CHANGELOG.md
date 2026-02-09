@@ -10,10 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- [ ] Fix Power BI date filters for Engagement Initiatives visual (remove `TODAY()` logic)
-- [ ] Fix Power BI date filters for Chief's Projects & Initiatives visual
-- [ ] Investigate and backfill missing summons months (03-25, 07-25, 10-25, 11-25)
-- [ ] Create export validation checklist for monthly Power BI exports
+- [ ] Monitor February 2026 execution for hybrid strategy validation
+- [ ] Consider implementing hybrid strategy for Arrests workflow
+- [ ] Document monthly execution procedures
+- [ ] Create automated testing for critical workflows
 - [ ] Enhanced error reporting and recovery
 - [ ] Performance monitoring and optimization
 - [ ] Automated testing suite
@@ -21,7 +21,86 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.8.1] - 2026-02-05
+## [1.10.0] - 2026-02-09
+
+### Fixed
+- **Overtime TimeOff Workflow Restored** 
+  - Resolved missing personnel file dependency (`Assignment_Master_V2.csv`)
+  - Copied file from `outputs\summons_validation\` to Master_Automation root
+  - Script now successfully processes all workflows and generates 30 output files
+  - Execution time: 19.92 seconds
+  
+- **Response Times Workflow Restored**
+  - Migrated from archived `response_time` path to new `timereport` structure
+  - Updated script from v2.0.0 to v2.1.0 with hybrid loading strategy
+  - Implemented dual-source loading: yearly files + monthly files
+  - Successfully combines 114,070 records (2025 full year) + 10,440 records (Jan 2026)
+  - Generates 13 monthly CSVs covering Jan 2025 through Jan 2026
+  - Execution time: 76.09 seconds
+
+### Added
+- **Response Times Hybrid Loading Strategy**
+  - New function: `load_timereport_hybrid()` (110 lines)
+  - Automatically loads from `timereport\yearly\YYYY\YYYY_full_timereport.xlsx`
+  - Supplements with `timereport\monthly\YYYY_MM_timereport.xlsx` for current year
+  - Handles year transitions automatically
+  - Removes duplicates between sources
+  - Configurable date range (currently Jan 2025 - Jan 2026)
+
+- **Benchmark Directory Cleanup**
+  - Consolidated duplicate directories (`_Benchmark` vs `Benchmark`)
+  - Created simplified flat structure: `show_force\`, `use_force\`, `vehicle_pursuit\`
+  - Archived old complex nested structure (`_Benchmark_ARCHIVE_2026_02_09`)
+  - Created new M code with automatic latest file selection
+  - PowerShell cleanup script: `scripts\Cleanup-BenchmarkDirectories.ps1`
+
+- **Enhanced Validation Logic**
+  - Updated `run_all_etl.ps1` Response Times validation with fallback paths
+  - Updated `run_all_etl.ps1` Summons validation with fallback paths
+  - Improved error messages showing all checked paths
+  - Lists available files when expected file not found
+
+### Changed
+- **Response Times Script Structure**
+  - `DEFAULT_INPUT_PATH` → `DEFAULT_TIMEREPORT_BASE`
+  - Date range: 2024-12 to 2025-12 → 2025-01 to 2026-01 (13-month rolling window)
+  - Main function now uses `load_timereport_hybrid()` instead of `load_cad_data()`
+  - Version display updated to v2.1.0 (Hybrid Strategy)
+  - Fixed docstring escape sequence warning
+
+- **Power BI M Code**
+  - Created `m_code\_benchmark2026_02_09.m` for simplified Benchmark structure
+  - Created `m_code\_benchmark_simple.m` for easier readability
+  - Both versions support automatic latest file selection
+  - Include error handling for missing folders
+
+### Documentation
+- **New Session Documentation:**
+  - `docs/SESSION_2026_02_09_COMPLETE_SUCCESS.md` - Complete session summary and metrics
+  - `docs/RESPONSE_TIME_TIMEREPORT_MIGRATION_2026_02_09.md` - Detailed migration guide
+  - `docs/BENCHMARK_CLEANUP_STRATEGY_2026_02_09.md` - Cleanup strategy and phases
+  - `docs/BENCHMARK_M_CODE_IMPLEMENTATION_2026_02_09.md` - M code implementation guide
+  - `docs/FINAL_GO_NO_GO_DECISION_2026_02_09.md` - Pre-run decision analysis
+  - `docs/IMPLEMENTATION_CHECKLIST_2026_02_09.md` - Implementation checklist
+  - `docs/QUICK_REFERENCE_2026_02_09.md` - Quick reference guide
+
+### Results
+- **Execution Success:** 100% (6/6 workflows operational)
+- **Total Execution Time:** 2.04 minutes (129.9 seconds)
+- **Files Generated:** 60 total output files
+- **Monthly Report:** `2026_01_Monthly_FINAL_LAP.pbix` successfully saved
+
+### Workflow Performance
+- Arrests: 6.27s (2 files)
+- Community Engagement: 7.86s (2 files)
+- Overtime TimeOff: 19.92s (30 files) **FIXED**
+- Response Times: 76.09s (15 files) **FIXED**
+- Summons: 2.06s (7 files)
+- Summons Derived Outputs: 8.66s (4 files)
+
+---
+
+## [1.9.0] - 2026-02-09
 
 ### Added
 - **December 2025 Power BI Visual Export Processing**
