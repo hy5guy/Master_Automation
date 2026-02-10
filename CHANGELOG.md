@@ -11,6 +11,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 - [ ] Monitor February 2026 execution for hybrid strategy validation
+- [ ] Optional: watchdog/organize rule for "Monthly Accrual and Usage Summary" → backfill folder
+
+---
+
+## [1.13.0] - 2026-02-10
+
+### Added
+- **Overtime/TimeOff – Visual backfill and normalization**
+  - `data/backfill/` – Backfill CSVs from visual export (2025_12 primary, image-extracted 11-25 patch, README)
+  - `scripts/normalize_visual_export_for_backfill.py` – Normalize Power BI default export (Long/Wide) for backfill; optional Long→Wide pivot; writes to `Backfill\YYYY_MM\vcs_time_report\`
+  - `m_code/2026_02_10_Overtime_Timeoff_v3_CONSOLIDATED.m` – Single-query M for ___Overtime_Timeoff_v3 (no staging refs; Time_Category kept for visual binding)
+  - `m_code/2026_02_10_Overtime_Timeoff_v3.m` – Main query referencing staging; `OT_FIXED_Staged.m`, `OT_MonthlyBreakdown_Staged.m`, `OT_PriorAnchor_Staged.m` for Formula Firewall separation
+- **Documentation**
+  - `docs/VISUAL_BACKFILL_AND_EXPORTS_FINDINGS_2026_02_10.md` – Visual/backfill/export findings (01-26 zeros, backfill flow, CSV structure)
+  - `docs/VISUAL_EXPORT_COMPARISON_2026_02_10.md` – Comparison of visual exports (18_24_36 vs image vs earlier export)
+  - `docs/VISUAL_EXPORT_NORMALIZE_AND_BACKFILL.md` – Why and how to normalize default visual exports (Long vs Wide, script usage, optional watchdog)
+  - `docs/OVERTIME_TIMEOFF_RERUN_AFTER_BACKFILL.md` – Steps to re-run pipeline and refresh Power BI after backfill update
+
+### Changed
+- **Backfill** – Primary backfill for Monthly Accrual and Usage Summary is 2025_12 visual export (12-24 through 12-25); deployed to `PowerBI_Date\Backfill\2025_12\vcs_time_report\` and `data/backfill/`
+- **Restore/pipeline** – Already accept Long format and "Sum of Value"; no code change required for default export
+
+### Fixed
+- **Visual "Fields that need to be fixed: Time_Category"** – CONSOLIDATED M keeps column name `Time_Category` so existing visual binding works
+- **"Matches no exports"** – Single-query CONSOLIDATED M avoids staging query references
+
 - [ ] Consider implementing hybrid strategy for Arrests workflow
 - [ ] Document monthly execution procedures
 - [ ] Create automated testing for critical workflows

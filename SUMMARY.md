@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-02-09
+**Last Updated:** 2026-02-10
 **Status:** ✅ Production Ready - 100% Operational (ETL + Power BI)
-**Version:** 1.12.0
+**Version:** 1.13.0
 
 ---
 
@@ -20,7 +20,7 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
 | **Status** | ✅ Production Ready |
-| **Version** | 1.12.0 |
+| **Version** | 1.13.0 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -182,6 +182,11 @@ To prevent “null/0” in prior months, the wrapper `scripts/overtime_timeoff_w
 
 Validation tool:
 - `scripts/compare_vcs_time_report_exports.py` compares a refreshed export against a known-good baseline (e.g., Oct-24 monthly export) for the prior 12 months.
+
+**v1.13.0 (2026-02-10):**
+- Primary backfill: 2025_12 visual export in `data/backfill/` and `PowerBI_Date\Backfill\2025_12\vcs_time_report\`
+- `scripts/normalize_visual_export_for_backfill.py` normalizes default Power BI export (Long/Wide) and writes to backfill folder
+- Single-query M: `m_code/2026_02_10_Overtime_Timeoff_v3_CONSOLIDATED.m` (use in ___Overtime_Timeoff_v3 if staging refs fail); see `docs/VISUAL_EXPORT_NORMALIZE_AND_BACKFILL.md` and `docs/OVERTIME_TIMEOFF_RERUN_AFTER_BACKFILL.md`
 
 ---
 
@@ -545,5 +550,5 @@ The manifest provides a machine-readable reference for the entire Master Automat
 
 **Maintained by:** R. A. Carucci  
 **Last Updated:** 2026-02-09  
-**Version:** 1.12.0
+**Version:** 1.13.0
 

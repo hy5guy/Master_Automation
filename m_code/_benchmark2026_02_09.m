@@ -1,83 +1,95 @@
-// Benchmark Data Query - Simplified Structure
-// Updated: 2026-02-09
-// Source: 05_EXPORTS\Benchmark\ (simplified structure)
-// 
-// This query loads all three Benchmark event types:
-// - Show of Force
-// - Use of Force  
-// - Vehicle Pursuit
-//
-// File structure:
-//   Benchmark\
-//   ├── show_force\
-//   ├── use_force\
-//   └── vehicle_pursuit\
-
 let
-    // Base path to simplified Benchmark directory
-    BenchmarkBasePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\Benchmark\",
-    
-    // Function to load latest file from a folder
-    LoadLatestFile = (folderPath as text, eventType as text) =>
+    // Required columns
+    RequiredColumns = {
+        "Officer Name","Badge Number","Rank","Organization","Incident Number","Report Number",
+        "Incident Date","Location","Initial Contact","# of Officers Involved","# of Subjects",
+        "Subject type","Report Key","SourceFile","SourceModified","EventType"
+    },
+
+    // Read one subfolder
+    ReadFolder = (subfolder as text, eventType as text) as table =>
         let
-            // Get all CSV files in the folder
-            Source = Folder.Files(folderPath),
-            
-            // Filter to CSV files only
-            FilteredFiles = Table.SelectRows(Source, 
-                each Text.EndsWith([Name], ".csv") or Text.EndsWith([Name], ".xlsx")
+            path = RootExportPath & "\" & subfolder,
+            allFiles = Folder.Files(path),
+            csvFiles = Table.Buffer(
+                Table.SelectRows(allFiles, each Text.Lower([Extension]) = ".csv")
             ),
-            
-            // Sort by Date modified (most recent first)
-            SortedFiles = Table.Sort(FilteredFiles, {{"Date modified", Order.Descending}}),
-            
-            // Get the first (most recent) file
-            LatestFile = if Table.RowCount(SortedFiles) > 0 
-                then SortedFiles{0}[Content]
-                else error "No files found in " & folderPath,
-            
-            // Load the file content
-            LoadedData = if Text.EndsWith(SortedFiles{0}[Name], ".csv")
-                then Csv.Document(LatestFile, [Delimiter=",", Columns=null, Encoding=65001, QuoteStyle=QuoteStyle.None])
-                else Excel.Workbook(LatestFile){0}[Data],
-            
-            // Promote headers
-            PromotedHeaders = Table.PromoteHeaders(LoadedData, [PromoteAllScalars=true]),
-            
-            // Add Event Type column
-            AddedEventType = Table.AddColumn(PromotedHeaders, "Event Type", each eventType, type text),
-            
-            // Add Source File column (for tracking)
-            AddedSource = Table.AddColumn(AddedEventType, "Source File", each SortedFiles{0}[Name], type text)
+            perFile = List.Transform(
+                Table.ToRecords(csvFiles),
+                (r) =>
+                    let
+                        src     = Csv.Document(r[Content],[Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.None]),
+                        header  = Table.PromoteHeaders(src, [PromoteAllScalars=true]),
+                        withSF  = Table.AddColumn(header, "SourceFile", each r[Name], type text),
+                        withSM  = Table.AddColumn(withSF, "SourceModified", each r[Date modified], type datetime),
+                        withET  = Table.AddColumn(withSM, "EventType", each eventType, type text),
+                        selected = Table.SelectColumns(withET, RequiredColumns, MissingField.UseNull),
+                        typed    = Table.TransformColumnTypes(
+                            selected,
+                            {
+                                {"Badge Number", Int64.Type},
+                                {"# of Officers Involved", Int64.Type},
+                                {"# of Subjects", Int64.Type},
+                                {"Incident Date", type datetime},
+                                {"Officer Name", type text},
+                                {"Rank", type text},
+                                {"Organization", type text},
+                                {"Incident Number", type text},
+                                {"Report Number", type text},
+                                {"Location", type text},
+                                {"Initial Contact", type text},
+                                {"Subject type", type text},
+                                {"Report Key", type text},
+                                {"SourceFile", type text},
+                                {"SourceModified", type datetime},
+                                {"EventType", type text}
+                            },
+                            "en-US"
+                        )
+                    in
+                        typed
+            ),
+            combined =
+                if List.Count(perFile) = 0
+                then #table(RequiredColumns,{})
+                else Table.Combine(perFile)
         in
-            AddedSource,
-    
-    // Load each event type
-    UseOfForce = try LoadLatestFile(BenchmarkBasePath & "use_force\", "Use of Force") 
-                 otherwise #table(type table [Message = text], {{"No Use of Force data found"}}),
-    
-    ShowOfForce = try LoadLatestFile(BenchmarkBasePath & "show_force\", "Show of Force") 
-                  otherwise #table(type table [Message = text], {{"No Show of Force data found"}}),
-    
-    VehiclePursuit = try LoadLatestFile(BenchmarkBasePath & "vehicle_pursuit\", "Vehicle Pursuit") 
-                     otherwise #table(type table [Message = text], {{"No Vehicle Pursuit data found"}}),
-    
-    // Combine all event types
-    CombinedBenchmark = Table.Combine({UseOfForce, ShowOfForce, VehiclePursuit}),
-    
-    // Optional: Type conversions (adjust based on your actual column names)
-    // Uncomment and modify as needed:
-    /*
-    TypedColumns = Table.TransformColumnTypes(CombinedBenchmark, {
-        {"Date", type date},
-        {"Officer Name", type text},
-        {"Badge Number", type text},
-        {"Incident Number", type text},
-        {"Event Type", type text}
-    })
-    */
-    
-    // Return the combined data
-    Result = CombinedBenchmark
+            combined,
+
+    // Read all event types
+    UseOfForce     = ReadFolder("use_force", "Use of Force"),
+    ShowOfForce    = ReadFolder("show_force", "Show of Force"),
+    VehiclePursuit = ReadFolder("vehicle_pursuit", "Vehicle Pursuit"),
+
+    AllRows = Table.Combine({UseOfForce, ShowOfForce, VehiclePursuit}),
+
+    // Sort and dedupe
+    Sorted  = Table.Sort(AllRows, {{"Report Key", Order.Ascending},{"SourceModified", Order.Descending}}),
+    Deduped = Table.Distinct(Sorted, {"Report Key"}),
+
+    // Date filter
+    FactIncidents_IR =
+        Table.SelectRows(
+            Deduped,
+            each [Incident Date] <> null and [Incident Date] >= RangeStart and [Incident Date] < RangeEnd
+        ),
+
+    // Month fields
+    AddMonthStart = Table.AddColumn(FactIncidents_IR, "MonthStart", each Date.StartOfMonth(Date.From([Incident Date])), type date),
+    AddMonthLabel = Table.AddColumn(AddMonthStart, "MonthLabel", each Date.ToText([MonthStart], "MM-yy"), type text),
+    AddMonthSort  = Table.AddColumn(AddMonthLabel, "MonthSort", each Date.Year([MonthStart]) * 100 + Date.Month([MonthStart]), Int64.Type),
+
+    // Replace nulls with 0 in numeric columns
+    ReplaceNullNumeric =
+        Table.ReplaceValue(
+            AddMonthSort,
+            null,
+            0,
+            Replacer.ReplaceValue,
+            {"Badge Number", "# of Officers Involved", "# of Subjects"}
+        ),
+
+    // Final filter
+    Filtered = Table.SelectRows(ReplaceNullNumeric, each [MonthStart] <> null)
 in
-    Result
+    Filtered
