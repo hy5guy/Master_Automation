@@ -1,0 +1,54 @@
+Here's the correct approach:
+
+## **What Changed in v1.6 (The FINAL Fix):**
+
+### **Root Cause:**
+Your CSV data has `Incident Date` as **text** in ISO 8601 format: `"2020-10-05T18:37:00.000"`
+
+### **The Problem:**
+`Date.From()` cannot directly parse this text format → returns `null`
+
+### **The Solution:**
+```m
+DateTime.Date(DateTime.FromText(_))
+```
+
+**Step-by-step:**
+1. `DateTime.FromText(_)` → Parses text `"2020-10-05T18:37:00.000"` into a datetime value
+2. `DateTime.Date()` → Extracts just the date portion (2020-10-05)
+
+### **Why This Works:**
+- `DateTime.FromText()` is **specifically designed** to parse ISO 8601 datetime strings
+- Then we extract the date part with `DateTime.Date()`
+- This handles all your data correctly! ---
+
+## **Next Steps:**
+
+1. **Replace your current `___Benchmark` query** in Power BI with the contents of `___Benchmark_FINAL_FIX_v1.6.m`
+2. **Refresh** your Power BI data
+3. **Check Column Quality** for `Incident Date` and `MonthStart` → Should now be **100% valid** (no errors!) 4. **Your visuals should now work! **
+
+This fix is based on the actual diagnostic data you provided, so it should resolve the issue completely! 🎯
+
+---
+
+**User**
+
+I'm preparing to export this chat. Please generate a descriptive filename that summarizes the main topic or task of this conversation. Requirements:
+• 4-8 words
+• Title Case (capitalize major words)
+• Replace spaces with underscores
+• Include .md extension
+• No dates or special characters
+
+Output only the filename, with the suffix .md and nothing else. ---
+
+**Cursor**
+
+Benchmark_M_Code_DateTime_Parsing_Fix.md
+
+---
+
+**User**
+
+update local git and all docs

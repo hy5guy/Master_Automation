@@ -1,0 +1,100 @@
+{
+  "source_file": "Benchmark_M_Code_DateTime_Parsing_Fix.md",
+  "source_path": "C:\\_chunker\\02_data\\Benchmark_M_Code_DateTime_Parsing_Fix.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Benchmark_M_Code_DateTime_Parsing_Fix\\2026_02_09_22_45_48_Benchmark_M_Code_DateTime_Parsing_Fix.origin.json",
+  "created_at": "2026_02_09_22_45_48",
+  "tags": [
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "markdown",
+    "police",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "date",
+      "let",
+      "error",
+      "table",
+      "errors",
+      "now"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Visual display error\n_Exported on 2/9/2026 at 22:45:24 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\n___Benchmark M CODE\n// Benchmark Data Query - Simplified Structure\n// Updated: 2026-02-09\n// Source: 05_EXPORTS\\Benchmark\\ (simplified str...",
+    "first_line": "# Visual display error"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-09T22:45:48+00:00_Benchmark_M_Code_DateTime_Parsing_Fix_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "code",
+        "create",
+        "data",
+        "date",
+        "docs",
+        "error",
+        "errors",
+        "excel",
+        "json",
+        "markdown",
+        "police",
+        "sql",
+        "table"
+      ],
+      "key_terms": [
+        "date",
+        "let",
+        "error",
+        "table",
+        "create",
+        "errors"
+      ],
+      "summary": "# Visual display error\n_Exported on 2/9/2026 at 22:45:24 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\n___Benchmark M CODE\n// Benchmark Data Query - Simplified Structure\n// Updated: 2026-02-09\n// Source: 05_EXPORTS\\Benchmark\\ (simplified str...",
+      "char_length": 21665,
+      "byte_length": 22459
+    },
+    {
+      "chunk_id": "2026-02-09T22:45:48+00:00_Benchmark_M_Code_DateTime_Parsing_Fix_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "code",
+        "data",
+        "date",
+        "datetime",
+        "docs",
+        "excel",
+        "fromtext",
+        "json",
+        "markdown",
+        "police",
+        "sql",
+        "text",
+        "your"
+      ],
+      "key_terms": [
+        "date",
+        "datetime",
+        "your",
+        "data",
+        "text",
+        "fromtext"
+      ],
+      "summary": "Here's the correct approach:\n\n## **What Changed in v1.6 (The FINAL Fix):**\n\n### **Root Cause:**\nYour CSV data has `Incident Date` as **text** in ISO 8601 format: `\"2020-10-05T18:37:00.000\"`\n\n### **The Problem:**\n`Date.From()` cannot dire...",
+      "char_length": 1636,
+      "byte_length": 1710
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}
