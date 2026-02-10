@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Executive Summary. Routine Response Time Metric Correction</title>
+  <style>
+    :root{
+      --hpd-navy:#0d233c;
+      --ink:#1b1f24;
+      --muted:#5a6572;
+      --card:#f2f4f7;
+      --border:#d8dde6;
+      --white:#ffffff;
+      --shadow:0 6px 18px rgba(0,0,0,0.08);
+      --radius:16px;
+      --pad:18px;
+    }
+
+    @page { margin: 0.65in; }
+
+    body{
+      margin:0;
+      color:var(--ink);
+      background:#ffffff;
+      font-family: "DIN Next", "DIN", "Segoe UI", Arial, sans-serif;
+      line-height:1.25;
+    }
+
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 22px 22px 22px;
+    }
+
+    .title{
+      border-left: 10px solid var(--hpd-navy);
+      padding-left: 14px;
+      margin: 6px 0 16px 0;
+    }
+
+    .title h1{
+      margin:0;
+      font-family: "DIN Condensed", "DIN", "DIN Next", "Segoe UI", Arial, sans-serif;
+      font-size: 30px;
+      letter-spacing: 0.2px;
+      color: var(--hpd-navy);
+    }
+
+    .title h2{
+      margin:6px 0 0 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .kpis{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 12px 0 16px 0;
+    }
+
+    .kpi{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 14px 12px 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .kpi .label{
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+    }
+
+    .kpi .value{
+      font-family: "DIN Condensed", "DIN", "DIN Next", "Segoe UI", Arial, sans-serif;
+      font-size: 26px;
+      color: var(--hpd-navy);
+      margin: 0 0 2px 0;
+    }
+
+    .kpi .note{
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.25fr 0.9fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .panel{
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: var(--pad);
+      box-shadow: var(--shadow);
+      page-break-inside: avoid;
+    }
+
+    .panel h3{
+      margin: 0 0 10px 0;
+      font-family: "DIN Condensed", "DIN", "DIN Next", "Segoe UI", Arial, sans-serif;
+      font-size: 18px;
+      color: var(--hpd-navy);
+      letter-spacing: 0.2px;
+    }
+
+    .panel p{
+      margin: 0 0 10px 0;
+      font-size: 14px;
+    }
+
+    ul{
+      margin: 0;
+      padding-left: 18px;
+      font-size: 14px;
+    }
+
+    li{ margin: 6px 0; }
+
+    .callout{
+      background: #eef3f8;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-top: 10px;
+    }
+
+    .callout .hdr{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+      margin: 0 0 6px 0;
+    }
+
+    .callout .txt{
+      margin: 0;
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    .footer{
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      display:flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 860px){
+      .kpis{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    @media print{
+      .wrap{ padding: 0; }
+      .kpi, .panel{ box-shadow: none; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="title">
+      <h1>Executive Summary Report</h1>
+      <h2>Routine Response Time Metric Correction. Incident-Level Deduplication</h2>
+    </div>
+
+    <section class="kpis" aria-label="Key Performance Indicators">
+      <div class="kpi">
+        <div class="label">Issue Identified</div>
+        <div class="value">Routine understated</div>
+        <p class="note">Multi-unit counted multiple times</p>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Impact Range</div>
+        <div class="value">40% to 100%</div>
+        <p class="note">Understated Routine averages</p>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Months Affected</div>
+        <div class="value">12 of 13</div>
+        <p class="note">Increase after deduplication</p>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Average Lift</div>
+        <div class="value">~61%</div>
+        <p class="note">Routine only. Others stable</p>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h3>Key finding</h3>
+        <p>
+          Routine response time averages in prior backfill were understated because the metric counted
+          multi-unit responses more than once per incident. One incident should produce one response time.
+          Emergency and Urgent remained consistent.
+        </p>
+
+        <div class="callout">
+          <p class="hdr">Example</p>
+          <p class="txt">
+            September 2025 Routine average changes from 1.10 minutes to 2.42 minutes after incident-level deduplication.
+          </p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Decision requested</h3>
+        <ul>
+          <li>Approve full historical correction for Oct 2024 through Oct 2025.</li>
+          <li>Adopt incident-level deduplication for all future reporting.</li>
+        </ul>
+
+        <div class="callout">
+          <p class="hdr">Reporting note</p>
+          <p class="txt">
+            Add a short methodology line on the dashboard stating multi-unit responses are deduplicated to one record per incident.
+          </p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>What changes in the numbers</h3>
+        <ul>
+          <li>Routine averages trend about 1.7 to 2.4 minutes by month, instead of 1.1 to 1.4.</li>
+          <li>Twelve of thirteen Routine months increase after deduplication.</li>
+          <li>Average increase across the 13-month window is about 61 percent.</li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <h3>Next steps</h3>
+        <ol style="margin:0; padding-left:18px; font-size:14px;">
+          <li>Regenerate the 13-month dataset using incident-level deduplication.</li>
+          <li>Refresh Power BI with the corrected file.</li>
+          <li>Publish the corrected monthly page and update the dashboard note.</li>
+        </ol>
+      </div>
+    </section>
+
+    <div class="footer">
+      <div>HPD | SSOCC</div>
+      <div>Routine Response Time Metric Correction | By: P.O. R. A. Carucci</div>
+      <div>Generated: 2026-01-14</div>
+    </div>
+  </div>
+</body>
+</html>

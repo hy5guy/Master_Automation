@@ -1,0 +1,38 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "json",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "filter",
+        "all",
+        "update",
+        "function",
+        "existing",
+        "config"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Claude Code Implementation Guide\n\n**Date:** 2026-01-14  \n**Purpose:** Step-by-step guide for Claude Code to implement Response Time ETL filter updates\n\n---\n\n## Recommended Approach\n\nClaude Code should proceed in the following order:\n\n#...",
+      "first_line": "# Claude Code Implementation Guide"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-04T23:56:07.252739",
+  "department": "admin"
+}

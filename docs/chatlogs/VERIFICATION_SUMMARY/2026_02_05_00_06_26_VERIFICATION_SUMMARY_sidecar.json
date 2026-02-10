@@ -1,0 +1,70 @@
+{
+  "source_file": "VERIFICATION_SUMMARY.md",
+  "source_path": "C:\\_chunker\\02_data\\VERIFICATION_SUMMARY.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\VERIFICATION_SUMMARY\\2026_02_05_00_06_26_VERIFICATION_SUMMARY.origin.json",
+  "created_at": "2026_02_05_00_06_26",
+  "tags": [
+    "data",
+    "docs",
+    "json",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "scripts",
+      "onedrive",
+      "users",
+      "carucci_r",
+      "city",
+      "hackensack"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Master_Automation Migration Verification Summary\n\n**Date:** 2025-12-11  \n**Status:** ✅ Migration Complete - Ready for Testing  \n**Last Updated:** 2025-12-11\n\n## Migration Overview\n\nSuccessfully migrated PowerBI_Date directory from loca...",
+    "first_line": "# Master_Automation Migration Verification Summary"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-05T00:06:26+00:00_VERIFICATION_SUMMARY_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "carucci_r",
+        "city",
+        "data",
+        "docs",
+        "hackensack",
+        "json",
+        "markdown",
+        "onedrive",
+        "police",
+        "powershell",
+        "python",
+        "scripts",
+        "sql",
+        "users"
+      ],
+      "key_terms": [
+        "scripts",
+        "onedrive",
+        "users",
+        "carucci_r",
+        "city",
+        "hackensack"
+      ],
+      "summary": "# Master_Automation Migration Verification Summary\n\n**Date:** 2025-12-11  \n**Status:** ✅ Migration Complete - Ready for Testing  \n**Last Updated:** 2025-12-11\n\n## Migration Overview\n\nSuccessfully migrated PowerBI_Date directory from loca...",
+      "char_length": 7740,
+      "byte_length": 8234
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

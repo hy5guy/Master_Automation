@@ -1,0 +1,622 @@
+It handles Excel file processing, data cleaning,
+and export functionality. Author: R. A. Carucci
+Date: 2025-08-04
+"""
+
+import argparse
+import json
+import logging
+import re
+import yaml
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
+import pandas as pd
+
+# Configure logging at module level
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('arrest_processor.log')
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Optional standardized ETL writer import
+import sys
+
+TOOLS_ABS = r"C:\Dev\Power_BI_Data\tools"
+TOOLS_REL = Path(__file__).resolve().parent.parent / 'tools'
+if TOOLS_ABS not in sys.path and not Path(TOOLS_ABS).exists():
+    sys.path.insert(0, str(TOOLS_REL))
+else:
+    sys.path.insert(0, TOOLS_ABS)
+
+try:
+    from etl_output_writer import write_current_month, normalize_monthkey  # type: ignore
+    ETL_WRITER_AVAILABLE = True
+except ModuleNotFoundError:
+    ETL_WRITER_AVAILABLE = False
+
+    _etl_writer_warned = False
+
+    def _warn_once(message: str) -> None:
+        """Log a warning only once for missing optional dependencies.""" global _etl_writer_warned
+        if not _etl_writer_warned:
+            logger.warning(message)
+            _etl_writer_warned = True
+
+    def normalize_monthkey(value: Any) -> Any:
+        """Fallback normalizer when etl_output_writer is unavailable.""" _warn_once(
+            "etl_output_writer module not found; returning month key value unchanged." )
+        return value
+
+    def write_current_month(*args: Any, **kwargs: Any) -> None:
+        """Fallback writer that logs a warning when standardized writer is missing.""" _warn_once(
+            "etl_output_writer module not found; skipping standardized current-month export." )
+
+
+class ArrestDataProcessor:
+    """
+    Process arrest data for previous month with ZIP enrichment and categorization. This class handles the complete pipeline from file discovery to data export,
+    including ZIP code extraction, geographic categorization, and data validation.
+    """ def __init__(self, base_path: Optional[str] = None, config_path: Optional[str] = None):
+        """
+        Initialize the arrest data processor. Args:
+            base_path: Optional base path for data processing. If None, reads from config. config_path: Optional path to configuration file. Defaults to 'arrest_cleaner_config.yaml'.
+        """ # Load configuration
+        self.config = self._load_config(config_path)
+        
+        # Set base path from config or parameter
+        if base_path:
+            self.base_path = Path(base_path)
+        else:
+            self.base_path = Path(self.config.get('file_paths', {}).get('base_directory', 
+                "C:/Users/carucci_r/OneDrive - City of Hackensack"))
+        
+        # Project root (directory containing this script)
+        self.project_root = Path(__file__).resolve().parent
+        
+        # Define folder paths from config
+        file_paths = self.config.get('file_paths', {})
+        default_arrest_folder = file_paths.get('arrest_export_folder', "05_EXPORTS/_Arrest")
+        self.arrest_folder = self._resolve_arrest_folder(default_arrest_folder)
+        self.reference_folder = self._resolve_reference_folder()
+        # 🔧 FIX: Output to M Code input folder for pipeline compatibility
+        self.output_folder = self.base_path / file_paths.get('powerbi_output_folder',
+            "01_DataSources/ARREST_DATA/Power_BI")
+        
+        # Create output directory
+        self._create_output_directory()
+        
+        # Load ZIP reference data and supporting lookup tables
+        self.zip_ref = self._load_zip_reference()
+        self.zip_lookup = self._build_zip_lookup(self.zip_ref)
+
+        # Local ZIP variants for Hackensack residents (strip ZIP+4 to core 5-digit)
+        local_zip_variants = [
+            "07601", "07601-4151", "07601-3514", "07601-1500",
+            "07601-2109", "07601-2948", "07601-5357", "07602"
+        ]
+        self.local_zip_bases = {
+            z for z in (self._normalize_zip_value(zip_code) for zip_code in local_zip_variants)
+            if z
+        }
+
+        # Address keywords that should always map to Hackensack/Bergen NJ
+        self.special_case_map = {
+            'homeless': ('Hackensack', 'Bergen', 'NJ'),
+            'transient': ('Hackensack', 'Bergen', 'NJ'),
+            'no fixed address': ('Hackensack', 'Bergen', 'NJ'),
+            'nfa': ('Hackensack', 'Bergen', 'NJ'),
+            'shelter': ('Hackensack', 'Bergen', 'NJ'),
+        }
+
+        # Regex-based city patterns (city, county, state)
+        self.city_pattern_map: List[Tuple[re.Pattern, str, str, str]] = [
+            (re.compile(r'\bhackensack\b', re.IGNORECASE), 'Hackensack', 'Bergen', 'NJ'),
+            (re.compile(r'\bhacknesack\b', re.IGNORECASE), 'Hackensack', 'Bergen', 'NJ'),
+            (re.compile(r'\bpaterson\b', re.IGNORECASE), 'Paterson', 'Passaic', 'NJ'),
+            (re.compile(r'\bgarfield\b', re.IGNORECASE), 'Garfield', 'Bergen', 'NJ'),
+            (re.compile(r'\bnewark\b', re.IGNORECASE), 'Newark', 'Essex', 'NJ'),
+            (re.compile(r'\bmaywood\b', re.IGNORECASE), 'Maywood', 'Bergen', 'NJ'),
+            (re.compile(r'\bbronx\b', re.IGNORECASE), 'Bronx', 'Bronx', 'NY'),
+            (re.compile(r'\bfair\s*lawn\b', re.IGNORECASE), 'Fair Lawn', 'Bergen', 'NJ'),
+            (re.compile(r'\bhawthorne\b', re.IGNORECASE), 'Hawthorne', 'Passaic', 'NJ'),
+            (re.compile(r'\bridgewood\b', re.IGNORECASE), 'Ridgewood', 'Bergen', 'NJ'),
+            (re.compile(r'\bbogota\b', re.IGNORECASE), 'Bogota', 'Bergen', 'NJ'),
+            (re.compile(r'\bpoughkeepsie\b', re.IGNORECASE), 'Poughkeepsie', 'Dutchess', 'NY'),
+            (re.compile(r'\bparamus\b', re.IGNORECASE), 'Paramus', 'Bergen', 'NJ'),
+            (re.compile(r'\bscotch\s+plains\b', re.IGNORECASE), 'Scotch Plains', 'Union', 'NJ'),
+            (re.compile(r'\bbrooklyn\b', re.IGNORECASE), 'Brooklyn', 'Kings', 'NY'),
+            (re.compile(r'\bmanhattan\b', re.IGNORECASE), 'Manhattan', 'New York', 'NY'),
+            (re.compile(r'\bspring\s+valley\b', re.IGNORECASE), 'Spring Valley', 'Rockland', 'NY'),
+            (re.compile(r'\bwayne\b', re.IGNORECASE), 'Wayne', 'Passaic', 'NJ'),
+            (re.compile(r'\blodi\b', re.IGNORECASE), 'Lodi', 'Bergen', 'NJ'),
+        ]
+
+        # Default city lookups when only county/state are known
+        self.default_city_by_county = {
+            ('Bergen', 'NJ'): 'Hackensack',
+            ('Essex', 'NJ'): 'Newark',
+            ('Passaic', 'NJ'): 'Paterson',
+            ('Union', 'NJ'): 'Elizabeth',
+            ('Bronx', 'NY'): 'Bronx',
+            ('New York', 'NY'): 'Manhattan',
+            ('Kings', 'NY'): 'Brooklyn',
+            ('Dutchess', 'NY'): 'Poughkeepsie',
+            ('Rockland', 'NY'): 'Spring Valley',
+            ('Berks', 'PA'): 'Reading',
+            ('Franklin', 'PA'): 'Chambersburg',
+        }
+
+        # ZIP override mappings for quick inference when reference data is incomplete
+        self.zip_overrides = {
+            '07601': ('Bergen', 'NJ'),
+            '07602': ('Bergen', 'NJ'),
+            '07026': ('Bergen', 'NJ'),
+            '07407': ('Passaic', 'NJ'),
+            '07424': ('Passaic', 'NJ'),
+            '07663': ('Bergen', 'NJ'),
+            '10030': ('New York', 'NY'),
+            '10451': ('Bronx', 'NY'),
+        }
+
+        # Charge categorization mappings
+        self.charge_categories = self.config.get('charge_categories', {})
+        self.ucr_mappings = self.config.get('ucr_mappings', {})
+        
+        logger.info(f"Initialized processor with base path: {self.base_path}")
+
+    def _load_config(self, config_path: Optional[str] = None) -> Dict:
+        """
+        Load configuration from YAML file. Args:
+            config_path: Path to configuration file. Defaults to 'arrest_cleaner_config.yaml'. Returns:
+            Dictionary containing configuration settings.
+        """ if config_path is None:
+            config_path = "arrest_cleaner_config.yaml"
+        
+        try:
+            with open(config_path, 'r') as f:
+                config = yaml.safe_load(f)
+            logger.info(f"Loaded configuration from: {config_path}")
+            return config
+        except FileNotFoundError:
+            logger.warning(f"Configuration file not found: {config_path}. Using defaults.") return {}
+        except Exception as e:
+            logger.error(f"Error loading configuration: {e}. Using defaults.") return {}
+
+    def _create_output_directory(self) -> None:
+        """Create output directory if it doesn't exist.""" try:
+            self.output_folder.mkdir(parents=True, exist_ok=True)
+            logger.debug(f"Output directory ready: {self.output_folder}")
+        except Exception as e:
+            logger.error(f"Failed to create output directory: {e}")
+            raise
+
+    def _resolve_arrest_folder(self, configured_path: str) -> Path:
+        """
+        Resolve the arrest export folder, preferring configured path but falling back to legacy locations. Args:
+            configured_path: Path specified via configuration or default value. Returns:
+            Path object pointing at a valid arrest export directory.
+        """ primary_path = self.base_path / configured_path
+        legacy_path = self.base_path / "05_EXPORTS" / "_LAWSOFT_ARREST"
+
+        if primary_path.exists():
+            logger.debug(f"Using configured arrest export folder: {primary_path}")
+            return primary_path
+
+        if legacy_path.exists():
+            logger.warning(
+                "Configured arrest export folder not found; falling back to legacy path." )
+            return legacy_path
+
+        logger.warning(
+            "Arrest export folder not found. Ensure arrest files are located under "
+            f"{primary_path}"
+        )
+        return primary_path
+
+    def _resolve_reference_folder(self) -> Path:
+        """
+        Resolve the directory containing reference datasets (e.g., uszips.csv). Preference order:
+            1. base_path / "Reference" (configurable location)
+            2. project_root / "Reference" (co-located with this script)
+        """
+        configured_reference = self.base_path / "Reference"
+        if configured_reference.exists():
+            return configured_reference
+
+        project_reference = self.project_root / "Reference"
+        if project_reference.exists():
+            logger.info(
+                "Configured reference directory not found; using project Reference folder." )
+            return project_reference
+
+        logger.warning(
+            "Reference directory not found in configured base path or project directory." )
+        return configured_reference
+
+    def _load_zip_reference(self) -> pd.DataFrame:
+        """
+        Load ZIP code reference data from CSV file. Returns:
+            DataFrame containing ZIP code reference data with columns:
+            zip, state_id, county_name
+        """
+        try:
+            zip_file = self.reference_folder / "uszips.csv"
+            if not zip_file.exists():
+                logger.warning(f"ZIP reference file not found: {zip_file}")
+                return pd.DataFrame(columns=['zip', 'state_id', 'county_name'])
+            
+            df = pd.read_csv(zip_file, dtype={'zip': str})
+            reference_data = (
+                df[['zip', 'state_id', 'county_name']]
+                .dropna(subset=['zip'])
+                .copy()
+            )
+            reference_data['zip'] = reference_data['zip'].str.strip().str.zfill(5)
+            reference_data['state_id'] = reference_data['state_id'].astype(str).str.upper().str.strip()
+            reference_data['county_name'] = reference_data['county_name'].astype(str).str.title().str.strip()
+            reference_data = reference_data.drop_duplicates(subset=['zip'])
+            logger.info(f"Loaded {len(reference_data)} ZIP reference records")
+            return reference_data
+            
+        except Exception as e:
+            logger.error(f"Error loading ZIP reference data: {e}")
+            return pd.DataFrame(columns=['zip', 'state_id', 'county_name'])
+
+    def _build_zip_lookup(self, zip_df: pd.DataFrame) -> Dict[str, Dict[str, str]]:
+        """
+        Build a lookup dictionary for ZIP metadata. Args:
+            zip_df: ZIP reference DataFrame
+
+        Returns:
+            Dictionary keyed by ZIP with county/state metadata
+        """
+        lookup: Dict[str, Dict[str, str]] = {}
+        if zip_df.empty:
+            return lookup
+
+        for _, row in zip_df.iterrows():
+            zip_code = self._normalize_zip_value(row.get('zip'))
+            state_id = str(row.get('state_id', '')).upper().strip()
+            county_name = self._normalize_county_name(row.get('county_name', ''))
+
+            if not zip_code or not state_id or not county_name:
+                continue
+
+            lookup[zip_code] = {
+                'state_id': state_id,
+                'county_name': county_name
+            }
+
+        logger.debug("Constructed ZIP lookup with %d entries", len(lookup))
+        return lookup
+
+    def _normalize_zip_value(self, value: Any) -> Optional[str]:
+        """Normalize ZIP codes to 5-digit strings.""" if pd.isna(value):
+            return None
+        match = re.search(r'(\d{5})', str(value))
+        if not match:
+            return None
+        return match.group(1)
+
+    def _normalize_county_name(self, county: Any) -> str:
+        """Normalize county names to title case without trailing 'County'.""" county_str = str(county or '').strip()
+        if not county_str:
+            return ''
+        county_str = county_str.replace('COUNTY', '').replace('County', '').strip()
+        return county_str.title()
+
+    def _normalize_city_name(self, city: Any) -> str:
+        """Standardize city names for consistent reporting.""" city_str = str(city or '').strip()
+        if not city_str:
+            return ''
+        return re.sub(r'\s+', ' ', city_str.title())
+
+    def get_previous_month_info(self) -> Dict:
+        """
+        Calculate previous month information. Returns:
+            Dictionary containing year, month, month names, and date range
+        """
+        today = datetime.now()
+        first_of_current = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        last_of_previous = first_of_current - timedelta(days=1)
+        
+        # Normalize dates to midnight for proper date comparisons
+        start_date = last_of_previous.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        end_date = last_of_previous.replace(hour=23, minute=59, second=59, microsecond=999999)
+        
+        month_info = {
+            'year': last_of_previous.year,
+            'month': last_of_previous.month,
+            'month_name': last_of_previous.strftime('%B'),
+            'month_abbr': last_of_previous.strftime('%b').upper(),
+            'start_date': start_date,
+            'end_date': end_date
+        }
+        
+        logger.info(f"Target month: {month_info['month_name']} {month_info['year']}")
+        return month_info
+
+    def find_target_files(self) -> Tuple[List[Path], Dict]:
+        """
+        Find the most recent Excel file and return it along with month metadata. Returns:
+            Tuple of (list containing latest file path, month info dictionary)
+        """
+        month_info = self.get_previous_month_info()
+        try:
+            # Search recursively for .xlsx files in subdirectories (e.g., monthly_export/2025/)
+            all_files = sorted(
+                self.arrest_folder.glob("**/*.xlsx"),
+                key=lambda file_path: file_path.stat().st_mtime,
+                reverse=True
+            )
+        except FileNotFoundError:
+            logger.error(
+                f"Arrest folder not found: {self.arrest_folder}. " "Verify the export directory path." )
+            return [], month_info
+        except Exception as exc:
+            logger.error(f"Error scanning arrest folder: {exc}")
+            return [], month_info
+
+        if not all_files:
+            logger.error(f"No Excel files found in {self.arrest_folder}")
+            return [], month_info
+
+        latest_file = all_files[0]
+        logger.info(
+            "Latest arrest export detected: %s (modified %s)",
+            latest_file.name,
+            datetime.fromtimestamp(latest_file.stat().st_mtime).isoformat()
+        )
+        return [latest_file], month_info
+
+    def extract_zip_from_address(self, address: str) -> Optional[str]:
+        """
+        Extract 5-digit ZIP code from address string. Args:
+            address: Address string to extract ZIP from
+            
+        Returns:
+            Extracted ZIP code or None if not found
+        """
+        if pd.isna(address) or not isinstance(address, str):
+            return None
+        
+        # Look for 5-digit numbers, potentially followed by -#### 
+        zip_pattern = r'\b(\d{5})(? :-\d{4})?\b'
+        matches = re.findall(zip_pattern, address)
+        
+        return matches[0] if matches else None
+
+    def _infer_geography(self, row: pd.Series) -> Tuple[str, str]:
+        """
+        Infer county and state using available data, address patterns, and ZIP metadata. Args:
+            row: DataFrame row
+
+        Returns:
+            Tuple of (county_name, state_id)
+        """
+        address = str(row.get('Address', '') or '')
+        address_lower = address.lower()
+        zip_code = self._normalize_zip_value(row.get('ZIP'))
+
+        existing_county = self._normalize_county_name(row.get('county_name', ''))
+        existing_state = str(row.get('state_id', '') or '').upper().strip()
+
+        if existing_county and existing_state:
+            return existing_county, existing_state
+
+        # Special address keywords -> Hackensack / Bergen NJ
+        for keyword, (city, county, state) in self.special_case_map.items():
+            if keyword in address_lower:
+                return county, state
+
+        # Regex patterns for known municipalities
+        for pattern, _, county, state in self.city_pattern_map:
+            if pattern.search(address):
+                return county, state
+
+        # ZIP reference lookup
+        if zip_code:
+            if zip_code in self.zip_lookup:
+                meta = self.zip_lookup[zip_code]
+                return meta['county_name'], meta['state_id']
+            if zip_code in self.zip_overrides:
+                county, state = self.zip_overrides[zip_code]
+                return self._normalize_county_name(county), state.upper()
+
+        # State-only detection from address text
+        if ' nj' in address_lower or address_lower.endswith('nj'):
+            return 'Bergen', 'NJ'
+        if ' ny' in address_lower or address_lower.endswith('ny'):
+            return 'New York', 'NY'
+        if ' pa' in address_lower or address_lower.endswith('pa'):
+            return 'Berks', 'PA'
+
+        return existing_county, existing_state
+
+    def _extract_city_of_residence(self, row: pd.Series) -> str:
+        """
+        Extract or infer a city of residence for the record. Args:
+            row: DataFrame row
+
+        Returns:
+            City name string
+        """
+        address = str(row.get('Address', '') or '')
+        address_lower = address.lower()
+        county_name = self._normalize_county_name(row.get('county_name', ''))
+        state_id = str(row.get('state_id', '') or '').upper().strip()
+
+        if not address.strip():
+            default_city = self.default_city_by_county.get((county_name, state_id))
+            return default_city or 'Unknown'
+
+        for keyword in self.special_case_map.keys():
+            if keyword in address_lower:
+                return 'Hackensack'
+
+        for pattern, city, _, _ in self.city_pattern_map:
+            if pattern.search(address):
+                return city
+
+        # Attempt to parse city between commas (e.g., "Street, City, NJ 07601")
+        city_match = re.search(r',\s*([A-Za-z\.\'\-\s]+),\s*[A-Z]{2}\s*\d{5}', address)
+        if city_match:
+            return self._normalize_city_name(city_match.group(1))
+
+        # Alternate pattern without ZIP
+        alt_city_match = re.search(r',\s*([A-Za-z\.\'\-\s]+),\s*[A-Z]{2}\b', address)
+        if alt_city_match:
+            return self._normalize_city_name(alt_city_match.group(1))
+
+        default_city = self.default_city_by_county.get((county_name, state_id))
+        if default_city:
+            return default_city
+
+        # Fallback to detected state if available
+        if state_id == 'NJ':
+            return 'Hackensack'
+        if state_id == 'NY':
+            return 'New York'
+        if state_id == 'PA':
+            return 'Reading'
+
+        return 'Other'
+
+    def _classify_residence_category(self, row: pd.Series) -> str:
+        """
+        Assign residence category values aligned with residence categorization rules. Args:
+            row: DataFrame row
+
+        Returns:
+            Residence category string
+        """
+        address = str(row.get('Address', '') or '').lower()
+        zip_code = self._normalize_zip_value(row.get('ZIP'))
+        state_id = str(row.get('state_id', '') or '').upper().strip()
+        county_name = self._normalize_county_name(row.get('county_name', ''))
+
+        if not address or any(keyword in address for keyword in self.special_case_map.keys()):
+            return "Local"
+
+        if zip_code and zip_code in self.local_zip_bases:
+            return "Local"
+
+        if 'hackensack' in address:
+            return "Local"
+
+        if state_id == "NJ":
+            if county_name == "Bergen":
+                return "In County"
+            return "Out of County, In State"
+
+        if state_id == "NY":
+            return "Out of State | NY"
+
+        if state_id == "PA":
+            return "Out of State | PA"
+
+        if state_id:
+            return f"Out of State | {state_id}"
+
+        return "Unknown"
+
+    def _categorize_charge(self, charge: Optional[str], ucr_code: Optional[str]) -> str:
+        """
+        Derive charge category using UCR code mappings and charge description patterns. Args:
+            charge: Charge description text
+            ucr_code: UCR code value
+
+        Returns:
+            Charge category label
+        """
+        if not isinstance(charge, str) or not charge.strip():
+            return "Unknown"
+
+        charge_lower = charge.lower()
+        ucr_str = str(ucr_code).strip() if ucr_code is not None else ""
+
+        # Prefer UCR mapping when available
+        for code, category in self.ucr_mappings.items():
+            if str(code) and ucr_str.startswith(str(code)):
+                return category
+
+        # Fallback to pattern-based categorization
+        for category, patterns in self.charge_categories.items():
+            for pattern in patterns:
+                if pattern.lower() in charge_lower:
+                    return category
+
+        return "Other"
+
+    def categorize_home_location(self, row: pd.Series) -> str:
+        """
+        Categorize arrest location by home category. Args:
+            row: DataFrame row containing address and location data
+            
+        Returns:
+            Category string (Local, In-County, Out-of-County, Out-of-State, Unknown)
+        """
+        return self._classify_residence_category(row)
+
+    def process_files(self, files: List[Path], month_info: Dict) -> pd.DataFrame:
+        """
+        Process the found Excel files and combine data. Args:
+            files: List of file paths to process
+            month_info: Dictionary containing month information
+            
+        Returns:
+            Combined DataFrame from all processed files
+        """
+        all_data = []
+        
+        for file_path in files:
+            try:
+                logger.info(f"Processing file: {file_path.name}")
+                
+                # Read all sheets from Excel file
+                excel_file = pd.ExcelFile(file_path)
+                for sheet_name in excel_file.sheet_names:
+                    try:
+                        df = pd.read_excel(file_path, sheet_name=sheet_name)
+                        if not df.empty:
+                            df['source_file'] = file_path.name
+                            df['source_sheet'] = sheet_name
+                            all_data.append(df)
+                            logger.debug(f"Added {len(df)} records from sheet {sheet_name}")
+                    except Exception as e:
+                        logger.warning(
+                            f"Could not read sheet {sheet_name} from {file_path.name}: {e}"
+                        )
+                        
+            except Exception as e:
+                logger.error(f"Error processing {file_path.name}: {e}")
+        
+        if not all_data:
+            logger.error("No data found in any files")
+            return pd.DataFrame()
+        
+        # Combine all data
+        try:
+            combined_df = pd.concat(all_data, ignore_index=True)
+            logger.info(f"Combined data: {len(combined_df)} total records")
+        except Exception as e:
+            logger.error(f"Error combining data: {e}")
+            return pd.DataFrame()
+        
+        # Remove completely empty rows
+        combined_df = combined_df.dropna(how='all')
+        logger.info(f"After removing empty rows: {len(combined_df)} records")
+        
+        return combined_df
+
+    def clean_and_enrich_data(self, df: pd.DataFrame, month_info: Dict) -> pd.DataFrame:
+        """
+        Clean and enrich the arrest data with ZIP codes and categorization.

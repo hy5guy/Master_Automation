@@ -1,0 +1,770 @@
+```powershell
+# Master ETL Orchestrator
+# Runs all configured Python ETL scripts in order
+
+param(
+    [string[]]$ScriptNames = @(),  # Run only specified scripts (empty = all)
+    [switch]$DryRun,  # Preview what would run
+    [switch]$SkipPowerBI  # Skip Power BI integration step
+)
+
+$ErrorActionPreference = 'Stop'
+
+# Get script directory
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$automationDir = Split-Path -Parent $scriptDir
+$configPath = Join-Path $automationDir "config\scripts.json"
+
+# Colors
+$Green = "`e[32m"
+$Yellow = "`e[33m"
+$Red = "`e[31m"
+$Cyan = "`e[34m"
+$Reset = "`e[0m"
+
+function Write-Step([string]$msg) { Write-Host "$Cyan>> $msg$Reset" }
+function Write-Success([string]$msg) { Write-Host "$Green[OK] $msg$Reset" }
+function Write-Warn([string]$msg) { Write-Host "$Yellow[WARN] $msg$Reset" }
+function Write-Fail([string]$msg) { Write-Host "$Red[FAIL] $msg$Reset" }
+
+# Load configuration
+if (-not (Test-Path $configPath)) {
+    Write-Fail "Configuration file not found: $configPath"
+    exit 1
+}
+
+$config = Get-Content $configPath | ConvertFrom-Json
+$settings = $config.settings
+$scripts = $config.scripts | Where-Object { $_.enabled -eq $true } | Sort-Object order
+
+# Filter to specific scripts if requested
+if ($ScriptNames.Count -gt 0) {
+    $scripts = $scripts | Where-Object { $_.name -in $ScriptNames }
+    if ($scripts.Count -eq 0) {
+        Write-Fail "No matching enabled scripts found"
+        exit 1
+    }
+}
+
+# Create log directory
+$logDir = Join-Path $automationDir $settings.log_directory
+if (-not (Test-Path $logDir)) {
+    New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+}
+
+# Create timestamp
+$timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+$logFile = Join-Path $logDir "${timestamp}_ETL_Run.log"
+
+function Write-Log([string]$message) {
+    $logMessage = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - $message"
+    Add-Content -Path $logFile -Value $logMessage
+    Write-Host $message
+}
+
+Write-Log "=== Master ETL Orchestrator Started ==="
+Write-Log "Timestamp: $timestamp"
+Write-Log "Scripts to run: $($scripts.Count)"
+Write-Log ""
+
+if ($DryRun) {
+    Write-Warn "DRY RUN MODE - No scripts will execute"
+    Write-Log "DRY RUN MODE"
+}
+
+# Track results
+$results = @()
+$startTime = Get-Date
+
+foreach ($scriptConfig in $scripts) {
+    $scriptName = $scriptConfig.name
+    $scriptPath = $scriptConfig.path
+    $scriptFile = $scriptConfig.script
+    $fullScriptPath = Join-Path $scriptPath $scriptFile
+    
+    Write-Log ""
+    Write-Step "Processing: $scriptName"
+    Write-Log "  Script: $fullScriptPath"
+    Write-Log "  Order: $($scriptConfig.order)"
+    
+    if ($DryRun) {
+        Write-Host "  [DRY RUN] Would execute: $fullScriptPath" -ForegroundColor Gray
+        continue
+    }
+    
+    # Check if script exists
+    if (-not (Test-Path $fullScriptPath)) {
+        Write-Fail "  Script not found: $fullScriptPath"
+        Write-Log "  ERROR: Script file not found"
+        $results += [pscustomobject]@{
+            Name     = $scriptName
+            Status   = "Failed"
+            Error    = "Script file not found"
+            Duration = 0
+        }
+        if (-not $settings.continue_on_error) {
+            Write-Fail "Stopping due to error (continue_on_error = false)"
+            break
+        }
+        continue
+    }
+    
+    # Change to script directory
+    Push-Location $scriptPath
+    
+    try {
+        $scriptStartTime = Get-Date
+        $scriptLogFile = Join-Path $logDir "${timestamp}_${scriptName}.log"
+        
+        Write-Log "  Executing Python script..."
+        Write-Log "  Log: $scriptLogFile"
+        
+        # Run Python script
+        $pythonCmd = $settings.python_executable
+        $timeoutSeconds = $scriptConfig.timeout_minutes * 60
+        
+        # Execute with timeout
+        $process = Start-Process -FilePath $pythonCmd -ArgumentList $scriptFile -WorkingDirectory $scriptPath -NoNewWindow -PassThru -RedirectStandardOutput $scriptLogFile -RedirectStandardError "$scriptLogFile.err"
+        
+        # Wait with timeout
+        $process.WaitForExit($timeoutSeconds * 1000)
+        
+        if (-not $process.HasExited) {
+            Stop-Process -Id $process.Id -Force
+            throw "Script exceeded timeout of $($scriptConfig.timeout_minutes) minutes"
+        }
+        
+        $scriptDuration = (Get-Date) - $scriptStartTime
+        
+        if ($process.ExitCode -eq 0) {
+            Write-Success "  Completed in $([math]::Round($scriptDuration.TotalSeconds, 2)) seconds"
+            Write-Log "  SUCCESS: Exit code 0"
+            
+            # Find output files
+            # Supports:
+            # - Simple patterns like "*.csv" (searched in script root)
+            # - Relative subpaths like "output\FIXED_*.csv" (joined to script root)
+            $outputFiles = @()
+            foreach ($pattern in $scriptConfig.output_patterns) {
+                if ([string]::IsNullOrWhiteSpace($pattern)) { continue }
+
+                $isAbsolute = ($pattern -match '^[A-Za-z]:\\' -or $pattern -match '^\\\\')
+                $hasSeparator = ($pattern -like "*\*" -or $pattern -like "*/*")
+
+                if ($isAbsolute) {
+                    $globPath = $pattern
+                    $found = Get-ChildItem -Path $globPath -File -ErrorAction SilentlyContinue
+                }
+                elseif ($hasSeparator) {
+                    $globPath = Join-Path $scriptPath $pattern
+                    $found = Get-ChildItem -Path $globPath -File -ErrorAction SilentlyContinue
+                }
+                else {
+                    $found = Get-ChildItem -Path $scriptPath -Filter $pattern -File -ErrorAction SilentlyContinue
+                }
+
+                if ($found) { $outputFiles += $found }
+            }
+            
+            Write-Log "  Output files found: $($outputFiles.Count)"
+            
+            # Copy to Power BI drop folder if enabled
+            if ($scriptConfig.output_to_powerbi -and -not $SkipPowerBI) {
+                $dropPath = $settings.powerbi_drop_path
+                if (-not (Test-Path $dropPath)) {
+                    Write-Warn "  Power BI drop folder not found: $dropPath"
+                    Write-Log "  WARNING: Power BI drop folder not found"
+                }
+                else {
+                    foreach ($file in $outputFiles) {
+                        $destPath = Join-Path $dropPath $file.Name
+                        Copy-Item -Path $file.FullName -Destination $destPath -Force
+                        Write-Log "  Copied to Power BI: $($file.Name)"
+                    }
+                    Write-Success "  Copied $($outputFiles.Count) file(s) to Power BI drop folder"
+                }
+            }
+            
+            $results += [pscustomobject]@{
+                Name        = $scriptName
+                Status      = "Success"
+                Error       = $null
+                Duration    = $scriptDuration.TotalSeconds
+                OutputFiles = $outputFiles.Count
+            }
+        }
+        else {
+            throw "Script exited with code $($process.ExitCode)"
+        }
+        
+    }
+    catch {
+        $scriptDuration = (Get-Date) - $scriptStartTime
+        Write-Fail "  Error: $_"
+        Write-Log "  ERROR: $_"
+        
+        $results += [pscustomobject]@{
+            Name     = $scriptName
+            Status   = "Failed"
+            Error    = $_.Exception.Message
+            Duration = $scriptDuration.TotalSeconds
+        }
+        
+        if (-not $settings.continue_on_error) {
+            Write-Fail "Stopping due to error (continue_on_error = false)"
+            break
+        }
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+# Summary
+$totalDuration = (Get-Date) - $startTime
+$successCount = ($results | Where-Object { $_.Status -eq "Success" }).Count
+$failCount = ($results | Where-Object { $_.Status -eq "Failed" }).Count
+
+Write-Log ""
+Write-Log "=== Execution Summary ==="
+Write-Log "Total duration: $([math]::Round($totalDuration.TotalMinutes, 2)) minutes"
+Write-Log "Success: $successCount"
+Write-Log "Failed: $failCount"
+Write-Log ""
+
+Write-Host ""
+Write-Host "=== Execution Summary ===" -ForegroundColor Cyan
+Write-Host "Total duration: $([math]::Round($totalDuration.TotalMinutes, 2)) minutes" -ForegroundColor Cyan
+Write-Host ""
+
+Write-Host "Results:" -ForegroundColor Yellow
+foreach ($result in $results) {
+    if ($result.Status -eq "Success") {
+        Write-Success "$($result.Name): Success ($([math]::Round($result.Duration, 2))s, $($result.OutputFiles) file(s))"
+    }
+    else {
+        Write-Fail "$($result.Name): Failed - $($result.Error)"
+    }
+}
+
+Write-Log "=== Master ETL Orchestrator Completed ==="
+Write-Host ""
+Write-Host "Full log: $logFile" -ForegroundColor Gray
+
+if ($successCount -eq $results.Count) {
+    Write-Success "All scripts completed successfully!" if (-not $SkipPowerBI) {
+        Write-Host ""
+        Write-Host "Next step: Run Power BI organization script" -ForegroundColor Cyan
+        Write-Host "  cd `"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date`"" -ForegroundColor Gray
+        Write-Host "  .\tools\organize_backfill_exports.ps1" -ForegroundColor Gray
+    }
+    exit 0
+}
+else {
+    Write-Warn "Some scripts failed. Check logs for details." exit 1
+}
+
+
+```
+
+```json
+{
+  "settings": {
+    "powerbi_drop_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\_DropExports",
+    "log_directory": "logs",
+    "python_executable": "python",
+    "continue_on_error": true,
+    "cleanup_temp_files": true
+  },
+  "scripts": [
+    {
+      "name": "Arrests",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Arrests",
+      "script": "arrest_python_processor.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 1,
+      "timeout_minutes": 30,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "arrest",
+        "court"
+      ]
+    },
+    {
+      "name": "Community Engagement",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagment",
+      "script": "deploy_production.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 2,
+      "timeout_minutes": 15,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "community",
+        "outreach",
+        "engagement"
+      ]
+    },
+    {
+      "name": "Overtime TimeOff",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\scripts",
+      "script": "overtime_timeoff_with_backfill.py",
+      "enabled": true,
+      "output_to_powerbi": false,
+      "order": 3,
+      "timeout_minutes": 45,
+      "output_patterns": [
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\output\\FIXED_monthly_breakdown_*.csv",
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\analytics_output\\monthly_breakdown.csv",
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\analytics_output\\executive_summary.csv"
+      ],
+      "keywords": [
+        "vcs",
+        "time",
+        "overtime",
+        "accrual"
+      ]
+    },
+    {
+      "name": "Policy Training Monthly",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Policy_Training_Monthly",
+      "script": "main.py",
+      "enabled": false,
+      "output_to_powerbi": true,
+      "order": 4,
+      "timeout_minutes": 15,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "policy",
+        "training"
+      ]
+    },
+    {
+      "name": "Response Times",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Response_Times",
+      "script": "response_time_diagnostic.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 5,
+      "timeout_minutes": 30,
+      "output_patterns": [
+        "diagnostic_output\\response_time_comparison_*.xlsx",
+        "diagnostic_output\\supervisor_brief_*.txt",
+        "diagnostic_output\\unmapped_incidents*.csv"
+      ],
+      "keywords": [
+        "response",
+        "time"
+      ]
+    },
+    {
+      "name": "Summons",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Summons",
+      "script": "main_orchestrator.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 6,
+      "timeout_minutes": 15,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "summon",
+        "violation",
+        "moving",
+        "parking"
+      ]
+    },
+    {
+      "name": "Arrest Data Source",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\01_DataSources\\ARREST_DATA",
+      "script": "main.py",
+      "enabled": false,
+      "output_to_powerbi": false,
+      "order": 7,
+      "timeout_minutes": 20,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "arrest"
+      ]
+    },
+    {
+      "name": "NIBRS",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\01_DataSources\\NIBRS",
+      "script": "main.py",
+      "enabled": false,
+      "output_to_powerbi": true,
+      "order": 8,
+      "timeout_minutes": 25,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "nibrs"
+      ]
+    }
+  ]
+}
+
+
+```
+
+Updated and ran it. ### Response Times (CAD path fix)
+- I updated `response_time_diagnostic.py` to use your consolidated CAD export:
+  - `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\monthly_export\2024_11_to_2025_11_CAD_Data.xlsx`
+- Reran **Response Times** via the orchestrator and it **completed successfully**. ### What got produced/copied
+- I updated `config/scripts.json` so the orchestrator picks up Response Times outputs from `diagnostic_output\`. - On the run, it found and copied **13 files** into:
+  - `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\`
+  - Includes:
+    - `response_time_comparison_*.xlsx`
+    - `supervisor_brief_*.txt`
+    - `unmapped_incidents*.csv`
+
+### Orchestrator summary bug fixed
+I fixed `scripts/run_all_etl.ps1` so the summary counts are correct (it now stores results as `[pscustomobject]` so PowerShell doesn’t miscount hashtable entries). ---
+
+**User**
+
+do we refresh or run the script
+
+---
+
+**Cursor**
+
+**Do both, in this order:**
+
+1) **Run the ETL orchestrator** (this generates/updates the files Power BI reads):
+```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+.\scripts\run_all_etl.ps1
+```
+
+2) **Then refresh Power BI** (so it reloads the updated CSVs from `Overtime_TimeOff\output`, `analytics_output`, and the Backfill folders). If you already ran the orchestrator after the latest fixes, then you can **skip step 1** and just **refresh Power BI now**. ```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+.\scripts\run_all_etl.ps1
+```
+
+---
+
+**User**
+
+PS U:\> cd c:\
+PS C:\> cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation> .\scripts\run_all_etl.ps1
+.\scripts\run_all_etl.ps1 : File C:\Users\carucci_r\OneDrive - City of
+Hackensack\Master_Automation\scripts\run_all_etl.ps1 cannot be loaded. The file C:\Users\carucci_r\OneDrive - City of
+Hackensack\Master_Automation\scripts\run_all_etl.ps1 is not digitally signed. You cannot run this script on the
+current system. For more information about running scripts and setting execution policy, see about_Execution_Policies
+at https:/go.microsoft.com/fwlink/?LinkID=135170. At line:1 char:1
++ .\scripts\run_all_etl.ps1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : SecurityError: (:) [], PSSecurityException
+    + FullyQualifiedErrorId : UnauthorizedAccess
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation>
+
+
+---
+
+**Cursor**
+
+### Why it failed
+Your PowerShell **execution policy** is blocking unsigned `.ps1` scripts (`PSSecurityException`). ### Fastest fix (recommended)
+Use the batch wrapper (it already runs PowerShell with ExecutionPolicy Bypass):
+
+```bat
+scripts\run_all_etl.bat
+```
+
+### Alternative (run the PS1 with bypass just once)
+From the project folder:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run_all_etl.ps1
+```
+
+### Permanent fix for this repo (optional)
+Unblock the scripts:
+
+```powershell
+Get-ChildItem .\scripts\*.ps1 | Unblock-File
+Unblock-File .\verify_migration.ps1
+```
+
+After that you can run:
+
+```powershell
+.\scripts\run_all_etl.ps1
+```
+
+```bat
+scripts\run_all_etl.bat
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run_all_etl.ps1
+```
+
+```powershell
+Get-ChildItem .\scripts\*.ps1 | Unblock-File
+Unblock-File .\verify_migration.ps1
+```
+
+```powershell
+.\scripts\run_all_etl.ps1
+```
+
+---
+
+**User**
+
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved. Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS U:\> cd c:\
+PS C:\> cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation> .\scripts\run_all_etl.ps1
+.\scripts\run_all_etl.ps1 : File C:\Users\carucci_r\OneDrive - City of
+Hackensack\Master_Automation\scripts\run_all_etl.ps1 cannot be loaded. The file C:\Users\carucci_r\OneDrive - City of
+Hackensack\Master_Automation\scripts\run_all_etl.ps1 is not digitally signed. You cannot run this script on the
+current system. For more information about running scripts and setting execution policy, see about_Execution_Policies
+at https:/go.microsoft.com/fwlink/?LinkID=135170. At line:1 char:1
++ .\scripts\run_all_etl.ps1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : SecurityError: (:) [], PSSecurityException
+    + FullyQualifiedErrorId : UnauthorizedAccess
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation> scripts\run_all_etl.bat
+=== Master ETL Orchestrator Started ===
+Timestamp: 2025-12-11_18-23-52
+Scripts to run: 5
+
+
+e[34m>> Processing: Arrestse[0m
+  Script: C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Arrests\arrest_python_processor.py
+  Order: 1
+  Executing Python script...
+  Log: C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\logs\2025-12-11_18-23-52_Arrests.log
+True
+e[31m[FAIL]   Error: Script exited with code e[0m
+  ERROR: Script exited with code
+
+e[34m>> Processing: Community Engagemente[0m
+  Script: C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\deploy_production.py
+  Order: 2
+  Executing Python script...
+  Log: C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\logs\2025-12-11_18-23-52_Community Engagement.log
+True
+e[31m[FAIL]   Error: Script exited with code e[0m
+  ERROR: Script exited with code
+
+e[34m>> Processing: Overtime TimeOffe[0m
+  Script: C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\overtime_timeoff_with_backfill.py
+  Order: 3
+  Executing Python script...
+  Log: C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\logs\2025-12-11_18-23-52_Overtime TimeOff.log
+True
+e[31m[FAIL]   Error: Script exited with code e[0m
+  ERROR: Script exited with code
+
+e[34m>> Processing: Response Timese[0m
+  Script: C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\response_time_diagnostic.py
+  Order: 5
+  Executing Python script...
+  Log: C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\logs\2025-12-11_18-23-52_Response Times.log
+True
+e[31m[FAIL]   Error: Script exited with code e[0m
+  ERROR: Script exited with code
+
+e[34m>> Processing: Summonse[0m
+  Script: C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Summons\main_orchestrator.py
+  Order: 6
+  Executing Python script...
+  Log: C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\logs\2025-12-11_18-23-52_Summons.log
+True
+e[31m[FAIL]   Error: Script exited with code e[0m
+  ERROR: Script exited with code
+
+=== Execution Summary ===
+Total duration: 0.55 minutes
+Success: 0
+Failed: 5
+
+
+=== Execution Summary ===
+Total duration: 0.55 minutes
+
+Results:
+e[31m[FAIL] Arrests: Failed - Script exited with code e[0m
+e[31m[FAIL] Community Engagement: Failed - Script exited with code e[0m
+e[31m[FAIL] Overtime TimeOff: Failed - Script exited with code e[0m
+e[31m[FAIL] Response Times: Failed - Script exited with code e[0m
+e[31m[FAIL] Summons: Failed - Script exited with code e[0m
+=== Master ETL Orchestrator Completed ===
+
+Full log: C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\logs\2025-12-11_18-23-52_ETL_Run.log
+e[33m[WARN] Some scripts failed. Check logs for details.e[0m
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation>
+
+---
+
+**Cursor**
+
+I’m going to inspect the per-script `*.log.err` files from the `18-23-52` run to see the *real* Python errors (the console output is being mangled by ANSI codes + PowerShell 5.1). Then I’ll patch `run_all_etl.ps1` to (a) stop printing `True`, (b) always show the actual exit code, and (c) avoid ANSI escape sequences on Windows PowerShell. ```powershell
+# Master ETL Orchestrator
+# Runs all configured Python ETL scripts in order
+
+param(
+    [string[]]$ScriptNames = @(),  # Run only specified scripts (empty = all)
+    [switch]$DryRun,  # Preview what would run
+    [switch]$SkipPowerBI  # Skip Power BI integration step
+)
+
+$ErrorActionPreference = 'Stop'
+
+# Get script directory
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$automationDir = Split-Path -Parent $scriptDir
+$configPath = Join-Path $automationDir "config\scripts.json"
+
+# Colors
+# PowerShell 7+ supports ANSI escape sequences; Windows PowerShell 5.1 typically does not. $useAnsi = $false
+try {
+    $useAnsi = ($PSVersionTable.PSVersion.Major -ge 7) -and ($Host.UI -and $Host.UI.SupportsVirtualTerminal)
+} catch { $useAnsi = $false }
+
+if ($useAnsi) {
+    $Green = "`e[32m"
+    $Yellow = "`e[33m"
+    $Red = "`e[31m"
+    $Cyan = "`e[34m"
+    $Reset = "`e[0m"
+} else {
+    $Green = ""
+    $Yellow = ""
+    $Red = ""
+    $Cyan = ""
+    $Reset = ""
+}
+
+function Write-Step([string]$msg) { Write-Host "$Cyan>> $msg$Reset" }
+function Write-Success([string]$msg) { Write-Host "$Green[OK] $msg$Reset" }
+function Write-Warn([string]$msg) { Write-Host "$Yellow[WARN] $msg$Reset" }
+function Write-Fail([string]$msg) { Write-Host "$Red[FAIL] $msg$Reset" }
+
+# Load configuration
+if (-not (Test-Path $configPath)) {
+    Write-Fail "Configuration file not found: $configPath"
+    exit 1
+}
+
+$config = Get-Content $configPath | ConvertFrom-Json
+$settings = $config.settings
+$scripts = $config.scripts | Where-Object { $_.enabled -eq $true } | Sort-Object order
+
+# Filter to specific scripts if requested
+if ($ScriptNames.Count -gt 0) {
+    $scripts = $scripts | Where-Object { $_.name -in $ScriptNames }
+    if ($scripts.Count -eq 0) {
+        Write-Fail "No matching enabled scripts found"
+        exit 1
+    }
+}
+
+# Create log directory
+$logDir = Join-Path $automationDir $settings.log_directory
+if (-not (Test-Path $logDir)) {
+    New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+}
+
+# Create timestamp
+$timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+$logFile = Join-Path $logDir "${timestamp}_ETL_Run.log"
+
+function Write-Log([string]$message) {
+    $logMessage = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - $message"
+    Add-Content -Path $logFile -Value $logMessage
+    Write-Host $message
+}
+
+Write-Log "=== Master ETL Orchestrator Started ==="
+Write-Log "Timestamp: $timestamp"
+Write-Log "Scripts to run: $($scripts.Count)"
+Write-Log ""
+
+if ($DryRun) {
+    Write-Warn "DRY RUN MODE - No scripts will execute"
+    Write-Log "DRY RUN MODE"
+}
+
+# Track results
+$results = @()
+$startTime = Get-Date
+
+foreach ($scriptConfig in $scripts) {
+    $scriptName = $scriptConfig.name
+    $scriptPath = $scriptConfig.path
+    $scriptFile = $scriptConfig.script
+    $fullScriptPath = Join-Path $scriptPath $scriptFile
+    
+    Write-Log ""
+    Write-Step "Processing: $scriptName"
+    Write-Log "  Script: $fullScriptPath"
+    Write-Log "  Order: $($scriptConfig.order)"
+    
+    if ($DryRun) {
+        Write-Host "  [DRY RUN] Would execute: $fullScriptPath" -ForegroundColor Gray
+        continue
+    }
+    
+    # Check if script exists
+    if (-not (Test-Path $fullScriptPath)) {
+        Write-Fail "  Script not found: $fullScriptPath"
+        Write-Log "  ERROR: Script file not found"
+        $results += [pscustomobject]@{
+            Name     = $scriptName
+            Status   = "Failed"
+            Error    = "Script file not found"
+            Duration = 0
+        }
+        if (-not $settings.continue_on_error) {
+            Write-Fail "Stopping due to error (continue_on_error = false)"
+            break
+        }
+        continue
+    }
+    
+    # Change to script directory
+    Push-Location $scriptPath
+    
+    try {
+        $scriptStartTime = Get-Date
+        $scriptLogFile = Join-Path $logDir "${timestamp}_${scriptName}.log"
+        
+        Write-Log "  Executing Python script..."
+        Write-Log "  Log: $scriptLogFile"
+        
+        # Run Python script
+        $pythonCmd = $settings.python_executable
+        $timeoutSeconds = $scriptConfig.timeout_minutes * 60
+        
+        # Execute with timeout
+        $process = Start-Process -FilePath $pythonCmd -ArgumentList $scriptFile -WorkingDirectory $scriptPath -NoNewWindow -PassThru -RedirectStandardOutput $scriptLogFile -RedirectStandardError "$scriptLogFile.err"
+        
+        # Wait with timeout (suppress boolean return value from WaitForExit(timeout))
+        $null = $process.WaitForExit($timeoutSeconds * 1000)
+        
+        if (-not $process.HasExited) {
+            Stop-Process -Id $process.Id -Force
+            throw "Script exceeded timeout of $($scriptConfig.timeout_minutes) minutes"
+        }
+        
+        # IMPORTANT: when redirecting stdout/stderr, do a final parameterless WaitForExit()
+        # so the process fully terminates and ExitCode is reliably available (esp. in Windows PowerShell 5.1).

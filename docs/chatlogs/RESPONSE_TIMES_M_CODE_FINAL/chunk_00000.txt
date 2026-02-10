@@ -1,0 +1,168 @@
+// ==============================================================================
+// RESPONSE TIMES M CODE - FINAL DROP-IN READY SCRIPT
+// Query Name: ___ResponseTimeCalculator
+// ==============================================================================
+// This script combines:
+// 1. Backfill data: November 2024 - October 2025
+// 2. ETL output: November 2025 (from monthly ETL processing)
+// ==============================================================================
+
+let
+    // ========================================================================
+    // SECTION 1: LOAD BACKFILL DATA (Nov 2024 - Oct 2025)
+    // ========================================================================
+    
+    // Average Response Times - Backfill Period
+    BackfillAvgResponseTimesPath = "C:\Dev\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Average Response Times Values are in mmss.csv",
+    BackfillAvgResponseTimes = try
+        Csv.Document(
+            File.Contents(BackfillAvgResponseTimesPath),
+            [Delimiter=",", Columns=null, Encoding=1252, QuoteStyle=QuoteStyle.None]
+        )
+    otherwise
+        null,
+    
+    // Response Times by Priority - Backfill Period
+    BackfillResponseTimesByPriorityPath = "C:\Dev\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Response Times by Priority.csv",
+    BackfillResponseTimesByPriority = try
+        Csv.Document(
+            File.Contents(BackfillResponseTimesByPriorityPath),
+            [Delimiter=",", Columns=null, Encoding=1252, QuoteStyle=QuoteStyle.None]
+        )
+    otherwise
+        null,
+    
+    // ========================================================================
+    // SECTION 2: LOAD NOVEMBER 2025 DATA (ETL Output)
+    // ========================================================================
+    
+    // Average Response Times - November 2025
+    Nov2025AvgResponseTimesPath = "C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\2025_12_Average_Response_Times__Values_are_in_mmss.csv",
+    Nov2025AvgResponseTimes = try
+        Csv.Document(
+            File.Contents(Nov2025AvgResponseTimesPath),
+            [Delimiter=",", Columns=null, Encoding=1252, QuoteStyle=QuoteStyle.None]
+        )
+    otherwise
+        null,
+    
+    // Response Times by Priority - November 2025 (if available)
+    // Note: Check if this file exists in your 2025_12 folder
+    Nov2025ResponseTimesByPriority = null, // Update path if available
+    
+    // ========================================================================
+    // SECTION 3: COMBINE DATASETS
+    // ========================================================================
+    
+    // Combine Average Response Times: Backfill + November 2025
+    CombinedAvgResponseTimes = if BackfillAvgResponseTimes <> null and Nov2025AvgResponseTimes <> null then
+        // Both datasets exist - combine them
+        let
+            // Promote first row to headers if needed (adjust based on your data structure)
+            BackfillPromoted = if Table.HasColumns(BackfillAvgResponseTimes, "Column1") then
+                Table.PromoteHeaders(BackfillAvgResponseTimes, [PromoteAllScalars=true])
+            else
+                BackfillAvgResponseTimes,
+            
+            Nov2025Promoted = if Table.HasColumns(Nov2025AvgResponseTimes, "Column1") then
+                Table.PromoteHeaders(Nov2025AvgResponseTimes, [PromoteAllScalars=true])
+            else
+                Nov2025AvgResponseTimes,
+            
+            // Combine tables
+            Combined = Table.Combine({BackfillPromoted, Nov2025Promoted}),
+            
+            // Remove duplicates if any (optional - adjust based on your needs)
+            Deduplicated = Table.Distinct(Combined)
+        in
+            Deduplicated
+    else if BackfillAvgResponseTimes <> null then
+        // Only backfill data exists
+        if Table.HasColumns(BackfillAvgResponseTimes, "Column1") then
+            Table.PromoteHeaders(BackfillAvgResponseTimes, [PromoteAllScalars=true])
+        else
+            BackfillAvgResponseTimes
+    else if Nov2025AvgResponseTimes <> null then
+        // Only November 2025 data exists
+        if Table.HasColumns(Nov2025AvgResponseTimes, "Column1") then
+            Table.PromoteHeaders(Nov2025AvgResponseTimes, [PromoteAllScalars=true])
+        else
+            Nov2025AvgResponseTimes
+    else
+        // No data available - return empty table
+        #table({}, {}),
+    
+    // Combine Response Times by Priority: Backfill + November 2025
+    CombinedResponseTimesByPriority = if BackfillResponseTimesByPriority <> null and Nov2025ResponseTimesByPriority <> null then
+        // Both datasets exist - combine them
+        let
+            BackfillPromoted = if Table.HasColumns(BackfillResponseTimesByPriority, "Column1") then
+                Table.PromoteHeaders(BackfillResponseTimesByPriority, [PromoteAllScalars=true])
+            else
+                BackfillResponseTimesByPriority,
+            
+            Nov2025Promoted = if Table.HasColumns(Nov2025ResponseTimesByPriority, "Column1") then
+                Table.PromoteHeaders(Nov2025ResponseTimesByPriority, [PromoteAllScalars=true])
+            else
+                Nov2025ResponseTimesByPriority,
+            
+            Combined = Table.Combine({BackfillPromoted, Nov2025Promoted}),
+            Deduplicated = Table.Distinct(Combined)
+        in
+            Deduplicated
+    else if BackfillResponseTimesByPriority <> null then
+        // Only backfill data exists
+        if Table.HasColumns(BackfillResponseTimesByPriority, "Column1") then
+            Table.PromoteHeaders(BackfillResponseTimesByPriority, [PromoteAllScalars=true])
+        else
+            BackfillResponseTimesByPriority
+    else if Nov2025ResponseTimesByPriority <> null then
+        // Only November 2025 data exists
+        if Table.HasColumns(Nov2025ResponseTimesByPriority, "Column1") then
+            Table.PromoteHeaders(Nov2025ResponseTimesByPriority, [PromoteAllScalars=true])
+        else
+            Nov2025ResponseTimesByPriority
+    else
+        // Use backfill data if November 2025 not available
+        if BackfillResponseTimesByPriority <> null then
+            if Table.HasColumns(BackfillResponseTimesByPriority, "Column1") then
+                Table.PromoteHeaders(BackfillResponseTimesByPriority, [PromoteAllScalars=true])
+            else
+                BackfillResponseTimesByPriority
+        else
+            #table({}, {}),
+    
+    // ========================================================================
+    // SECTION 4: DATA PROCESSING (Customize based on your requirements)
+    // ========================================================================
+    
+    // Standardize column types if needed (adjust based on your schema)
+    ProcessedAvgResponseTimes = CombinedAvgResponseTimes,
+    
+    ProcessedResponseTimesByPriority = CombinedResponseTimesByPriority,
+    
+    // ========================================================================
+    // SECTION 5: RETURN RESULT
+    // ========================================================================
+    // Return the primary dataset (Average Response Times)
+    // For Response Times by Priority, create a separate query or modify return
+    Result = ProcessedAvgResponseTimes
+    
+in
+    Result
+
+// ==============================================================================
+// ALTERNATIVE: If you need both datasets, create two queries:
+// ==============================================================================
+// Query 1: "ResponseTimes_Average" - Returns ProcessedAvgResponseTimes
+// Query 2: "ResponseTimes_ByPriority" - Returns ProcessedResponseTimesByPriority
+// ==============================================================================
+
+// ==============================================================================
+// NOTES:
+// 1. Adjust column promotion logic if your CSV files already have headers
+// 2. Add data type conversions if needed (e.g., Date.From, Number.From)
+// 3. Add filtering/transformation steps based on your specific requirements
+// 4. Test with both datasets available and with only one available
+// 5. If November 2025 Priority file is found, update Nov2025ResponseTimesByPriority path
+// ==============================================================================

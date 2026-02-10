@@ -1,0 +1,107 @@
+{
+  "source_file": "directory_cleanup_export_of_12_2026_visual_data.md",
+  "source_path": "C:\\_chunker\\02_data\\directory_cleanup_export_of_12_2026_visual_data.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\directory_cleanup_export_of_12_2026_visual_data\\2026_02_05_01_05_48_directory_cleanup_export_of_12_2026_visual_data.origin.json",
+  "created_at": "2026_02_05_01_05_48",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "files",
+      "users",
+      "carucci_r",
+      "onedrive",
+      "city",
+      "hackensack"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Documentation file merging and update\n_Exported on 2/5/2026 at 01:04:33 EST from Cursor (2.4.28)_\n\n---\n\n**User**\n\nread the multipel version of the README, CHANGELOG & SUMMARY. the versions with the suffix \"-PD_BCI_LTP\" are from I assum...",
+    "first_line": "# Documentation file merging and update"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-05T01:05:48+00:00_directory_cleanup_export_of_12_2026_visual_data_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "carucci_r",
+        "city",
+        "code",
+        "data",
+        "docs",
+        "files",
+        "hackensack",
+        "json",
+        "legal",
+        "markdown",
+        "onedrive",
+        "police",
+        "powershell",
+        "sql",
+        "users"
+      ],
+      "key_terms": [
+        "files",
+        "onedrive",
+        "users",
+        "carucci_r",
+        "city",
+        "hackensack"
+      ],
+      "summary": "# Documentation file merging and update\n_Exported on 2/5/2026 at 01:04:33 EST from Cursor (2.4.28)_\n\n---\n\n**User**\n\nread the multipel version of the README, CHANGELOG & SUMMARY.",
+      "char_length": 26991,
+      "byte_length": 28108
+    },
+    {
+      "chunk_id": "2026-02-05T01:05:48+00:00_directory_cleanup_export_of_12_2026_visual_data_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "ai",
+        "blank",
+        "code",
+        "complete",
+        "cursor",
+        "data",
+        "docs",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "powershell",
+        "screenshots",
+        "sql",
+        "workbench"
+      ],
+      "key_terms": [
+        "data",
+        "complete",
+        "workbench",
+        "blank",
+        "screenshots",
+        "cursor"
+      ],
+      "summary": "Engagement Initiatives by Bureau is blank maybe due to m code or dax to show previous month (using todays date as an anchor.",
+      "char_length": 8967,
+      "byte_length": 9175
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

@@ -1,0 +1,39 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "script",
+        "file",
+        "etl",
+        "files",
+        "data",
+        "code"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Claude Code Prompt: Fix Response Time ETL and Power BI Query\n\n## Executive Summary\n\nThe Response Time Power BI query (`response_time_calculator`) contains incorrect calculations and uses outdated file paths. The ETL script has not been...",
+      "first_line": "# Claude Code Prompt: Fix Response Time ETL and Power BI Query"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-04T23:57:16.022831",
+  "department": "admin"
+}

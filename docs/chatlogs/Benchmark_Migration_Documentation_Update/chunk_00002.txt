@@ -1,0 +1,913 @@
+```plaintext
+let
+    // Read pre-filtered rolling 13-month dataset
+    Source = Csv.Document(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark\by_time_period\rolling_13month\current_window.csv"),
+        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]
+    ),
+
+    // Promote headers
+    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+
+    // Type conversions
+    TypedColumns = Table.TransformColumnTypes(
+        PromotedHeaders,
+        {
+            {"Officer Name", type text},
+            {"Badge Number", Int64.Type},
+            {"Rank", type text},
+            {"Organization", type text},
+            {"Incident Number", type text},
+            {"Report Number", type text},
+            {"Incident Date", type datetime},
+            {"Location", type text},
+            {"Initial Contact", type text},
+            {"# of Officers Involved", Int64.Type},
+            {"# of Subjects", Int64.Type},
+            {"Subject type", type text},
+            {"Report Key", type text},
+            {"EventType", type text}
+        }
+    ),
+
+    // Add month-based columns for reporting
+    AddMonthStart = Table.AddColumn(
+        TypedColumns,
+        "MonthStart",
+        each Date.StartOfMonth(Date.From([Incident Date])),
+        type date
+    ),
+
+    AddMonthLabel = Table.AddColumn(
+        AddMonthStart,
+        "MonthLabel",
+        each Date.ToText([MonthStart], "MM-yy"),
+        type text
+    ),
+
+    AddMonthSort = Table.AddColumn(
+        AddMonthLabel,
+        "MonthSort",
+        each Date.Year([MonthStart]) * 100 + Date.Month([MonthStart]),
+        Int64.Type
+    ),
+
+    // Replace nulls with 0 in numeric columns
+    ReplaceNullNumeric = Table.ReplaceValue(
+        AddMonthSort,
+        null,
+        0,
+        Replacer.ReplaceValue,
+        {"Badge Number", "# of Officers Involved", "# of Subjects"}
+    )
+in
+    ReplaceNullNumeric
+```
+
+---
+
+**User**
+
+lets hardcode
+
+---
+
+**Cursor**
+
+
+Updating all three query options to use hardcoded paths:
+
+
+
+Updating all three options to use hardcoded paths:
+
+
+```objective-c
+// ================================================================================================
+// UPDATED BENCHMARK M-CODE QUERIES
+// Date: 2026-01-12
+// Project: Benchmark Data Architecture Overhaul
+// Author: R. A. Carucci (with Claude Code)
+// Purpose: Updated Power BI queries using new optimized folder structure
+// ================================================================================================
+//
+// MIGRATION NOTES:
+// - Old structure used individual event type folders (show_force, use_force, vehicle_pursuit)
+// - New structure provides pre-filtered datasets for common time windows
+// - Rolling 13-month window is now pre-calculated and stored
+// - All event types are combined in a single master file
+//
+// QUERY OPTIONS:
+// 1. Use pre-filtered rolling_13month files (RECOMMENDED for best performance)
+// 2. Use master_combined_all_time with dynamic filtering (for custom date ranges)
+// 3. Use YTD files for current year analysis
+//
+// ================================================================================================
+
+// ================================================================================================
+// PARAMETERS
+// ================================================================================================
+
+// RootExportPath
+// Root directory for Benchmark data
+"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark"
+    meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+
+// ================================================================================================
+// OPTION 1: ROLLING 13-MONTH WINDOW (RECOMMENDED - BEST PERFORMANCE)
+// ================================================================================================
+// This query reads the pre-filtered rolling 13-month dataset
+// Window is automatically maintained: Last 13 complete calendar months
+// Current window: December 2024 - December 2025
+//
+// QUERY NAME: FactIncidents_Rolling13Month
+//
+let
+    // Read pre-filtered rolling 13-month dataset
+    Source = Csv.Document(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark\by_time_period\rolling_13month\current_window.csv"),
+        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]
+    ),
+
+    // Promote headers
+    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+
+    // Type conversions
+    TypedColumns = Table.TransformColumnTypes(
+        PromotedHeaders,
+        {
+            {"Officer Name", type text},
+            {"Badge Number", Int64.Type},
+            {"Rank", type text},
+            {"Organization", type text},
+            {"Incident Number", type text},
+            {"Report Number", type text},
+            {"Incident Date", type datetime},
+            {"Location", type text},
+            {"Initial Contact", type text},
+            {"# of Officers Involved", Int64.Type},
+            {"# of Subjects", Int64.Type},
+            {"Subject type", type text},
+            {"Report Key", type text},
+            {"EventType", type text}
+        }
+    ),
+
+    // Add month-based columns for reporting
+    AddMonthStart = Table.AddColumn(
+        TypedColumns,
+        "MonthStart",
+        each Date.StartOfMonth(Date.From([Incident Date])),
+        type date
+    ),
+
+    AddMonthLabel = Table.AddColumn(
+        AddMonthStart,
+        "MonthLabel",
+        each Date.ToText([MonthStart], "MM-yy"),
+        type text
+    ),
+
+    AddMonthSort = Table.AddColumn(
+        AddMonthLabel,
+        "MonthSort",
+        each Date.Year([MonthStart]) * 100 + Date.Month([MonthStart]),
+        Int64.Type
+    ),
+
+    // Replace nulls with 0 in numeric columns
+    ReplaceNullNumeric = Table.ReplaceValue(
+        AddMonthSort,
+        null,
+        0,
+        Replacer.ReplaceValue,
+        {"Badge Number", "# of Officers Involved", "# of Subjects"}
+    )
+in
+    ReplaceNullNumeric
+
+// ================================================================================================
+// OPTION 2: MASTER COMBINED WITH DYNAMIC FILTERING
+// ================================================================================================
+// This query reads the master combined dataset and applies dynamic date filtering
+// Use this for custom date ranges or when you need access to all historical data
+//
+// QUERY NAME: FactIncidents_AllTime_Filtered
+//
+let
+    // Parameters for date filtering
+    RangeStart = #datetime(2024, 12, 1, 0, 0, 0),  // Start: December 2024
+    RangeEnd = #datetime(2025, 12, 31, 23, 59, 59), // End: December 2025
+
+    // Read master combined dataset
+    Source = Csv.Document(
+        File.Contents(RootExportPath & "\all_events_combined\master_combined_all_time.csv"),
+        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]
+    ),
+
+    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+
+    TypedColumns = Table.TransformColumnTypes(
+        PromotedHeaders,
+        {
+            {"Officer Name", type text},
+            {"Badge Number", Int64.Type},
+            {"Rank", type text},
+            {"Organization", type text},
+            {"Incident Number", type text},
+            {"Report Number", type text},
+            {"Incident Date", type datetime},
+            {"Location", type text},
+            {"Initial Contact", type text},
+            {"# of Officers Involved", Int64.Type},
+            {"# of Subjects", Int64.Type},
+            {"Subject type", type text},
+            {"Report Key", type text},
+            {"EventType", type text}
+        }
+    ),
+
+    // Apply date filter
+    FilteredRows = Table.SelectRows(
+        TypedColumns,
+        each [Incident Date] <> null
+            and [Incident Date] >= RangeStart
+            and [Incident Date] <= RangeEnd
+    ),
+
+    // Add month columns
+    AddMonthStart = Table.AddColumn(
+        FilteredRows,
+        "MonthStart",
+        each Date.StartOfMonth(Date.From([Incident Date])),
+        type date
+    ),
+
+    AddMonthLabel = Table.AddColumn(
+        AddMonthStart,
+        "MonthLabel",
+        each Date.ToText([MonthStart], "MM-yy"),
+        type text
+    ),
+
+    AddMonthSort = Table.AddColumn(
+        AddMonthLabel,
+        "MonthSort",
+        each Date.Year([MonthStart]) * 100 + Date.Month([MonthStart]),
+        Int64.Type
+    ),
+
+    ReplaceNullNumeric = Table.ReplaceValue(
+        AddMonthSort,
+        null,
+        0,
+        Replacer.ReplaceValue,
+        {"Badge Number", "# of Officers Involved", "# of Subjects"}
+    )
+in
+    ReplaceNullNumeric
+
+// ================================================================================================
+// OPTION 3: DYNAMIC ROLLING WINDOW (ADVANCED)
+// ================================================================================================
+// This query automatically calculates the rolling 13-month window based on current date
+// Window: Last 13 complete calendar months (excludes current incomplete month)
+//
+// QUERY NAME: FactIncidents_DynamicRolling
+//
+let
+    // Calculate rolling window dates dynamically
+    Today = DateTime.LocalNow(),
+    CurrentYear = Date.Year(Today),
+    CurrentMonth = Date.Month(Today),
+
+    // End date: Last day of previous month
+    EndYear = if CurrentMonth = 1 then CurrentYear - 1 else CurrentYear,
+    EndMonth = if CurrentMonth = 1 then 12 else CurrentMonth - 1,
+    EndDate = Date.EndOfMonth(#date(EndYear, EndMonth, 1)),
+
+    // Start date: 12 months before end date
+    StartDate = Date.AddMonths(Date.StartOfMonth(EndDate), -12),
+
+    // Read master combined dataset
+    Source = Csv.Document(
+        File.Contents(RootExportPath & "\all_events_combined\master_combined_all_time.csv"),
+        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]
+    ),
+
+    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+
+    TypedColumns = Table.TransformColumnTypes(
+        PromotedHeaders,
+        {
+            {"Officer Name", type text},
+            {"Badge Number", Int64.Type},
+            {"Rank", type text},
+            {"Organization", type text},
+            {"Incident Number", type text},
+            {"Report Number", type text},
+            {"Incident Date", type datetime},
+            {"Location", type text},
+            {"Initial Contact", type text},
+            {"# of Officers Involved", Int64.Type},
+            {"# of Subjects", Int64.Type},
+            {"Subject type", type text},
+            {"Report Key", type text},
+            {"EventType", type text}
+        }
+    ),
+
+    // Apply dynamic date filter
+    FilteredRows = Table.SelectRows(
+        TypedColumns,
+        each [Incident Date] <> null
+            and Date.From([Incident Date]) >= StartDate
+            and Date.From([Incident Date]) <= EndDate
+    ),
+
+    // Add month columns
+    AddMonthStart = Table.AddColumn(
+        FilteredRows,
+        "MonthStart",
+        each Date.StartOfMonth(Date.From([Incident Date])),
+        type date
+    ),
+
+    AddMonthLabel = Table.AddColumn(
+        AddMonthStart,
+        "MonthLabel",
+        each Date.ToText([MonthStart], "MM-yy"),
+        type text
+    ),
+
+    AddMonthSort = Table.AddColumn(
+        AddMonthLabel,
+        "MonthSort",
+        each Date.Year([MonthStart]) * 100 + Date.Month([MonthStart]),
+        Int64.Type
+    ),
+
+    ReplaceNullNumeric = Table.ReplaceValue(
+        AddMonthSort,
+        null,
+        0,
+        Replacer.ReplaceValue,
+        {"Badge Number", "# of Officers Involved", "# of Subjects"}
+    )
+in
+    ReplaceNullNumeric
+
+// ================================================================================================
+// DIMENSION TABLES
+// ================================================================================================
+
+// DimMonth - Month dimension table for rolling 13-month window
+// QUERY NAME: DimMonth
+//
+let
+    // Calculate dynamic start date (13 months ago from last complete month)
+    Today = DateTime.LocalNow(),
+    CurrentYear = Date.Year(Today),
+    CurrentMonth = Date.Month(Today),
+
+    EndYear = if CurrentMonth = 1 then CurrentYear - 1 else CurrentYear,
+    EndMonth = if CurrentMonth = 1 then 12 else CurrentMonth - 1,
+    EndDate = #date(EndYear, EndMonth, 1),
+
+    StartDate = Date.AddMonths(EndDate, -12),
+    MonthCount = 13,
+
+    // Generate list of month starts
+    MonthStarts = List.Generate(
+        () => StartDate,
+        each _ <= EndDate,
+        each Date.AddMonths(_, 1)
+    ),
+
+    // Convert to table
+    ToTable = Table.FromList(
+        MonthStarts,
+        Splitter.SplitByNothing(),
+        {"MonthStart"}
+    ),
+
+    TypedDate = Table.TransformColumnTypes(
+        ToTable,
+        {{"MonthStart", type date}}
+    ),
+
+    // Add helper columns
+    AddLabel = Table.AddColumn(
+        TypedDate,
+        "MonthLabel",
+        each Date.ToText([MonthStart], "MM-yy"),
+        type text
+    ),
+
+    AddSort = Table.AddColumn(
+        AddLabel,
+        "MonthSort",
+        each Date.Year([MonthStart]) * 100 + Date.Month([MonthStart]),
+        Int64.Type
+    ),
+
+    AddMonthName = Table.AddColumn(
+        AddSort,
+        "MonthName",
+        each Date.ToText([MonthStart], "MMMM yyyy"),
+        type text
+    )
+in
+    AddMonthName
+
+// DimEventType - Event type dimension table
+// QUERY NAME: DimEventType
+//
+let
+    Source = #table(
+        {"EventType", "EventTypeSort"},
+        {
+            {"Show of Force", 1},
+            {"Use of Force", 2},
+            {"Vehicle Pursuit", 3}
+        }
+    ),
+
+    Typed = Table.TransformColumnTypes(
+        Source,
+        {
+            {"EventType", type text},
+            {"EventTypeSort", Int64.Type}
+        }
+    )
+in
+    Typed
+
+// ================================================================================================
+// USAGE RECOMMENDATIONS
+// ================================================================================================
+//
+// 1. FOR DASHBOARDS & REPORTS:
+//    Use "FactIncidents_Rolling13Month" (Option 1)
+//    - Best performance (pre-filtered data)
+//    - Automatically maintained rolling window
+//    - Minimal query complexity
+//
+// 2. FOR AD-HOC ANALYSIS:
+//    Use "FactIncidents_AllTime_Filtered" (Option 2)
+//    - Access to all historical data
+//    - Custom date range filtering
+//    - Flexibility for one-time queries
+//
+// 3. FOR AUTO-UPDATING REPORTS:
+//    Use "FactIncidents_DynamicRolling" (Option 3)
+//    - Automatically adjusts window based on current date
+//    - No manual updates needed
+//    - Slightly slower than Option 1 due to runtime calculation
+//
+// ================================================================================================
+// MAINTENANCE NOTES
+// ================================================================================================
+//
+// MONTHLY UPDATES:
+// - The pre-filtered rolling_13month files should be regenerated monthly
+// - Run benchmark_restructure.py script at the start of each month
+// - This ensures the rolling window stays current
+//
+// PARAMETER UPDATES:
+// - RootExportPath should remain constant unless folder location changes
+// - RangeStart/RangeEnd in Option 2 can be modified for custom date ranges
+//
+// ================================================================================================
+
+```
+
+```objective-c
+// ================================================================================================
+// UPDATED BENCHMARK M-CODE QUERIES
+// Date: 2026-01-12
+// Project: Benchmark Data Architecture Overhaul
+// Author: R. A. Carucci (with Claude Code)
+// Purpose: Updated Power BI queries using new optimized folder structure
+// ================================================================================================
+//
+// MIGRATION NOTES:
+// - Old structure used individual event type folders (show_force, use_force, vehicle_pursuit)
+// - New structure provides pre-filtered datasets for common time windows
+// - Rolling 13-month window is now pre-calculated and stored
+// - All event types are combined in a single master file
+//
+// QUERY OPTIONS:
+// 1. Use pre-filtered rolling_13month files (RECOMMENDED for best performance)
+// 2. Use master_combined_all_time with dynamic filtering (for custom date ranges)
+// 3. Use YTD files for current year analysis
+//
+// ================================================================================================
+
+// ================================================================================================
+// PARAMETERS
+// ================================================================================================
+
+// RootExportPath
+// Root directory for Benchmark data
+"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark"
+    meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+
+// ================================================================================================
+// OPTION 1: ROLLING 13-MONTH WINDOW (RECOMMENDED - BEST PERFORMANCE)
+// ================================================================================================
+// This query reads the pre-filtered rolling 13-month dataset
+// Window is automatically maintained: Last 13 complete calendar months
+// Current window: December 2024 - December 2025
+//
+// QUERY NAME: FactIncidents_Rolling13Month
+//
+let
+    // Read pre-filtered rolling 13-month dataset
+    Source = Csv.Document(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark\by_time_period\rolling_13month\current_window.csv"),
+        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]
+    ),
+
+    // Promote headers
+    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+
+    // Type conversions
+    TypedColumns = Table.TransformColumnTypes(
+        PromotedHeaders,
+        {
+            {"Officer Name", type text},
+            {"Badge Number", Int64.Type},
+            {"Rank", type text},
+            {"Organization", type text},
+            {"Incident Number", type text},
+            {"Report Number", type text},
+            {"Incident Date", type datetime},
+            {"Location", type text},
+            {"Initial Contact", type text},
+            {"# of Officers Involved", Int64.Type},
+            {"# of Subjects", Int64.Type},
+            {"Subject type", type text},
+            {"Report Key", type text},
+            {"EventType", type text}
+        }
+    ),
+
+    // Add month-based columns for reporting
+    AddMonthStart = Table.AddColumn(
+        TypedColumns,
+        "MonthStart",
+        each Date.StartOfMonth(Date.From([Incident Date])),
+        type date
+    ),
+
+    AddMonthLabel = Table.AddColumn(
+        AddMonthStart,
+        "MonthLabel",
+        each Date.ToText([MonthStart], "MM-yy"),
+        type text
+    ),
+
+    AddMonthSort = Table.AddColumn(
+        AddMonthLabel,
+        "MonthSort",
+        each Date.Year([MonthStart]) * 100 + Date.Month([MonthStart]),
+        Int64.Type
+    ),
+
+    // Replace nulls with 0 in numeric columns
+    ReplaceNullNumeric = Table.ReplaceValue(
+        AddMonthSort,
+        null,
+        0,
+        Replacer.ReplaceValue,
+        {"Badge Number", "# of Officers Involved", "# of Subjects"}
+    )
+in
+    ReplaceNullNumeric
+
+// ================================================================================================
+// OPTION 2: MASTER COMBINED WITH DYNAMIC FILTERING
+// ================================================================================================
+// This query reads the master combined dataset and applies dynamic date filtering
+// Use this for custom date ranges or when you need access to all historical data
+//
+// QUERY NAME: FactIncidents_AllTime_Filtered
+//
+let
+    // Parameters for date filtering
+    RangeStart = #datetime(2024, 12, 1, 0, 0, 0),  // Start: December 2024
+    RangeEnd = #datetime(2025, 12, 31, 23, 59, 59), // End: December 2025
+
+    // Read master combined dataset
+    Source = Csv.Document(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark\all_events_combined\master_combined_all_time.csv"),
+        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]
+    ),
+
+    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+
+    TypedColumns = Table.TransformColumnTypes(
+        PromotedHeaders,
+        {
+            {"Officer Name", type text},
+            {"Badge Number", Int64.Type},
+            {"Rank", type text},
+            {"Organization", type text},
+            {"Incident Number", type text},
+            {"Report Number", type text},
+            {"Incident Date", type datetime},
+            {"Location", type text},
+            {"Initial Contact", type text},
+            {"# of Officers Involved", Int64.Type},
+            {"# of Subjects", Int64.Type},
+            {"Subject type", type text},
+            {"Report Key", type text},
+            {"EventType", type text}
+        }
+    ),
+
+    // Apply date filter
+    FilteredRows = Table.SelectRows(
+        TypedColumns,
+        each [Incident Date] <> null
+            and [Incident Date] >= RangeStart
+            and [Incident Date] <= RangeEnd
+    ),
+
+    // Add month columns
+    AddMonthStart = Table.AddColumn(
+        FilteredRows,
+        "MonthStart",
+        each Date.StartOfMonth(Date.From([Incident Date])),
+        type date
+    ),
+
+    AddMonthLabel = Table.AddColumn(
+        AddMonthStart,
+        "MonthLabel",
+        each Date.ToText([MonthStart], "MM-yy"),
+        type text
+    ),
+
+    AddMonthSort = Table.AddColumn(
+        AddMonthLabel,
+        "MonthSort",
+        each Date.Year([MonthStart]) * 100 + Date.Month([MonthStart]),
+        Int64.Type
+    ),
+
+    ReplaceNullNumeric = Table.ReplaceValue(
+        AddMonthSort,
+        null,
+        0,
+        Replacer.ReplaceValue,
+        {"Badge Number", "# of Officers Involved", "# of Subjects"}
+    )
+in
+    ReplaceNullNumeric
+
+// ================================================================================================
+// OPTION 3: DYNAMIC ROLLING WINDOW (ADVANCED)
+// ================================================================================================
+// This query automatically calculates the rolling 13-month window based on current date
+// Window: Last 13 complete calendar months (excludes current incomplete month)
+//
+// QUERY NAME: FactIncidents_DynamicRolling
+//
+let
+    // Calculate rolling window dates dynamically
+    Today = DateTime.LocalNow(),
+    CurrentYear = Date.Year(Today),
+    CurrentMonth = Date.Month(Today),
+
+    // End date: Last day of previous month
+    EndYear = if CurrentMonth = 1 then CurrentYear - 1 else CurrentYear,
+    EndMonth = if CurrentMonth = 1 then 12 else CurrentMonth - 1,
+    EndDate = Date.EndOfMonth(#date(EndYear, EndMonth, 1)),
+
+    // Start date: 12 months before end date
+    StartDate = Date.AddMonths(Date.StartOfMonth(EndDate), -12),
+
+    // Read master combined dataset
+    Source = Csv.Document(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark\all_events_combined\master_combined_all_time.csv"),
+        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]
+    ),
+
+    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+
+    TypedColumns = Table.TransformColumnTypes(
+        PromotedHeaders,
+        {
+            {"Officer Name", type text},
+            {"Badge Number", Int64.Type},
+            {"Rank", type text},
+            {"Organization", type text},
+            {"Incident Number", type text},
+            {"Report Number", type text},
+            {"Incident Date", type datetime},
+            {"Location", type text},
+            {"Initial Contact", type text},
+            {"# of Officers Involved", Int64.Type},
+            {"# of Subjects", Int64.Type},
+            {"Subject type", type text},
+            {"Report Key", type text},
+            {"EventType", type text}
+        }
+    ),
+
+    // Apply dynamic date filter
+    FilteredRows = Table.SelectRows(
+        TypedColumns,
+        each [Incident Date] <> null
+            and Date.From([Incident Date]) >= StartDate
+            and Date.From([Incident Date]) <= EndDate
+    ),
+
+    // Add month columns
+    AddMonthStart = Table.AddColumn(
+        FilteredRows,
+        "MonthStart",
+        each Date.StartOfMonth(Date.From([Incident Date])),
+        type date
+    ),
+
+    AddMonthLabel = Table.AddColumn(
+        AddMonthStart,
+        "MonthLabel",
+        each Date.ToText([MonthStart], "MM-yy"),
+        type text
+    ),
+
+    AddMonthSort = Table.AddColumn(
+        AddMonthLabel,
+        "MonthSort",
+        each Date.Year([MonthStart]) * 100 + Date.Month([MonthStart]),
+        Int64.Type
+    ),
+
+    ReplaceNullNumeric = Table.ReplaceValue(
+        AddMonthSort,
+        null,
+        0,
+        Replacer.ReplaceValue,
+        {"Badge Number", "# of Officers Involved", "# of Subjects"}
+    )
+in
+    ReplaceNullNumeric
+
+// ================================================================================================
+// DIMENSION TABLES
+// ================================================================================================
+
+// DimMonth - Month dimension table for rolling 13-month window
+// QUERY NAME: DimMonth
+//
+let
+    // Calculate dynamic start date (13 months ago from last complete month)
+    Today = DateTime.LocalNow(),
+    CurrentYear = Date.Year(Today),
+    CurrentMonth = Date.Month(Today),
+
+    EndYear = if CurrentMonth = 1 then CurrentYear - 1 else CurrentYear,
+    EndMonth = if CurrentMonth = 1 then 12 else CurrentMonth - 1,
+    EndDate = #date(EndYear, EndMonth, 1),
+
+    StartDate = Date.AddMonths(EndDate, -12),
+    MonthCount = 13,
+
+    // Generate list of month starts
+    MonthStarts = List.Generate(
+        () => StartDate,
+        each _ <= EndDate,
+        each Date.AddMonths(_, 1)
+    ),
+
+    // Convert to table
+    ToTable = Table.FromList(
+        MonthStarts,
+        Splitter.SplitByNothing(),
+        {"MonthStart"}
+    ),
+
+    TypedDate = Table.TransformColumnTypes(
+        ToTable,
+        {{"MonthStart", type date}}
+    ),
+
+    // Add helper columns
+    AddLabel = Table.AddColumn(
+        TypedDate,
+        "MonthLabel",
+        each Date.ToText([MonthStart], "MM-yy"),
+        type text
+    ),
+
+    AddSort = Table.AddColumn(
+        AddLabel,
+        "MonthSort",
+        each Date.Year([MonthStart]) * 100 + Date.Month([MonthStart]),
+        Int64.Type
+    ),
+
+    AddMonthName = Table.AddColumn(
+        AddSort,
+        "MonthName",
+        each Date.ToText([MonthStart], "MMMM yyyy"),
+        type text
+    )
+in
+    AddMonthName
+
+// DimEventType - Event type dimension table
+// QUERY NAME: DimEventType
+//
+let
+    Source = #table(
+        {"EventType", "EventTypeSort"},
+        {
+            {"Show of Force", 1},
+            {"Use of Force", 2},
+            {"Vehicle Pursuit", 3}
+        }
+    ),
+
+    Typed = Table.TransformColumnTypes(
+        Source,
+        {
+            {"EventType", type text},
+            {"EventTypeSort", Int64.Type}
+        }
+    )
+in
+    Typed
+
+// ================================================================================================
+// USAGE RECOMMENDATIONS
+// ================================================================================================
+//
+// 1. FOR DASHBOARDS & REPORTS:
+//    Use "FactIncidents_Rolling13Month" (Option 1)
+//    - Best performance (pre-filtered data)
+//    - Automatically maintained rolling window
+//    - Minimal query complexity
+//
+// 2. FOR AD-HOC ANALYSIS:
+//    Use "FactIncidents_AllTime_Filtered" (Option 2)
+//    - Access to all historical data
+//    - Custom date range filtering
+//    - Flexibility for one-time queries
+//
+// 3. FOR AUTO-UPDATING REPORTS:
+//    Use "FactIncidents_DynamicRolling" (Option 3)
+//    - Automatically adjusts window based on current date
+//    - No manual updates needed
+//    - Slightly slower than Option 1 due to runtime calculation
+//
+// ================================================================================================
+// MAINTENANCE NOTES
+// ================================================================================================
+//
+// MONTHLY UPDATES:
+// - The pre-filtered rolling_13month files should be regenerated monthly
+// - Run benchmark_restructure.py script at the start of each month
+// - This ensures the rolling window stays current
+//
+// PARAMETER UPDATES:
+// - RootExportPath should remain constant unless folder location changes
+// - RangeStart/RangeEnd in Option 2 can be modified for custom date ranges
+//
+// ================================================================================================
+
+```
+
+
+Checking the parameter section causing the error:
+
+
+
+Commenting out the parameter section since we're using hardcoded paths:
+
+
+```objective-c
+// ================================================================================================
+// UPDATED BENCHMARK M-CODE QUERIES
+// Date: 2026-01-12
+// Project: Benchmark Data Architecture Overhaul
+// Author: R. A. Carucci (with Claude Code)
+// Purpose: Updated Power BI queries using new optimized folder structure
+// ================================================================================================
+//
+// MIGRATION NOTES:
+// - Old structure used individual event type folders (show_force, use_force,
+// vehicle_pursuit)
+// - New structure provides pre-filtered datasets for common time windows
+// - Rolling 13-month window is now pre-calculated and stored
+// - All event types are combined in a single master file
+//
+// QUERY OPTIONS:
+// 1. Use pre-filtered rolling_13month files (RECOMMENDED for best performance)
+// 2. Use master_combined_all_time with dynamic filtering (for custom date
+// ranges)
+// 3.

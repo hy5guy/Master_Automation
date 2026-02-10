@@ -1,0 +1,269 @@
+# Response Time Etl Executive Summary
+
+**Processing Date:** 2026-02-05 00:02:36
+**Source File:** RESPONSE_TIME_ETL_EXECUTIVE_SUMMARY.md
+**Total Chunks:** 1
+
+---
+
+# Response Time ETL Fix - Executive Summary
+
+**Date:** January 14, 2026  
+**Prepared for:** Chief Briefing  
+**Status:** ✅ Complete - Ready for Production
+
+---
+
+## Executive Overview
+
+The Response Time ETL (Extract, Transform, Load) process has been completely rebuilt and enhanced to correct critical data accuracy issues and implement improved filtering logic. The system now provides accurate, reliable response time metrics for Power BI reporting. ---
+
+## Initial Problem Identified
+
+### Issue: Inflated Response Time Counts
+
+**Root Cause:** Multiple officers responding to the same call were creating duplicate records in the CAD data export. When calculating average response times, each officer's response was counted separately, artificially inflating the number of responses and skewing the averages. **Impact:**
+- Response time metrics were inaccurate
+- Call counts were inflated (same incident counted multiple times)
+- Power BI reports showed incorrect data
+- ETL process had not been run in 3 months
+
+**Example:**
+- A single call with 3 responding officers generated 3 records
+- Average response time calculations used all 3 records instead of 1
+- This caused both count inflation and average calculation errors
+
+---
+
+## Solution Implemented
+
+### Primary Fix: Deduplication by Report Number
+
+**How It Works:**
+- Each CAD call has a unique `ReportNumberNew` identifier
+- The ETL now deduplicates records by `ReportNumberNew`, keeping only the first officer's response
+- This ensures each call is counted once, regardless of how many officers responded
+
+**Technical Implementation:**
+- Added deduplication step as the first processing step
+- Removes duplicate records before any calculations occur
+- Preserves the first officer's response time data
+- Eliminates double/triple counting
+
+**Results:**
+- Input records: 122,532
+- After deduplication: 94,162 (removed 28,370 duplicates)
+- **23.1% of records were duplicates**
+
+---
+
+## Enhanced Filtering Logic (v2.0.0)
+
+### New Filtering System
+
+The ETL was enhanced with a comprehensive filtering system to ensure only relevant response time data is included in calculations:
+
+#### 1. "How Reported" Filter
+- **Excludes:** "Self-Initiated" records (officer-initiated activities, not dispatched calls)
+- **Records Removed:** 28,033 Self-Initiated records
+- **Rationale:** Self-initiated activities are not response time metrics
+
+#### 2. Category Type Filtering
+- **Excludes entire categories:**
+  - Regulatory and Ordinance
+  - Administrative and Support
+  - Investigations and Follow-Ups
+  - Community Engagement
+- **Inclusion Overrides:** 14 specific incidents kept despite category exclusion (e.g., Suspicious Person, Missing Person, Property Recovery)
+- **Rationale:** Focuses metrics on dispatched emergency/public safety responses
+
+#### 3. Specific Incident Filtering
+- **Excludes:** 42 specific administrative incidents (e.g., Traffic Details, TAPS activities, Training, Court appearances)
+- **Rationale:** Removes routine administrative activities that don't represent response times
+
+#### 4. Data Quality Filters
+- Time window: Only responses between 0-10 minutes
+- Date range: December 2024 through December 2025
+- Validation: Ensures all records have valid Response Type and Category Type
+
+---
+
+## Processing Pipeline (12 Steps)
+
+The enhanced ETL now uses a 12-step processing pipeline:
+
+1. **Deduplication** by ReportNumberNew (removes officer duplicates)
+2. **How Reported filter** (excludes Self-Initiated)
+3. **YearMonth creation** from date fields
+4. **Date range filter** (2024-12 to 2025-12)
+5. **Admin incident filter** (existing administrative filters)
+6. **Response time calculation** (Time Out - Time Dispatched)
+7. **Time window filter** (0-10 minutes only)
+8. **Response Type + Category_Type mapping** (from CallType_Categories.csv)
+9. **Category_Type filter** (with inclusion overrides)
+10. **Specific incident filter** (42 administrative incidents)
+11. **Data verification** (quality checks)
+12. **Final validation** (valid Response Type only)
+
+---
+
+## Results Comparison
+
+### October 2025 Comparison (Old vs New)
+
+| Response Type | Old Average | New Average | Difference | Change |
+|---------------|-------------|-------------|------------|--------|
+| **Emergency** | 2:49 (2.82 min) | 2:51 (2.85 min) | +0.03 min | Minimal change |
+| **Routine** | 2:11 (2.18 min) | 3:31 (3.52 min) | +1.33 min | **Significant increase** |
+| **Urgent** | 2:52 (2.87 min) | 2:55 (2.92 min) | +0.05 min | Minimal change |
+
+### Key Observations
+
+**Routine Response Times:**
+- **Old:** 2:11 (2.18 minutes) - **Likely understated** due to inclusion of administrative/self-initiated activities
+- **New:** 3:31 (3.52 minutes) - **More accurate** after filtering administrative activities
+- **Change:** +1.33 minutes (61% increase)
+- **Rationale:** The new filtering removes administrative activities that had artificially low response times, providing a more accurate picture of actual dispatched routine calls
+
+**Emergency & Urgent Response Times:**
+- Minimal changes (< 0.1 minute difference)
+- Indicates these metrics were already relatively accurate
+- Deduplication had less impact on these priority levels
+
+---
+
+## Data Quality Metrics
+
+### Final Processing Results
+
+- **Input Records:** 122,532 (raw CAD export)
+- **After Deduplication:** 94,162 (removed 28,370 duplicates)
+- **After How Reported Filter:** 66,129 (removed 28,033 Self-Initiated)
+- **After All Filters:** 23,224 (final records for calculations)
+- **Monthly CSV Files Created:** 13 (Dec 2024 - Dec 2025)
+
+### Data Quality Checks (All Passed ✅)
+
+- ✅ All records have valid Response_Type
+- ✅ All records have valid Category_Type
+- ✅ All response times within valid window (0-10 minutes)
+- ✅ All records have valid YearMonth
+- ✅ No duplicate ReportNumberNew values
+
+---
+
+## What Changed
+
+### Code Changes
+
+1. **New ETL Script:** `response_time_monthly_generator.py` (v2.0.0)
+   - Complete rewrite with enhanced filtering
+   - JSON configuration file support
+   - Comprehensive data verification
+
+2. **Configuration File:** `config/response_time_filters.json`
+   - Centralized filtering rules
+   - Easy to update without code changes
+   - Version controlled
+
+3. **Processing Pipeline:** Expanded from 6 steps to 12 steps
+   - Enhanced filtering logic
+   - Better data quality controls
+   - More accurate calculations
+
+### Data Changes
+
+1. **Deduplication:** Each call counted once (not per officer)
+2. **Filtering:** Only relevant dispatched calls included
+3. **Metrics:** More accurate representation of actual response times
+4. **Coverage:** Full 13-month range (Dec 2024 - Dec 2025)
+
+---
+
+## Technical Implementation Details
+
+### How the Fix Was Implemented
+
+1. **Deduplication Logic:**
+   ```python
+   # First step: Remove duplicate ReportNumberNew values
+   df = df.drop_duplicates(subset=['ReportNumberNew'], keep='first')
+   ```
+   - Applied before any calculations
+   - Keeps first officer's response data
+   - Eliminates double-counting
+
+2. **Filtering System:**
+   - JSON configuration file for easy updates
+   - Multi-stage filtering (How Reported → Category → Incident)
+   - Inclusion overrides for edge cases
+   - Comprehensive validation
+
+3. **Data Verification:**
+   - Automated quality checks at each step
+   - Validation of Response Types, Category Types, time windows
+   - Error detection and reporting
+
+---
+
+## Benefits
+
+### Accuracy
+- ✅ Each call counted once (deduplication)
+- ✅ Only relevant calls included (enhanced filtering)
+- ✅ More accurate response time averages
+- ✅ Better representation of actual performance
+
+### Reliability
+- ✅ Comprehensive data validation
+- ✅ Automated quality checks
+- ✅ Error detection and reporting
+- ✅ Consistent processing pipeline
+
+### Maintainability
+- ✅ JSON configuration (easy to update filters)
+- ✅ Well-documented code
+- ✅ Version controlled
+- ✅ Comprehensive logging
+
+### Reporting
+- ✅ Full 13-month coverage
+- ✅ Monthly CSV files for Power BI
+- ✅ Ready for immediate use
+- ✅ Consistent data format
+
+---
+
+## Next Steps
+
+### Immediate Actions
+1. ✅ **ETL Script Updated** - v2.0.0 complete
+2. ✅ **Monthly CSV Files Generated** - 13 months (Dec 2024 - Dec 2025)
+3. ✅ **Data Validation Complete** - All quality checks passed
+4. ⏳ **Power BI Refresh** - Update Power BI query to use new data
+5. ⏳ **Verification** - Review Power BI reports for accuracy
+
+### Ongoing Maintenance
+- ETL script runs monthly to generate new data
+- JSON configuration file can be updated as needed
+- Monitoring and validation built into process
+- Documentation maintained and updated
+
+---
+
+## Summary
+
+The Response Time ETL has been completely rebuilt to fix critical data accuracy issues. The primary fix (deduplication by ReportNumberNew) ensures each call is counted once, regardless of how many officers responded. Enhanced filtering ensures only relevant dispatched calls are included in metrics. The new system provides accurate, reliable response time data for Power BI reporting. **Key Achievement:** Response time metrics now accurately reflect actual performance, with each call counted once and only relevant dispatched calls included. ---
+
+## Contact & Documentation
+
+- **ETL Script:** `02_ETL_Scripts/Response_Times/response_time_monthly_generator.py`
+- **Configuration:** `config/response_time_filters.json`
+- **Documentation:** `docs/CHANGELOG.md` (v1.7.0)
+- **Output Location:** `PowerBI_Date/Backfill/YYYY_MM/response_time/`
+
+---
+
+**Document Prepared:** January 14, 2026  
+**Status:** ✅ Complete - Ready for Production Use
+

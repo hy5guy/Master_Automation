@@ -1,0 +1,37 @@
+{
+  "tags": [
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "legal",
+    "markdown",
+    "police",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "files",
+        "all",
+        "2025",
+        "export",
+        "let",
+        "december"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Directory cleanup visual data chatlog\n_Exported on 2/9/2026 at 10:04:29 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\nI had an error with the last chat please read thes chunksC:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automati...",
+      "first_line": "# Directory cleanup visual data chatlog"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-09T10:11:57.311804",
+  "department": "admin"
+}

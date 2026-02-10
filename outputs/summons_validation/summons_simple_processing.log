@@ -1,0 +1,117 @@
+2025-12-11 20:40:31,076 - INFO - 
+2025-12-11 20:40:31,077 - INFO - ======================================================================
+2025-12-11 20:40:31,077 - INFO - SUMMONS MASTER - SIMPLIFIED PROCESSING
+2025-12-11 20:40:31,077 - INFO - ======================================================================
+2025-12-11 20:40:31,077 - INFO - 
+2025-12-11 20:40:31,077 - INFO - Reporting window start: 2024-11-01
+2025-12-11 20:40:31,077 - INFO - Previous month start:  2025-11-01
+2025-12-11 20:40:31,077 - INFO - Previous month end:    2025-11-30
+2025-12-11 20:40:31,077 - INFO - ======================================================================
+2025-12-11 20:40:31,078 - INFO - LOADING HISTORICAL BACKFILL DATA (Sep 2024 - Aug 2025)
+2025-12-11 20:40:31,078 - INFO - ======================================================================
+2025-12-11 20:40:31,093 - INFO - Loaded 24 summary rows from backfill file
+2025-12-11 20:40:31,106 - INFO - Created 22 aggregate records (representing 34,046 historical tickets)
+2025-12-11 20:40:31,108 - WARNING - Missing backfill months (no aggregate data): 03-25
+2025-12-11 20:40:31,108 - INFO - ======================================================================
+2025-12-11 20:40:31,108 - INFO - LOADING E-TICKET DATA FOR November 2025
+2025-12-11 20:40:31,108 - INFO - ======================================================================
+2025-12-11 20:40:31,110 - INFO - Detected delimiter: ';'
+2025-12-11 20:40:31,141 - INFO - Loaded 2587 records from e-ticket file
+2025-12-11 20:40:32,093 - INFO - Filtered e-ticket records to previous month: 2203 -> 2164
+2025-12-11 20:40:32,111 - INFO - Processed 2164 e-ticket records
+2025-12-11 20:40:32,113 - INFO -   TYPE breakdown: {'P': 2033, 'M': 130, 'C': 1}
+2025-12-11 20:40:32,113 - INFO - 
+2025-12-11 20:40:32,114 - INFO - ======================================================================
+2025-12-11 20:40:32,114 - INFO - COMBINING DATA
+2025-12-11 20:40:32,114 - INFO - ======================================================================
+2025-12-11 20:40:32,115 - INFO - Combined total: 2186 records
+2025-12-11 20:40:32,125 - INFO - 
+2025-12-11 20:40:32,126 - INFO - Data source breakdown:
+2025-12-11 20:40:32,128 - INFO -   ETICKET_CURRENT: 2,164 records (representing 2,164 tickets)
+2025-12-11 20:40:32,129 - INFO -   HISTORICAL_SUMMARY: 22 records (representing 34,046 tickets)
+2025-12-11 20:40:32,129 - INFO - 
+2025-12-11 20:40:32,129 - INFO - 
+2025-12-11 20:40:32,129 - INFO - ======================================================================
+2025-12-11 20:40:32,129 - INFO - ENRICHING WITH ASSIGNMENT DATA
+2025-12-11 20:40:32,129 - INFO - ======================================================================
+2025-12-11 20:40:32,139 - INFO - Loaded 152 assignment records
+2025-12-11 20:40:32,142 - INFO - Assignment merge prep: 2186 records contain badge numbers (57 unique)
+2025-12-11 20:40:32,168 - INFO - Applying assignment override for badge 0388 (4 records)
+2025-12-11 20:40:32,170 - INFO - Applying assignment override for badge 1711 (4 records)
+2025-12-11 20:40:32,187 - INFO - Assignment enrichment: 2186/2186 records matched (100.0%)
+2025-12-11 20:40:32,188 - INFO - All badge-bearing records matched an assignment entry.
+2025-12-11 20:40:32,191 - INFO - PEO/Class I rule: Converted 53 moving violations to parking
+2025-12-11 20:40:32,191 - INFO - 
+2025-12-11 20:40:32,191 - INFO - FINAL TYPE BREAKDOWN:
+2025-12-11 20:40:32,191 - INFO -   P: 2,097
+2025-12-11 20:40:32,191 - INFO -   M: 88
+2025-12-11 20:40:32,191 - INFO -   C: 1
+2025-12-11 20:40:32,191 - INFO - 
+2025-12-11 20:40:32,191 - INFO - ======================================================================
+2025-12-11 20:40:32,191 - INFO - WRITING OUTPUT
+2025-12-11 20:40:32,191 - INFO - ======================================================================
+2025-12-11 20:40:32,193 - INFO - Removed existing file: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+2025-12-11 20:40:34,034 - INFO - Output written: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+2025-12-11 20:40:34,034 - INFO - Total records: 2,186
+2025-12-11 20:40:34,034 - INFO - 
+2025-12-11 20:40:34,035 - INFO - ======================================================================
+2025-12-11 20:40:34,035 - INFO - PROCESSING COMPLETE
+2025-12-11 20:40:34,035 - INFO - ======================================================================
+2026-01-14 12:49:30,088 - INFO - 
+2026-01-14 12:49:30,089 - INFO - ======================================================================
+2026-01-14 12:49:30,089 - INFO - SUMMONS MASTER - SIMPLIFIED PROCESSING
+2026-01-14 12:49:30,089 - INFO - ======================================================================
+2026-01-14 12:49:30,089 - INFO - 
+2026-01-14 12:49:30,090 - INFO - Reporting window start: 2024-12-01
+2026-01-14 12:49:30,090 - INFO - Previous month start:  2025-12-01
+2026-01-14 12:49:30,090 - INFO - Previous month end:    2025-12-31
+2026-01-14 12:49:30,090 - INFO - ======================================================================
+2026-01-14 12:49:30,090 - INFO - LOADING HISTORICAL BACKFILL DATA (Sep 2024 - Aug 2025)
+2026-01-14 12:49:30,090 - INFO - ======================================================================
+2026-01-14 12:49:30,097 - INFO - Loaded 24 summary rows from backfill file
+2026-01-14 12:49:30,105 - INFO - Created 20 aggregate records (representing 31,707 historical tickets)
+2026-01-14 12:49:30,107 - WARNING - Missing backfill months (no aggregate data): 03-25, 11-25
+2026-01-14 12:49:30,108 - INFO - ======================================================================
+2026-01-14 12:49:30,108 - INFO - LOADING E-TICKET DATA FOR December 2025
+2026-01-14 12:49:30,108 - INFO - ======================================================================
+2026-01-14 12:49:30,116 - INFO - Detected delimiter: ';'
+2026-01-14 12:49:30,152 - INFO - Loaded 3383 records from e-ticket file
+2026-01-14 12:49:31,339 - INFO - Filtered e-ticket records to previous month: 3383 -> 3366
+2026-01-14 12:49:31,340 - INFO - Processed 3366 e-ticket records
+2026-01-14 12:49:31,343 - INFO -   TYPE breakdown: {'P': 2882, 'M': 440, 'C': 44}
+2026-01-14 12:49:31,344 - INFO - 
+2026-01-14 12:49:31,344 - INFO - ======================================================================
+2026-01-14 12:49:31,345 - INFO - COMBINING DATA
+2026-01-14 12:49:31,345 - INFO - ======================================================================
+2026-01-14 12:49:31,348 - INFO - Combined total: 3386 records
+2026-01-14 12:49:31,368 - INFO - 
+2026-01-14 12:49:31,368 - INFO - Data source breakdown:
+2026-01-14 12:49:31,371 - INFO -   ETICKET_CURRENT: 3,366 records (representing 3,366 tickets)
+2026-01-14 12:49:31,372 - INFO -   HISTORICAL_SUMMARY: 20 records (representing 31,707 tickets)
+2026-01-14 12:49:31,372 - INFO - 
+2026-01-14 12:49:31,372 - INFO - 
+2026-01-14 12:49:31,372 - INFO - ======================================================================
+2026-01-14 12:49:31,373 - INFO - ENRICHING WITH ASSIGNMENT DATA
+2026-01-14 12:49:31,373 - INFO - ======================================================================
+2026-01-14 12:49:31,383 - INFO - Loaded 156 assignment records
+2026-01-14 12:49:31,387 - INFO - Assignment merge prep: 3386 records contain badge numbers (57 unique)
+2026-01-14 12:49:31,415 - INFO - Applying assignment override for badge 0388 (30 records)
+2026-01-14 12:49:31,417 - INFO - Applying assignment override for badge 1711 (208 records)
+2026-01-14 12:49:31,445 - INFO - Assignment enrichment: 3374/3386 records matched (99.6%)
+2026-01-14 12:49:31,446 - WARNING - Unmatched badge records: 12 (showing up to 10): ['0390', '0390', '0391', '0391', '0391', '0391', '0390', '0392', '0392', '0390']
+2026-01-14 12:49:31,450 - INFO - 
+2026-01-14 12:49:31,450 - INFO - FINAL TYPE BREAKDOWN:
+2026-01-14 12:49:31,451 - INFO -   P: 2,892
+2026-01-14 12:49:31,451 - INFO -   M: 450
+2026-01-14 12:49:31,451 - INFO -   C: 44
+2026-01-14 12:49:31,451 - INFO - 
+2026-01-14 12:49:31,452 - INFO - ======================================================================
+2026-01-14 12:49:31,452 - INFO - WRITING OUTPUT
+2026-01-14 12:49:31,452 - INFO - ======================================================================
+2026-01-14 12:49:31,454 - INFO - Removed existing file: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+2026-01-14 12:49:33,611 - INFO - Output written: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+2026-01-14 12:49:33,611 - INFO - Total records: 3,386
+2026-01-14 12:49:33,611 - INFO - 
+2026-01-14 12:49:33,611 - INFO - ======================================================================
+2026-01-14 12:49:33,612 - INFO - PROCESSING COMPLETE
+2026-01-14 12:49:33,612 - INFO - ======================================================================

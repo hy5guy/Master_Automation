@@ -119,8 +119,8 @@
       "name": "Response Times Fresh Calculator",
       "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\scripts",
       "script": "response_time_fresh_calculator.py",
-      "enabled": true,
-      "output_to_powerbi": true,
+      "enabled": false,
+      "output_to_powerbi": false,
       "order": 5.6,
       "timeout_minutes": 60,
       "output_patterns": [
@@ -133,7 +133,7 @@
         "calculator",
         "timereport"
       ],
-      "notes": "v3.0.0 - Recalculates response times from raw timereport data (yearly + monthly). Replaces backfill with consistent calculations. Requires: timereport/yearly/YYYY/*.xlsx and timereport/monthly/*.xlsx"
+      "notes": "v3.0.0 - DISABLED 2026-02-09: Missing January 14, 2026 deduplication/filtering logic. Using validated Backfill data instead. Can be re-enabled once enhanced with proper filtering."
     },
     {
       "name": "Summons",

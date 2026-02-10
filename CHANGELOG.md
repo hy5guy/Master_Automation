@@ -14,10 +14,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ ] Consider implementing hybrid strategy for Arrests workflow
 - [ ] Document monthly execution procedures
 - [ ] Create automated testing for critical workflows
+- [ ] Enhanced Fresh Calculator with January 14 validation logic
 - [ ] Enhanced error reporting and recovery
 - [ ] Performance monitoring and optimization
 - [ ] Automated testing suite
 - [ ] Integration with Power BI refresh scheduling
+
+---
+
+## [1.12.0] - 2026-02-09
+
+### Added
+- **Response Time Backfill Baseline** - Created formal Backfill directory structure
+  - Created 13 monthly directories (Jan 2025 - Jan 2026) in `PowerBI_Date\Backfill\YYYY_MM\response_time\`
+  - Populated with current validated data (3 rows per month: Emergency, Routine, Urgent)
+  - Established repeatable monthly workflow for adding new months
+  - M code now prioritizes Backfill folder as primary data source
+
+### Changed
+- **Response Time M Code (v2.8.0 → v2.8.3)** - Backfill priority restored
+  - v2.8.1: Integrated Fresh Calculator priority (_DropExports first)
+  - v2.8.2: Single source only (_DropExports exclusive)
+  - v2.8.3: Reverted to multi-path with Backfill priority (restored validated data)
+  - Priority order: Backfill > visual_export > outputs > _DropExports
+  - Ensures loading of validated data with January 14 deduplication/filtering logic
+
+- **Response Times Fresh Calculator** - Disabled
+  - Set `enabled: false` in `config\scripts.json`
+  - Reason: Missing January 14, 2026 deduplication and enhanced filtering logic
+  - Can be re-enabled once enhanced to match validated methodology
+  - Python script remains available: `scripts\response_time_fresh_calculator.py`
+
+### Documentation
+- **New Session Documentation:**
+  - `docs/RESPONSE_TIME_v2.8.2_SINGLE_SOURCE_FIX.md` - Single source approach documentation
+  - `docs/RESPONSE_TIME_v2.8.3_BACKFILL_RESTORE.md` - Revert decision guide
+  - `docs/BACKFILL_BASELINE_CREATED_2026_02_09.md` - Backfill structure documentation
+  - `docs/RESPONSE_TIME_COMPLETE_SESSION_SUMMARY_2026_02_09.md` - Complete session summary
+  - `docs/RESPONSE_TIME_FINAL_STATUS_2026_02_09.md` - Final status and checklist
+
+### Decision Points
+- **Fresh Calculator vs Validated Backfill**
+  - Fresh Calculator recalculates from raw timereport data but lacks:
+    - January 14 deduplication by ReportNumberNew
+    - Enhanced filtering for self-initiated activities
+    - Administrative task exclusions
+    - Validated incident classification
+  - Decision: Use validated Backfill data (January 14 methodology)
+  - Future: Can enhance Fresh Calculator if needed for full recalculation
+
+### Results
+- October 2025 baseline values confirmed:
+  - Emergency: 02:49 (from validated data)
+  - Routine: 02:11 (from validated data)
+  - Urgent: 02:52 (from validated data)
+- 13-month rolling averages calculated correctly by DAX measures
+- Visual 1 and Visual 2 both working with correct data
+- 0% errors maintained across all months
 
 ---
 
@@ -606,4 +659,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Maintained by:** R. A. Carucci  
 **Last Updated:** 2026-02-09  
-**Version:** 1.11.0
+**Version:** 1.12.0

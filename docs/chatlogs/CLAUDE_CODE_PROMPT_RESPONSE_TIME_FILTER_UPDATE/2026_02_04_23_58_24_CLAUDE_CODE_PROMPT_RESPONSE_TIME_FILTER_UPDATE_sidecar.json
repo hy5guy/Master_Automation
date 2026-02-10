@@ -1,0 +1,73 @@
+{
+  "source_file": "CLAUDE_CODE_PROMPT_RESPONSE_TIME_FILTER_UPDATE.md",
+  "source_path": "C:\\_chunker\\02_data\\CLAUDE_CODE_PROMPT_RESPONSE_TIME_FILTER_UPDATE.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\CLAUDE_CODE_PROMPT_RESPONSE_TIME_FILTER_UPDATE\\2026_02_04_23_58_24_CLAUDE_CODE_PROMPT_RESPONSE_TIME_FILTER_UPDATE.origin.json",
+  "created_at": "2026_02_04_23_58_24",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "filter",
+      "category_type",
+      "log",
+      "logger",
+      "records",
+      "incident"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Claude Code Prompt: Response Time ETL Filter Update\n\n**Date:** 2026-01-14  \n**Purpose:** Comprehensive prompt for Claude Code to update response_time_monthly_generator.py with enhanced filtering logic, data verification, and edge case...",
+    "first_line": "# Claude Code Prompt: Response Time ETL Filter Update"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-04T23:58:24+00:00_CLAUDE_CODE_PROMPT_RESPONSE_TIME_FILTER_UPDATE_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "category_type",
+        "code",
+        "data",
+        "docs",
+        "excel",
+        "filter",
+        "incident",
+        "json",
+        "logger",
+        "markdown",
+        "police",
+        "python",
+        "records",
+        "sql"
+      ],
+      "key_terms": [
+        "filter",
+        "category_type",
+        "log",
+        "logger",
+        "records",
+        "incident"
+      ],
+      "summary": "# Claude Code Prompt: Response Time ETL Filter Update\n\n**Date:** 2026-01-14  \n**Purpose:** Comprehensive prompt for Claude Code to update response_time_monthly_generator.py with enhanced filtering logic, data verification, and edge case...",
+      "char_length": 23238,
+      "byte_length": 23917
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

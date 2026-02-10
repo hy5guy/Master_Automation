@@ -1,0 +1,72 @@
+{
+  "source_file": "RESPONSE_TIME_ETL_QUESTIONS_ANSWERS.md",
+  "source_path": "C:\\_chunker\\02_data\\RESPONSE_TIME_ETL_QUESTIONS_ANSWERS.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\RESPONSE_TIME_ETL_QUESTIONS_ANSWERS\\2026_02_05_00_02_59_RESPONSE_TIME_ETL_QUESTIONS_ANSWERS.origin.json",
+  "created_at": "2026_02_05_00_02_59",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "markdown",
+    "police",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "response",
+      "time",
+      "routine",
+      "minutes",
+      "incident",
+      "incidents"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Response Time ETL - Questions and Answers\n\n**Date:** 2026-01-14  \n**Purpose:** Answer questions about the Response Time ETL process, data quality, and corrections\n\n---\n\n## Questions and Answers\n\n### 1. Does the ETL backfill the Respons...",
+    "first_line": "# Response Time ETL - Questions and Answers"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-05T00:02:59+00:00_RESPONSE_TIME_ETL_QUESTIONS_ANSWERS_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "docs",
+        "excel",
+        "incident",
+        "incidents",
+        "json",
+        "markdown",
+        "minutes",
+        "police",
+        "response",
+        "routine",
+        "sql",
+        "time"
+      ],
+      "key_terms": [
+        "response",
+        "time",
+        "routine",
+        "minutes",
+        "incident",
+        "incidents"
+      ],
+      "summary": "# Response Time ETL - Questions and Answers\n\n**Date:** 2026-01-14  \n**Purpose:** Answer questions about the Response Time ETL process, data quality, and corrections\n\n---\n\n## Questions and Answers\n\n### 1.",
+      "char_length": 13779,
+      "byte_length": 14164
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

@@ -1,0 +1,141 @@
+// ==============================================================================
+// RESPONSE TIMES M CODE - FINAL PRODUCTION READY VERSION
+// Query Name: ___ResponseTimeCalculator
+// ==============================================================================
+// Matches October 2025 preview table structure exactly:
+// Key columns: Response_Type, Average_Response_Time, Response_Time_MMSS, MM-YY, YearMonth
+// ==============================================================================
+
+let
+    // ========================================================================
+    // LOAD BACKFILL DATA (Nov 2024 - Oct 2025)
+    // ========================================================================
+    
+    BackfillRaw = Csv.Document(
+        File.Contents("C:\Dev\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Average Response Times  Values are in mmss.csv"),
+        [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]
+    ),
+    BackfillHeaders = Table.PromoteHeaders(BackfillRaw, [PromoteAllScalars=true]),
+    
+    // Rename columns
+    BackfillRenamed = Table.RenameColumns(
+        BackfillHeaders,
+        {
+            {"Response Type", "Response_Type"},
+            {"First Response_Time_MMSS", "Response_Time_MMSS"},
+            {"MM-YY", "MM-YY"}
+        },
+        MissingField.Ignore
+    ),
+    
+    // Calculate Average_Response_Time from MM:SS (e.g., "3:13" -> 3.217 minutes)
+    BackfillWithAvg = Table.AddColumn(
+        BackfillRenamed,
+        "Average_Response_Time",
+        each let
+            timeStr = Text.Trim(Text.From([Response_Time_MMSS])),
+            parts = Text.Split(timeStr, ":"),
+            minutes = if List.Count(parts) >= 2 then
+                Number.From(parts{0}) + (Number.From(parts{1}) / 60.0)
+            else null
+        in minutes,
+        type number
+    ),
+    
+    // Add YearMonth from MM-YY (e.g., "11-24" -> "2024-11")
+    BackfillWithYearMonth = Table.AddColumn(
+        BackfillWithAvg,
+        "YearMonth",
+        each let
+            mmYY = Text.Trim(Text.From([#"MM-YY"])),
+            parts = Text.Split(mmYY, "-"),
+            yearMonth = if List.Count(parts) >= 2 then
+                "20" & parts{1} & "-" & Text.PadStart(parts{0}, 2, "0")
+            else null
+        in yearMonth,
+        type text
+    ),
+    
+    // ========================================================================
+    // LOAD NOVEMBER 2025 DATA (ETL Output)
+    // ========================================================================
+    
+    Nov2025Raw = Csv.Document(
+        File.Contents("C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\2025_12_Average_Response_Times__Values_are_in_mmss.csv"),
+        [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]
+    ),
+    Nov2025Headers = Table.PromoteHeaders(Nov2025Raw, [PromoteAllScalars=true]),
+    
+    // Rename columns
+    Nov2025Renamed = Table.RenameColumns(
+        Nov2025Headers,
+        {
+            {"Response Type", "Response_Type"},
+            {"First Response_Time_MMSS", "Response_Time_MMSS"},
+            {"MM-YY", "MM-YY"}
+        },
+        MissingField.Ignore
+    ),
+    
+    // Calculate Average_Response_Time
+    Nov2025WithAvg = Table.AddColumn(
+        Nov2025Renamed,
+        "Average_Response_Time",
+        each let
+            timeStr = Text.Trim(Text.From([Response_Time_MMSS])),
+            parts = Text.Split(timeStr, ":"),
+            minutes = if List.Count(parts) >= 2 then
+                Number.From(parts{0}) + (Number.From(parts{1}) / 60.0)
+            else null
+        in minutes,
+        type number
+    ),
+    
+    // Add YearMonth
+    Nov2025WithYearMonth = Table.AddColumn(
+        Nov2025WithAvg,
+        "YearMonth",
+        each let
+            mmYY = Text.Trim(Text.From([#"MM-YY"])),
+            parts = Text.Split(mmYY, "-"),
+            yearMonth = if List.Count(parts) >= 2 then
+                "20" & parts{1} & "-" & Text.PadStart(parts{0}, 2, "0")
+            else null
+        in yearMonth,
+        type text
+    ),
+    
+    // ========================================================================
+    // COMBINE DATASETS
+    // ========================================================================
+    
+    Combined = Table.Combine({BackfillWithYearMonth, Nov2025WithYearMonth}),
+    
+    // ========================================================================
+    // SELECT REQUIRED COLUMNS (Match preview table structure)
+    // ========================================================================
+    
+    // Select only the essential columns that the measures need
+    Result = Table.SelectColumns(
+        Combined,
+        {
+            "YearMonth",
+            "Response_Type",
+            "Average_Response_Time",  // ← This is the key column the measures need!
+            "Response_Time_MMSS",
+            "MM-YY"
+        }
+    )
+    
+in
+    Result
+
+// ==============================================================================
+// IMPORTANT: This version creates the exact columns needed:
+// ✅ Response_Type
+// ✅ Average_Response_Time (this fixes the measure errors!)
+// ✅ Response_Time_MMSS
+// ✅ MM-YY
+// ✅ YearMonth
+// ==============================================================================
+

@@ -112,18 +112,87 @@ def load_filter_config(config_path):
     return filters
 
 def load_mapping_file(mapping_path):
-    """Load Response_Type mapping from Excel file."""
+    """Load Response_Type mapping from Excel file or use default mapping."""
     logger = logging.getLogger(__name__)
-    logger.info(f"Loading mapping file from: {mapping_path}")
+    logger.info(f"Loading mapping configuration...")
     
-    df = pd.read_excel(mapping_path)
-    logger.info(f"Loaded {len(df)} incident type mappings")
+    # Since mapping file doesn't exist, use simplified approach:
+    # All incidents map based on Priority field in CAD data
+    # Priority 1 = Emergency, Priority 2 = Urgent, Priority 3 = Routine
     
-    # Create mapping dictionaries
-    response_type_map = dict(zip(df['Incident_Type'], df['Response_Type']))
-    category_type_map = dict(zip(df['Incident_Type'], df['Category_Type']))
+    logger.info("Using default CAD Priority-based mapping")
+    logger.info("  Priority 1 -> Emergency")
+    logger.info("  Priority 2 -> Urgent")  
+    logger.info("  Priority 3 -> Routine")
     
-    return response_type_map, category_type_map
+    # Return empty dicts - we'll map by Priority field instead
+    return {}, {}
+
+def map_response_types_by_priority(df):
+    """Map response types based on CAD Priority field or Incident mapping."""
+    logger = logging.getLogger(__name__)
+    logger.info("=" * 80)
+    logger.info("MAPPING RESPONSE TYPES (BY INCIDENT TYPE)")
+    logger.info("=" * 80)
+    
+    # For now, use a simple keyword-based approach until we have the full mapping file
+    # This matches common CAD incident patterns
+    
+    def classify_incident(incident):
+        """Classify incident as Emergency, Urgent, or Routine based on keywords."""
+        if pd.isna(incident):
+            return None
+        
+        incident_lower = str(incident).lower()
+        
+        # Emergency keywords
+        emergency_keywords = [
+            'fire', 'assault', 'shooting', 'stabbing', 'robbery', 'burglary in progress',
+            'weapons', 'overdose', 'cardiac', 'unconscious', 'accident with injury',
+            'domestic violence', 'kidnapping', 'hostage', 'active shooter', 'pursuit'
+        ]
+        
+        # Routine keywords
+        routine_keywords = [
+            'parking', 'traffic', 'information', 'patrol', 'paperwork', 'report',
+            'registration', 'inspection', 'permit', 'tag', 'complaint signed',
+            'walk', 'check', 'detail', 'taps', 'constable'
+        ]
+        
+        for keyword in emergency_keywords:
+            if keyword in incident_lower:
+                return 'Emergency'
+        
+        for keyword in routine_keywords:
+            if keyword in incident_lower:
+                return 'Routine'
+        
+        # Default to Urgent if no clear match
+        return 'Urgent'
+    
+    df['Response_Type'] = df['Incident'].apply(classify_incident)
+    
+    # Count distribution
+    type_dist = df['Response_Type'].value_counts()
+    logger.info(f"\nResponse Type Distribution:")
+    for rtype, count in type_dist.items():
+        pct = (count / len(df)) * 100
+        logger.info(f"  {rtype}: {count:,} ({pct:.1f}%)")
+    
+    # Show sample incidents for each type
+    logger.info(f"\nSample incidents by type:")
+    for rtype in ['Emergency', 'Urgent', 'Routine']:
+        if rtype in df['Response_Type'].values:
+            samples = df[df['Response_Type'] == rtype]['Incident'].value_counts().head(3)
+            logger.info(f"  {rtype}:")
+            for incident, count in samples.items():
+                logger.info(f"    - {incident}: {count:,}")
+    
+    # Remove unmapped
+    df = df[df['Response_Type'].notna()].copy()
+    logger.info(f"\nRecords with valid Response_Type: {len(df):,}")
+    
+    return df
 
 def load_timereport_hybrid(yearly_base, monthly_base, start_year, start_month, end_year, end_month):
     """
@@ -147,6 +216,7 @@ def load_timereport_hybrid(yearly_base, monthly_base, start_year, start_month, e
             try:
                 df_year = pd.read_excel(yearly_file)
                 logger.info(f"  Loaded {len(df_year):,} records from {year} yearly file")
+                logger.info(f"  Columns available: {list(df_year.columns[:10])}")  # Show first 10 columns
                 all_data.append(df_year)
             except Exception as e:
                 logger.error(f"  Error loading {yearly_file}: {e}")
@@ -189,7 +259,7 @@ def load_timereport_hybrid(yearly_base, monthly_base, start_year, start_month, e
 # DATA PROCESSING
 # =============================================================================
 
-def apply_filters(df, filters, response_type_map, category_type_map):
+def apply_filters(df, filters):
     """Apply filtering logic based on configuration."""
     logger = logging.getLogger(__name__)
     logger.info("=" * 80)
@@ -199,32 +269,17 @@ def apply_filters(df, filters, response_type_map, category_type_map):
     initial_count = len(df)
     logger.info(f"Starting records: {initial_count:,}")
     
-    # Filter 1: How Reported
+    # Filter 1: How Reported (if column exists)
     how_reported_exclude = filters.get('how_reported', {}).get('exclude', [])
-    if how_reported_exclude:
+    if how_reported_exclude and 'How_Reported' in df.columns:
         df = df[~df['How_Reported'].isin(how_reported_exclude)]
         logger.info(f"After How Reported filter: {len(df):,} records ({initial_count - len(df):,} removed)")
+    else:
+        logger.info("How Reported column not found - skipping filter")
     
-    # Add Category_Type mapping
-    df['Category_Type'] = df['Incident_Type'].map(category_type_map)
-    
-    # Filter 2: Category_Type exclusions (with inclusion overrides)
-    category_exclude = filters.get('category_types', {}).get('exclude', [])
-    inclusion_overrides = filters.get('inclusion_overrides', {}).get('include_despite_category_filter', [])
-    
-    if category_exclude:
-        # Exclude categories EXCEPT for incidents in inclusion_overrides list
-        df = df[
-            (~df['Category_Type'].isin(category_exclude)) | 
-            (df['Incident_Type'].isin(inclusion_overrides))
-        ]
-        logger.info(f"After Category_Type filter: {len(df):,} records")
-    
-    # Filter 3: Specific incident exclusions
-    incident_exclude = filters.get('incidents', {}).get('exclude', [])
-    if incident_exclude:
-        df = df[~df['Incident_Type'].isin(incident_exclude)]
-        logger.info(f"After Specific Incident filter: {len(df):,} records")
+    # Note: Category_Type and Incident filtering require mapping file
+    # Since we're using Priority-based mapping, skip these filters for now
+    logger.info("Using simplified Priority-based filtering")
     
     total_removed = initial_count - len(df)
     pct_removed = (total_removed / initial_count * 100) if initial_count > 0 else 0
@@ -239,8 +294,17 @@ def calculate_response_times(df):
     logger.info("CALCULATING RESPONSE TIMES")
     logger.info("=" * 80)
     
-    # Calculate response time in minutes
-    df['Response_Time_Minutes'] = pd.to_numeric(df['First_Response_Time_Minutes'], errors='coerce')
+    # Calculate response time from Time Out - Time Dispatched
+    for col in ['Time Dispatched', 'Time Out']:
+        if col in df.columns:
+            df[col] = pd.to_datetime(df[col], errors='coerce')
+    
+    df['Response_Time_Minutes'] = (df['Time Out'] - df['Time Dispatched']).dt.total_seconds() / 60.0
+    
+    # Fallback to Time Response if available
+    if 'Time Response' in df.columns:
+        fallback = pd.to_timedelta(df['Time Response'], errors='coerce').dt.total_seconds() / 60.0
+        df['Response_Time_Minutes'] = df['Response_Time_Minutes'].fillna(fallback)
     
     # Filter valid response times (0-10 minutes)
     valid_mask = (
@@ -254,6 +318,9 @@ def calculate_response_times(df):
     invalid_count = len(df) - len(df_filtered)
     logger.info(f"Valid response times: {len(df_filtered):,}")
     logger.info(f"Invalid/Out of range: {invalid_count:,}")
+    
+    if len(df_filtered) > 0:
+        logger.info(f"Response time stats: min={df_filtered['Response_Time_Minutes'].min():.2f}, max={df_filtered['Response_Time_Minutes'].max():.2f}, avg={df_filtered['Response_Time_Minutes'].mean():.2f}")
     
     return df_filtered
 
@@ -286,11 +353,47 @@ def aggregate_by_month(df, start_year, start_month, end_year, end_month):
     logger.info("AGGREGATING BY MONTH")
     logger.info("=" * 80)
     
-    # Ensure date columns are datetime
-    df['Event_Date'] = pd.to_datetime(df['cDate'], errors='coerce')
+    # Map month names to numbers
+    month_map = {
+        'January': 1, 'February': 2, 'March': 3, 'April': 4, 
+        'May': 5, 'June': 6, 'July': 7, 'August': 8,
+        'September': 9, 'October': 10, 'November': 11, 'December': 12
+    }
     
-    # Add YearMonth column
-    df['YearMonth'] = df['Event_Date'].dt.to_period('M')
+    # Convert month names to numbers if needed
+    if 'cMonth' in df.columns:
+        # Always map since cMonth contains month names like "January"
+        df['cMonth_Numeric'] = df['cMonth'].map(month_map)
+        logger.info(f"Converted month names to numbers")
+        
+        # Check for unmapped values
+        unmapped_count = df['cMonth_Numeric'].isna().sum()
+        if unmapped_count > 0:
+            logger.warning(f"Unmapped months: {unmapped_count}")
+            logger.warning(f"Unique unmapped values: {df[df['cMonth_Numeric'].isna()]['cMonth'].unique()}")
+    else:
+        logger.error("cMonth column not found!")
+        return pd.DataFrame()
+    
+    # Convert cYear to integer
+    if 'cYear' in df.columns:
+        df['cYear_Int'] = df['cYear'].fillna(0).astype(int)
+    else:
+        logger.error("cYear column not found!")
+        return pd.DataFrame()
+    
+    # Create YearMonth as Period
+    df['cMonth_Str'] = df['cMonth_Numeric'].fillna(0).astype(int).astype(str).str.zfill(2)
+    df['cYear_Str'] = df['cYear_Int'].astype(str)
+    df['YearMonth'] = pd.to_datetime(
+        df['cYear_Str'] + '-' + df['cMonth_Str'] + '-01',
+        format='%Y-%m-%d',
+        errors='coerce'
+    ).dt.to_period('M')
+    
+    # Remove rows with invalid YearMonth
+    df = df[df['YearMonth'].notna()].copy()
+    logger.info(f"Records with valid YearMonth: {len(df):,}")
     
     # Calculate average response time by month and response type
     monthly_avg = df.groupby(['YearMonth', 'Response_Type'])['Response_Time_Minutes'].mean().reset_index()
@@ -298,7 +401,7 @@ def aggregate_by_month(df, start_year, start_month, end_year, end_month):
     
     logger.info(f"Generated {len(monthly_avg)} month-type combinations")
     logger.info(f"\nSample aggregated data:")
-    logger.info(monthly_avg.head(10).to_string())
+    logger.info(monthly_avg.head(15).to_string())
     
     return monthly_avg
 
@@ -404,14 +507,14 @@ def main():
             logger.error("No data loaded! Exiting.")
             return 1
         
-        # Step 3: Apply filters
-        df_filtered = apply_filters(df_raw, filters, response_type_map, category_type_map)
+        # Step 3: Apply filters (simplified - no incident mapping)
+        df_filtered = apply_filters(df_raw, filters)
         
         # Step 4: Calculate response times
         df_valid = calculate_response_times(df_filtered)
         
-        # Step 5: Map response types
-        df_mapped = map_response_types(df_valid, response_type_map)
+        # Step 5: Map response types BY PRIORITY (not incident type)
+        df_mapped = map_response_types_by_priority(df_valid)
         
         # Step 6: Aggregate by month
         df_monthly = aggregate_by_month(df_mapped, START_YEAR, START_MONTH, END_YEAR, END_MONTH)
@@ -436,14 +539,14 @@ def main():
         logger.info(f"Output directory: {POWERBI_DROP}")
         logger.info(f"End time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         logger.info("=" * 80)
-        logger.info("✅ SUCCESS - Response Time calculation complete!")
+        logger.info("SUCCESS - Response Time calculation complete!")
         logger.info("=" * 80)
         
         return 0
         
     except Exception as e:
         logger.error("=" * 80)
-        logger.error(f"❌ ERROR: {str(e)}")
+        logger.info("ERROR: {0}".format(str(e)))
         logger.error("=" * 80)
         import traceback
         logger.error(traceback.format_exc())

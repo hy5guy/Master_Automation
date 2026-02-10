@@ -1,0 +1,42 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "type",
+        "date",
+        "text",
+        "table",
+        "month",
+        "csv"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Benchmark data architecture migration documentation\n_Exported on 1/12/2026 at 19:07:45 EST from Cursor (2.3.29)_\n\n---\n\n**User**\n\nplease update doc to reflect the changes Claude Code complted:\n# Cursor AI Context Prompt - Benchmark Data...",
+      "first_line": "# Benchmark data architecture migration documentation"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-04T23:56:07.153195",
+  "department": "admin"
+}

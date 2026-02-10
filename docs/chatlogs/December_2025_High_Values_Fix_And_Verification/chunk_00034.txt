@@ -1,0 +1,372 @@
+- Added support for multiple date formats: Excel serial numbers, actual dates, and text dates
+  - Fixed month targeting to correctly identify previous month from current date
+
+- **Arrest Script Path Resolution (2026-01-05)**
+  - Updated `arrest_python_processor.py` to search recursively for source files
+  - Changed from `glob("*.xlsx")` to `glob("**/*.xlsx")` to find files in subdirectories
+  - Now correctly finds files in `05_EXPORTS/_Arrest/monthly_export/YYYY/` structure
+  - Successfully processes December 2025 arrest data from `2025_12_LAWSOFT_ARREST.xlsx`
+
+- **Culture Error in Type Conversion (2026-01-05)**
+  - Removed problematic `Table.TransformColumnTypes()` calls that caused Culture errors
+  - Implemented NO_TYPE_CONVERSION approach for `___Arrest_Categories` query
+  - Power BI now auto-detects types from Excel source, avoiding regional format issues
+
+- **Monthly Report Saving (2026-01-05)**
+  - Added `Save-MonthlyReport` function to `run_all_etl.ps1`
+  - Automatically saves monthly Power BI reports to structured directory: `Monthly Reports\{YEAR}\{MONTH_NUMBER}_{monthname}\`
+  - Report filename format: `{YYYY}_{MM}_Monthly_FINAL_LAP.pbix`
+  - Function runs after ETL execution completes
+
+### Changed
+- **Arrest Query Structure**
+  - Moved all M code files to `m_code/` directory for better organization
+  - Updated queries to use previous month logic (automatically targets December 2025 from January 2026)
+  - Enhanced error handling for empty results (returns empty tables with correct schema instead of errors)
+
+- **Documentation Organization**
+  - Moved all `.md` and `.txt` files from root to `docs/` directory
+  - Created dedicated `m_code/` directory for Power Query M code files
+  - Improved project structure and navigability
+
+### Added
+- **Documentation**
+  - `docs/ARREST_QUERIES_FIX_SUMMARY_2026_01_05.md` - Detailed summary of M code fixes
+  - `docs/ARREST_SCRIPT_PATH_FIX.md` - Arrest script path resolution fix documentation
+  - `docs/ARREST_SCRIPT_RUN_SUMMARY.md` - Script execution summary
+  - `docs/DECEMBER_2025_ARREST_DATA_UPDATE.md` - December 2025 data processing guide
+  - `docs/DIAGNOSTIC_INSTRUCTIONS.md` - Diagnostic query usage guide
+  - `docs/DIAGNOSTIC_FILES_SUMMARY.md` - Summary of diagnostic M code files
+  - `docs/REVIEW_Claude_Fixes_2026_01_05.md` - Review of Claude AI fixes
+
+- **M Code Diagnostic Queries**
+  - `m_code/___Top_5_Arrests_DIAGNOSTIC.m` - Diagnostic version of Top 5 query
+  - `m_code/___Arrest_Date_Distribution.m` - Date distribution analysis query
+  - `m_code/___Arrest_Raw_Data_Preview.m` - Raw data preview query
+  - `m_code/___Top_5_Arrests_ALL_TIME.m` - All-time top 5 query (no date filter)
+
+### Verified
+- ✅ All M code queries compile without syntax errors
+- ✅ December 2025 arrest data successfully processed
+- ✅ PowerBI_Ready file created: `2025_12_Arrests_PowerBI_Ready.xlsx`
+- ✅ Queries correctly filter to December 2025 data
+- ✅ Date parsing handles Excel serial dates correctly
+- ✅ No Culture errors in type conversion
+
+---
+
+## [1.1.0] - 2026-01-02
+
+## [1.0.0] - 2025-12-11
+
+### Added
+
+#### Project Structure
+- **Folder scaffolding**
+  - `docs/` - Documentation files
+  - `chatlogs/` - AI chat logs
+  - `_DropExports/` - Optional staging folder
+  - `logs/` - ETL execution logs (auto-created)
+
+#### Documentation
+- `SUMMARY.md` - Project summary and quick reference
+- `CHANGELOG.md` - Version history (this file)
+- `docs/PROJECT_STRUCTURE.md` - Directory structure guide
+- `docs/FOLDER_STRUCTURE_CREATED.md` - Folder setup documentation
+- `chatlogs/README.md` - Chat log guidelines
+
+#### Scripts
+- **Migration verification script** (`verify_migration.ps1`)
+  - Automated 8-point verification checklist
+  - Validates config paths, directory structure, junctions, and script references
+  - Provides detailed status report
+
+- **Overtime TimeOff helpers**
+  - `scripts/overtime_timeoff_with_backfill.py` - Monthly wrapper (v10 + backfill + accrual history)
+  - `scripts/restore_fixed_from_backfill.py` - Restore history into `FIXED_monthly_breakdown_*.csv`
+    - Supports both WIDE exports (month columns) and LONG exports (`PeriodLabel` + `Sum of Value`)
+    - Optional `--include-accruals` flag (off by default)
+  - `scripts/compare_vcs_time_report_exports.py` - Compare refreshed exports vs baseline backfill exports
+
+#### Git Repository
+- Initialized local git repository
+- Added `.gitignore` for logs and temporary files
+
+### Changed
+
+#### Configuration (`config\scripts.json`)
+- Updated script filenames to match actual files:
+  - Arrests: `arrest_python_processor.py`
+  - Community Engagement: `deploy_production.py`
+  - Overtime TimeOff: `overtime_timeoff_with_backfill.py` (wrapper around v10 + backfill)
+  - Response Times: `response_time_diagnostic.py`
+  - Summons: `main_orchestrator.py`
+- Disabled scripts without Python files:
+  - Policy Training Monthly
+  - Arrest Data Source
+  - NIBRS
+- Updated `powerbi_drop_path` to OneDrive location
+- Backup created: `config\scripts.json.bak`
+
+#### Scripts
+- `scripts\run_all_etl.ps1` - Updated next-step instructions with new PowerBI_Date path
+- Removed all references to old `C:\Dev\PowerBI_Date` paths
+
+- `scripts/overtime_timeoff_with_backfill.py`
+  - Default backfill root updated to: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill`
+  - Now backfills `analytics_output\monthly_breakdown.csv` for prior 12 months from the same backfill export (preserves current month from v10)
+
+#### Documentation Organization
+- Moved all markdown files (except README.md) to `docs/` folder
+- Organized documentation by topic
+- Created chatlogs directory for AI conversations
+
+#### ETL Scripts
+- Updated Response Times script backfill path:
+  - Changed from: `C:\Dev\PowerBI_Date\Backfill\...`
+  - Changed to: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\...`
+
+### Fixed
+- All path references updated to reflect OneDrive migration
+- Script file path handling verified for OneDrive paths with spaces
+- Documentation consistency across all files
+- ETL script filenames verified and corrected
+
+- Overtime TimeOff historical “null/0” issue in Power BI visual
+  - Restored legacy usage rows into `FIXED_monthly_breakdown_*.csv` from backfill exports
+  - Populated accrual history by backfilling `analytics_output\monthly_breakdown.csv` (previously only current month existed)
+
+### Infrastructure
+- **Master_Automation Junction Created**
+  - Location: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Master_Automation`
+  - Target: `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`
+  - Type: NTFS Junction (symlink)
+
+### Verified
+- ✅ Config file paths correct
+- ✅ PowerBI_Date directory structure intact
+- ✅ Master_Automation junction functional
+- ✅ All script path references updated
+- ✅ Documentation paths corrected
+- ✅ Python executable accessible (Python 3.13.7)
+- ✅ Drop folder accessible and writable
+- ✅ All enabled script files exist and are accessible
+- ✅ Dry run test passed successfully
+
+---
+
+## [0.9.0] - 2025-12-11 - Migration to OneDrive
+
+### Added
+- Migration verification script (`verify_migration.ps1`)
+- Comprehensive migration documentation
+- Verification guides and summaries
+
+### Changed
+- **PowerBI_Date Migration**
+  - From: `C:\Dev\PowerBI_Date_Merged`
+  - To: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date`
+- Updated all path references in configuration and scripts
+- Updated documentation with new paths
+
+### Fixed
+- All old path references removed
+- Script logic verified for OneDrive paths
+
+---
+
+## [0.1.0] - 2025-12-09 - Initial Setup
+
+### Added
+- Initial Master_Automation workspace structure
+- ETL orchestrator scripts (`run_all_etl.ps1`, `run_all_etl.bat`, `run_etl_script.ps1`)
+- Configuration file (`config\scripts.json`)
+- Basic documentation (`README.md`, `QUICK_START.md`)
+
+### Features
+- Sequential ETL script execution
+- Error handling and logging
+- Power BI output integration
+- Selective script execution
+- Status reporting
+
+---
+
+## Future Updates
+
+### Planned
+- [ ] ETL script filename verification and auto-detection
+- [ ] Enhanced error reporting and recovery
+- [ ] Performance monitoring and optimization
+- [ ] Automated testing suite
+- [ ] Integration with Power BI refresh scheduling
+- [ ] Column reorder utility for backfill CSVs
+
+### Under Consideration
+- [ ] Web-based dashboard for ETL status
+- [ ] Email notifications for failures
+- [ ] Retry logic for transient errors
+- [ ] Parallel script execution option
+- [ ] Configuration UI
+- [ ] Automated backfill column ordering
+
+---
+
+## Notes
+
+- All paths are now OneDrive-synced for cloud backup and multi-device access
+- Junction link allows seamless access to Master_Automation from PowerBI_Date directory
+- Verification script should be run after any configuration changes
+- Logs directory is auto-created on first ETL run
+- Documentation organized in `docs/` folder for better structure
+- Chat logs should be saved to `chatlogs/` folder with date prefix
+
+---
+
+**Maintained by:** R. A. Carucci  
+**Last Updated:** 2026-01-13  
+**Current Version:** 1.4.0
+
+
+```
+
+
+Staging the documentation updates and preparing the commit:
+
+
+
+Pushing the branch and preparing the final report:
+
+
+
+Documentation updates committed locally. Final report:
+
+
+
+## Documentation update complete
+
+### Summary
+
+Documentation updated for v1.4.0 with December 2025 fixes. ### Changes made
+
+1. Version sync
+   - Created `VERSION` file with `1.4.0`
+   - Updated all version references in documentation
+
+2. CHANGELOG.md
+   - Added v1.4.0 entry with December 2025 fixes
+   - Documented file deduplication and preference logic
+   - Added compare link for v1.3.0...v1.4.0
+   - Kept "Unreleased" section at top
+
+3. README.md
+   - Added "What Changed in v1.4.0" section with changelog link
+   - Updated version to 1.4.0 and last updated date
+
+4. SUMMARY.md
+   - Updated version and last updated date
+   - Added v1.4.0 to Recent Updates section
+   - Documented key fixes
+
+### Files changed
+
+- `VERSION` (created)
+- `docs/CHANGELOG.md`
+- `docs/README.md`
+- `docs/SUMMARY.md`
+
+### Git status
+
+- Branch: `docs/update-20260106-0019`
+- Commit: `2a2e9c0`
+- Message: `docs: update CHANGELOG, README, SUMMARY for v1.4.0 - December 2025 high values fix, file deduplication, data integrity improvements`
+- Status: Committed locally
+
+### Next steps
+
+1. Configure remote repository (if needed):
+   ```powershell
+   git remote add origin <repository-url>
+   ```
+
+2. Push branch:
+   ```powershell
+   git push -u origin docs/update-20260106-0019
+   ```
+
+3. Create pull request (if using GitHub/GitLab)
+
+4. Tag release (optional):
+   ```powershell
+   git tag -a v1.4.0 -m "v1.4.0: December 2025 high values fix"
+   git push origin v1.4.0
+   ```
+
+### JSON summary
+
+```json
+{
+  "version": "1.4.0",
+  "branch": "docs/update-20260106-0019",
+  "commit": "2a2e9c0",
+  "tag": "",
+  "pr_url": "",
+  "ci_status": "N/A",
+  "files_changed": [
+    "VERSION",
+    "docs/CHANGELOG.md",
+    "docs/README.md",
+    "docs/SUMMARY.md"
+  ]
+}
+```
+
+All documentation files have been updated with v1.4.0 information and committed to the branch. ```powershell
+   git remote add origin <repository-url>
+```
+
+```powershell
+   git push -u origin docs/update-20260106-0019
+```
+
+```powershell
+   git tag -a v1.4.0 -m "v1.4.0: December 2025 high values fix"
+   git push origin v1.4.0
+```
+
+```json
+{
+  "version": "1.4.0",
+  "branch": "docs/update-20260106-0019",
+  "commit": "2a2e9c0",
+  "tag": "",
+  "pr_url": "",
+  "ci_status": "N/A",
+  "files_changed": [
+    "VERSION",
+    "docs/CHANGELOG.md",
+    "docs/README.md",
+    "docs/SUMMARY.md"
+  ]
+}
+```
+
+---
+
+**User**
+
+I'm preparing to export this chat. Please generate a descriptive filename that summarizes the main topic or task of this conversation. Requirements:
+• 4-8 words
+• Title Case (capitalize major words)
+• Replace spaces with underscores
+• Include .md extension
+• No dates or special characters
+
+Output only the filename, nothing else. After export, I'll process it using: scripts\quick_process_chatlog.bat
+
+---
+
+**Cursor**
+
+
+December_2025_High_Values_Fix_And_Verification.md

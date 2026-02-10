@@ -1,0 +1,74 @@
+{
+  "source_file": "CLAUDE_CODE_IMPLEMENTATION_GUIDE.md",
+  "source_path": "C:\\_chunker\\02_data\\CLAUDE_CODE_IMPLEMENTATION_GUIDE.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\CLAUDE_CODE_IMPLEMENTATION_GUIDE\\2026_02_04_23_56_07_CLAUDE_CODE_IMPLEMENTATION_GUIDE.origin.json",
+  "created_at": "2026_02_04_23_56_07",
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "json",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "filter",
+      "all",
+      "update",
+      "function",
+      "existing",
+      "config"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Claude Code Implementation Guide\n\n**Date:** 2026-01-14  \n**Purpose:** Step-by-step guide for Claude Code to implement Response Time ETL filter updates\n\n---\n\n## Recommended Approach\n\nClaude Code should proceed in the following order:\n\n#...",
+    "first_line": "# Claude Code Implementation Guide"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-04T23:56:07+00:00_CLAUDE_CODE_IMPLEMENTATION_GUIDE_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "ai-chat",
+        "code",
+        "config",
+        "conversation",
+        "data",
+        "docs",
+        "existing",
+        "filter",
+        "function",
+        "json",
+        "markdown",
+        "police",
+        "python",
+        "sql",
+        "update"
+      ],
+      "key_terms": [
+        "filter",
+        "all",
+        "update",
+        "function",
+        "existing",
+        "config"
+      ],
+      "summary": "# Claude Code Implementation Guide\n\n**Date:** 2026-01-14  \n**Purpose:** Step-by-step guide for Claude Code to implement Response Time ETL filter updates\n\n---\n\n## Recommended Approach\n\nClaude Code should proceed in the following order:\n\n#...",
+      "char_length": 10887,
+      "byte_length": 11377
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

@@ -1,0 +1,583 @@
+---
+
+**Cursor**
+
+Overtime_TimeOff_Backfill_Workflow_Stabilization.md
+
+---
+
+**User**
+
+I am going to restart this app to install the update will that clear this chat? ---
+
+**Cursor**
+
+### Will restarting clear this chat? - **In most apps, yes**: restarting/updating often **clears the in-app chat view** unless it’s explicitly saved or synced to an account. - I **can’t guarantee** persistence for your specific app/version. ### What to do before restarting
+- **Export/save the chat now** (best). - Also copy/paste the key items you’ll want handy after restart:
+  - **Commit**: `3a9489b`
+  - **Key scripts**: `scripts/overtime_timeoff_with_backfill.py`, `scripts/restore_fixed_from_backfill.py`, `scripts/compare_vcs_time_report_exports.py`
+  - **Backfill root**: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill`
+
+---
+
+**User**
+
+when I return we need to review the data output from the python script in C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment make sure the visual match the visual in power bi. The source we are looking for is in the below m code for the query
+// 🐍 Combined_Outreach_All — Using Python ETL Output
+// Simplified M code that reads from centralized Python ETL CSV output
+// Maintains exact same column structure for Power BI compatibility
+let
+    // === 1. Dynamic File Path Discovery ===
+    // Look for the most recent Python ETL output file
+    OutputFolder = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\output\",
+    
+    // Try to find the most recent community_engagement_data_*.csv file
+    // Pattern: community_engagement_data_YYYYMMDD_HHMMSS.csv
+    PythonETLFile = try 
+        let
+            // Get all CSV files in the output directory
+            Source = Folder.Files(OutputFolder),
+            FilteredFiles = Table.SelectRows(Source, each Text.StartsWith([Name], "community_engagement_data_") and Text.EndsWith([Name], ".csv")),
+            SortedFiles = Table.Sort(FilteredFiles, {{"Date modified", Order.Descending}}),
+            LatestFile = if Table.RowCount(SortedFiles) > 0 
+                        then OutputFolder & SortedFiles{0}[Name]
+                        else error "No Python ETL output files found"
+        in
+            LatestFile
+    otherwise
+        // Fallback to a specific filename pattern if dynamic discovery fails
+        OutputFolder & "community_engagement_combined_" & Date.ToText(DateTime.Date(DateTime.LocalNow()), "yyyy-MM-dd") & ".csv",
+
+    // === 2. Read Python ETL CSV Output ===
+    CSVSource = Csv.Document(File.Contents(PythonETLFile), [Delimiter=",", Columns=null, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+    HeadersPromoted = Table.PromoteHeaders(CSVSource, [PromoteAllScalars=true]),
+    
+    // === 3. Data Type Transformations ===
+    // Handle datetime strings from Python ETL (format: "YYYY-MM-DD HH:MM:SS")
+    DateParsed = Table.TransformColumns(HeadersPromoted, {
+        {"date", each 
+            if _ = null or _ = "" 
+            then null 
+            else try DateTime.Date(DateTime.FromText(_)) otherwise Date.FromText(Text.Start(_, 10)), 
+        type date}
+    }),
+    
+    // Handle time columns safely (may be in various formats from Python)
+    TimeParsed = Table.TransformColumns(DateParsed, {
+        {"start_time", each try Time.FromText(_) otherwise null, type time},
+        {"end_time", each try Time.FromText(_) otherwise null, type time}
+    }),
+    
+    TypedData = Table.TransformColumnTypes(TimeParsed, {
+        {"event_name", type text},
+        {"location", type text},
+        {"duration_hours", type number},
+        {"attendee_count", Int64.Type},
+        {"office", type text},
+        {"division", type text}
+    }),
+    
+    // Handle any duration_hours conversion issues (Python ETL may have NaNs)
+    SafeDuration = Table.TransformColumns(TypedData, {
+        {"duration_hours", each 
+            if _ = null or _ = "" or Text.From(_) = "nan" 
+            then 0.5 
+            else try Number.From(_) otherwise 0.5, type number}
+    }),
+    
+    // Handle any attendee_count conversion issues  
+    SafeAttendees = Table.TransformColumns(SafeDuration, {
+        {"attendee_count", each try Number.From(_) otherwise 1, Int64.Type}
+    }),
+    
+    // === 4. Column Selection and Renaming ===
+    // Select only the columns needed for Power BI
+    SelectedColumns = Table.SelectColumns(SafeAttendees, {
+        "date",
+        "duration_hours", 
+        "event_name",
+        "location",
+        "attendee_count",
+        "office"
+    }),
+    
+    // Rename columns to match exact Power BI expectations
+    RenamedColumns = Table.RenameColumns(SelectedColumns, {
+        {"date", "Date"},
+        {"duration_hours", "Event Duration (Hours)"},
+        {"event_name", "Event Name"}, 
+        {"location", "Location of Event"},
+        {"attendee_count", "Number of Police Department Attendees"},
+        {"office", "Office"}
+    }),
+    
+    // === 5. Data Quality and Filtering ===
+    // Remove rows with null dates (same as original M code)
+    FilteredData = Table.SelectRows(RenamedColumns, each [Date] <> null),
+    
+    // Ensure Event Duration is reasonable (0.1 to 24 hours)
+    ValidatedDuration = Table.TransformColumns(FilteredData, {
+        {"Event Duration (Hours)", each 
+            if _ = null or _ <= 0 then 0.5
+            else if _ > 24 then 8.0  
+            else Number.Round(_, 2), 
+        type number}
+    }),
+    
+    // Ensure attendee count is at least 1 if null/zero
+    ValidatedAttendees = Table.TransformColumns(ValidatedDuration, {
+        {"Number of Police Department Attendees", each 
+            if _ = null or _ <= 0 then 1 else _, 
+        Int64.Type}
+    }),
+    
+    // === 6. Final Sort and Output ===
+    // Sort by date ascending (same as original M code)
+    FinalData = if Table.RowCount(ValidatedAttendees) > 0 
+                then Table.Sort(ValidatedAttendees, {{"Date", Order.Ascending}}) 
+                else ValidatedAttendees
+
+in
+    FinalData
+
+---
+
+**Cursor**
+
+### Got it — next session target
+When you return, we’ll validate **Community Engagement** end-to-end by checking that the Power BI query is reading the **latest** `community_engagement_data_*.csv` from:
+
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\output\`
+
+…and that the resulting table matches the Power BI visual expectations. ### What we’ll review
+- **Latest-file selection**: confirm the newest `community_engagement_data_*.csv` is the one Power BI is loading (based on “Date modified”). - **Schema match**: confirm the output contains these exact fields after M transforms:
+  - `Date`, `Event Duration (Hours)`, `Event Name`, `Location of Event`, `Number of Police Department Attendees`, `Office`
+- **Data quality rules** (from your M code): date parsing, duration bounds, attendee defaults, null-date filtering. - **Visual match**: export the same visual from Power BI and do a side-by-side comparison (row counts, key totals, spot-check mismatches). ---
+
+**User**
+
+Then check the output from C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Summons so when the summons visual imports from C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx the visual correctly added the backfill from 2025_10_Department-Wide Summons  Moving and Parking.csv and the script caulates only the 11-25 data. summons export is in C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket
+I want to check the resulting visual export gainist the data in the backfill file
+
+
+// 🕒 2025-09-08-15-45-00
+// Summons_Analytics/ATS_Court_Data_Enhanced
+// Author: R. A. Carucci
+// Purpose: Load the enhanced summons dataset processed by ETL script
+
+let
+    // Load the enhanced dataset from your ETL output
+    Source = Excel.Workbook(
+        File.Contents(
+            "C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
+        null, true),
+
+    // Select the Summons_Data sheet
+    ATS_Court_Data_Sheet = Source{[Item = "Summons_Data",
+                                   Kind = "Sheet"]}[Data],
+
+// Promote headers
+#"Promoted Headers" =
+    Table.PromoteHeaders(ATS_Court_Data_Sheet, [PromoteAllScalars = true]),
+
+// Set data types based on your enhanced dataset structure
+#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"PADDED_BADGE_NUMBER", type text}, {"OFFICER_DISPLAY_NAME", type text}, {"WG1", type text}, {"WG2", type text}, {"WG3", type text}, {"WG4", type text}, {"WG5", type text}, {"TICKET_NUMBER", type text}, {"ISSUE_DATE", type datetime}, {"VIOLATION_NUMBER", type text}, {"VIOLATION_TYPE", type text}, {"TYPE", type text}, {"STATUS", type text}, {"TOTAL_PAID_AMOUNT", type number}, {"FINE_AMOUNT", type number}, {"COST_AMOUNT", type number}, {"MISC_AMOUNT", type number}, {"Year", type number}, {"Month", type number}, {"YearMonthKey", type number}, {"Month_Year", type text}, {"ASSIGNMENT_FOUND", type logical}, {"DATA_QUALITY_SCORE", type number}, {"DATA_QUALITY_TIER", type text}, {"SOURCE_FILE", type text}, {"PROCESSING_TIMESTAMP", type datetime}, {"ETL_VERSION", type text}, {"TICKET_COUNT", Int64.Type}})
+
+in
+#"Changed Type"
+
+---
+
+**Cursor**
+
+Understood — when you’re back we’ll do two validations:
+
+### Community Engagement (Power BI vs ETL output)
+- **Confirm source file**: Power BI is loading the **most recent** `community_engagement_data_*.csv` from `...\02_ETL_Scripts\Community_Engagment\output\` (your Folder.Files + Date modified sort logic). - **Confirm schema**: the final columns match exactly: `Date`, `Event Duration (Hours)`, `Event Name`, `Location of Event`, `Number of Police Department Attendees`, `Office`. - **Confirm rules**: date parsing, time parsing, duration/attendee defaults, null-date filtering, and final sort match what the visual expects. ### Summons (Backfill + Current Month Calculation)
+- **Confirm Power BI source**: `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx` → `Summons_Data` sheet. - **Confirm ETL behavior**:
+  - **History** comes from `2025_10_Department-Wide Summons  Moving and Parking.csv` (backfill)
+  - **Current month (11-25)** is computed from `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket`
+- **Validate**: export the refreshed Summons visual and compare historical months to the backfill file (no drift), while ensuring only 11-25 changes. I’ve saved these as the next-session checklist so we can pick up quickly when you return. [[memory:12145908]]
+
+---
+
+**User**
+
+then run the script in C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Policy_Training_Monthly and make sure C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\Backfill\2025_10\policy_training\2025_10_Training Cost by Delivery Method.csv backfill carries over and compare attached data against the visual after it is refreshed. The script sould calculate 11/25 data
+
+---
+
+**Cursor**
+
+### Plan
+- **Confirm what actually exists** in `02_ETL_Scripts\Policy_Training_Monthly` (Python entrypoint, expected outputs, any config/backfill assumptions). - **Run the ETL** to generate the **11/25** outputs. - **Validate backfill carry-over** by comparing the resulting refreshed export/output against the **2025_10 backfill CSV** (and we’ll also align paths to the OneDrive backfill location if needed). Nice — unlike earlier, `Policy_Training_Monthly` is a full Python project with `run_etl.bat`, `configs/config.yaml`, and an existing `output/policy_training_outputs.xlsx`. Next I’ll inspect `config.yaml` to see where it pulls current-month inputs and backfill from, then I’ll run the ETL non-interactively (without the `.bat` pause) and produce a backfill-vs-output diff for “Training Cost by Delivery Method.”
+
+- I **ran** `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Policy_Training_Monthly\src\policy_training_etl.py` with `configs\config.yaml` and it regenerated `output\policy_training_outputs.xlsx`. ### Confirmed: script calculated **11-25**
+The `Delivery_Cost_By_Month` sheet now includes an **`11-25`** column, with:
+
+- **In-Person**: **4704**
+- **Online**: **0**
+
+### Backfill carry-over check (vs Oct backfill CSV)
+Compared the ETL output (`Delivery_Cost_By_Month`) against:
+
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\Backfill\2025_10\policy_training\2025_10_Training Cost by Delivery Method.csv`
+
+for all **overlapping months** (the 13‑month window the ETL produces). **Result:**
+- **Value diffs:** **0**
+- The **only “differences”** are that **11-25 exists in ETL output but not in the 2025_10 backfill**, which is exactly what we want (backfill stops at 10-25; ETL adds 11-25). ### What I still need from you to do the “visual export” comparison
+Please attach/export the refreshed Power BI visual data for **Training Cost by Delivery Method** (CSV), and I’ll diff it against:
+- the backfill CSV for historical months, and
+- the ETL 11-25 values for the current month. ---
+
+**User**
+
+@Training Cost by Delivery Method.csv 
+
+---
+
+**Cursor**
+
+Got it — I’ll diff your refreshed visual export against (1) the ETL output sheet `Delivery_Cost_By_Month` and (2) the Oct backfill CSV. That will confirm historical months match backfill exactly and 11-25 matches the ETL-calculated value. I’ve got the file — I’m going to run a clean diff of your **refreshed visual export** vs:
+
+1) the ETL output in `02_ETL_Scripts\Policy_Training_Monthly\output\policy_training_outputs.xlsx` (sheet `Delivery_Cost_By_Month`)  
+2) the Oct backfill file `...\00_dev\PowerBI_Date\Backfill\2025_10\policy_training\2025_10_Training Cost by Delivery Method.csv` (for historical months)
+
+I hit a PowerShell quoting issue on the first attempt, so I’m rerunning the comparison via `cmd` to avoid that and get an authoritative result. ---
+
+**User**
+
+are you running a clean diff
+
+---
+
+**Cursor**
+
+Yes — the goal is a **clean, deterministic diff** (same normalization, same keys, numeric tolerance). My last run failed due to **PowerShell quoting mangling the Python command**, not because the data can’t be compared. I’m going to do it the reliable way now: drop a tiny comparison script into `Master_Automation/scripts/`, run it, and report the exact diff summary (visual vs ETL, and visual-history vs backfill). ```python
+#!/usr/bin/env python3
+"""
+Compare Policy Training "Training Cost by Delivery Method" visual export against:
+1) ETL output workbook sheet Delivery_Cost_By_Month
+2) Backfill CSV (historical months only)
+
+This script is intentionally standalone to avoid PowerShell quoting issues.
+""" from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+
+def _norm(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    df["Period"] = df["Period"].astype(str).str.strip()
+    df["Delivery_Type"] = df["Delivery_Type"].astype(str).str.strip()
+    df["Sum of Cost"] = pd.to_numeric(df["Sum of Cost"], errors="coerce").fillna(0.0)
+    return df
+
+
+def load_etl_delivery_long(path_xlsx: Path) -> pd.DataFrame:
+    wide = pd.read_excel(path_xlsx, sheet_name="Delivery_Cost_By_Month")
+    idcol = "Delivery_Type"
+    valcols = [c for c in wide.columns if c not in (idcol, "Total")]
+    long = wide.melt(id_vars=[idcol], value_vars=valcols, var_name="Period", value_name="Sum of Cost")
+    return _norm(long)
+
+
+def diff(a: pd.DataFrame, b: pd.DataFrame, tol: float) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Returns (missing, diffs) where:
+    - missing contains keys present in one side only
+    - diffs contains numeric mismatches beyond tolerance
+    """
+    m = a.merge(b, on=["Period", "Delivery_Type"], how="outer", suffixes=("_a", "_b"), indicator=True)
+    missing = m[m["_merge"] != "both"][["Period", "Delivery_Type", "_merge"]].sort_values(["Period", "Delivery_Type"])
+    both = m[m["_merge"] == "both"].copy()
+    both["diff"] = both["Sum of Cost_a"] - both["Sum of Cost_b"]
+    diffs = both[np.abs(both["diff"]) > tol][
+        ["Period", "Delivery_Type", "Sum of Cost_a", "Sum of Cost_b", "diff"]
+    ].sort_values(["Period", "Delivery_Type"])
+    return missing, diffs
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--visual", required=True, help="Path to visual export CSV (Period,Delivery_Type,Sum of Cost)")
+    ap.add_argument("--etl-xlsx", required=True, help="Path to policy_training_outputs.xlsx")
+    ap.add_argument("--backfill", required=True, help="Path to backfill CSV (Period,Delivery_Type,Sum of Cost)")
+    ap.add_argument("--current-period", default="11-25", help="Current month period label to exclude from backfill check")
+    ap.add_argument("--tol", type=float, default=1e-6, help="Numeric tolerance")
+    args = ap.parse_args()
+
+    visual = _norm(pd.read_csv(Path(args.visual)))
+    etl = load_etl_delivery_long(Path(args.etl_xlsx))
+    backfill = _norm(pd.read_csv(Path(args.backfill)))
+
+    print("=== Visual vs ETL (Full Periods In Visual) ===")
+    missing, diffs = diff(visual, etl, args.tol)
+    print(f"Missing keys: {len(missing)}")
+    print(f"Value diffs:  {len(diffs)} (tol={args.tol})")
+    if len(missing):
+        print("\nMissing (first 50):")
+        print(missing.head(50).to_string(index=False))
+    if len(diffs):
+        print("\nDiffs (first 50):")
+        print(diffs.head(50).to_string(index=False))
+
+    print("\n=== Visual History vs Backfill (Exclude Current Period) ===")
+    visual_hist = visual[visual["Period"] != args.current_period].copy()
+    missing2, diffs2 = diff(visual_hist, backfill, args.tol)
+    print(f"Missing keys: {len(missing2)}")
+    print(f"Value diffs:  {len(diffs2)} (tol={args.tol})")
+    if len(missing2):
+        print("\nMissing (first 50):")
+        print(missing2.head(50).to_string(index=False))
+    if len(diffs2):
+        print("\nDiffs (first 50):")
+        print(diffs2.head(50).to_string(index=False))
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+```
+
+Yes — **clean diff is now run successfully**. Results for your attached `Training Cost by Delivery Method.csv`:
+
+- **Visual vs ETL (`Delivery_Cost_By_Month`)**: **0 missing keys, 0 value diffs** ✅  
+- **Visual history vs Oct backfill (excluding 11-25)**: **0 value diffs** ✅  
+  - Only “missing” is **`10-24`** in the backfill file (your visual export starts at `11-24`, so that’s expected and not a mismatch). ---
+
+**User**
+
+might as well run the summons script, then as me to provide the visual's data after a refresh thenyou comare
+
+---
+
+**Cursor**
+
+### Plan
+- Inspect `02_ETL_Scripts\Summons` to find the correct entrypoint/run command and confirm where it writes `summons_powerbi_latest.xlsx`. - Run the Summons ETL (non-interactive) so it recomputes **11-25** from `05_EXPORTS\_Summons\E_Ticket` while keeping history/backfill intact. - Then I’ll ask you to export the refreshed Summons visual data (CSV) so I can diff it against the **2025_10 backfill** + the ETL output. Makes sense to “just run Summons now” — I’m going to (1) confirm which script actually writes `summons_powerbi_latest.xlsx` and what inputs it uses, then (2) run the production orchestrator and verify the staging workbook timestamp updates. After that I’ll ask you to export the refreshed Summons visual data for comparison. Nice—your staging workbook `summons_powerbi_latest.xlsx` hasn’t been updated since **11/10/2025**, so a successful ETL run will be obvious via timestamp/size changes. Next I’ll confirm which Summons script actually uses `_Summons\\E_Ticket` + the 2025_10 backfill (it looks like `SummonsMaster_Simple.py`), then I’ll run that script and verify the workbook updates. Summons ETL is now **run and updated cleanly**. ### What I ran
+I executed `02_ETL_Scripts\Summons\SummonsMaster_Simple.py` for the **11-25** cycle (it automatically chose **November 2025** as the “previous month”), using your **2025_10 backfill** after converting it into the schema the script expects. ### What changed (proof it ran)
+`C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx`
+
+- **Before**: last modified `11/10/2025 15:26:11`
+- **After**: last modified **`12/11/2025 20:16:04`** ✅
+
+### What the run did (high level)
+- **Backfill**: created **22 aggregate records** (historical), representing **34,046** tickets (note: it logged **missing month 03-25** from the backfill file)
+- **Current month**: loaded **`25_11_e_ticketexport.csv`** (semicolon delimited), processed **3,356** tickets for 11-25
+- Output workbook written with **3,378 rows** (aggregate history + current-month detail)
+
+---
+
+## Your turn: export the refreshed visual data
+Now refresh Power BI (it reads `summons_powerbi_latest.xlsx`) and **export the visual data** for the *Department-Wide Summons Moving and Parking* visual. Please attach the exported CSV here. Then I’ll run a clean diff against:
+- `PowerBI_Date\Backfill\2025_10\summons\2025_10_Department-Wide Summons  Moving and Parking.csv` (history), and
+- the **11-25** values from the new workbook (current month). ---
+
+**User**
+
+@Department-Wide Summons  Moving and Parking.csv check the visual export against the backfill data
+
+---
+
+**Cursor**
+
+### Plan
+- Load the **visual export** you attached and the **2025_10 backfill** CSV, normalize to `(TYPE, Month_Year) -> count`, and confirm **all historical months match exactly**. - Then compute `(TYPE, Month_Year)` totals from the **ETL output workbook** `summons_powerbi_latest.xlsx` and confirm the visual’s **11-25** values match the ETL output. ```python
+#!/usr/bin/env python3
+"""
+Compare Summons 'Department-Wide Summons Moving and Parking' export vs backfill and ETL output. Inputs:
+- visual export CSV: TYPE, Month_Year, Sum of TICKET_COUNT
+- backfill CSV (historical): TYPE, Month_Year, Sum of TICKET_COUNT
+- ETL staging workbook: summons_powerbi_latest.xlsx (Summons_Data sheet), compare 11-25 by summing TICKET_COUNT
+"""
+
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+
+def load_summary_csv(path: Path) -> pd.DataFrame:
+    df = pd.read_csv(path)
+    df["TYPE"] = df["TYPE"].astype(str).str.strip()
+    df["Month_Year"] = df["Month_Year"].astype(str).str.strip()
+    df["Sum of TICKET_COUNT"] = pd.to_numeric(df["Sum of TICKET_COUNT"], errors="coerce").fillna(0).astype(int)
+    return df
+
+
+def diff(a: pd.DataFrame, b: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    m = a.merge(b, on=["TYPE", "Month_Year"], how="outer", suffixes=("_a", "_b"), indicator=True)
+    missing = m[m["_merge"] != "both"][["TYPE", "Month_Year", "_merge"]].sort_values(["Month_Year", "TYPE"])
+    both = m[m["_merge"] == "both"].copy()
+    both["diff"] = both["Sum of TICKET_COUNT_a"] - both["Sum of TICKET_COUNT_b"]
+    diffs = both[both["diff"] != 0][
+        ["TYPE", "Month_Year", "Sum of TICKET_COUNT_a", "Sum of TICKET_COUNT_b", "diff"]
+    ].sort_values(["Month_Year", "TYPE"])
+    return missing, diffs
+
+
+def compute_month_from_etl(xlsx_path: Path, month: str) -> pd.DataFrame:
+    df = pd.read_excel(xlsx_path, sheet_name="Summons_Data")
+    # Ensure types
+    df["Month_Year"] = df["Month_Year"].astype(str).str.strip()
+    df["TYPE"] = df["TYPE"].astype(str).str.strip()
+    df["TICKET_COUNT"] = pd.to_numeric(df["TICKET_COUNT"], errors="coerce").fillna(0).astype(int)
+    m = df[df["Month_Year"] == month].copy()
+    out = m.groupby(["TYPE", "Month_Year"], as_index=False)["TICKET_COUNT"].sum()
+    out = out.rename(columns={"TICKET_COUNT": "Sum of TICKET_COUNT"})
+    return out
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--visual", required=True, help="Path to visual export CSV")
+    ap.add_argument("--backfill", required=True, help="Path to backfill CSV")
+    ap.add_argument("--etl-xlsx", required=True, help="Path to summons_powerbi_latest.xlsx")
+    ap.add_argument("--current", default="11-25", help="Current month label (MM-YY)")
+    args = ap.parse_args()
+
+    visual = load_summary_csv(Path(args.visual))
+    backfill = load_summary_csv(Path(args.backfill))
+
+    # 1) History comparison: only months present in backfill
+    backfill_months = set(backfill["Month_Year"].unique())
+    visual_hist = visual[visual["Month_Year"].isin(backfill_months)].copy()
+    missing, diffs = diff(visual_hist, backfill)
+
+    print("=== Visual vs Backfill (History Months) ===")
+    print(f"Missing keys: {len(missing)}")
+    print(f"Value diffs:  {len(diffs)}")
+    if len(missing):
+        print("\nMissing (first 50):")
+        print(missing.head(50).to_string(index=False))
+    if len(diffs):
+        print("\nDiffs (first 50):")
+        print(diffs.head(50).to_string(index=False))
+
+    # 2) Current month comparison: visual vs ETL
+    etl_cur = compute_month_from_etl(Path(args.etl_xlsx), args.current)
+    visual_cur = visual[visual["Month_Year"] == args.current].copy()
+
+    # Normalize column name for diff()
+    etl_cur = etl_cur.rename(columns={"Sum of TICKET_COUNT": "Sum of TICKET_COUNT"})
+    missing2, diffs2 = diff(visual_cur, etl_cur)
+
+    print(f"\n=== Visual vs ETL (Current Month {args.current}) ===")
+    print(f"Missing keys: {len(missing2)}")
+    print(f"Value diffs:  {len(diffs2)}")
+    if len(missing2):
+        print("\nMissing:")
+        print(missing2.to_string(index=False))
+    if len(diffs2):
+        print("\nDiffs:")
+        print(diffs2.to_string(index=False))
+
+    if len(diffs) == 0 and len(missing) == 0 and len(diffs2) == 0 and len(missing2) == 0:
+        print("\n[OK] Visual matches backfill history and ETL current month.") return 0
+
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+```
+
+### Backfill vs visual (history months)
+**Result: PASS for values** — **0 value differences** for all overlapping history months. The only discrepancy is **missing `10-24`** in your visual export:
+
+- **Missing in visual (present in backfill)**:
+  - `M, 10-24`
+  - `P, 10-24`
+
+So: for **11-24 through 10-25**, your visual export **matches the 2025_10 backfill exactly**. ### Current month (11-25) vs ETL workbook
+**Result: PASS for values** — the visual’s **11-25** counts for **M** and **P** match the ETL workbook totals exactly. One extra item showed up in the ETL workbook for 11-25:
+
+- **ETL has `C, 11-25`** (3 tickets), but your visual export only includes **M** and **P**. That’s expected if your visual is filtered to “Moving (M) + Parking (P)” and excludes “C”. ### Bottom line
+- **Backfill carryover is correct** (no drift for historical months). - **11-25 is being calculated from the ETL output correctly**. - Only follow-ups:
+  - If you expect **10-24** to appear, confirm the visual/report window includes it. - If you want “C” included, remove the M/P-only filter in the visual. ---
+
+**User**
+
+@Summons  Moving & Parking  All Bureaus.csv why is the top row have a blank bureau? Rows comes from the WG2 column
+
+---
+
+**Cursor**
+
+I’m going to trace those 4 “blank Bureau” tickets back to the ETL output workbook (`summons_powerbi_latest.xlsx`) and identify which rows/badges have an empty `WG2`. That will tell us whether it’s a missing assignment value vs a Power BI transformation issue. ```python
+#!/usr/bin/env python3
+"""
+Diagnose Summons 'blank Bureau' rows for the Moving/Parking by Bureau visual. Reads the staging workbook and summarizes records where WG2 (bureau) is blank.
+""" from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+import pandas as pd
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--xlsx", required=True, help="Path to summons_powerbi_latest.xlsx")
+    ap.add_argument("--month", default="11-25", help="Month_Year label to inspect (MM-YY)")
+    args = ap.parse_args()
+
+    xlsx = Path(args.xlsx)
+    df = pd.read_excel(xlsx, sheet_name="Summons_Data")
+
+    needed = ["WG2", "TYPE", "TICKET_COUNT", "Month_Year", "PADDED_BADGE_NUMBER", "OFFICER_DISPLAY_NAME"]
+    missing_cols = [c for c in needed if c not in df.columns]
+    if missing_cols:
+        raise SystemExit(f"Missing columns in workbook: {missing_cols}")
+
+    df["WG2"] = df["WG2"].astype(str).str.strip()
+    df["TYPE"] = df["TYPE"].astype(str).str.strip()
+    df["Month_Year"] = df["Month_Year"].astype(str).str.strip()
+    df["PADDED_BADGE_NUMBER"] = df["PADDED_BADGE_NUMBER"].astype(str).str.strip()
+    df["OFFICER_DISPLAY_NAME"] = df["OFFICER_DISPLAY_NAME"].astype(str).str.strip()
+    df["TICKET_COUNT"] = pd.to_numeric(df["TICKET_COUNT"], errors="coerce").fillna(0).astype(int)
+
+    cur = df[df["Month_Year"] == args.month].copy()
+    blank = cur[cur["WG2"].isin(["", "nan", "None"])].copy()
+
+    print(f"Workbook: {xlsx}")
+    print(f"Month: {args.month}")
+    print(f"Rows (month): {len(cur):,}   Tickets (month): {int(cur['TICKET_COUNT'].sum()):,}")
+    print(f"Rows (blank WG2): {len(blank):,}   Tickets (blank WG2): {int(blank['TICKET_COUNT'].sum()):,}")
+
+    if blank.empty:
+        return 0
+
+    print("\nTYPE breakdown (blank WG2):")
+    print(blank.groupby("TYPE")["TICKET_COUNT"].sum().sort_values(ascending=False).to_string())
+
+    print("\nBadges contributing (blank WG2) [top 15]:")
+    print(blank["PADDED_BADGE_NUMBER"].value_counts().head(15).to_string())
+
+    print("\nSample rows (blank WG2) [up to 25]:")
+    cols = ["PADDED_BADGE_NUMBER", "OFFICER_DISPLAY_NAME", "TYPE", "TICKET_COUNT", "Month_Year", "WG2"]
+    print(blank[cols].head(25).to_string(index=False))
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+```
+
+That blank Bureau row is coming from **4 parking tickets in 11-25 where `WG2` is blank in the ETL output**.

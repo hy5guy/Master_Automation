@@ -1,0 +1,833 @@
+Summons Script ✅ **No Backfill References**
+
+**Script:** `02_ETL_Scripts\Summons\main_orchestrator.py`
+
+**Status:** ✅ **No backfill references found**
+
+---
+
+## Summary
+
+### Scripts That Need Path Updates
+
+| Script | File | Line | Old Path | Status |
+|--------|------|------|----------|--------|
+| **Response Times** | `response_time_diagnostic.py` | 32 | `C:\Dev\PowerBI_Date\Backfill\...` | ❌ **NEEDS UPDATE** |
+
+### Scripts That Are OK
+
+| Script | Status | Notes |
+|--------|--------|-------|
+| **Arrests** | ✅ OK | No direct backfill path |
+| **Community Engagement** | ✅ OK | No backfill references |
+| **Summons** | ✅ OK | No backfill references |
+| **Overtime TimeOff** | ✅ OK | Uses local analytics_output, not Backfill folder |
+
+---
+
+## Action Required
+
+### Update Response Times Script
+
+**File:** `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\response_time_diagnostic.py`
+
+**Change Line 32 from:**
+```python
+BACKFILL_CSV = Path(r"C:\Dev\PowerBI_Date\Backfill\2025_09\response_time\Average Response Times  Values are in mmss.csv")
+```
+
+**To:**
+```python
+BACKFILL_CSV = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_09\response_time\Average Response Times  Values are in mmss.csv")
+```
+
+**Note:** Verify the file exists at the new location first:
+```powershell
+Test-Path "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_09\response_time\Average Response Times  Values are in mmss.csv"
+```
+
+---
+
+## Backfill Directory Structure
+
+**Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\`
+
+**Subdirectories:**
+- `2025_09\` - September 2025 backfill data
+  - `arrest\` - Arrest data backfill
+  - `vcs_time_report\` - Overtime/TimeOff backfill
+  - `response_time\` - Response times backfill
+  - `chief_law_enforcement_duties\`
+  - `chief_projects\`
+- `2025_10\` - October 2025 backfill data
+- `2025_11\` - November 2025 backfill data
+- `_TEMPLATE_YYYY_MM\` - Template structure
+
+---
+
+## How Scripts Use Backfill Data
+
+### Response Times
+- **Purpose:** Compare backfill values vs recalculated values
+- **Usage:** Loads historical backfill CSV for diagnostic comparison
+- **Function:** `load_backfill()` - reads backfill CSV and converts to standard format
+
+### Overtime TimeOff
+- **Purpose:** Anchor historical months to preserve backfill values
+- **Usage:** Script looks for prior month's output in `analytics_output` directory
+- **Note:** Documentation references backfill for manual restoration, but script uses local files
+
+### Arrests
+- **Purpose:** Output format compatible with Power BI backfill union
+- **Usage:** Uses `write_current_month()` for standardized output format
+- **Note:** Doesn't directly read backfill files
+
+---
+
+## Verification Commands
+
+### Check if Backfill Directory Exists
+```powershell
+Test-Path "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill"
+```
+
+### List Backfill Subdirectories
+```powershell
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill" -Directory
+```
+
+### Check Response Times Backfill File
+```powershell
+$backfillFile = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_09\response_time\Average Response Times  Values are in mmss.csv"
+Test-Path $backfillFile
+```
+
+### Find All Old Path References
+```powershell
+Select-String -Path "02_ETL_Scripts\*\*.py" -Pattern "C:\\Dev\\PowerBI_Date" -Recurse
+```
+
+---
+
+**Last Updated:** 2025-12-11  
+**Status:** 1 script needs path update (Response Times)
+
+```
+
+
+Backfill file found at the new location. Updating the Response Times script to use the correct path:
+
+
+```python
+#!/usr/bin/env python3
+"""
+// 🕒 2025-11-10-14-45-00
+// Project: Response_Times/response_time_diagnostic.py
+// Author: R. A. Carucci
+// Purpose: Full diagnostic comparing backfill vs recalculated response times (Oct 2024-Oct 2025)
+"""
+
+import pandas as pd
+import numpy as np
+import re
+import sys
+from pathlib import Path
+from datetime import datetime
+from itertools import product
+
+# Configure UTF-8 output for Windows console
+if sys.platform == "win32":
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
+# ============================================================================
+# CONFIGURATION
+# ============================================================================
+
+BASE_DIR = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times")
+OUTPUT_DIR = BASE_DIR / "diagnostic_output"
+OUTPUT_DIR.mkdir(exist_ok=True)
+
+# Input files
+BACKFILL_CSV = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_09\response_time\Average Response Times  Values are in mmss.csv")
+CONSOLIDATED_CAD = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\response_time\24_10_25_10_cad.xlsx")
+OCT_2025_CAD = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\monthly_export\25_10_cad.xlsx")
+MAPPING_CSV = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Classifications\CallTypes\CallType_Categories.csv")
+PRODUCTION_OUTPUT = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI\corrected_response_time_data.csv")
+
+# Constants
+ADMIN_INCIDENTS = {
+    "Task Assignment", "Meal Break", "Relief / Personal", "Administrative Assignment",
+    "Traffic Detail", "Patrol Check", "TAPS - Park", "TAPS - Housing",
+    "TAPS - Parking Garage", "TAPS - Other", "TAPS - ESU - Medical Facility",
+    "TAPS - ESU - Business", "Overnight Parking", "Car Wash", "OPRA Request",
+    "Records Request - DCPP (DYFS)", "Applicant ABC License", "Canceled Call",
+    "UAS Operation"
+}
+
+VALID_TYPES = {"EMERGENCY", "URGENT", "ROUTINE"}
+TARGET_MONTHS = pd.period_range("2024-10", "2025-10", freq="M")
+
+# ============================================================================
+# UTILITY FUNCTIONS
+# ============================================================================
+
+def normalize_incident(value: str) -> str:
+    """Normalize incident names for mapping consistency.""" if pd.isna(value):
+        return "UNKNOWN"
+    s = str(value).strip().upper()
+    s = s.replace("\u2013", "-").replace("\u2014", "-")
+    s = re.sub(r"\s+", " ", s)
+    s = re.sub(r"\s*-\s*", "-", s)
+    s = re.sub(r"\s*:\s*", ":", s)
+    s = re.sub(r"\s*/\s*", "/", s)
+    s = re.sub(r"\s*\.\s*", ". ", s)
+    return s.strip(" -.,/")
+
+
+def mmss_to_minutes(mmss: str) -> float:
+    """Convert mm:ss format to decimal minutes.""" try:
+        minutes, seconds = mmss.split(":")
+        return int(minutes) + int(seconds) / 60.0
+    except:
+        return np.nan
+
+
+def month_label(row) -> str:
+    """Extract YYYY-MM from row with flexible column names.""" year = row.get("cYear") or row.get("Year")
+    month_raw = row.get("cMonth") or row.get("Month")
+    
+    if pd.isna(year) or pd.isna(month_raw):
+        return None
+    
+    year = int(year)
+    month_str = str(month_raw).strip()
+    
+    if month_str.isdigit():
+        month_num = int(month_str)
+    else:
+        month_lookup = {
+            "january": 1, "february": 2, "march": 3, "april": 4,
+            "may": 5, "june": 6, "july": 7, "august": 8,
+            "september": 9, "october": 10, "november": 11, "december": 12
+        }
+        month_num = month_lookup.get(month_str.lower())
+    
+    if not month_num:
+        return None
+    
+    return f"{year:04d}-{month_num:02d}"
+
+
+# ============================================================================
+# DATA LOADING
+# ============================================================================
+
+def load_backfill() -> pd.DataFrame:
+    """Load backfill CSV and convert to standard format.""" print("\n[INFO] Loading backfill data...")
+    df = pd.read_csv(BACKFILL_CSV, encoding="utf-8-sig")
+    
+    # Convert MM-YY to YYYY-MM
+    df["YearMonth"] = df["MM-YY"].apply(lambda x: f"20{x.split('-')[1]}-{x.split('-')[0]}")
+    
+    # Convert mm:ss to decimal minutes
+    df["Avg_Response_Time"] = df["First Response_Time_MMSS"].apply(mmss_to_minutes)
+    
+    # Standardize response type
+    df["Response_Type"] = df["Response Type"].str.strip().str.upper()
+    
+    # Filter to target date range
+    df = df[df["YearMonth"].isin(TARGET_MONTHS.astype(str))]
+    
+    result = df[["YearMonth", "Response_Type", "Avg_Response_Time"]].copy()
+    result["Source"] = "Backfill"
+    
+    print(f"   [OK] Loaded {len(result)} backfill records")
+    return result
+
+
+def load_mapping() -> pd.DataFrame:
+    """Load CallType mapping CSV.""" print("\n[INFO] Loading mapping file...")
+    df = pd.read_csv(MAPPING_CSV, encoding="utf-8-sig")
+    df.columns = df.columns.str.replace("\ufeff", "").str.strip()
+    
+    # Standardize column names
+    rename_map = {
+        "Incident Norm": "Incident_Norm",
+        "Category Type": "Category_Type",
+        "Response Type": "Response_Type"
+    }
+    df = df.rename(columns=rename_map)
+    
+    required = ["Incident", "Incident_Norm", "Category_Type", "Response_Type"]
+    missing = [c for c in required if c not in df.columns]
+    if missing:
+        raise ValueError(f"Mapping file missing columns: {missing}")
+    
+    df = df[required].dropna(subset=["Incident"]).drop_duplicates()
+    df["Incident_Key"] = df["Incident_Norm"].apply(normalize_incident)
+    
+    print(f"   [OK] Loaded {len(df)} mapping records")
+    return df[["Incident_Key", "Category_Type", "Response_Type"]]
+
+
+def load_cad_data() -> pd.DataFrame:
+    """Load and consolidate CAD exports.""" print("\n[INFO] Loading CAD data...")
+    
+    dfs = []
+    
+    # Load consolidated historical data
+    if CONSOLIDATED_CAD.exists():
+        print(f"   Loading {CONSOLIDATED_CAD.name}...")
+        df1 = pd.read_excel(CONSOLIDATED_CAD, engine="openpyxl")
+        dfs.append(df1)
+        print(f"   [OK] Loaded {len(df1):,} records")
+    
+    # Load October 2025
+    if OCT_2025_CAD.exists():
+        print(f"   Loading {OCT_2025_CAD.name}...")
+        df2 = pd.read_excel(OCT_2025_CAD, engine="openpyxl")
+        dfs.append(df2)
+        print(f"   [OK] Loaded {len(df2):,} records")
+    
+    if not dfs:
+        raise FileNotFoundError("No CAD files found!") # Combine
+    df = pd.concat(dfs, ignore_index=True, sort=False)
+    df.columns = df.columns.str.strip()
+    
+    print(f"\n   [OK] Total combined records: {len(df):,}")
+    
+    return df
+
+
+# ============================================================================
+# DATA PROCESSING
+# ============================================================================
+
+def process_cad(df: pd.DataFrame, mapping_df: pd.DataFrame) -> pd.DataFrame:
+    """Apply all transformations to raw CAD data. Uses CallType_Categories.csv as single source of truth for Response_Type. Ignores CAD Response_Type field entirely to ensure consistency.
+    """ print("\n[INFO] Processing CAD data...")
+
+    original_count = len(df)
+
+    # Deduplicate by report number
+    if "ReportNumberNew" in df.columns:
+        df = df.drop_duplicates(subset=["ReportNumberNew"], keep="first")
+        print(f"   [OK] Deduplication: {original_count:,} -> {len(df):,} records")
+
+    # Normalize incident names for mapping
+    df["Incident"] = df["Incident"].astype(str).str.strip()
+    df["Incident_Key"] = df["Incident"].apply(normalize_incident)
+
+    # Remove admin incidents
+    before_admin = len(df)
+    df = df[~df["Incident"].isin(ADMIN_INCIDENTS)].copy()
+    print(f"   [OK] Admin filter: {before_admin:,} -> {len(df):,} records")
+
+    # Parse time columns
+    for col in ["Time Dispatched", "Time Out"]:
+        if col in df.columns:
+            df[col] = pd.to_datetime(df[col], errors="coerce")
+
+    # Calculate response time (primary method)
+    df["Response_Minutes"] = (df["Time Out"] - df["Time Dispatched"]).dt.total_seconds() / 60.0
+
+    # Fallback to Time Response if available
+    if "Time Response" in df.columns:
+        fallback = pd.to_timedelta(df["Time Response"], errors="coerce").dt.total_seconds() / 60.0
+        before_fallback = df["Response_Minutes"].isna().sum()
+        df["Response_Minutes"] = df["Response_Minutes"].fillna(fallback)
+        after_fallback = df["Response_Minutes"].isna().sum()
+        print(f"   [OK] Fallback logic: {before_fallback:,} -> {after_fallback:,} null values")
+
+    # Filter time window (0-10 minutes)
+    before_time = len(df)
+    df = df[
+        df["Response_Minutes"].notna() &
+        (df["Response_Minutes"] > 0) &
+        (df["Response_Minutes"] <= 10)
+    ].copy()
+    print(f"   [OK] Time window filter: {before_time:,} -> {len(df):,} records")
+
+    # Extract month BEFORE mapping (needed for unmapped tracking)
+    df["YearMonth"] = df.apply(month_label, axis=1)
+    df = df[df["YearMonth"].isin(TARGET_MONTHS.astype(str))].copy()
+
+    # ========================================================================
+    # ENHANCED: Use CallType_Categories.csv as single source of truth
+    # Ignore CAD Response_Type field entirely
+    # ========================================================================
+
+    print("\n[INFO] Applying CallType_Categories mapping (single source of truth)...")
+
+    # Drop CAD Response_Type if it exists (we don't trust it)
+    if "Response_Type" in df.columns:
+        df = df.drop(columns=["Response_Type"])
+
+    # Merge with mapping to get Response_Type from categories CSV
+    df = df.merge(
+        mapping_df[["Incident_Key", "Response_Type"]],
+        on="Incident_Key",
+        how="left"
+    )
+
+    # Standardize Response_Type
+    df["Response_Type"] = df["Response_Type"].str.strip().str.upper()
+
+    # Identify unmapped incidents
+    unmapped = df[df["Response_Type"].isna() | ~df["Response_Type"].isin(VALID_TYPES)]
+    unmapped_count = len(unmapped)
+    unmapped_pct = (unmapped_count / len(df) * 100) if len(df) > 0 else 0
+
+    print(f"   [INFO] Unmapped incidents: {unmapped_count:,} of {len(df):,} ({unmapped_pct:.1f}%)")
+
+    if unmapped_count > 0:
+        # Generate monthly breakdown of unmapped incidents
+        unmapped_monthly = unmapped.groupby(["YearMonth", "Incident"]).size().reset_index(name="Count")
+        unmapped_monthly = unmapped_monthly.sort_values(["YearMonth", "Count"], ascending=[True, False])
+
+        # Overall unmapped summary
+        unmapped_summary = unmapped.groupby("Incident").agg(
+            Total_Count=("Incident", "count"),
+            Months=("YearMonth", lambda x: ", ".join(sorted(set(x))))
+        ).reset_index()
+        unmapped_summary = unmapped_summary.sort_values("Total_Count", ascending=False)
+
+        # Export unmapped incidents to CSV
+        unmapped_file = OUTPUT_DIR / "unmapped_incidents.csv"
+        unmapped_summary.to_csv(unmapped_file, index=False, encoding="utf-8-sig")
+        print(f"   [OK] Exported unmapped incidents to: {unmapped_file}")
+
+        # Export detailed monthly breakdown
+        unmapped_monthly_file = OUTPUT_DIR / "unmapped_incidents_monthly.csv"
+        unmapped_monthly.to_csv(unmapped_monthly_file, index=False, encoding="utf-8-sig")
+        print(f"   [OK] Exported monthly unmapped breakdown to: {unmapped_monthly_file}")
+
+        # Display top 10 unmapped
+        print("\n   Top 10 unmapped incidents (all months combined):")
+        for _, row in unmapped_summary.head(10).iterrows():
+            print(f"      {row['Incident']}: {row['Total_Count']} records across {row['Months']}")
+
+        # ====================================================================
+        # CRITICAL: Stop execution if unmapped exceeds 5% threshold
+        # ====================================================================
+        UNMAPPED_THRESHOLD = 5.0
+        if unmapped_pct > UNMAPPED_THRESHOLD:
+            error_msg = f"""
+╔══════════════════════════════════════════════════════════════════════════╗
+║ CRITICAL ERROR: Unmapped incidents exceed {UNMAPPED_THRESHOLD}% threshold              ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+Unmapped: {unmapped_count:,} records ({unmapped_pct:.1f}%)
+Threshold: {UNMAPPED_THRESHOLD}%
+
+Cannot proceed with partially classified data. This would result in:
+  • Inaccurate response time averages
+  • Incomplete monthly summaries
+  • Unreliable Power BI dashboards
+
+ACTION REQUIRED:
+1. Review unmapped_incidents.csv to see which incidents need mapping
+2. Add missing incidents to CallType_Categories.csv with proper Response_Type
+3. Re-run this diagnostic after updating the mapping file
+
+Unmapped incidents exported to:
+  • {unmapped_file}
+  • {unmapped_monthly_file}
+"""
+            print(error_msg)
+            raise ValueError(f"Unmapped incidents ({unmapped_pct:.1f}%) exceed {UNMAPPED_THRESHOLD}% threshold. Review {unmapped_file}")
+
+    # Keep only valid response types
+    before_filter = len(df)
+    df = df[df["Response_Type"].isin(VALID_TYPES)].copy()
+    print(f"   [OK] Valid response types: {len(df):,} of {before_filter:,} records retained")
+
+    print(f"\n   [OK] Final processed records: {len(df):,}")
+
+    return df
+
+
+def calculate_monthly_summary(df: pd.DataFrame) -> pd.DataFrame:
+    """Aggregate to monthly averages by response type.""" print("\n📊 Calculating monthly summaries...")
+    
+    summary = df.groupby(["YearMonth", "Response_Type"]).agg(
+        Avg_Response_Time=("Response_Minutes", "mean"),
+        Count=("Response_Minutes", "count"),
+        Median=("Response_Minutes", "median"),
+        Min=("Response_Minutes", "min"),
+        Max=("Response_Minutes", "max")
+    ).reset_index()
+    
+    summary["Avg_Response_Time"] = summary["Avg_Response_Time"].round(3)
+    summary["Source"] = "Recalculated"
+    
+    print(f"   ✓ Generated {len(summary)} month/type combinations")
+    
+    return summary
+
+
+# ============================================================================
+# COMPARISON & ANALYSIS
+# ============================================================================
+
+def compare_datasets(backfill: pd.DataFrame, recalc: pd.DataFrame) -> pd.DataFrame:
+    """Generate side-by-side comparison.""" print("\n🔍 Comparing backfill vs recalculated...")
+    
+    # Merge on YearMonth + Response_Type
+    comparison = backfill.merge(
+        recalc[["YearMonth", "Response_Type", "Avg_Response_Time", "Count"]],
+        on=["YearMonth", "Response_Type"],
+        how="outer",
+        suffixes=("_Backfill", "_Recalc")
+    )
+    
+    # Calculate deltas
+    comparison["Delta_Minutes"] = comparison["Avg_Response_Time_Recalc"] - comparison["Avg_Response_Time_Backfill"]
+    comparison["Delta_Percent"] = (comparison["Delta_Minutes"] / comparison["Avg_Response_Time_Backfill"] * 100).round(1)
+    
+    # Flag significant discrepancies
+    comparison["Flag"] = np.where(
+        (comparison["Delta_Minutes"].abs() > 0.5) | (comparison["Delta_Percent"].abs() > 15),
+        "🔴 REVIEW",
+        "✓"
+    )
+    
+    # Sort
+    comparison = comparison.sort_values(["YearMonth", "Response_Type"])
+    
+    # Count flags
+    flagged = (comparison["Flag"] == "🔴 REVIEW").sum()
+    print(f"   ✓ Flagged {flagged} discrepancies (>0.5 min or >15%)")
+    
+    return comparison
+
+
+def generate_driver_analysis(df: pd.DataFrame, comparison: pd.DataFrame) -> pd.DataFrame:
+    """For flagged months, break down by incident type.""" print("\n🔬 Generating driver analysis...")
+    
+    flagged = comparison[comparison["Flag"] == "🔴 REVIEW"]
+    
+    if len(flagged) == 0:
+        print("   ✓ No flagged discrepancies")
+        return pd.DataFrame()
+    
+    drivers = []
+    
+    for _, row in flagged.iterrows():
+        month = row["YearMonth"]
+        rtype = row["Response_Type"]
+        
+        # Filter to this month/type
+        subset = df[
+            (df["YearMonth"] == month) &
+            (df["Response_Type"] == rtype)
+        ].copy()
+        
+        if len(subset) == 0:
+            continue
+        
+        # Summarize by incident
+        incident_summary = subset.groupby("Incident").agg(
+            Count=("Response_Minutes", "count"),
+            Avg=("Response_Minutes", "mean")
+        ).reset_index()
+        
+        incident_summary = incident_summary.sort_values("Count", ascending=False).head(5)
+        incident_summary["YearMonth"] = month
+        incident_summary["Response_Type"] = rtype
+        
+        drivers.append(incident_summary)
+    
+    if drivers:
+        result = pd.concat(drivers, ignore_index=True)
+        print(f"   ✓ Generated driver analysis for {len(flagged)} flagged combinations")
+        return result
+    
+    return pd.DataFrame()
+
+
+def generate_sample_records(df: pd.DataFrame, comparison: pd.DataFrame, n=50) -> pd.DataFrame:
+    """Extract sample records from flagged months.""" print(f"\n📋 Extracting sample records (n={n} per flagged combination)...")
+    
+    flagged = comparison[comparison["Flag"] == "🔴 REVIEW"]
+    
+    if len(flagged) == 0:
+        print("   ✓ No flagged discrepancies")
+        return pd.DataFrame()
+    
+    samples = []
+    
+    for _, row in flagged.iterrows():
+        month = row["YearMonth"]
+        rtype = row["Response_Type"]
+        
+        subset = df[
+            (df["YearMonth"] == month) &
+            (df["Response_Type"] == rtype)
+        ].copy()
+        
+        # Sample up to n records
+        sample = subset.sample(min(n, len(subset)))
+        samples.append(sample)
+    
+    if samples:
+        result = pd.concat(samples, ignore_index=True)
+        print(f"   ✓ Extracted {len(result)} sample records")
+        return result
+    
+    return pd.DataFrame()
+
+
+# ============================================================================
+# OUTPUT GENERATION
+# ============================================================================
+
+def export_comparison_workbook(comparison: pd.DataFrame, drivers: pd.DataFrame, samples: pd.DataFrame):
+    """Export Excel workbook with all tabs.""" output_file = OUTPUT_DIR / f"response_time_comparison_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    
+    print(f"\n💾 Exporting comparison workbook...")
+    
+    with pd.ExcelWriter(output_file, engine="openpyxl") as writer:
+        # Tab 1: Summary comparison
+        comparison.to_excel(writer, sheet_name="Month_Comparison", index=False)
+        
+        # Tab 2: Driver analysis
+        if not drivers.empty:
+            drivers.to_excel(writer, sheet_name="Driver_Analysis", index=False)
+        
+        # Tab 3: Sample records
+        if not samples.empty:
+            samples.to_excel(writer, sheet_name="Sample_Records", index=False)
+    
+    print(f"   ✓ Saved: {output_file}")
+    return output_file
+
+
+def generate_supervisor_brief(comparison: pd.DataFrame) -> str:
+    """Generate one-page text summary.""" print("\n📄 Generating supervisor brief...")
+    
+    flagged = comparison[comparison["Flag"] == "🔴 REVIEW"]
+    total_combos = len(comparison)
+    flagged_count = len(flagged)
+    flagged_pct = flagged_count / total_combos * 100
+    
+    # Biggest deltas
+    top_deltas = comparison.nlargest(5, "Delta_Minutes")
+    
+    brief = f"""
+═══════════════════════════════════════════════════════════════════════════════
+RESPONSE TIME DISCREPANCY ANALYSIS - SUPERVISOR BRIEF
+Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+═══════════════════════════════════════════════════════════════════════════════
+
+EXECUTIVE SUMMARY
+─────────────────────────────────────────────────────────────────────────────
+Total month/type combinations analyzed: {total_combos}
+Flagged discrepancies (>0.5 min or >15%): {flagged_count} ({flagged_pct:.1f}%)
+
+RECOMMENDATION: {"✓ APPROVE RECALCULATED VALUES" if flagged_pct < 10 else "⚠️ REVIEW FLAGGED MONTHS" if flagged_pct < 30 else "🔴 HOLD DEPLOYMENT"}
+
+TOP 5 LARGEST DISCREPANCIES
+─────────────────────────────────────────────────────────────────────────────
+"""
+    
+    for i, row in top_deltas.iterrows():
+        brief += f"""
+{row['YearMonth']} {row['Response_Type']}:
+   Backfill:     {row['Avg_Response_Time_Backfill']:.2f} min
+   Recalculated: {row['Avg_Response_Time_Recalc']:.2f} min
+   Delta:        {row['Delta_Minutes']:+.2f} min ({row['Delta_Percent']:+.1f}%)
+   Count:        {int(row['Count'])} incidents
+"""
+    
+    brief += """
+KEY FINDINGS
+─────────────────────────────────────────────────────────────────────────────
+1. ROUTINE CALLS show largest variance (suspected cause: low incident counts
+   leading to high statistical variance month-to-month)
+
+2. RECALCULATED values include deduplication by ReportNumberNew (prevents
+   double-counting multi-unit responses)
+
+3. RECALCULATED values use Time Response fallback for records missing
+   Time Dispatched/Time Out
+
+NEXT STEPS
+─────────────────────────────────────────────────────────────────────────────
+[ ] Review comparison workbook (all tabs)
+[ ] Validate flagged months in CAD system
+[ ] Approve or reject switch to recalculated values
+[ ] Update Power BI data source if approved
+
+═══════════════════════════════════════════════════════════════════════════════
+"""
+    
+    brief_file = OUTPUT_DIR / f"supervisor_brief_{datetime.now().strftime('%Y%m%d')}.txt"
+    with open(brief_file, "w", encoding='utf-8') as f:
+        f.write(brief)
+    
+    print(f"   ✓ Saved: {brief_file}")
+    
+    return brief
+
+
+# ============================================================================
+# MAIN EXECUTION
+# ============================================================================
+
+def main():
+    """Execute full diagnostic pipeline.""" print("=" * 79)
+    print("RESPONSE TIME DIAGNOSTIC - BACKFILL VS RECALCULATED")
+    print("=" * 79)
+    
+    try:
+        # Load data
+        backfill_df = load_backfill()
+        mapping_df = load_mapping()
+        cad_df = load_cad_data()
+        
+        # Process CAD
+        processed_df = process_cad(cad_df, mapping_df)
+        recalc_df = calculate_monthly_summary(processed_df)
+        
+        # Compare
+        comparison = compare_datasets(backfill_df, recalc_df)
+        
+        # Deep dive on discrepancies
+        drivers = generate_driver_analysis(processed_df, comparison)
+        samples = generate_sample_records(processed_df, comparison, n=50)
+        
+        # Export
+        workbook_path = export_comparison_workbook(comparison, drivers, samples)
+        brief = generate_supervisor_brief(comparison)
+        
+        # Console output
+        print("\n" + "=" * 79)
+        print("SUMMARY")
+        print("=" * 79)
+        print(brief)
+        
+        print("\n" + "=" * 79)
+        print("✓ DIAGNOSTIC COMPLETE")
+        print("=" * 79)
+        print(f"\nOutputs saved to: {OUTPUT_DIR}")
+        print(f"   • Comparison workbook: {workbook_path.name}")
+        print(f"   • Supervisor brief: supervisor_brief_*.txt")
+        
+    except Exception as e:
+        print(f"\n❌ ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        return 1
+    
+    return 0
+
+
+if __name__ == "__main__":
+    exit(main())
+
+```
+
+
+## Backfill data paths
+
+### Main backfill directory
+```
+C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\
+```
+
+**Structure:**
+- `2025_09\` - Contains backfill data for September 2025
+  - `response_time\` - Response times backfill files
+  - `vcs_time_report\` - Overtime/TimeOff backfill
+  - `arrest\` - Arrest data backfill
+  - Other categories...
+
+### Scripts using backfill
+
+1. Response Times — updated
+   - Script: `response_time_diagnostic.py`
+   - Path updated from `C:\Dev\PowerBI_Date\Backfill\...` to the new OneDrive location
+   - File verified at: `PowerBI_Date\Backfill\2025_09\response_time\Average Response Times  Values are in mmss.csv`
+
+2. Overtime TimeOff — OK
+   - Uses local `analytics_output` directory, not the Backfill folder directly
+   - Documentation references backfill for manual restoration
+
+3. Arrests — OK
+   - No direct backfill path references
+   - Outputs to Power BI format compatible with backfill union
+
+4. Community Engagement — OK
+   - No backfill references
+
+5. Summons — OK
+   - No backfill references
+
+### Action taken
+
+Updated the Response Times script to use the correct backfill path:
+- Changed from: `C:\Dev\PowerBI_Date\Backfill\...`
+- Changed to: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\...`
+
+All scripts now reference the correct OneDrive backfill location. ```plaintext
+C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\
+```
+
+---
+
+**User**
+
+I am check the folders have the updated backfill data. attavhed is table for monthly accrual and usage summary for 10/25 monthly report when I export the visuals data I get @c:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_10\vcs_time_report\2025_10_Monthly Accrual and Usage Summary.csv is it an issue that the column headers are not in the same order as the visual? ---
+
+**Cursor**
+
+
+Checking how the Overtime TimeOff script reads the backfill CSV and what column order it expects:
+
+
+
+Checking the expected CSV format and whether column order matters:
+
+
+
+Column order matters. The script expects Time Category first, then date columns in chronological order. Creating a summary and a fix:
+
+
+```markdown
+# Backfill CSV Column Order Issue
+
+**Date:** 2025-12-11  
+**Issue:** Column order in exported backfill CSV doesn't match expected format
+
+---
+
+## Current CSV Column Order
+
+**File:** `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_10\vcs_time_report\2025_10_Monthly Accrual and Usage Summary.csv`
+
+**Current Order:**
+```
+10-24, 11-24, 12-24, 01-25, 02-25, 03-25, 04-25, 05-25, 06-25, 07-25, 08-25, 09-25, Time_Category, 10-25
+```
+
+**Problem:** 
+- Date columns come first
+- `Time_Category` is in the middle (after 09-25, before 10-25)
+- Doesn't match the visual display or script expectations
+
+---
+
+## Expected Format
+
+**Based on Script Output (overtime_timeoff_13month_sworn_breakdown_v11.py):**
+
+**Expected Order:**
+```
+Time Category, 10-24, 11-24, 12-24, 01-25, 02-25, 03-25, 04-25, 05-25, 06-25, 07-25, 08-25, 09-25, 10-25
+```
+
+**Why:**
+1.

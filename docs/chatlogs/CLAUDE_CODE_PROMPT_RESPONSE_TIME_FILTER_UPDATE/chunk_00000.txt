@@ -1,0 +1,650 @@
+# Claude Code Prompt: Response Time ETL Filter Update
+
+**Date:** 2026-01-14  
+**Purpose:** Comprehensive prompt for Claude Code to update response_time_monthly_generator.py with enhanced filtering logic, data verification, and edge case handling
+
+---
+
+## Executive Summary
+
+Update the Response Time ETL script (`response_time_monthly_generator.py`) to implement enhanced filtering logic using a JSON configuration file. The script should:
+
+1. Filter out "Self-Initiated" from "How Reported" column
+2. Add Category_Type column from CallType_Categories.csv
+3. Filter out entire Category_Type categories (Regulatory and Ordinance, Administrative and Support, Investigations and Follow-Ups, Community Engagement)
+4. Filter out specific incidents from non-filtered categories
+5. Include specific incidents even if they're in filtered categories (override logic)
+6. Add comprehensive data verification
+7. Handle edge cases gracefully
+
+---
+
+## Full Paths and Context
+
+### Script to Update
+**Path:** `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\response_time_monthly_generator.py`
+
+**Current Version:** 1.0.0  
+**Last Updated:** 2026-01-14
+
+### Configuration File
+**Path:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\config\response_time_filters.json`
+
+**Purpose:** Contains all filtering rules in JSON format
+
+### Mapping File
+**Path:** `C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Classifications\CallTypes\CallType_Categories.csv`
+
+**Purpose:** Maps incident names to Response_Type and Category_Type
+
+**Structure:**
+- Columns: `Incident`, `Incident_Norm`, `Category_Type`, `Response_Type`
+- Total rows: 649 incidents
+- Category_Type distribution: Routine (446), Urgent (115), Emergency (88)
+
+### Input Data File
+**Path:** `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\response_time\2025\2024_12_to_2025_12_ResponseTime_CAD.xlsx`
+
+**Purpose:** Consolidated CAD export containing raw response time data
+
+**Expected Columns:**
+- `ReportNumberNew` - Unique report identifier (used for deduplication)
+- `Incident` - Incident type name
+- `How Reported` - How the incident was reported (Radio, Phone, Self-Initiated, 9-1-1, Walk-In, etc.) - `Time Dispatched` - DateTime when unit was dispatched
+- `Time Out` - DateTime when unit cleared the call
+- `Time Response` - Time response (fallback field)
+- `cYear` - Year of incident
+- `cMonth` - Month of incident
+- Other columns as needed
+
+### Output Directory
+**Path:** `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill`
+
+**Structure:**
+- `YYYY_MM/response_time/YYYY_MM_Average_Response_Times__Values_are_in_mmss.csv`
+- Example: `2024_12/response_time/2024_12_Average_Response_Times__Values_are_in_mmss.csv`
+
+### Documentation
+**Update Plan:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\RESPONSE_TIME_ETL_FILTER_UPDATE_PLAN.md`
+
+---
+
+## Required Changes
+
+### 1. Add JSON Config Loading
+
+**Function to Add:** `load_filter_config(config_path: Path, logger: logging.Logger) -> dict`
+
+**Location:** After `load_mapping_file` function (around line 200)
+
+**Requirements:**
+- Load JSON configuration file
+- Validate JSON structure
+- Return configuration dictionary
+- Handle file not found errors gracefully
+- Log configuration loading
+
+**Default Config Path:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\config\response_time_filters.json`
+
+**Expected JSON Structure:**
+```json
+{
+  "version": "1.0.0",
+  "filters": {
+    "how_reported": {
+      "exclude": ["Self-Initiated"]
+    },
+    "category_types": {
+      "exclude": ["Regulatory and Ordinance", "Administrative and Support", "Investigations and Follow-Ups", "Community Engagement"]
+    },
+    "incidents": {
+      "exclude": ["Temporary Parking", "Traffic Detail", ...]
+    },
+    "inclusion_overrides": {
+      "include_despite_category_filter": ["Suspicious Item", "Suspicious Person", ...]
+    }
+  }
+}
+```
+
+---
+
+### 2. Update Mapping File Loading
+
+**Function to Update:** `load_mapping_file` (currently around line 182)
+
+**Current Behavior:** Returns `dict` mapping `Incident_Key` → `Response_Type`
+
+**New Behavior:** Return tuple `(response_type_mapping: dict, category_type_mapping: dict, mapping_df: pd.DataFrame)`
+
+**Changes Required:**
+- Load DataFrame with all columns (including `Category_Type`)
+- Create `response_type_mapping` dict: `Incident_Key` → `Response_Type`
+- Create `category_type_mapping` dict: `Incident_Key` → `Category_Type`
+- Return DataFrame for merge operations
+- Normalize incident names using existing `normalize_incident_name` function
+
+**Edge Cases to Handle:**
+- Missing `Category_Type` column (should raise error)
+- Duplicate `Incident_Key` values (keep first occurrence, log warning)
+- Missing `Response_Type` values (should raise error)
+- Empty mapping file (should raise error)
+
+---
+
+### 3. Update Main Function Signature
+
+**Function to Update:** `process_cad_data` (currently around line 230)
+
+**Current Signature:** `def process_cad_data(df: pd.DataFrame, mapping: dict, logger: logging.Logger) -> pd.DataFrame:`
+
+**New Signature:** `def process_cad_data(df: pd.DataFrame, response_type_mapping: dict, category_type_mapping: dict, mapping_df: pd.DataFrame, filter_config: dict, logger: logging.Logger) -> pd.DataFrame:`
+
+**Update All Callers:** Update `main()` function to pass new parameters
+
+---
+
+### 4. Add "How Reported" Filter
+
+**Location:** After Step 1 (Deduplication), before Step 2 (YearMonth Creation)
+
+**Filter Logic:**
+- Check if "How Reported" column exists
+- Filter out records where `How Reported == "Self-Initiated"` (case-sensitive match)
+- Load exclude list from `filter_config['filters']['how_reported']['exclude']`
+- Log before/after counts
+
+**Edge Cases:**
+- Missing "How Reported" column (log warning, skip filter)
+- Case sensitivity (use exact match: "Self-Initiated" not "self-initiated" or "SELF-INITIATED")
+- Null/empty values (keep null values, only exclude exact "Self-Initiated" matches)
+- Multiple exclude values (support list, but currently only "Self-Initiated")
+
+**Code Pattern:**
+```python
+# Step 1.5: Filter "How Reported"
+logger.info("=" * 70)
+logger.info("STEP 1.5: Filter How Reported")
+
+if 'How Reported' in df.columns:
+    exclude_how_reported = filter_config['filters']['how_reported']['exclude']
+    before_how_reported = len(df)
+    
+    # Filter out excluded values (exact match, case-sensitive)
+    df = df[~df['How Reported'].isin(exclude_how_reported)].copy()
+    
+    logger.info(f"How Reported filter (exclude {exclude_how_reported}): {before_how_reported:,} -> {len(df):,} records")
+else:
+    logger.warning("'How Reported' column not found - skipping filter")
+```
+
+---
+
+### 5. Update Response Type Mapping to Include Category_Type
+
+**Location:** In Step 6 (Apply Response Type Mapping), currently around line 295
+
+**Changes Required:**
+- Merge `Category_Type` from `mapping_df` DataFrame
+- Use `Incident_Normalized` as merge key
+- Merge both `Response_Type` and `Category_Type` columns
+- Handle unmapped incidents (log warning, set to null)
+- Validate Category_Type values
+
+**Edge Cases:**
+- Unmapped incidents (should log warning, but don't fail - will be filtered out later)
+- Missing Category_Type after merge (log warning, set to null)
+- Duplicate Incident_Normalized values (keep first, log warning)
+- Case sensitivity in merge (use normalized keys)
+
+**Code Pattern:**
+```python
+# Step 6: Apply Response Type and Category_Type Mapping
+logger.info("=" * 70)
+logger.info("STEP 6: Apply Response Type and Category_Type Mapping")
+
+if 'Response Type' in df.columns:
+    df = df.drop(columns=['Response Type'])
+
+if 'Incident_Normalized' not in df.columns:
+    df['Incident_Normalized'] = df['Incident'].apply(normalize_incident_name)
+
+# Merge Response_Type and Category_Type from mapping DataFrame
+mapping_subset = mapping_df[['Incident_Key', 'Response_Type', 'Category_Type']].drop_duplicates(subset='Incident_Key', keep='first')
+df = df.merge(
+    mapping_subset,
+    left_on='Incident_Normalized',
+    right_on='Incident_Key',
+    how='left'
+)
+
+# Check for unmapped incidents
+unmapped_mask = df['Response_Type'].isna() | df['Category_Type'].isna()
+unmapped_count = unmapped_mask.sum()
+unmapped_pct = (unmapped_count / len(df) * 100) if len(df) > 0 else 0
+
+logger.info(f"Unmapped incidents: {unmapped_count:,} ({unmapped_pct:.1f}%)")
+```
+
+---
+
+### 6. Add Category_Type Filtering (with Override Logic)
+
+**Location:** After Step 6 (Apply Response Type Mapping), before Step 7 (Final Validation)
+
+**Filter Logic:**
+1. Load excluded Category_Type values from config: `filter_config['filters']['category_types']['exclude']`
+2. Load inclusion overrides from config: `filter_config['filters']['inclusion_overrides']['include_despite_category_filter']`
+3. Normalize inclusion override incident names
+4. Mark records to keep (either not in excluded categories OR in inclusion overrides)
+5. Filter dataframe
+6. Log before/after counts
+
+**Override Logic:**
+- If incident is in `inclusion_overrides` list, keep it even if Category_Type is excluded
+- Use normalized incident names for comparison
+- Case-sensitive Category_Type matching
+
+**Edge Cases:**
+- Missing Category_Type column (should raise error - should not happen if mapping worked)
+- Null Category_Type values (exclude null values, log warning)
+- Empty exclusion list (keep all records)
+- Empty inclusion override list (no overrides, apply filter normally)
+- Case sensitivity (use exact Category_Type match, normalize incident names)
+
+**Code Pattern:**
+```python
+# Step 6.5: Filter by Category_Type (with inclusion overrides)
+logger.info("=" * 70)
+logger.info("STEP 6.5: Filter Category_Type (with inclusion overrides)")
+
+excluded_categories = set(filter_config['filters']['category_types']['exclude'])
+inclusion_overrides = filter_config['filters']['inclusion_overrides']['include_despite_category_filter']
+inclusion_overrides_normalized = {normalize_incident_name(i) for i in inclusion_overrides}
+
+# Mark records to keep (either not excluded OR in override list)
+df['_keep_override'] = df['Incident_Normalized'].isin(inclusion_overrides_normalized)
+before_category = len(df)
+
+# Filter: keep if in override list OR category is not excluded
+df = df[
+    df['_keep_override'] | ~df['Category_Type'].isin(excluded_categories)
+].copy()
+
+# Drop temporary column
+df = df.drop(columns=['_keep_override'], errors='ignore')
+
+logger.info(f"Category_Type filter (exclude {len(excluded_categories)} categories, {len(inclusion_overrides)} overrides): {before_category:,} -> {len(df):,} records")
+```
+
+---
+
+### 7. Add Specific Incident Filtering
+
+**Location:** After Category_Type filtering, before Step 7 (Final Validation)
+
+**Filter Logic:**
+- Load excluded incidents from config: `filter_config['filters']['incidents']['exclude']`
+- Normalize excluded incident names
+- Filter out records where `Incident_Normalized` is in excluded list
+- Log before/after counts
+
+**Edge Cases:**
+- Empty exclusion list (keep all records)
+- Case sensitivity (use normalized names for comparison)
+- Null incident names (keep null values, only filter exact matches)
+- Duplicate incident names in exclusion list (deduplicate)
+
+**Code Pattern:**
+```python
+# Step 6.6: Filter Specific Incidents
+logger.info("=" * 70)
+logger.info("STEP 6.6: Filter Specific Incidents")
+
+excluded_incidents = filter_config['filters']['incidents']['exclude']
+excluded_incidents_normalized = {normalize_incident_name(i) for i in excluded_incidents}
+before_incident = len(df)
+
+df = df[~df['Incident_Normalized'].isin(excluded_incidents_normalized)].copy()
+
+logger.info(f"Incident filter (exclude {len(excluded_incidents)} incidents): {before_incident:,} -> {len(df):,} records")
+```
+
+---
+
+### 8. Add Data Verification
+
+**Location:** After all processing, before returning from `process_cad_data`
+
+**Verification Checks:**
+1. **Response_Type Validation:**
+   - All records should have valid Response_Type (Emergency, Urgent, or Routine)
+   - No null Response_Type values
+   - Log counts by Response_Type
+
+2. **Category_Type Validation:**
+   - All records should have Category_Type (not null)
+   - Log counts by Category_Type
+   - Verify Category_Type values are valid
+
+3. **Time Validation:**
+   - All Response_Time_Minutes should be > 0 and <= 10
+   - No null Response_Time_Minutes
+   - Log summary statistics (min, max, mean, median)
+
+4. **Date Validation:**
+   - All records should have valid YearMonth
+   - YearMonth should be in target range (2024-12 to 2025-12)
+   - Log counts by YearMonth
+
+5. **Incident Validation:**
+   - All records should have Incident (not null)
+   - Log top 10 incidents by count
+
+6. **Data Quality Checks:**
+   - No duplicate ReportNumberNew values (should be 0 after deduplication)
+   - Reasonable record counts (warn if < 1000 or > 100000)
+   - Validate filter effectiveness (log how many records each filter removed)
+
+**Edge Cases:**
+- Empty dataframe after filtering (log warning, return empty dataframe)
+- All records filtered out (log error, return empty dataframe)
+- Unexpected null values (log warning, investigate)
+- Invalid data types (log error, attempt conversion)
+
+**Code Pattern:**
+```python
+# Step 7: Data Verification
+logger.info("=" * 70)
+logger.info("STEP 7: Data Verification")
+
+# Verify Response_Type
+if df['Response_Type'].isna().any():
+    logger.warning(f"Found {df['Response_Type'].isna().sum()} records with null Response_Type")
+else:
+    logger.info("✓ All records have Response_Type")
+    
+response_type_counts = df['Response_Type'].value_counts()
+logger.info(f"Response_Type distribution: {dict(response_type_counts)}")
+
+# Verify Category_Type
+if df['Category_Type'].isna().any():
+    logger.warning(f"Found {df['Category_Type'].isna().sum()} records with null Category_Type")
+else:
+    logger.info("✓ All records have Category_Type")
+
+# Verify Time Window
+invalid_times = df[(df['Response_Time_Minutes'] <= 0) | (df['Response_Time_Minutes'] > 10)]
+if len(invalid_times) > 0:
+    logger.warning(f"Found {len(invalid_times)} records outside time window (0-10 minutes)")
+else:
+    logger.info("✓ All response times within valid window (0-10 minutes)")
+
+# Verify YearMonth
+invalid_dates = df[df['YearMonth'].isna() | ~df['YearMonth'].str.match(r'^\d{4}-\d{2}$')]
+if len(invalid_dates) > 0:
+    logger.warning(f"Found {len(invalid_dates)} records with invalid YearMonth")
+else:
+    logger.info("✓ All records have valid YearMonth")
+
+# Verify no duplicates
+duplicates = df[df.duplicated(subset=['ReportNumberNew'], keep=False)]
+if len(duplicates) > 0:
+    logger.error(f"Found {len(duplicates)} duplicate ReportNumberNew values (should be 0)")
+else:
+    logger.info("✓ No duplicate ReportNumberNew values")
+
+# Summary statistics
+logger.info(f"\nData Quality Summary:")
+logger.info(f"  Total records: {len(df):,}")
+logger.info(f"  Response_Time_Minutes - Min: {df['Response_Time_Minutes'].min():.2f}, Max: {df['Response_Time_Minutes'].max():.2f}, Mean: {df['Response_Time_Minutes'].mean():.2f}")
+logger.info(f"  YearMonth range: {df['YearMonth'].min()} to {df['YearMonth'].max()}")
+```
+
+---
+
+### 9. Update Main Function
+
+**Function to Update:** `main()` (currently around line 396)
+
+**Changes Required:**
+- Load filter config using `load_filter_config()`
+- Update `load_mapping_file()` call to handle new return signature
+- Update `process_cad_data()` call to pass new parameters
+- Add error handling for config loading
+
+**Edge Cases:**
+- Config file not found (log error, use defaults or fail gracefully)
+- Invalid JSON structure (log error, raise exception)
+- Missing required config keys (log error, raise exception)
+
+**Code Pattern:**
+```python
+# Load filter configuration
+DEFAULT_CONFIG_PATH = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\config\response_time_filters.json")
+filter_config = load_filter_config(DEFAULT_CONFIG_PATH, logger)
+
+# Load mapping file (now returns tuple)
+response_type_mapping, category_type_mapping, mapping_df = load_mapping_file(args.mapping, logger)
+
+# Process data (pass new parameters)
+processed = process_cad_data(
+    df,
+    response_type_mapping,
+    category_type_mapping,
+    mapping_df,
+    filter_config,
+    logger
+)
+```
+
+---
+
+### 10. Add Command Line Arguments
+
+**Function to Update:** `main()` argument parser
+
+**Add:**
+- `--config` argument for filter config file path (optional, with default)
+- Update help text
+
+---
+
+## Filter Order (Final)
+
+1. **Deduplication** (by ReportNumberNew) - EXISTING
+2. **How Reported Filter** (exclude "Self-Initiated") - NEW
+3. **YearMonth Creation** (create YearMonth from cYear/cMonth) - EXISTING
+4. **Date Range Filter** (filter to target months) - EXISTING
+5. **Admin Incident Filter** (existing - filter out admin incidents) - EXISTING
+6. **Response Time Calculation** (calculate response times) - EXISTING
+7. **Time Window Filter** (0 < minutes <= 10) - EXISTING
+8. **Response Type Mapping** (map Response_Type and Category_Type) - UPDATED
+9. **Category_Type Filter** (exclude entire categories, with override logic) - NEW
+10. **Specific Incident Filter** (exclude specific incidents) - NEW
+11. **Data Verification** (validate all data) - NEW
+12. **Final Validation** (validate Response_Type, filter to valid types) - EXISTING
+
+---
+
+## Edge Cases to Handle
+
+### Data Quality Edge Cases
+1. **Missing Columns:**
+   - "How Reported" column missing (log warning, skip filter)
+   - "Category_Type" missing from mapping (raise error)
+   - "ReportNumberNew" missing (log warning, skip deduplication)
+
+2. **Null/Empty Values:**
+   - Null "How Reported" values (keep, only exclude exact matches)
+   - Null Category_Type after merge (log warning, exclude)
+   - Null Response_Type after merge (log warning, exclude later)
+   - Null incident names (keep, normalize to "UNKNOWN")
+
+3. **Data Type Issues:**
+   - Non-string "How Reported" values (convert to string)
+   - Non-string incident names (convert to string)
+   - Invalid date formats (log error, set to null)
+
+4. **Filtering Edge Cases:**
+   - All records filtered out (log error, return empty dataframe)
+   - Empty exclusion lists (keep all records)
+   - Empty inclusion override list (no overrides)
+   - Case sensitivity mismatches (use normalized names)
+
+5. **Mapping Edge Cases:**
+   - Duplicate Incident_Key values in mapping (keep first, log warning)
+   - Unmapped incidents (log warning, will be filtered out)
+   - Missing Category_Type in mapping (raise error)
+
+6. **Config File Edge Cases:**
+   - Config file not found (raise error with helpful message)
+   - Invalid JSON (raise error with JSON parse error)
+   - Missing required keys (raise error listing missing keys)
+   - Empty exclusion lists (handle gracefully, log info)
+
+### Performance Edge Cases
+1. **Large Datasets:**
+   - Memory usage (use `.copy()` judiciously, avoid unnecessary copies)
+   - Processing time (log progress for large datasets)
+
+2. **Empty Results:**
+   - No records after filtering (log warning, return empty dataframe)
+   - No output files to generate (log info, continue gracefully)
+
+---
+
+## Testing Requirements
+
+### Unit Tests (Recommended for Future)
+1. Test JSON config loading (valid, invalid, missing file)
+2. Test mapping file loading (with/without Category_Type)
+3. Test each filter individually
+4. Test override logic (verify inclusion overrides work)
+5. Test edge cases (null values, missing columns, etc.) ### Manual Testing Checklist
+1. **Run script with sample data:**
+   - Verify all filters apply correctly
+   - Verify log messages are informative
+   - Verify output files are created correctly
+
+2. **Verify filter counts:**
+   - Count records filtered by "How Reported" filter
+   - Count records filtered by Category_Type filter
+   - Count records filtered by incident filter
+   - Verify inclusion overrides are included
+
+3. **Verify data quality:**
+   - All Response_Type values are valid (Emergency, Urgent, Routine)
+   - All Category_Type values are present
+   - All response times are within valid range (0-10 minutes)
+   - No duplicate ReportNumberNew values
+
+4. **Verify output format:**
+   - Output CSV files have correct structure
+   - Output files are in correct directory structure
+   - File naming is correct (YYYY_MM_Average_Response_Times__Values_are_in_mmss.csv)
+
+---
+
+## Expected Output
+
+### Log Output
+The script should log:
+- Configuration loading status
+- Each filter step with before/after counts
+- Data verification results
+- Summary statistics
+- Any warnings or errors
+
+### CSV Output
+Each monthly CSV file should have:
+- Columns: `Response Type`, `MM-YY`, `First Response_Time_MMSS`
+- Format: MM:SS (e.g., "2:39" for 2 minutes 39 seconds)
+- Sorted by Response Type
+- One row per Response Type per month
+
+---
+
+## Validation Criteria
+
+### Success Criteria
+1. ✅ Script runs without errors
+2. ✅ All filters apply correctly
+3. ✅ Inclusion overrides work correctly
+4. ✅ Data verification passes (no errors, warnings are acceptable)
+5. ✅ Output files are created in correct format
+6. ✅ Log messages are informative and accurate
+7. ✅ Edge cases are handled gracefully
+
+### Failure Criteria
+- Script crashes with unhandled exceptions
+- Filters don't apply correctly
+- Data verification fails with errors
+- Output format is incorrect
+- Edge cases cause script to fail
+
+---
+
+## Additional Notes
+
+1. **Backward Compatibility:**
+   - Maintain existing output format
+   - Maintain existing directory structure
+   - Don't break existing functionality
+
+2. **Logging:**
+   - Use existing logger
+   - Add informative log messages for each step
+   - Log warnings for edge cases
+   - Log errors for critical failures
+
+3. **Error Handling:**
+   - Use try/except blocks for file operations
+   - Validate configuration structure
+   - Provide helpful error messages
+   - Don't fail silently
+
+4. **Code Style:**
+   - Follow existing code style
+   - Add docstrings for new functions
+   - Add comments for complex logic
+   - Maintain consistent formatting
+
+---
+
+## Files to Reference
+
+1. **Current Script:**
+   - `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\response_time_monthly_generator.py`
+
+2. **Configuration:**
+   - `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\config\response_time_filters.json`
+
+3. **Mapping File:**
+   - `C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Classifications\CallTypes\CallType_Categories.csv`
+
+4. **Documentation:**
+   - `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\RESPONSE_TIME_ETL_FILTER_UPDATE_PLAN.md`
+
+---
+
+## Implementation Checklist
+
+- [ ] Add `load_filter_config()` function
+- [ ] Update `load_mapping_file()` to return tuple with Category_Type
+- [ ] Update `process_cad_data()` signature
+- [ ] Add "How Reported" filter (Step 1.5)
+- [ ] Update Response Type mapping to include Category_Type (Step 6)
+- [ ] Add Category_Type filter with override logic (Step 6.5)
+- [ ] Add specific incident filter (Step 6.6)
+- [ ] Add data verification (Step 7)
+- [ ] Update `main()` function to load config and pass new parameters
+- [ ] Add command line argument for config file
+- [ ] Test with sample data
+- [ ] Verify output format
+- [ ] Update version number in script header
+
+---
+
+**Prompt Created:** 2026-01-14  
+**Status:** Ready for Claude Code Implementation

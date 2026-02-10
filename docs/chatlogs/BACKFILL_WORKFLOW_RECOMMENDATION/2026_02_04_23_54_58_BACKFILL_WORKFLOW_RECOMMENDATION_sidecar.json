@@ -1,0 +1,67 @@
+{
+  "source_file": "BACKFILL_WORKFLOW_RECOMMENDATION.md",
+  "source_path": "C:\\_chunker\\02_data\\BACKFILL_WORKFLOW_RECOMMENDATION.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\BACKFILL_WORKFLOW_RECOMMENDATION\\2026_02_04_23_54_58_BACKFILL_WORKFLOW_RECOMMENDATION.origin.json",
+  "created_at": "2026_02_04_23_54_58",
+  "tags": [
+    "code",
+    "data",
+    "docs",
+    "json",
+    "markdown",
+    "powershell",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "files",
+      "category",
+      "all",
+      "fix",
+      "column",
+      "csv"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Backfill Workflow Recommendation\n\n**Date:** 2025-12-11  \n**Question:** Should column order be fixed before or after organizing exports? ---\n\n## Current Workflow\n\n### Step 1: Export Visuals from Power BI\n- Export CSV files from Power BI...",
+    "first_line": "# Backfill Workflow Recommendation"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-04T23:54:58+00:00_BACKFILL_WORKFLOW_RECOMMENDATION_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "category",
+        "code",
+        "column",
+        "data",
+        "docs",
+        "files",
+        "json",
+        "markdown",
+        "powershell",
+        "python",
+        "sql"
+      ],
+      "key_terms": [
+        "files",
+        "category",
+        "all",
+        "fix",
+        "column",
+        "csv"
+      ],
+      "summary": "# Backfill Workflow Recommendation\n\n**Date:** 2025-12-11  \n**Question:** Should column order be fixed before or after organizing exports?",
+      "char_length": 7465,
+      "byte_length": 7736
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

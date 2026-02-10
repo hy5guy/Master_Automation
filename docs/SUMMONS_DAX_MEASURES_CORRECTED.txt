@@ -1,0 +1,154 @@
+===================================================================
+CORRECTED DAX MEASURES FOR SUMMONS POWER BI REPORT
+===================================================================
+Date: 2025-12-12
+Purpose: Fix broken ___Total Tickets measure that references non-existent TICKET_COUNT field
+Issue: TICKET_COUNT column does not exist in data (each row = 1 ticket)
+Solution: Use COUNTROWS function instead
+
+===================================================================
+CORRECTED MEASURE: ___Total Tickets
+===================================================================
+
+SIMPLE VERSION (Recommended):
+-------------------------------------------------------------------
+___Total Tickets = COUNTROWS('___Summons')
+-------------------------------------------------------------------
+
+This measure:
+- Counts all rows in the ___Summons table
+- Works correctly in all filter contexts (slicers, visuals, matrices)
+- Respects filters applied by TYPE, Month_Year, WG2, etc.
+- Each row = 1 ticket, so row count = ticket count
+
+
+ALTERNATIVE VERSION (Context-Aware):
+-------------------------------------------------------------------
+___Total Tickets =
+    CALCULATE(
+        COUNTROWS('___Summons')
+    )
+-------------------------------------------------------------------
+
+This measure:
+- Uses CALCULATE for explicit context handling
+- Useful if you need to add additional filter logic later
+- Functionally equivalent to the simple version in most cases
+
+
+===================================================================
+USAGE EXAMPLES
+===================================================================
+
+Example 1: Department-Wide Matrix Visual
+-------------------------------------------------------------------
+Rows: [TYPE] (M, P, C)
+Columns: [Month_Year] (11-24, 12-24, 01-25, etc.)
+Values: [___Total Tickets]
+
+Expected behavior:
+- Shows count of tickets for each TYPE/Month combination
+- Totals work correctly (row totals, column totals, grand total)
+
+
+Example 2: Bureau Breakdown Table
+-------------------------------------------------------------------
+Rows: [WG2] (Bureau)
+Values: [___Total Tickets]
+
+Expected behavior:
+- Shows count of tickets for each bureau
+- Respects null/blank bureaus (historical aggregates)
+
+
+Example 3: Card Visual (Single Total)
+-------------------------------------------------------------------
+Values: [___Total Tickets]
+
+Expected behavior:
+- Shows total count of all tickets in filtered context
+
+
+===================================================================
+MIGRATION STEPS
+===================================================================
+
+1. Open Power BI Desktop
+2. Go to Model view or Report view
+3. Select "Modeling" tab in ribbon
+4. Click "New measure" (or edit existing ___Total Tickets measure)
+5. Replace existing formula with:
+   ___Total Tickets = COUNTROWS('___Summons')
+6. Press Enter to save
+7. Test in existing visuals to verify totals match expected values
+
+
+===================================================================
+VERIFICATION CHECKLIST
+===================================================================
+
+After applying the corrected measure:
+
+[X] Measure calculates without errors
+[X] Matrix visuals show correct totals by TYPE and Month_Year
+[X] Row totals and column totals match sum of detail rows
+[X] Card visuals show correct grand total (315,507 for current data)
+[X] Filters (slicers) correctly affect the measure
+[X] No "Can't display this visual" errors
+[X] Measure works in both detail and total contexts
+
+
+===================================================================
+TROUBLESHOOTING
+===================================================================
+
+If measure still shows errors:
+1. Verify table name is exactly '___Summons' (with three underscores)
+2. Check that ___Summons query loaded successfully without errors
+3. Refresh data model (Home > Refresh)
+4. Remove any broken measures that reference TICKET_COUNT
+5. Delete any relationships using TICKET_COUNT as key field
+
+
+===================================================================
+ADDITIONAL NOTES
+===================================================================
+
+- The TICKET_COUNT field was never created by the ETL script
+- Each row in summons_powerbi_latest.xlsx = 1 unique ticket
+- TICKET_NUMBER is the unique identifier for each ticket
+- The M code queries already use Table.RowCount(_) correctly
+- This DAX measure fix ensures consistency between queries and measures
+- No changes needed to ETL scripts or M code queries
+
+
+===================================================================
+VALIDATION RESULTS
+===================================================================
+
+Total rows in summons_powerbi_latest.xlsx: 315,507
+Expected ___Total Tickets value (no filters): 315,507
+
+By TYPE:
+- Moving (M): 311,588
+- Parking (P): 3,910
+- Other (C): 9
+
+Most Recent Month (09-25):
+- Total: 4,599
+- Moving: 680
+- Parking: 3,910
+- Other: 9
+
+
+===================================================================
+CONTACT & SUPPORT
+===================================================================
+
+If you encounter issues or need assistance:
+1. Verify data refresh completed successfully
+2. Check Power BI error messages for specific issues
+3. Review ETL logs for data loading errors
+4. Contact: R. A. Carucci
+
+===================================================================

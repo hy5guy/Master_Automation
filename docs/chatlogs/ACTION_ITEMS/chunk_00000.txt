@@ -1,0 +1,277 @@
+# Action Items - Master ETL Automation
+
+**Last Updated:** 2025-12-10  
+**Status:** Documentation Complete ✅ | Operational Items Pending
+
+---
+
+## ✅ Completed
+
+- [x] Script path verification completed
+- [x] Configuration file updated with correct script paths
+- [x] Overtime TimeOff fixed (changed from v11 to v10)
+- [x] PowerShell script enhanced to find files in subdirectories
+- [x] All documentation created/updated
+- [x] Manifest.json created and documented
+- [x] Backfill locations documented
+- [x] Response Times script updated to use monthly export file (Nov 2025)
+
+---
+
+## 🔴 Critical Actions Required
+
+### 1. Response Times - M Code Update Required ⏰ DUE TOMORROW
+**Priority:** High  
+**Status:** ✅ Script updated | ✅ Tested successfully | ⏳ M code update needed  
+**Target File:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports\2025\11 - November - 2025\25_11_Monthly_FINAL.pbix`
+
+**ETL Script Status:**
+- ✅ Script updated to use monthly export file for November 2025
+- ✅ Source file exists: `05_EXPORTS\_CAD\monthly_export\2025\2025_11_Monthly_CAD.xlsx.xlsx`
+- ✅ **Tested:** ETL run successful - Response Times script generated 66 output files
+
+**Backfill Files Location:**
+- `C:\Dev\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Average Response Times Values are in mmss.csv` - For Average Response Times table
+- `C:\Dev\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Response Times by Priority.csv` - For Response Times by Priority line graph
+
+**ETL Output for November 2025:**
+- Location: `C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\`
+- Files: Multiple response time output files (including `Average_Response_Times__Values_are_in_mmss.csv`)
+- Note: ETL output is now organized in monthly backfill structure
+
+**Actions:**
+- [x] **Test ETL Script:** ✅ Completed - Response Times script processes November 2025 data correctly
+- [ ] **Update Power BI M code query:** `___ResponseTimeCalculator` in `25_11_Monthly_FINAL.pbix`
+- [ ] **Update M code to reference backfill directory** for Nov 2024 - Oct 2025:
+  - Load `C:\Dev\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Average Response Times Values are in mmss.csv` for table data
+  - Load `C:\Dev\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Response Times by Priority.csv` for line graph data
+- [ ] **Combine backfill data with November 2025 ETL output:**
+  - Load November 2025 data from: `C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\Average_Response_Times__Values_are_in_mmss.csv` (or equivalent)
+  - Ensure seamless date continuity between backfill period and current month
+- [ ] **Test Power BI refresh** to verify combined data loads correctly
+- [ ] **Verify all visualizations** display correctly with combined dataset
+
+**Note:** 
+- ETL script now processes monthly export files (current month only)
+- Historical data (Nov 2024 - Oct 2025) handled via M code loading backfill CSV files
+- Future months: Export monthly file to `monthly_export\[YEAR]\[YYYY]_MM_Monthly_CAD.xlsx.xlsx` and update script path if needed
+
+---
+
+### 2. Power BI Organization Script Execution
+**Priority:** High  
+**Status:** Ready to execute after ETL runs complete
+
+**Action:**
+- [ ] Run Power BI organization script after ETL execution:
+  ```powershell
+  cd C:\Dev\PowerBI_Date
+  .\tools\organize_backfill_exports.ps1
+  ```
+- [ ] Verify files are properly organized and categorized
+- [ ] Test Power BI refresh to ensure data loads correctly
+
+---
+
+## 🟡 Power BI M Code Updates Required
+
+**Priority:** Medium  
+**Status:** 13+ reports need M code updates for backfill data integration
+
+**Reference:** See `M_CODE_UPDATE_GUIDE.md` for detailed M code update instructions and templates. ### Reports Requiring M Code Updates:
+
+0. **Response Times** ⚠️ **HIGH PRIORITY**
+   - **M Code Query:** `___ResponseTimeCalculator`
+   - Backfill: `C:\Dev\PowerBI_Date\Backfill\2025_10\response_time`
+   - Backfill Files:
+     - `2025_10_Average Response Times Values are in mmss.csv` (for table)
+     - `2025_10_Response Times by Priority.csv` (for line graph)
+   - [ ] Update `___ResponseTimeCalculator` query to reference backfill files for Nov 2024 - Oct 2025
+   - [ ] Ensure live data source for Nov 2025+
+
+1. **SSOCC** (Safe Streets Operations Control Center)
+   - Backfill: `C:\Dev\PowerBI_Date\Backfill\2025_10\ssocc`
+   - [ ] Update M code to reference backfill directory for Nov 2024 - Oct 2025
+   - [ ] Ensure live data source for Nov 2025+
+
+2. **STACP**
+   - Backfill: `C:\Dev\PowerBI_Date\Backfill\2025_10\stacp`
+   - [ ] Update M code to reference backfill directory for Nov 2024 - Oct 2025
+   - [ ] Ensure live data source for Nov 2025+
+
+3. **Traffic**
+   - Backfill: `C:\Dev\PowerBI_Date\Backfill\2025_10\traffic`
+   - [ ] Update M code to reference backfill directory for Nov 2024 - Oct 2025
+   - [ ] Ensure live data source for Nov 2025+
+
+4. **Drone**
+   - Backfill: `C:\Dev\PowerBI_Date\Backfill\2025_10\drone`
+   - [ ] Update M code to reference backfill directory for Nov 2024 - Oct 2025
+   - [ ] Ensure live data source for Nov 2025+
+
+5. **Detectives**
+   - Backfill: `C:\Dev\PowerBI_Date\Backfill\2025_10\detectives`
+   - [ ] Update M code to reference backfill directory for Nov 2024 - Oct 2025
+   - [ ] Ensure live data source for Nov 2025+
+
+6. **CSB** (Community Services Bureau)
+   - Backfill: `C:\Dev\PowerBI_Date\Backfill\2025_10\csb`
+   - [ ] Update M code to reference backfill directory for Nov 2024 - Oct 2025
+   - [ ] Ensure live data source for Nov 2025+
+
+7. **Chief Law Enforcement Duties**
+   - Backfill: `C:\Dev\PowerBI_Date\Backfill\2025_10\chief_law_enforcement_duties`
+   - [ ] Update M code to reference backfill directory for Nov 2024 - Oct 2025
+   - [ ] Ensure live data source for Nov 2025+
+
+8. **NIBRS** (Optional - if using M code instead of Python)
+   - Backfill: `C:\Dev\PowerBI_Date\Backfill\2025_10\nibrs`
+   - [ ] Update M code to reference backfill directory for Nov 2024 - Oct 2025
+   - [ ] Ensure live data source for Nov 2025+
+
+9. **Arrest** (May overlap with ETL script)
+   - Backfill: `C:\Dev\PowerBI_Date\Backfill\2025_10\arrest`
+   - [ ] Update M code to reference backfill directory for Nov 2024 - Oct 2025
+   - [ ] Ensure live data source for Nov 2025+
+
+10. **Chief Projects**
+    - Backfill: `C:\Dev\PowerBI_Date\Backfill\2025_10\chief_projects`
+    - [ ] Update M code to reference backfill directory for Nov 2024 - Oct 2025
+    - [ ] Ensure live data source for Nov 2025+
+
+11. **Community Outreach**
+    - Backfill: `C:\Dev\PowerBI_Date\Backfill\2025_10\community_outreach`
+    - [ ] Update M code to reference backfill directory for Nov 2024 - Oct 2025
+    - [ ] Ensure live data source for Nov 2025+
+
+12. **Patrol**
+    - Backfill: `C:\Dev\PowerBI_Date\Backfill\2025_10\patrol`
+    - [ ] Update M code to reference backfill directory for Nov 2024 - Oct 2025
+    - [ ] Ensure live data source for Nov 2025+
+
+13. **REMU** (Records & Evidence Management Unit)
+    - Backfill: `C:\Dev\PowerBI_Date\Backfill\2025_10\remu`
+    - [ ] Update M code to reference backfill directory for Nov 2024 - Oct 2025
+    - [ ] Ensure live data source for Nov 2025+
+
+### M Code Update Pattern:
+
+```m
+// Example pattern for M code updates
+let
+    // Determine date range
+    CurrentDate = Date.From(DateTime.LocalNow()),
+    BackfillEndDate = #date(2025, 10, 31),
+    
+    // Conditional logic: use backfill for historical, live for current
+    Source = if CurrentDate <= BackfillEndDate then
+        // Load from backfill directory
+        Folder.Files("C:\Dev\PowerBI_Date\Backfill\2025_10\[category]")
+    else
+        // Load from live source
+        YourLiveDataSource(),
+    
+    // Continue with data processing...
+in
+    Source
+```
+
+---
+
+## 🟢 Optional Improvements
+
+### 1. Update SUMMARY.md
+**Status:** Minor documentation update needed
+
+- [ ] Update SUMMARY.md - Overtime TimeOff entry point should be `v10` not `v11`
+
+**Current:** Lists `overtime_timeoff_13month_sworn_breakdown_v11.py`  
+**Should be:** `overtime_timeoff_13month_sworn_breakdown_v10.py`
+
+---
+
+### 2. Verify Response Times Script Entry Point
+**Status:** Verification recommended
+
+- [ ] Confirm `scripts\process_cad_data_for_powerbi_FINAL.py` is the correct entry point
+- [ ] Check if there are other scripts in the Response_Times directory that should be used instead
+- [ ] Update configuration if a different script is needed
+
+---
+
+### 3. Community Engagement Directory Naming
+**Status:** Low priority - cosmetic issue
+
+- [ ] Consider renaming `Community_Engagment` → `Community_Engagement` (fixes typo)
+- [ ] If renamed, update `config/scripts.json` path
+- [ ] Update all documentation references
+
+**Note:** This is optional - system works correctly with current name, just has a typo
+
+---
+
+### 4. Standardize Script Entry Points (Future Enhancement)
+**Status:** Optional - for better maintainability
+
+- [ ] Consider creating `main.py` wrapper scripts in each ETL directory
+- [ ] Wrappers would call the actual processing scripts
+- [ ] Would standardize configuration (all scripts use `main.py`)
+- [ ] Makes future maintenance easier
+
+**Example:**
+```python
+# Arrests/main.py
+from arrest_python_processor import main
+if __name__ == "__main__":
+    main()
+```
+
+---
+
+## 📋 Operational Checklist
+
+### Daily/Weekly Execution:
+- [ ] Run all ETL scripts: `.\scripts\run_all_etl.ps1`
+- [ ] Review execution logs for errors
+- [ ] Run Power BI organization script: `cd C:\Dev\PowerBI_Date; .\tools\organize_backfill_exports.ps1`
+- [ ] Verify Power BI reports refresh successfully
+
+### Monthly Tasks:
+- [ ] Review and clean old log files if needed
+- [ ] Verify all scripts are still functioning
+- [ ] Check for any script timeout issues
+- [ ] Review Power BI data quality
+
+---
+
+## 📊 Current System Status
+
+### ETL Scripts Status:
+- ✅ **5/7 enabled scripts working** (Arrests, Community Engagement, Policy Training, Summons, Overtime TimeOff)
+- ⚠️ **1/7 enabled scripts** (Response Times - configured but using M code for backfill)
+- ✅ **1/7 enabled scripts working** (Arrest Data Source - no output expected)
+- ❌ **1/8 scripts disabled** (NIBRS - no Python script found)
+
+### M Code Reports Status:
+- ⚠️ **9 reports need M code updates** (Response Times + 8 other reports)
+- 📁 **Backfill files ready** for all reports in `C:\Dev\PowerBI_Date\Backfill\2025_10\`
+
+### Documentation Status:
+- ✅ All documentation complete and up to date
+- ✅ Backfill locations documented
+- ✅ Action items documented (this file)
+
+### Next Steps Priority:
+1. **Update Response Times M code** (`___ResponseTimeCalculator`) (Critical - has backfill files ready)
+   - See `M_CODE_UPDATE_GUIDE.md` for specific template
+2. **Run Power BI organization script** (Critical)
+3. **Update M code for remaining 12+ reports** (Important - Power BI reports won't show historical data until done)
+   - See `M_CODE_UPDATE_GUIDE.md` for general pattern and templates
+
+---
+
+**See Also:**
+- `README.md` - Complete system documentation
+- `BACKFILL_LOCATIONS.md` - Backfill data locations
+- `VERIFICATION_REPORT.md` - Script verification details
+- `QUICK_START.md` - Quick reference guide

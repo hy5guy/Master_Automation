@@ -1,0 +1,222 @@
+{
+  "source_file": "Power_BI_Response_Time_Type_Conversion_Fix.md",
+  "source_path": "C:\\_chunker\\02_data\\Power_BI_Response_Time_Type_Conversion_Fix.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Power_BI_Response_Time_Type_Conversion_Fix\\2026_02_09_16_54_30_Power_BI_Response_Time_Type_Conversion_Fix.origin.json",
+  "created_at": "2026_02_09_16_54_30",
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "code",
+      "text",
+      "let",
+      "type",
+      "data",
+      "column"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Data source file path error\n_Exported on 2/9/2026 at 16:54:17 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\n@m_code/___ResponseTimeCalculator.m \nhas this error DataSource.NotFound: File or Folder: Could not find a part of the path 'C:\\Dev\\...",
+    "first_line": "# Data source file path error"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-09T16:54:30+00:00_Power_BI_Response_Time_Type_Conversion_Fix_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "code",
+        "column",
+        "conversation",
+        "data",
+        "docs",
+        "excel",
+        "files",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "powershell",
+        "python",
+        "sql"
+      ],
+      "key_terms": [
+        "let",
+        "files",
+        "code",
+        "now",
+        "column",
+        "data"
+      ],
+      "summary": "# Data source file path error\n_Exported on 2/9/2026 at 16:54:17 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\n@m_code/___ResponseTimeCalculator.m \nhas this error DataSource.NotFound: File or Folder: Could not find a part of the path 'C:\\Dev\\...",
+      "char_length": 16337,
+      "byte_length": 16905
+    },
+    {
+      "chunk_id": "2026-02-09T16:54:30+00:00_Power_BI_Response_Time_Type_Conversion_Fix_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "ai",
+        "code",
+        "conversation",
+        "data",
+        "docs",
+        "excel",
+        "files",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "number",
+        "police",
+        "powershell",
+        "python",
+        "response_time_mmss",
+        "sql",
+        "text"
+      ],
+      "key_terms": [
+        "code",
+        "response_time_mmss",
+        "text",
+        "files",
+        "let",
+        "number"
+      ],
+      "summary": "Then filters by `FileSize < 50000`\n\nThis will properly exclude large raw data files while keeping the small aggregated monthly summary files.",
+      "char_length": 18612,
+      "byte_length": 19212
+    },
+    {
+      "chunk_id": "2026-02-09T16:54:30+00:00_Power_BI_Response_Time_Type_Conversion_Fix_chunk3",
+      "chunk_index": 3,
+      "file": "chunk_00002.txt",
+      "tags": [
+        "ai",
+        "code",
+        "conversation",
+        "data",
+        "docs",
+        "excel",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "number",
+        "parts",
+        "police",
+        "powershell",
+        "python",
+        "sql",
+        "text",
+        "type"
+      ],
+      "key_terms": [
+        "text",
+        "number",
+        "type",
+        "code",
+        "raw",
+        "parts"
+      ],
+      "summary": "I’ve updated the logic to handle 3-part time strings so they don't break the MM:SS format.",
+      "char_length": 17427,
+      "byte_length": 17924
+    },
+    {
+      "chunk_id": "2026-02-09T16:54:30+00:00_Power_BI_Response_Time_Type_Conversion_Fix_chunk4",
+      "chunk_index": 4,
+      "file": "chunk_00003.txt",
+      "tags": [
+        "ai",
+        "code",
+        "conversation",
+        "data",
+        "docs",
+        "error",
+        "excel",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "powershell",
+        "prompt",
+        "python",
+        "sql",
+        "text",
+        "type"
+      ],
+      "key_terms": [
+        "code",
+        "prompt",
+        "error",
+        "type",
+        "data",
+        "text"
+      ],
+      "summary": "---\n\n## 🎉 Collaboration Success!",
+      "char_length": 27143,
+      "byte_length": 28046
+    },
+    {
+      "chunk_id": "2026-02-09T16:54:30+00:00_Power_BI_Response_Time_Type_Conversion_Fix_chunk5",
+      "chunk_index": 5,
+      "file": "chunk_00004.txt",
+      "tags": [
+        "ai",
+        "code",
+        "conversation",
+        "data",
+        "docs",
+        "excel",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "powershell",
+        "python",
+        "response_time_mmss",
+        "sql",
+        "table",
+        "text",
+        "type"
+      ],
+      "key_terms": [
+        "type",
+        "you",
+        "text",
+        "table",
+        "response_time_mmss",
+        "fix"
+      ],
+      "summary": "**`type text` in `Table.TransformColumns` tuple** — PQ's type engine tries to validate/coerce original auto-typed values (Number 2.87) *alongside* your transformation lambda during lazy evaluation.",
+      "char_length": 3410,
+      "byte_length": 3503
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

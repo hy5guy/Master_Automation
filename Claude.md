@@ -148,6 +148,43 @@ Avoid loading all files at once - use targeted searches.
 - **Claude**: Identified root cause, delivered comprehensive 7-point fix
 - **Gemini**: Type-agnostic pattern (`Value.Is()`), locale safety enhancements
 
+### v1.12.0 - Response Time Backfill Baseline Established
+
+**Formal Backfill Structure Created** - Response Time data now organized and validated
+
+#### What Was Done:
+- **Backfill Directory Structure** - Created 13 monthly directories (Jan 2025 - Jan 2026)
+  - Location: `PowerBI_Date\Backfill\YYYY_MM\response_time\`
+  - Files: One CSV per month with 3 rows (Emergency, Routine, Urgent)
+  - Populated from current validated visual export data
+  - M code now prioritizes Backfill folder as primary source
+
+- **M Code Updated to v2.8.3** - Restored Backfill priority
+  - Priority: Backfill > visual_export > outputs > _DropExports
+  - Ensures validated data with January 14 methodology (deduplication + filtering)
+  - Maintains 0% error rate from v2.8.0 fix
+
+- **Fresh Calculator Disabled** - Experimental approach disabled
+  - Missing January 14 deduplication/filtering logic
+  - Script available for future enhancement: `scripts\response_time_fresh_calculator.py`
+  - Can be re-enabled once validated methodology is implemented
+
+#### Monthly Workflow Established:
+1. Run ETL for new month
+2. Refresh Power BI
+3. Export Response Time visual to CSV
+4. Save to: `Backfill\YYYY_MM\response_time\YYYY_MM_Average_Response_Times__Values_are_in_mmss.csv`
+5. Next month: Power BI automatically loads it
+
+#### Documentation:
+- `docs/RESPONSE_TIME_v2.8.3_BACKFILL_RESTORE.md` - Revert decision and reasoning
+- `docs/BACKFILL_BASELINE_CREATED_2026_02_09.md` - Baseline creation details
+- `docs/RESPONSE_TIME_FINAL_STATUS_2026_02_09.md` - Final status checklist
+
+**Status:** Backfill baseline established, monthly workflow documented
+
+---
+
 ### v1.10.0 - Master Automation 100% Operational - All Workflows Fixed
 - **Complete Success** - All 6 ETL workflows now operational (100% success rate)
 - **Overtime TimeOff Fixed** - Resolved missing personnel file (`Assignment_Master_V2.csv`)
@@ -196,13 +233,14 @@ Avoid loading all files at once - use targeted searches.
 - **All Data Preserved** - 100% of files preserved, just better organized
 
 ### Current System Status
-- **Version**: 1.10.0
+- **Version**: 1.12.0
 - **Status**: ✅ 100% Operational (6/6 workflows)
 - **Last Successful Run**: 2026-02-09 12:55:22 (2.04 minutes)
 - **Enabled Scripts**: 6 (All operational)
 - **Root Directory**: Clean and professional (7 essential files only)
-- **Recent Major Fixes**: Personnel file dependency, timereport hybrid strategy, Benchmark consolidation
+- **Backfill Baseline**: Response Time data (13 months: Jan 2025 - Jan 2026)
+- **Recent Major Fixes**: Personnel file dependency, timereport hybrid strategy, Benchmark consolidation, Response Time Backfill baseline
 
 ---
 
-*Last updated: 2026-02-09 | Format version: 3.3*
+*Last updated: 2026-02-09 | Format version: 3.4*

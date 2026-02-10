@@ -1,0 +1,53 @@
+{
+  "current_month": "2025_12",
+  "backfill_month": "2025_11",
+  "start_time": "2026-01-13T18:21:09.089562",
+  "end_time": "2026-01-13T18:21:09.204667",
+  "duration_seconds": 0.115105,
+  "total_verifications": 2,
+  "passed": 0,
+  "failed": 0,
+  "skipped": 0,
+  "errors": 0,
+  "overall_pass_rate": 0.0,
+  "verifications": [
+    {
+      "name": "Overtime & Time Off",
+      "priority": 1,
+      "start_time": "2026-01-13 18:21:09.089562",
+      "status": "PASS",
+      "pass_rate": 100.0,
+      "issues": [],
+      "report_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\verification_reports\\OVERTIME_TIMEOFF_MONTHLY_VERIFICATION_REPORT.md",
+      "end_time": "2026-01-13 18:21:09.165781",
+      "duration": 0.076219
+    },
+    {
+      "name": "Arrests",
+      "priority": 2,
+      "start_time": "2026-01-13 18:21:09.165781",
+      "status": "PASS",
+      "pass_rate": 100.0,
+      "issues": [
+        {
+          "severity": "ERROR",
+          "category": "File Parsing",
+          "description": "Failed to parse C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\outputs\\2025_12_Arrest Distribution by Local, State & Out of State.csv: 3 columns passed, passed data had 4 columns"
+        },
+        {
+          "severity": "ERROR",
+          "category": "File Parsing",
+          "description": "Failed to parse C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\00_dev\\projects\\PowerBI_Date\\Backfill\\2025_11\\arrest\\2025_11_Arrest Distribution by Local, State & Out of State.csv: 3 columns passed, passed data had 4 columns"
+        },
+        {
+          "severity": "ERROR",
+          "category": "File Loading",
+          "description": "Both current and backfill missing for Arrest Distribution by Local, State & Out of State.csv"
+        }
+      ],
+      "report_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\verification_reports\\ARRESTS_MONTHLY_VERIFICATION_REPORT.md",
+      "end_time": "2026-01-13 18:21:09.204667",
+      "duration": 0.038886
+    }
+  ]
+}

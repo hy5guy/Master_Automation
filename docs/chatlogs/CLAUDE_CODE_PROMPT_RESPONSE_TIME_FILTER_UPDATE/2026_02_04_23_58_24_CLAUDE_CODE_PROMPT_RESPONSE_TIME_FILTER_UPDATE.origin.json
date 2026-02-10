@@ -1,0 +1,38 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "filter",
+        "category_type",
+        "log",
+        "logger",
+        "records",
+        "incident"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Claude Code Prompt: Response Time ETL Filter Update\n\n**Date:** 2026-01-14  \n**Purpose:** Comprehensive prompt for Claude Code to update response_time_monthly_generator.py with enhanced filtering logic, data verification, and edge case...",
+      "first_line": "# Claude Code Prompt: Response Time ETL Filter Update"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-04T23:58:24.558973",
+  "department": "admin"
+}

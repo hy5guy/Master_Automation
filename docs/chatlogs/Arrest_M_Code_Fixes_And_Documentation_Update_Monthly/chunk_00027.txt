@@ -1,0 +1,690 @@
+### Overtime TimeOff: Backfill + Processed Month Now Stable ✅
+- The Power BI visual requires **two sources** to be fully populated for the 13-month view:
+  - `...\Overtime_TimeOff\output\FIXED_monthly_breakdown_*.csv` (legacy usage rows)
+  - `...\Overtime_TimeOff\analytics_output\monthly_breakdown.csv` (accrual rows)
+- `scripts/overtime_timeoff_with_backfill.py` now:
+  - Runs the production v10 script
+  - Restores historical months into the FIXED output from `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\...`
+  - Backfills `analytics_output\monthly_breakdown.csv` for prior 12 months from the same export (preserving the current month from v10)
+- Validation helper:
+  - `scripts/compare_vcs_time_report_exports.py` can diff a refreshed visual export against a known-good baseline (e.g., Oct-24 monthly export)
+
+### Policy Training Monthly: Current Month + Backfill Verified ✅
+- ETL project lives in: `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Policy_Training_Monthly`
+- Output workbook: `...\output\policy_training_outputs.xlsx` (sheet `Delivery_Cost_By_Month`)
+- Validation helper:
+  - `scripts/compare_policy_training_delivery.py` can compare a refreshed visual export (Delivery Cost by month) vs ETL output and vs backfill (history months). ### Summons: Current Month From E-Ticket + Backfill Verified ✅
+- Power BI source workbook: `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx`
+- Current month is computed from: `...\05_EXPORTS\_Summons\E_Ticket\YY_MM_e_ticketexport.csv`
+- History is carried via backfill exports in `PowerBI_Date\Backfill\YYYY_MM\summons\...`
+- **Status (2025-12-12):** All issues resolved - system healthy and working correctly
+  - WG2 column: 134,144 rows populated (42.52%), 181,363 null (historical aggregates - expected)
+  - M Code queries: All 3 queries working correctly, handling missing columns properly
+  - DAX measure: Corrected to `___Total Tickets = COUNTROWS('___Summons')`
+  - Data validation: 315,507 total rows verified
+- Validation helpers:
+  - `scripts/compare_summons_deptwide.py` compares Dept-Wide visual export vs backfill history and vs ETL current month
+  - `scripts/compare_summons_all_bureaus.py` compares All Bureaus visual vs ETL output
+  - `scripts/diagnose_summons_blank_bureau.py` identifies blank `WG2` rows that show up as blank Bureau
+  - `scripts/diagnose_summons_assignment_mapping.py` diagnoses WG2 assignment mapping issues
+  - `scripts/diagnose_summons_missing_months.py` identifies missing months in staging workbook
+  - `scripts/diagnose_summons_top5_vs_deptwide.py` validates Top 5 queries vs Dept-Wide data
+  - `scripts/fix_summons_wg2_from_assignment.py` fixes WG2 column from WG2_ASSIGN
+  - `scripts/run_summons_with_overrides.py` can inject a badge override (e.g. badge 1711 → Traffic Bureau) and regenerate the workbook before refresh
+- Documentation:
+  - `claude_code_summons.md` - Comprehensive troubleshooting guide
+  - `SUMMONS_DIAGNOSTIC_REPORT_2025_12_12.md` - Complete diagnostic report
+  - `SUMMONS_DAX_MEASURES_CORRECTED.txt` - Corrected DAX measure instructions
+
+---
+
+**Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`  
+**Last Updated:** 2025-12-12  
+**Migration Status:** ✅ Complete - Ready for Testing
+
+
+```
+
+```markdown
+# Master ETL Automation
+
+Centralized automation hub for running all Python ETL scripts that feed into Power BI reports. ## Overview
+
+This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. ## Directory Structure
+
+```
+Master_Automation/
+├── README.md                    # This file
+├── CHANGELOG.md                 # Version history and updates
+├── verify_migration.ps1         # Automated verification script
+├── SUMMARY.md                   # Project summary / quick reference
+├── config/
+│   ├── scripts.json            # Configuration for all ETL scripts
+│   └── scripts.json.bak        # Backup of previous config
+├── scripts/
+│   ├── run_all_etl.ps1         # PowerShell orchestrator (recommended)
+│   ├── run_all_etl.bat         # Batch file orchestrator
+│   ├── run_etl_script.ps1      # Helper script to run individual scripts
+│   ├── _archive/                # Archived old/unused scripts
+│   ├── overtime_timeoff_with_backfill.py     # Overtime/TimeOff monthly wrapper (v10 + backfill)
+│   ├── restore_fixed_from_backfill.py        # Restores history into FIXED_monthly_breakdown
+│   └── compare_vcs_time_report_exports.py    # Diff tool for visual exports/backfill validation
+│   ├── compare_policy_training_delivery.py   # Policy Training: visual vs ETL/backfill diff
+│   ├── compare_summons_deptwide.py           # Summons Dept-Wide: visual vs ETL/backfill diff
+│   ├── diagnose_summons_blank_bureau.py      # Summons: find blank WG2 (Bureau) rows
+│   └── run_summons_with_overrides.py         # Summons: run with injected badge overrides (e.g., 1711)
+├── docs/                        # Project documentation (migration, verification, guides)
+└── logs/
+    └── .gitkeep                # ETL execution logs go here (auto-created)
+```
+
+## Quick Start
+
+### Run All ETL Scripts
+
+**PowerShell (Recommended):**
+```powershell
+cd C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation
+.\scripts\run_all_etl.ps1
+```
+
+**Batch File:**
+```batch
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+scripts\run_all_etl.bat
+```
+
+### Run Specific Script
+
+```powershell
+.\scripts\run_etl_script.ps1 -ScriptName "Arrests"
+```
+
+### Preview Execution (Dry Run with Validation)
+
+Preview what would execute and validate required input files:
+
+```powershell
+.\scripts\run_all_etl.ps1 -DryRun
+```
+
+This will:
+- Show which scripts would execute
+- Validate that required export files exist (e-ticket exports, CAD exports, etc.) - Report any missing files before execution
+
+## Configuration
+
+Edit `config/scripts.json` to add, remove, or modify ETL scripts:
+
+```json
+{
+  "scripts": [
+    {
+      "name": "Arrests",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Arrests",
+      "script": "arrest_python_processor.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 1
+    },
+    {
+      "name": "Community Engagement",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagment",
+      "script": "deploy_production.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 2
+    },
+    {
+      "name": "Overtime TimeOff",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\scripts",
+      "script": "overtime_timeoff_with_backfill.py",
+      "enabled": true,
+      "output_to_powerbi": false,
+      "order": 3
+    }
+  ]
+}
+```
+
+## Features
+
+- **Sequential Execution:** Runs scripts in specified order
+- **Error Handling:** Continues on errors, logs failures
+- **Logging:** Detailed logs for each script execution
+- **Power BI Integration:** Automatically copies outputs to Power BI drop folder
+- **Selective Execution:** Run all, or specific scripts
+- **Status Reporting:** Summary of what succeeded/failed
+- **Input Validation:** Validates required export files exist before execution (`-ValidateInputs` or automatic with `-DryRun`)
+- **Dry Run Mode:** Preview execution without running scripts (`-DryRun`)
+
+## Workflow
+
+1. **Configure:** Edit `config/scripts.json` with your script paths
+2. **Run:** Execute `run_all_etl.ps1` or `run_all_etl.bat`
+3. **Process:** Scripts execute in order, outputs logged
+4. **Integrate:** Successful outputs copied to Power BI Date repository
+5. **Review:** Check logs for any failures or warnings
+
+## Output Integration
+
+All successful outputs are automatically:
+1. Validated (CSV format, proper structure)
+2. Copied to `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\`
+3. Ready for `organize_backfill_exports.ps1` processing
+
+## Logging
+
+Logs are saved to:
+- `logs/YYYY-MM-DD_HH-MM-SS_ETL_Run.log` - Overall execution log
+- `logs/YYYY-MM-DD_HH-MM-SS_[ScriptName].log` - Individual script logs
+
+## Error Handling
+
+- Scripts run independently (failure of one doesn't stop others)
+- Errors logged with details
+- Summary report shows success/failure status
+- Failed scripts can be re-run individually
+
+## Recent Updates
+
+### 2026-01-06: v1.2.0 - Arrest Query Fixes & Path Resolution ✅
+
+**Arrest M Code Queries Fixed:**
+- Fixed syntax errors in `___Top_5_Arrests` and `___Arrest_Categories` queries
+- Removed backslash line continuations (M Code doesn't support `\`)
+- Enhanced date parsing to handle Excel serial dates (45962, 45963, etc.) - Fixed Culture errors by removing problematic type conversions
+- All queries now compile and execute successfully
+
+**Arrest Script Path Fix:**
+- Updated `arrest_python_processor.py` to search recursively for source files
+- Changed from `glob("*.xlsx")` to `glob("**/*.xlsx")` to find files in subdirectories
+- Now correctly processes December 2025 data from `monthly_export/2025/` structure
+
+**Monthly Report Automation:**
+- Added automatic monthly report saving to `run_all_etl.ps1`
+- Reports saved to structured directory: `Monthly Reports\{YEAR}\{MONTH_NUMBER}_{monthname}\`
+- Filename format: `{YYYY}_{MM}_Monthly_FINAL_LAP.pbix`
+
+**Documentation:**
+- Organized M code files into `m_code/` directory
+- Created comprehensive fix documentation and diagnostic guides
+- See [CHANGELOG.md](CHANGELOG.md#120---2026-01-06) for full details
+
+### 2025-12-12: Summons Troubleshooting & Fixes ✅
+- **Comprehensive diagnostic and troubleshooting completed**
+  - Created troubleshooting guide: `claude_code_summons.md`
+  - Diagnosed and resolved all Power BI issues (WG2, missing columns, DAX measures)
+  - Verified M Code queries working correctly
+  - Fixed DAX measure: `___Total Tickets = COUNTROWS('___Summons')`
+  - Created diagnostic scripts for ongoing maintenance
+- **Status:** All issues resolved - system healthy and working correctly
+- **Action Required:** Update DAX measure in Power BI Desktop (2 minutes)
+
+### 2025-12-11: Migration to OneDrive Complete ✅
+
+### Migration to OneDrive Complete ✅
+- **PowerBI_Date** moved from `C:\Dev\PowerBI_Date_Merged` to OneDrive location
+- All path references updated in configuration and scripts
+- Master_Automation junction created for seamless integration
+- Verification scripts and documentation added
+
+### New Files Added
+- `verify_migration.ps1` - Automated verification script
+- `CHANGELOG.md` - Version history
+- Documentation moved under `docs/` (migration + verification + guides)
+
+### Configuration Updates
+- `powerbi_drop_path` updated to: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports`
+- All script paths verified and updated
+- Documentation paths corrected
+
+### Verification
+Run `.\verify_migration.ps1` to verify all paths and configurations are correct. ### Overtime TimeOff: Backfill + Processed Month Now Stable ✅
+- The Power BI visual requires **two sources** to be fully populated for the 13-month view:
+  - `...\Overtime_TimeOff\output\FIXED_monthly_breakdown_*.csv` (legacy usage rows)
+  - `...\Overtime_TimeOff\analytics_output\monthly_breakdown.csv` (accrual rows)
+- `scripts/overtime_timeoff_with_backfill.py` now:
+  - Runs the production v10 script
+  - Restores historical months into the FIXED output from `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\...`
+  - Backfills `analytics_output\monthly_breakdown.csv` for prior 12 months from the same export (preserving the current month from v10)
+- Validation helper:
+  - `scripts/compare_vcs_time_report_exports.py` can diff a refreshed visual export against a known-good baseline (e.g., Oct-24 monthly export)
+
+### Policy Training Monthly: Current Month + Backfill Verified ✅
+- ETL project lives in: `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Policy_Training_Monthly`
+- Output workbook: `...\output\policy_training_outputs.xlsx` (sheet `Delivery_Cost_By_Month`)
+- Validation helper:
+  - `scripts/compare_policy_training_delivery.py` can compare a refreshed visual export (Delivery Cost by month) vs ETL output and vs backfill (history months). ### Summons: Current Month From E-Ticket + Backfill Verified ✅
+- Power BI source workbook: `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx`
+- Current month is computed from: `...\05_EXPORTS\_Summons\E_Ticket\YY_MM_e_ticketexport.csv`
+- History is carried via backfill exports in `PowerBI_Date\Backfill\YYYY_MM\summons\...`
+- **Status (2025-12-12):** All issues resolved - system healthy and working correctly
+  - WG2 column: 134,144 rows populated (42.52%), 181,363 null (historical aggregates - expected)
+  - M Code queries: All 3 queries working correctly, handling missing columns properly
+  - DAX measure: Corrected to `___Total Tickets = COUNTROWS('___Summons')`
+  - Data validation: 315,507 total rows verified
+- Validation helpers:
+  - `scripts/compare_summons_deptwide.py` compares Dept-Wide visual export vs backfill history and vs ETL current month
+  - `scripts/compare_summons_all_bureaus.py` compares All Bureaus visual vs ETL output
+  - `scripts/diagnose_summons_blank_bureau.py` identifies blank `WG2` rows that show up as blank Bureau
+  - `scripts/diagnose_summons_assignment_mapping.py` diagnoses WG2 assignment mapping issues
+  - `scripts/diagnose_summons_missing_months.py` identifies missing months in staging workbook
+  - `scripts/diagnose_summons_top5_vs_deptwide.py` validates Top 5 queries vs Dept-Wide data
+  - `scripts/fix_summons_wg2_from_assignment.py` fixes WG2 column from WG2_ASSIGN
+  - `scripts/run_summons_with_overrides.py` can inject a badge override (e.g. badge 1711 → Traffic Bureau) and regenerate the workbook before refresh
+- Documentation:
+  - `claude_code_summons.md` - Comprehensive troubleshooting guide
+  - `SUMMONS_DIAGNOSTIC_REPORT_2025_12_12.md` - Complete diagnostic report
+  - `SUMMONS_DAX_MEASURES_CORRECTED.txt` - Corrected DAX measure instructions
+
+---
+
+**Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`  
+**Last Updated:** 2026-01-06  
+**Current Version:** 1.2.0  
+**Migration Status:** ✅ Complete - Ready for Testing
+
+
+```
+
+```markdown
+# Master_Automation Project Summary
+
+**Last Updated:** 2026-01-06  
+**Status:** ✅ Production Ready  
+**Version:** 1.2.0
+
+---
+
+## Project Overview
+
+Master_Automation is a centralized orchestration hub for running all Python ETL scripts that feed into Power BI reports. It provides automated execution, error handling, logging, and Power BI integration for multiple data processing workflows. ---
+
+## Quick Facts
+
+| Item | Details |
+|------|---------|
+| **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
+| **Purpose** | ETL Script Orchestration & Power BI Integration |
+| **Language** | PowerShell, Python |
+| **Status** | ✅ Production Ready |
+| **ETL Scripts** | 5 Enabled, 3 Disabled |
+
+---
+
+## Key Features
+
+✅ **Sequential Execution** - Runs scripts in specified order  
+✅ **Error Handling** - Continues on errors, logs failures  
+✅ **Logging** - Detailed logs for each script execution  
+✅ **Power BI Integration** - Automatically copies outputs to Power BI drop folder  
+✅ **Selective Execution** - Run all, or specific scripts  
+✅ **Status Reporting** - Summary of what succeeded/failed  
+✅ **Dry Run Mode** - Preview what would execute  
+✅ **Input Validation** - Validates required export files before execution  
+✅ **OneDrive Sync** - All paths synced for cloud backup  
+
+---
+
+## Enabled ETL Scripts
+
+| # | Script Name | Filename | Status |
+|---|-------------|----------|--------|
+| 1 | Arrests | `arrest_python_processor.py` | ✅ Enabled |
+| 2 | Community Engagement | `deploy_production.py` | ✅ Enabled |
+| 3 | Overtime TimeOff | `overtime_timeoff_with_backfill.py` | ✅ Enabled |
+| 4 | Response Times | `response_time_diagnostic.py` | ✅ Enabled |
+| 5 | Summons | `main_orchestrator.py` | ✅ Enabled |
+
+### Disabled Scripts
+
+| Script Name | Reason |
+|-------------|--------|
+| Policy Training Monthly | Not orchestrated from Master_Automation (run from its own project folder) |
+| Arrest Data Source | Only test files found |
+| NIBRS | No Python files found |
+
+---
+
+## Directory Structure
+
+```
+Master_Automation/
+├── README.md                    # Main documentation
+├── SUMMARY.md                   # This file
+├── CHANGELOG.md                 # Version history
+├── config/                      # Configuration files
+│   ├── scripts.json            # ETL script configuration
+│   └── scripts.json.bak        # Backup configuration
+├── scripts/                     # PowerShell execution scripts
+│   ├── run_all_etl.ps1         # Main orchestrator
+│   ├── run_all_etl.bat         # Batch wrapper
+│   └── run_etl_script.ps1      # Single script runner
+├── logs/                        # ETL execution logs
+├── docs/                        # Documentation files
+├── chatlogs/                    # AI chat logs
+├── _DropExports/                # Temporary staging (optional)
+└── verify_migration.ps1        # Migration verification script
+```
+
+---
+
+## Quick Start
+
+### Run All ETL Scripts
+
+```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+.\scripts\run_all_etl.ps1
+```
+
+### Run Specific Script
+
+```powershell
+.\scripts\run_etl_script.ps1 -ScriptName "Arrests"
+```
+
+### Dry Run (Preview)
+
+```powershell
+.\scripts\run_all_etl.ps1 -DryRun
+```
+
+### Verify Configuration
+
+```powershell
+.\verify_migration.ps1
+```
+
+---
+
+## Configuration
+
+**Main Config File:** `config\scripts.json`
+
+**Key Settings:**
+- `powerbi_drop_path` - Where ETL outputs are copied
+- `python_executable` - Python command to use
+- `continue_on_error` - Whether to stop on errors
+- `log_directory` - Where logs are saved
+
+**Script Configuration:**
+- `name` - Display name
+- `path` - Script directory path
+- `script` - Python filename
+- `enabled` - Whether script runs
+- `order` - Execution order
+- `timeout_minutes` - Maximum execution time
+
+---
+
+## Workflow
+
+1. **Configure** - Edit `config\scripts.json` with script paths
+2. **Run** - Execute `run_all_etl.ps1` or `run_all_etl.bat`
+3. **Process** - Scripts execute in order, outputs logged
+4. **Integrate** - Successful outputs copied to Power BI Date repository
+5. **Organize** - Run `organize_backfill_exports.ps1` in PowerBI_Date
+6. **Review** - Check logs for any failures or warnings
+
+---
+
+## Overtime TimeOff (Backfill + Processed Month)
+
+The 13-month “Monthly Accrual and Usage Summary” visual is built from **two inputs**:
+
+- **Legacy usage rows** (Comp/Sick/IOD/Mil/SAT) from:  
+  `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_*.csv`
+- **Accrual rows** (Accrued Comp/OT split by Sworn/NonSworn) from:  
+  `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\analytics_output\monthly_breakdown.csv`
+
+To prevent “null/0” in prior months, the wrapper `scripts/overtime_timeoff_with_backfill.py`:
+- runs the production v10 script for the current month
+- restores historical months into the FIXED file from `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\...`
+- backfills `monthly_breakdown.csv` for the prior 12 months from the same backfill export (preserving the current month from v10)
+
+Validation tool:
+- `scripts/compare_vcs_time_report_exports.py` compares a refreshed export against a known-good baseline (e.g., Oct-24 monthly export) for the prior 12 months. ---
+
+## Policy Training Monthly (Backfill + Current Month)
+
+Policy Training is managed in its own project folder:
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Policy_Training_Monthly`
+
+Key output:
+- `...\output\policy_training_outputs.xlsx` (sheet `Delivery_Cost_By_Month`)
+
+Expected behavior:
+- Backfill months match the prior-month backfill export (e.g., `PowerBI_Date\Backfill\2025_10\policy_training\...`)
+- ETL computes **only the new month** (e.g., 11-25) from the source workbook
+
+Validation helper:
+- `scripts/compare_policy_training_delivery.py` (visual export vs ETL output; history vs backfill)
+
+---
+
+## Summons (Backfill + Current Month From E-Ticket)
+
+**Status (2025-12-12):** ✅ All Issues Resolved - System Healthy
+
+Power BI source:
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx` (sheet `Summons_Data`)
+
+Current month source:
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket\YYYY\YYYY_MM_eticket_export.csv`
+- Example: `2025\2025_12_eticket_export.csv` for December 2025
+
+History/backfill source:
+- `PowerBI_Date\Backfill\YYYY_MM\summons\...` (e.g. Dept-Wide Moving/Parking CSVs)
+
+**Recent Fixes (2025-12-12):**
+- ✅ WG2 column: Fixed - 134,144 rows populated (42.52%), 181,363 null (historical - expected)
+- ✅ M Code queries: All 3 queries working correctly, handling missing columns dynamically
+- ✅ Missing columns: TICKET_COUNT and ASSIGNMENT_FOUND correctly don't exist (each row = 1 ticket)
+- ✅ Top 5 queries: Returning data correctly for Moving and Parking violations
+- ✅ DAX measure: Corrected to `___Total Tickets = COUNTROWS('___Summons')`
+- ⚠️ Missing months: 03-25, 10-25, 11-25 identified - ETL script needs to merge backfill + current month
+
+**Data Validation (2025-12-12):**
+- Total rows: 315,507
+- Moving violations (M): 311,588 (98.76%)
+- Parking violations (P): 3,910 (1.24%)
+- Other violations (C): 9 (0.00%)
+- Most recent month: September 2025 (4,599 tickets)
+
+Validation helpers:
+- `scripts/compare_summons_deptwide.py` (Dept-Wide visual export vs backfill history + ETL current month)
+- `scripts/compare_summons_all_bureaus.py` (All Bureaus visual vs ETL output)
+- `scripts/diagnose_summons_blank_bureau.py` (find blank `WG2` rows → blank Bureau in visuals)
+- `scripts/diagnose_summons_assignment_mapping.py` (diagnose WG2 assignment mapping issues)
+- `scripts/diagnose_summons_missing_months.py` (identify missing months in staging workbook)
+- `scripts/diagnose_summons_top5_vs_deptwide.py` (validate Top 5 queries vs Dept-Wide data)
+- `scripts/fix_summons_wg2_from_assignment.py` (fix WG2 column from WG2_ASSIGN)
+
+Operational helper:
+- `scripts/run_summons_with_overrides.py` injects badge overrides (e.g. badge 1711 mapped to Traffic Bureau) and regenerates the workbook prior to refresh. Documentation:
+- `claude_code_summons.md` - Comprehensive troubleshooting guide
+- `SUMMONS_DIAGNOSTIC_REPORT_2025_12_12.md` - Complete diagnostic report
+- `SUMMONS_DAX_MEASURES_CORRECTED.txt` - Corrected DAX measure instructions
+
+---
+
+## Output Integration
+
+**ETL Outputs:**
+- Written to: `PowerBI_Date\_DropExports\`
+- Format: CSV files
+- Naming: As specified by each ETL script
+
+**Organization:**
+- Run `PowerBI_Date\tools\organize_backfill_exports.ps1`
+- Files moved to: `Backfill\YYYY_MM\category\`
+- Files renamed with month prefix
+
+---
+
+## Logging
+
+**Log Location:** `logs\`
+
+**Log Files:**
+- `YYYY-MM-DD_HH-MM-SS_ETL_Run.log` - Overall execution log
+- `YYYY-MM-DD_HH-MM-SS_[ScriptName].log` - Individual script logs
+
+**Log Contents:**
+- Execution start/end times
+- Script paths and configurations
+- Success/failure status
+- Error messages
+- Output file information
+
+---
+
+## Error Handling
+
+- Scripts run independently (failure of one doesn't stop others)
+- Errors logged with details
+- Summary report shows success/failure status
+- Failed scripts can be re-run individually
+- `continue_on_error` setting controls behavior
+
+---
+
+## Migration Status
+
+✅ **Complete** - PowerBI_Date migrated to OneDrive
+
+**Migration Details:**
+- **From:** `C:\Dev\PowerBI_Date_Merged`
+- **To:** `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date`
+- **Date:** 2025-12-11
+- **Status:** All paths updated and verified
+
+**Verification:**
+- ✅ Config paths correct
+- ✅ Script paths updated
+- ✅ Junction created
+- ✅ Documentation updated
+- ✅ Script filenames verified
+
+---
+
+## Key Paths
+
+| Purpose | Path |
+|---------|------|
+| **Workspace** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
+| **Config** | `config\scripts.json` |
+| **Logs** | `logs\` |
+| **PowerBI Drop** | `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports` |
+| **ETL Scripts** | `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\*` |
+| **Data Sources** | `C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\*` |
+
+---
+
+## Documentation
+
+**Main Documentation:**
+- `README.md` - Project overview and quick start
+- `SUMMARY.md` - This file (project summary)
+- `CHANGELOG.md` - Version history
+
+**Detailed Documentation (in `docs\`):**
+- `QUICK_START.md` - Quick reference guide
+- `VERIFICATION_REPORT.md` - Migration verification details
+- `MIGRATION_VERIFICATION.md` - Migration verification guide
+- `PROJECT_STRUCTURE.md` - Directory structure details
+
+---
+
+## Troubleshooting
+
+### Script Not Found
+- Check path in `config\scripts.json`
+- Verify script file exists at specified path
+- Check filename matches configuration
+
+### Python Not Found
+- Set `python_executable` in config
+- Options: `python`, `python3`, `py`, or full path
+- Verify Python is in PATH
+
+### Timeout Issues
+- Increase `timeout_minutes` for slow scripts
+- Check script execution time in logs
+- Verify script is actually running
+
+### Output Not Copied
+- Check `powerbi_drop_path` exists
+- Verify OneDrive sync status
+- Check file permissions
+
+---
+
+## Recent Updates
+
+### 2025-12-11
+- ✅ Migrated PowerBI_Date to OneDrive
+- ✅ Updated all path references
+- ✅ Verified script filenames
+- ✅ Created folder structure (docs, chatlogs)
+- ✅ Organized documentation
+- ✅ Initialized git repository
+- ✅ Stabilized Overtime TimeOff: backfill + processed-month combined correctly (FIXED + monthly_breakdown)
+- ✅ Verified Policy Training Delivery Cost: history matches backfill; ETL computes 11-25
+- ✅ Verified Summons Dept-Wide Moving/Parking: history matches backfill; ETL computes 11-25 from e-ticket
+- ✅ Fixed Summons blank Bureau row by injecting badge override for 1711 (WG2)
+
+### 2025-12-09
+- ✅ Initial workspace setup
+- ✅ ETL orchestrator scripts created
+- ✅ Configuration file created
+- ✅ Basic documentation added
+
+---
+
+## Next Steps
+
+### Immediate
+- [ ] Test ETL execution with actual scripts
+- [ ] Verify Power BI integration
+- [ ] Review logs after first run
+
+### Future Enhancements
+- [ ] ETL script filename auto-detection
+- [ ] Enhanced error reporting
+- [ ] Performance monitoring
+- [ ] Automated testing suite
+- [ ] Power BI refresh scheduling integration
+
+---
+
+## Support
+
+**Configuration Issues:** Check `config\scripts.json`  
+**Path Issues:** Run `.\verify_migration.ps1`  
+**Script Issues:** Check logs in `logs\`  
+**Documentation:** See `docs\` folder  
+
+---
+
+**Maintained by:** R. A. Carucci  
+**Last Updated:** 2025-12-11  
+**Version:** 1.0.0
+
+
+```
+
+```markdown
+# Master_Automation Project Summary
+
+**Last Updated:** 2026-01-06  
+**Status:** ✅ Production Ready  
+**Version:** 1.2.0
+
+---
+
+## Project Overview
+
+Master_Automation is a centralized orchestration hub for running all Python ETL scripts that feed into Power BI reports. It provides automated execution, error handling, logging, and Power BI integration for multiple data processing workflows.

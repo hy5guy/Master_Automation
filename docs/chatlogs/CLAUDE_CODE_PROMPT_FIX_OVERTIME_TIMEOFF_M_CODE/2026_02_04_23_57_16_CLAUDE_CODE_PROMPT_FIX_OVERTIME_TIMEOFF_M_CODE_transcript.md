@@ -1,0 +1,262 @@
+# Claude Code Prompt Fix Overtime Timeoff M Code
+
+**Processing Date:** 2026-02-04 23:57:16
+**Source File:** CLAUDE_CODE_PROMPT_FIX_OVERTIME_TIMEOFF_M_CODE.md
+**Total Chunks:** 1
+
+---
+
+# Prompt for Claude Code: Fix Overtime/TimeOff Power Query M Code
+
+## CRITICAL ERROR
+**File**: `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\2026_01_12____Overtime_Timeoff_v3.m`
+
+**Error**: `Expression.SyntaxError: Token Literal expected`
+
+This error has been plaguing this Power BI visual for 2 months. The M code has multiple syntax errors related to:
+- Missing spaces around operators (`<>`, `=`, `then`, `else`)
+- Malformed `let...in` blocks
+- Line breaks within expressions that confuse the M parser
+- Incorrect comment syntax (`//*` instead of `/*`)
+
+## CONTEXT: How the Backfill System Works
+
+### Purpose
+The Power BI visual "Monthly Accrual and Usage Summary" displays a 13-month rolling window of overtime and time off data. The system uses a **backfill strategy** to ensure historical months remain consistent across monthly reports. ### Data Flow Architecture
+
+1. **ETL Scripts** (Python):
+   - Location: `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\`
+   - Main script: `overtime_timeoff_13month_sworn_breakdown_v10.py`
+   - Wrapper script: `overtime_timeoff_with_backfill.py`
+   - **Current Month Source Files** (December 2025 example):
+     - `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\month\2025\2025_12_timeoffactivity.xlsx`
+     - `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\export\month\2025\2025_12_otactivity.xlsx`
+   - **ETL Outputs**:
+     - `output\FIXED_monthly_breakdown_{start}_{end}.csv` - Legacy usage categories (Comp, Sick Time, Vacation, etc.) - `analytics_output\monthly_breakdown.csv` - Accrual categories (Accrued Comp. Time, Accrued Overtime) split by Sworn/Non-Sworn
+
+2. **Power Query M Code**:
+   - Loads both ETL outputs
+   - **CRITICAL**: For historical months (12-24 through 11-25), it should load values from the **prior month's visual export** (e.g., November's export)
+   - **ONLY** for the current month (12-25) should it use the ETL outputs
+   - This ensures historical months match exactly between consecutive monthly reports
+
+3. **Prior Month Visual Export**:
+   - Location: `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\analytics_output\`
+   - Filename pattern: `2025_11_Monthly_Accrual_and_Usage_Summary.csv` (or with spaces: `2025_11_Monthly Accrual and Usage Summary.csv`)
+   - Format: Can be either:
+     - **LONG format**: Columns = `Time Category`, `Sum of Value` (or `Value`), `PeriodLabel`
+     - **WIDE format**: Columns = `Time Category`, then one column per month (e.g., `12-24`, `01-25`, `02-25`, etc.) ### Expected Behavior
+
+When generating the December 2025 report:
+- **Historical months (12-24 through 11-25)**: Values MUST match 100% with the November 2025 visual export
+- **Current month (12-25)**: Calculated from ETL outputs using source files:
+  - `2025_12_timeoffactivity.xlsx`
+  - `2025_12_otactivity.xlsx`
+
+### Data Categories
+
+**Legacy/Usage Categories** (from `FIXED_monthly_breakdown`):
+- Comp (Hours)
+- Employee Sick Time (Hours)
+- Used SAT Time (Hours)
+- Vacation (Hours) - **NOTE**: This should be EXCLUDED from the final output
+- Military Leave (Hours)
+- Injured on Duty (Hours)
+
+**Accrual Categories** (from `monthly_breakdown.csv`):
+- Accrued Comp. Time - Sworn
+- Accrued Comp. Time - Non-Sworn
+- Accrued Overtime - Sworn
+- Accrued Overtime - Non-Sworn
+
+## KNOWN ISSUES & FIXES NEEDED
+
+### 1. Syntax Errors (Token Literal Expected)
+
+The M code has multiple syntax errors. Common patterns to fix:
+
+**Pattern 1: Missing spaces around operators**
+```m
+// WRONG:
+each[IsPrior]
+each[PeriodLabel] < > "12-25"
+if[J]<> null
+
+// CORRECT:
+each [IsPrior]
+each [PeriodLabel] <> "12-25"
+if [J] <> null
+```
+
+**Pattern 2: Missing spaces around keywords**
+```m
+// WRONG:
+then[Hours]
+else[Hours]
+if ftable<> null
+
+// CORRECT:
+then [Hours]
+else [Hours]
+if ftable <> null
+```
+
+**Pattern 3: Malformed let...in blocks**
+```m
+// WRONG:
+let
+    x = 1
+in
+    if x > 0 then
+        x
+    else
+        0
+
+// CORRECT (all logic in 'in' block):
+let
+    x = 1,
+    result = if x > 0 then x else 0
+in
+    result
+```
+
+**Pattern 4: Line breaks within expressions**
+```m
+// WRONG:
+if isAccrual then[Hours] *
+    (if ftable <> null then scale else 1.0)
+
+// CORRECT (use intermediate variables):
+let
+    isAccrual = [BaseMetric] <> null,
+    ftable = [F],
+    scale = if ftable <> null and Table.RowCount(ftable) > 0
+            then ftable{0}[Scale]
+            else 1.0,
+    result = if isAccrual then [Hours] * scale else [Hours]
+in
+    result
+```
+
+**Pattern 5: Comment syntax**
+```m
+// WRONG:
+//* Multi-line comment */
+
+// CORRECT:
+/* Multi-line comment */
+```
+
+### 2. Prior File Detection Logic
+
+The `IsPriorFile` function (around lines 203-222) should:
+- Detect files with "Monthly_Accrual_and_Usage_Summary" OR "Monthly Accrual and Usage Summary" in the name
+- For LONG format: Check if `PeriodLabel` column contains "11-25" but NOT "12-25"
+- For WIDE format: Check if column names contain "11-25" but NOT "12-25"
+- Return `true` for the prior month's export (November)
+
+### 3. PriorVisualLong Loading
+
+The `PriorVisualLong` section (around lines 304-332) should:
+- Load the prior month's visual export if available
+- Handle both LONG and WIDE formats
+- For LONG format: Extract `Time Category`, `Value` (or `Sum of Value`), and `PeriodLabel`
+- Filter to exclude the current month (12-25)
+- Filter to only include months in the 13-month window (12-24 through 11-25)
+
+### 4. Data Combination Logic
+
+The final combination (around lines 338-356) should:
+- Use `PriorVisualLong` for historical months (12-24 through 11-25) if available
+- Otherwise fallback to `LegacyLongFiltered` for historical months
+- Use `CurrentMonthETL` (from ETL outputs) ONLY for the current month (12-25)
+- Combine both into `CombinedLong`
+
+## FILE LOCATIONS
+
+### Primary M Code File (to fix):
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\2026_01_12____Overtime_Timeoff_v3.m`
+
+### Backup/Reference Location:
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\2026_01_12____Overtime_Timeoff_v3.m` (should be created/updated)
+
+### ETL Scripts:
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\scripts\overtime_timeoff_13month_sworn_breakdown_v10.py`
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\scripts\overtime_timeoff_with_backfill.py`
+
+### ETL Outputs:
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_*.csv`
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\analytics_output\monthly_breakdown.csv`
+
+### Prior Month Visual Export:
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\analytics_output\2025_11_Monthly_Accrual_and_Usage_Summary.csv`
+
+### Source Data Files (December 2025 example):
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\month\2025\2025_12_timeoffactivity.xlsx`
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\export\month\2025\2025_12_otactivity.xlsx`
+
+## TESTING & VALIDATION
+
+After fixing the syntax errors:
+
+1. **Load the M code in Power BI Desktop**
+   - Should parse without "Token Literal expected" errors
+   - Should load successfully
+
+2. **Verify Data Loading**:
+   - Check that `PriorVisualLong` loads the November export correctly
+   - Verify historical months (12-24 through 11-25) show values from the prior export
+   - Verify current month (12-25) shows values from ETL outputs
+
+3. **Compare Visual Exports**:
+   - Export the visual as CSV: "Monthly Accrual and Usage Summary"
+   - Compare December export against November export
+   - Months 12-24 through 11-25 should match 100%
+   - Only 12-25 should be different (new month)
+
+## SPECIFIC LINE NUMBERS TO CHECK
+
+Based on previous fixes, check these areas:
+
+- **Line 214-220**: `IsPriorFile` function - check `let...in` structure
+- **Line 224**: `each[IsPrior]` → `each [IsPrior]`
+- **Line 228**: `PriorCont<> null` → `PriorCont <> null`
+- **Line 237-244**: `PriorAccruals` - check `let...in` structure
+- **Line 246-257**: `PriorAccrualsNorm` - check `let...in` structure
+- **Line 259**: `each[BaseMetric]<> null` → `each [BaseMetric] <> null`
+- **Line 271-283**: `WithFactor` - check `let...in` structure and spacing
+- **Line 280**: `newv < > 0` → `newv <> 0`
+- **Line 289-295**: `MBScaled` - check structure and spacing
+- **Line 292**: `then[Hours]` → `then [Hours]`, `else[Hours]` → `else [Hours]`
+- **Line 298**: `//*` → `/*`
+- **Line 304-332**: `PriorVisualLong` - check entire `let...in` structure
+- **Line 323**: `each[PeriodLabel] < > "12-25"` → `each [PeriodLabel] <> "12-25"`
+- **Line 342**: `each[Time_Category] < >` → `each [Time_Category] <>`
+- **Line 353**: `each[PeriodLabel]` → `each [PeriodLabel]`
+- **Line 394**: `if[J]<> null` → `if [J] <> null`, `then[J]` → `then [J]`
+
+## REQUESTED ACTIONS
+
+1. **Fix all syntax errors** in the M code file
+2. **Verify the backfill logic** works correctly:
+   - Prior month's visual export is detected and loaded
+   - Historical months use prior export values
+   - Current month uses ETL output values
+3. **Save corrected file** to BOTH locations:
+   - `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\2026_01_12____Overtime_Timeoff_v3.m`
+   - `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\2026_01_12____Overtime_Timeoff_v3.m`
+4. **Document the fixes** so Cursor AI can maintain this code going forward
+
+## ADDITIONAL NOTES
+
+- The M code uses a 13-month rolling window (excludes current month from calculation)
+- Period labels are in "MM-yy" format (e.g., "12-24", "01-25", "12-25")
+- Period keys are in "YYYY-MM" format (e.g., "2024-12", "2025-01", "2025-12")
+- The code handles both LONG and WIDE format visual exports
+- Vacation (Hours) should be excluded from the final output (filtered out)
+- Accrual categories use a scaling factor based on prior month's values for months before the cutover date (09-25)
+
+---
+
+**End of Prompt**
+

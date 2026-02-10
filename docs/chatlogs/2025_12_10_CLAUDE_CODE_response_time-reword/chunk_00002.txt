@@ -1,0 +1,388 @@
+│
+│                                                                          │
+│ Critical Requirements:                                                   │
+│     - MUST deduplicate by ReportNumberNew BEFORE calculating averages    │
+│     - Filters 101 administrative incident types                          │
+│     - Uses CAD_CALL_TYPE.xlsx as single source of truth for              │
+│ classification                                                           │
+│     - Handles missing Time Out/Dispatched with Time Response fallback    │
+│     - Calculates true 13-month rolling averages                          │
+│                                                                          │
+│ Expected Values (November 2025):                                         │
+│     - Emergency: ~2:59 min (309 calls)                                   │
+│     - Routine: 1.7-2.4 min (after deduplication correction)              │
+│     - Urgent: 2.5-3.5 min                                                │
+│                                                                          │
+│ Usage:                                                                   │
+│     python process_cad_data_13month_rolling.py --report-month 2025-11    │
+│ [--input path] [--output path]                                           │
+│ """                                                                      │
+│                                                                          │
+│ import argparse                                                          │
+│ import sys                                                               │
+│ from pathlib import Path                                                 │
+│ from datetime import datetime                                            │
+│ import logging                                                           │
+│                                                                          │
+│ import pandas as pd                                                      │
+│ import numpy as np                                                       │
+│ from dateutil.relativedelta import relativedelta                         │
+│                                                                          │
+│ # ====================================================================== │
+│ ======                                                                   │
+│ # CONFIGURATION                                                          │
+│ # ====================================================================== │
+│ ======                                                                   │
+│                                                                          │
+│ # Default paths (can be overridden via command line)                     │
+│ DEFAULT_INPUT_PATH = Path(r"C:\Users\carucci_r\OneDrive - City of Hacken │
+│ sack\05_EXPORTS\_CAD\monthly_export\2025\2025_11_Monthly_CAD.xlsx.xlsx") │
+│ DEFAULT_MAPPING_PATH = Path(r"C:\Users\carucci_r\OneDrive - City of      │
+│ Hackensack\09_Reference\Classifications\CallTypes\CAD_CALL_TYPE.xlsx")   │
+│ DEFAULT_OUTPUT_DIR = Path(r"C:\Users\carucci_r\OneDrive - City of        │
+│ Hackensack\02_ETL_Scripts\Response_Times\output")                        │
+│ POWERBI_OUTPUT_DIR =                                                     │
+│ Path(r"C:\Dev\PowerBI_Date\Backfill\2025_12\response_time")              │
+│                                                                          │
+│ # ====================================================================== │
+│ ======                                                                   │
+│ # ADMINISTRATIVE INCIDENTS - 101 TYPES (EXPANDED LIST)                   │
+│ # ====================================================================== │
+│ ======                                                                   │
+│                                                                          │
+│ ADMIN_INCIDENTS = {                                                      │
+│     # Original 19 types                                                  │
+│     "Task Assignment",                                                   │
+│     "Meal Break",                                                        │
+│     "Relief / Personal",                                                 │
+│     "Administrative Assignment",                                         │
+│     "Traffic Detail",                                                    │
+│     "Patrol Check",                                                      │
+│     "TAPS - Park",                                                       │
+│     "TAPS - Housing",                                                    │
+│     "TAPS - Parking Garage",                                             │
+│     "TAPS - Other",                                                      │
+│     "TAPS - ESU - Medical Facility",                                     │
+│     "TAPS - ESU - Business",                                             │
+│     "Overnight Parking",                                                 │
+│     "Car Wash",                                                          │
+│     "OPRA Request",                                                      │
+│     "Records Request - DCPP (DYFS)",                                     │
+│     "Applicant ABC License",                                             │
+│     "Canceled Call",                                                     │
+│     "UAS Operation",                                                     │
+│                                                                          │
+│     # Applicant/License Processing (22 types)                            │
+│     "Applicant ABC License (Server)",                                    │
+│     "Applicant ABC Liquor License (Business)",                           │
+│     "Applicant AD Material License",                                     │
+│     "Applicant All Others",                                              │
+│     "Applicant City Employee",                                           │
+│     "Applicant Concealed Carry",                                         │
+│     "Applicant Firearm(s)",                                              │
+│     "Applicant Handicapped Permit",                                      │
+│     "Applicant Ice Cream Vendor",                                        │
+│     "Applicant Jewelry",                                                 │
+│     "Applicant Landscaper",                                              │
+│     "Applicant Limo",                                                    │
+│     "Applicant Peddling License",                                        │
+│     "Applicant Pistol Permit",                                           │
+│     "Applicant Police Auxiliary",                                        │
+│     "Applicant Police Officer",                                          │
+│     "Applicant Snow Removal",                                            │
+│     "Applicant Solicitor",                                               │
+│     "Applicant Spa Therapy",                                             │
+│     "Applicant Taxi",                                                    │
+│     "Applicant Towing",                                                  │
+│     "Applicant Vending License",                                         │
+│                                                                          │
+│     # Training and Education (3 types)                                   │
+│     "Training",                                                          │
+│     "Training Record",                                                   │
+│     "ESU - Training",                                                    │
+│                                                                          │
+│     # Breaks and Time Off (3 types)                                      │
+│     "Coffee Break",                                                      │
+│     "Vacation",                                                          │
+│     "On-Duty Fitness",                                                   │
+│                                                                          │
+│     # Administrative Assignments (10 types)                              │
+│     "Academy Assignment",                                                │
+│     "DARE Assignment",                                                   │
+│     "HQ Assignment",                                                     │
+│     "Special Assignment",                                                │
+│     "Desk Coverage",                                                     │
+│     "Radio Coverage",                                                    │
+│     "Off the Air",                                                       │
+│     "Time Check",                                                        │
+│     "Road Job/Outside Assignment",                                       │
+│     "Constable - Secured Park Facilities",                               │
+│                                                                          │
+│     # Court and Legal Administrative (5 types)                           │
+│     "Court Officer",                                                     │
+│     "Court - Federal",                                                   │
+│     "Court - Municipal",                                                 │
+│     "Court - Other Municipality",                                        │
+│     "Court - Superior",                                                  │
+│                                                                          │
+│     # Records and Requests (5 types)                                     │
+│     "Records Request",                                                   │
+│     "Background Checks",                                                 │
+│     "Good Conduct Letter Request",                                       │
+│     "CCH / III Request",                                                 │
+│     "NCIC Record",                                                       │
+│                                                                          │
+│     # Document Processing (1 type)                                       │
+│     "FTO Documentation",                                                 │
+│                                                                          │
+│     # Presentation/Outreach (1 type)                                     │
+│     "Presentation Community Policing",                                   │
+│                                                                          │
+│     # School Administrative (1 type)                                     │
+│     "School Detail",                                                     │
+│                                                                          │
+│     # Bureau/Department Details (2 types)                                │
+│     "Detective Bureau Detail",                                           │
+│     "Traffic Bureau Report",                                             │
+│                                                                          │
+│     # Stationhouse Operations (1 type)                                   │
+│     "Stationhouse Adjustment",                                           │
+│                                                                          │
+│     # TAPS Additional Variants (8 types)                                 │
+│     "TAPS - Business",                                                   │
+│     "TAPS - ESU - Park",                                                 │
+│     "TAPS - ESU - Parking Garage",                                       │
+│     "TAPS - ESU - Religious Facility",                                   │
+│     "TAPS - ESU - School",                                               │
+│     "TAPS - Medical Facility",                                           │
+│     "TAPS - Religious Facility",                                         │
+│     "TAPS - School",                                                     │
+│                                                                          │
+│     # Traffic Administrative (4 types)                                   │
+│     "Traffic Detail - Road Closure",                                     │
+│     "Traffic Enforcement Detail",                                        │
+│     "Radar Detail",                                                      │
+│     "Radar Trailer Deployed",                                            │
+│                                                                          │
+│     # Patrol Administrative (1 type)                                     │
+│     "Patrol Check - Extra Duty Detail",                                  │
+│                                                                          │
+│     # Parking Administrative (1 type)                                    │
+│     "Temporary Parking",                                                 │
+│                                                                          │
+│     # Vehicle/Equipment Maintenance (2 types)                            │
+│     "Vehicle Maintenance",                                               │
+│     "Refuel Vehicle",                                                    │
+│                                                                          │
+│     # Data Quality/Error (1 type)                                        │
+│     "Generated in Error",                                                │
+│                                                                          │
+│     # Validation (1 type)                                                │
+│     "Validation",                                                        │
+│                                                                          │
+│     # Additional Requests (1 type)                                       │
+│     "Expungement"                                                        │
+│ }                                                                        │
+│                                                                          │
+│ # Valid response types (capitalized)                                     │
+│ VALID_RESPONSE_TYPES = {"Emergency", "Urgent", "Routine"}                │
+│                                                                          │
+│ # Quality thresholds                                                     │
+│ UNMAPPED_THRESHOLD_PCT = 5.0  # Stop if >5% unmapped                     │
+│ MIN_RESPONSE_TIME = 0.0  # Exclusive lower bound                         │
+│ MAX_RESPONSE_TIME = 10.0  # Inclusive upper bound                        │
+│                                                                          │
+│ # ====================================================================== │
+│ ======                                                                   │
+│ # LOGGING SETUP                                                          │
+│ # ====================================================================== │
+│ ======                                                                   │
+│                                                                          │
+│ def setup_logging(verbose: bool = False) -> logging.Logger:              │
+│     """Configure logging with timestamps and appropriate level.""" │
+│     level = logging.DEBUG if verbose else logging.INFO                   │
+│                                                                          │
+│     logging.basicConfig(                                                 │
+│         level=level,                                                     │
+│         format='%(asctime)s [%(levelname)s] %(message)s',                │
+│         datefmt='%Y-%m-%d %H:%M:%S'                                      │
+│     )                                                                    │
+│                                                                          │
+│     return logging.getLogger(__name__)                                   │
+│                                                                          │
+│ # ====================================================================== │
+│ ======                                                                   │
+│ # UTILITY FUNCTIONS                                                      │
+│ # ====================================================================== │
+│ ======                                                                   │
+│                                                                          │
+│ def format_month_to_number(month_val):                                   │
+│     """Convert month value (text or number) to zero-padded string.""" │
+│     month_mapping = {                                                    │
+│         'January': '01', 'February': '02', 'March': '03', 'April': '04', │
+│         'May': '05', 'June': '06', 'July': '07', 'August': '08',         │
+│         'September': '09', 'October': '10', 'November': '11',            │
+│ 'December': '12'                                                         │
+│     }                                                                    │
+│                                                                          │
+│     if pd.isna(month_val):                                               │
+│         return None                                                      │
+│                                                                          │
+│     month_str = str(month_val).strip()                                   │
+│                                                                          │
+│     # If already numeric                                                 │
+│     if month_str.isdigit():                                              │
+│         return month_str.zfill(2)                                        │
+│                                                                          │
+│     # If text month name                                                 │
+│     return month_mapping.get(month_str, None)                            │
+│                                                                          │
+│                                                                          │
+│ def create_year_month(row):                                              │
+│     """Create YYYY-MM format from cYear and cMonth columns.""" │
+│     year = row.get('cYear')                                              │
+│     month_raw = row.get('cMonth')                                        │
+│                                                                          │
+│     if pd.isna(year) or pd.isna(month_raw):                              │
+│         return None                                                      │
+│                                                                          │
+│     try:                                                                 │
+│         year_int = int(year)                                             │
+│         month_formatted = format_month_to_number(month_raw)              │
+│                                                                          │
+│         if month_formatted is None:                                      │
+│             return None                                                  │
+│                                                                          │
+│         return f"{year_int:04d}-{month_formatted}"                       │
+│     except (ValueError, TypeError):                                      │
+│         return None                                                      │
+│                                                                          │
+│                                                                          │
+│ def calculate_rolling_window_bounds(report_month: str, months_back: int  │
+│ = 12):                                                                   │
+│     """                                                                  │
+│     Calculate start and end months for rolling window. │
+│                                                                          │
+│     Args:                                                                │
+│         report_month: Report month in YYYY-MM format (e.g., "2025-11")   │
+│         months_back: Number of months back from report month (default 12 │
+│  for 13-month window)                                                    │
+│                                                                          │
+│     Returns:                                                             │
+│         tuple: (start_month, end_month) both in YYYY-MM format           │
+│                                                                          │
+│     Example:                                                             │
+│         calculate_rolling_window_bounds("2025-11", 12)                   │
+│         → ("2024-11", "2025-11")  # Nov 2024 through Nov 2025 = 13       │
+│ months                                                                   │
+│     """                                                                  │
+│     report_date = datetime.strptime(report_month, "%Y-%m")               │
+│     start_date = report_date - relativedelta(months=months_back)         │
+│                                                                          │
+│     start_month = start_date.strftime("%Y-%m")                           │
+│     end_month = report_month                                             │
+│                                                                          │
+│     return start_month, end_month                                        │
+│                                                                          │
+│                                                                          │
+│ def minutes_to_mmss(minutes: float) -> str:                              │
+│     """                                                                  │
+│     Convert decimal minutes to MM:SS format. │
+│                                                                          │
+│     Args:                                                                │
+│         minutes: Decimal minutes (e.g., 2.983)                           │
+│                                                                          │
+│     Returns:                                                             │
+│         str: Formatted as M:SS or MM:SS (e.g., "2:59")                   │
+│     """                                                                  │
+│     if pd.isna(minutes):                                                 │
+│         return "-"                                                       │
+│                                                                          │
+│     mins = int(minutes)                                                  │
+│     secs = int(round((minutes - mins) * 60))                             │
+│                                                                          │
+│     # Handle edge case where rounding pushes seconds to 60               │
+│     if secs >= 60:                                                       │
+│         mins += 1                                                        │
+│         secs = 0                                                         │
+│                                                                          │
+│     return f"{mins}:{secs:02d}"                                          │
+│                                                                          │
+│                                                                          │
+│ def create_mm_yy(year_month: str) -> str:                                │
+│     """                                                                  │
+│     Convert YYYY-MM to MM-YY format. │
+│                                                                          │
+│     Args:                                                                │
+│         year_month: Date in YYYY-MM format (e.g., "2025-11")             │
+│                                                                          │
+│     Returns:                                                             │
+│         str: Date in MM-YY format (e.g., "11-25")                        │
+│     """                                                                  │
+│     year, month = year_month.split('-')                                  │
+│     return f"{month}-{year[2:]}"                                         │
+│                                                                          │
+│                                                                          │
+│ # ====================================================================== │
+│ ======                                                                   │
+│ # DATA LOADING                                                           │
+│ # ====================================================================== │
+│ ======                                                                   │
+│                                                                          │
+│ def load_mapping_file(mapping_path: Path, logger: logging.Logger) ->     │
+│ dict:                                                                    │
+│     """                                                                  │
+│     Load CAD_CALL_TYPE.xlsx mapping file as single source of truth. │
+│                                                                          │
+│     The mapping file has columns:                                        │
+│         - Call Type: Incident type name                                  │
+│         - Response: Response type (Emergency/Urgent/Routine)             │
+│                                                                          │
+│     Args:                                                                │
+│         mapping_path: Path to CAD_CALL_TYPE.xlsx                         │
+│         logger: Logger instance                                          │
+│                                                                          │
+│     Returns:                                                             │
+│         dict: Mapping of Call Type → Response Type                       │
+│                                                                          │
+│     Raises:                                                              │
+│         FileNotFoundError: If mapping file not found                     │
+│         ValueError: If required columns missing                          │
+│     """                                                                  │
+│     logger.info(f"Loading mapping file: {mapping_path}")                 │
+│                                                                          │
+│     if not mapping_path.exists():                                        │
+│         raise FileNotFoundError(f"Mapping file not found:                │
+│ {mapping_path}")                                                         │
+│                                                                          │
+│     # Load Excel file                                                    │
+│     df = pd.read_excel(mapping_path, sheet_name="Sheet1",                │
+│ engine="openpyxl")                                                       │
+│                                                                          │
+│     # Clean column names                                                 │
+│     df.columns = df.columns.str.replace("\ufeff", "").str.strip()        │
+│                                                                          │
+│     # Check for required columns                                         │
+│     if 'Call Type' not in df.columns or 'Response' not in df.columns:    │
+│         raise ValueError(f"Mapping file missing required columns. Found: │
+│  {list(df.columns)}")                                                    │
+│                                                                          │
+│     # Create mapping dictionary                                          │
+│     df['Call Type'] = df['Call Type'].astype(str).str.strip()            │
+│     df['Response'] = df['Response'].astype(str).str.strip()              │
+│                                                                          │
+│     # Remove any rows with null Call Type or Response                    │
+│     df = df.dropna(subset=['Call Type', 'Response'])                     │
+│                                                                          │
+│     # Create dictionary                                                  │
+│     call_type_map = dict(zip(df['Call Type'], df['Response']))           │
+│                                                                          │
+│     logger.info(f"Loaded {len(call_type_map)} incident type mappings")   │
+│                                                                          │
+│     return call_type_map                                                 │
+│                                                                          │
+│                                                                          │
+│ def load_cad_data(input_path: Path, logger: logging.Logger) ->           │
+│ pd.DataFrame:                                                            │
+│     """                                                                  │
+│     Load monthly CAD export Excel file.

@@ -1,0 +1,659 @@
+Join in state_id + county_name (only if they don't already exist)
+    JoinZip = if Table.HasColumns(AddFinalIndex, "state_id") and Table.HasColumns(AddFinalIndex, "county_name") then
+        AddFinalIndex
+    else
+        let
+            JoinResult = Table.NestedJoin(AddFinalIndex, "ZIP", ZIPCleaned, "zip", "ZipMeta", JoinKind.LeftOuter),
+            ExpandResult = Table.ExpandTableColumn(JoinResult, "ZipMeta", {"state_id","county_name"})
+        in ExpandResult,
+    
+    // 15. Uppercase full address for keyword logic (only if FullAddress2 doesn't exist)
+    AddFullAddress2 = if Table.HasColumns(JoinZip, "FullAddress2") then
+        JoinZip
+    else
+        Table.AddColumn(JoinZip, "FullAddress2", each 
+            if [Address_Defaulted] = "Not Provided" then "" else try Text.Upper([Address_Defaulted]) otherwise ""
+        , type text),
+    
+    // 16. Handle UCR columns (use existing if available, otherwise split)
+    WithUCR = if Table.HasColumns(AddFullAddress2, "UCR_Code") and Table.HasColumns(AddFullAddress2, "UCR_Desc") then
+        AddFullAddress2
+    else if Table.HasColumns(AddFullAddress2, "UCR #") then
+        let 
+            RemovedExisting = Table.RemoveColumns(AddFullAddress2, {"UCR_Code", "UCR_Desc"}, MissingField.Ignore),
+            split1 = Table.SplitColumn(RemovedExisting, "UCR #", Splitter.SplitTextByDelimiter(" ", QuoteStyle.Csv), {"UCR_Code","UCR_Desc"})
+        in Table.TransformColumns(split1, {
+               {"UCR_Code", each if _ = null then "" else Text.Trim(_), type text},
+               {"UCR_Desc", each if _ = null then "" else Text.Trim(_), type text}
+           })
+    else
+        let
+            AddUCRCode = if Table.HasColumns(AddFullAddress2, "UCR_Code") then AddFullAddress2 else Table.AddColumn(AddFullAddress2, "UCR_Code", each "", type text),
+            AddUCRDesc = if Table.HasColumns(AddUCRCode, "UCR_Desc") then AddUCRCode else Table.AddColumn(AddUCRCode, "UCR_Desc", each "", type text)
+        in AddUCRDesc,
+    
+    // 17. Categorize by home location (only if Home_Category doesn't exist)
+    AddHomeCategory = if Table.HasColumns(WithUCR, "Home_Category") then
+        WithUCR
+    else
+        Table.AddColumn(WithUCR, "Home_Category", each
+            let
+                addr = [FullAddress2],
+                st = try Text.From([state_id]) otherwise "",
+                cnty = try Text.From([county_name]) otherwise "",
+                z = try Text.From([ZIP]) otherwise "",
+                localZ = {"07601","07602"},
+                isLocalZip = if z = "" then false else List.Contains(localZ, z),
+                isHomeless = if addr = "" then false else Text.Contains(addr, "HOMELESS"),
+                isHack = if addr = "" then false else Text.Contains(addr, "HACKENSACK"),
+                inBergen = if cnty = "" then false else Text.Contains(Text.Upper(cnty), "BERGEN")
+            in
+                if addr = "" or isLocalZip or isHomeless or isHack then "Local"
+                else if st="NJ" and inBergen then "In-County"
+                else if st="NJ" then "Out-of-County | " & cnty
+                else if st<>"" then "Out-of-State | " & st
+                else "Unknown"
+        , type text),
+    
+    // 18. Add diagnostics for the loaded file (only if they don't exist)
+    AddDiagnostics = let
+        WithSourceFile = if Table.HasColumns(AddHomeCategory, "SourceFile") then
+            AddHomeCategory
+        else
+            Table.AddColumn(AddHomeCategory, "SourceFile", each FileName, type text),
+        WithFileDate = if Table.HasColumns(WithSourceFile, "FileModifiedDate") then
+            WithSourceFile
+        else
+            Table.AddColumn(WithSourceFile, "FileModifiedDate", each try Date.ToText(FileModifiedDate) otherwise "Unknown", type text),
+        WithTotalRecords = if Table.HasColumns(WithFileDate, "TotalRecordsLoaded") then
+            WithFileDate
+        else
+            Table.AddColumn(WithFileDate, "TotalRecordsLoaded", each Table.RowCount(WithFileDate), type number)
+    in WithTotalRecords
+in
+    AddDiagnostics
+
+// ___Top_5_Arrests
+// 🕒 2025-09-03-15-00-00
+// Project: Arrest_Analysis/Top_5_Arrest
+// Author: R. A. Carucci
+// Purpose: Fixed Top 5 Officers analysis with dynamic file loading and better error handling
+
+let
+    // ═══ A) Dynamic file discovery (same as your working main query) ═══════
+    FolderFiles = Folder.Files(
+        "C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"
+    ),
+    PowerBIFiles = Table.SelectRows(
+        FolderFiles,
+        each [Extension] = ".xlsx" and 
+             Text.Contains([Name], "PowerBI_Ready")
+    ),
+    Sorted = Table.Sort(PowerBIFiles, {{"Date modified", Order.Descending}}),
+    
+    // Load the latest file (same logic as working query)
+    Source = if Table.RowCount(Sorted) > 0 then
+        let
+            LatestFile = Sorted{0}[Content],
+            ExcelData = Excel.Workbook(LatestFile, null, true),
+            FirstSheet = ExcelData{0}[Data]
+        in
+            FirstSheet
+    else
+        error "No Power BI ready files found",
+
+    // ═══ B) Promote headers and handle column names ═══════════════════════
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+    
+    // Check if columns exist and rename safely
+    SafeRename = if Table.HasColumns(Headers, "Officer of Record") then
+        Table.RenameColumns(Headers, {{"Officer of Record", "OfficerOfRecord"}})
+    else if Table.HasColumns(Headers, "Officer_of_Record") then
+        Table.RenameColumns(Headers, {{"Officer_of_Record", "OfficerOfRecord"}})
+    else if Table.HasColumns(Headers, "OfficerOfRecord") then
+        Headers
+    else
+        error "Officer column not found in data",
+    
+    SafeRename2 = if Table.HasColumns(SafeRename, "Arrest Date") then
+        Table.RenameColumns(SafeRename, {{"Arrest Date", "ArrestDate"}})
+    else if Table.HasColumns(SafeRename, "Arrest_Date") then
+        Table.RenameColumns(SafeRename, {{"Arrest_Date", "ArrestDate"}})
+    else if Table.HasColumns(SafeRename, "ArrestDate") then
+        SafeRename
+    else
+        error "Arrest Date column not found in data",
+
+    // ═══ C) Calculate previous month with better date handling ═════════════
+    Current = Date.From(DateTime.LocalNow()),
+    PreviousMonth = Date.AddMonths(Current, -1),
+    TargetYear = Date.Year(PreviousMonth),
+    TargetMonth = Date.Month(PreviousMonth),
+    MonthYearDisplay = Date.MonthName(PreviousMonth) & " " & Text.From(TargetYear),
+    
+    // ═══ D) Filter to previous month with better error handling ════════════
+    ToDate = (x) => 
+        if x = null or x = "" then null
+        else try Date.From(x) otherwise try Date.FromText(Text.From(x)) otherwise null,
+    
+    PreviousMonthOnly = Table.SelectRows(
+        SafeRename2,
+        each 
+            let d = ToDate([ArrestDate]) in
+            d <> null and 
+            Date.Year(d) = TargetYear and 
+            Date.Month(d) = TargetMonth
+    ),
+    
+    // ═══ E) Verify we have data before proceeding ═════════════════════════
+    VerifyData = if Table.RowCount(PreviousMonthOnly) = 0 then
+        error ("No arrest data found for " & MonthYearDisplay & ". Check date filters and data availability.") else
+        PreviousMonthOnly,
+
+    // ═══ F) Clean officer names with simplified logic ═══════════════════════
+    CleanOfficerNames = Table.TransformColumns(
+        VerifyData,
+        {
+            {
+                "OfficerOfRecord", 
+                each 
+                    if _ = null or _ = "" then "UNKNOWN OFFICER"
+                    else
+                        let
+                            original = Text.Upper(Text.Trim(Text.From(_))),
+                            // Remove common prefixes
+                            step1 = Text.Replace(Text.Replace(Text.Replace(Text.Replace(
+                                original, "P.O. ", ""), "PO ", ""), "DET. ", ""), "DETECTIVE ", ""),
+                            // Clean up whitespace and special characters
+                            step2 = Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(
+                                step1, "  ", " "), " - ", " "), "(", ""), ")", ""), "#", ""),
+                            // Simple badge number removal - remove trailing 1-4 digit numbers
+                            step3 = Text.Trim(
+                                if Text.Length(step2) > 0 then
+                                    let
+                                        words = Text.Split(step2, " "),
+                                        lastWord = if List.Count(words) > 1 then List.Last(words) else "",
+                                        isNumber = try Number.From(lastWord) >= 0 otherwise false,
+                                        isBadgeNumber = Text.Length(lastWord) <= 4 and isNumber,
+                                        cleanWords = if isBadgeNumber then List.RemoveLastN(words, 1) else words
+                                    in
+                                        Text.Combine(cleanWords, " ")
+                                else
+                                    step2
+                            )
+                        in
+                            if Text.Length(step3) > 0 then step3 else "UNKNOWN OFFICER",
+                type text
+            }
+        }
+    ),
+    
+    // ═══ G) Group by officer and count arrests ════════════════════════════
+    GroupedByOfficer = Table.Group(
+        CleanOfficerNames,
+        {"OfficerOfRecord"},
+        {
+            {"Arrest_Count", each Table.RowCount(_), Int64.Type}
+        }
+    ),
+    
+    // ═══ H) Sort and get top 5 ═════════════════════════════════════════════
+    SortedByCount = Table.Sort(
+        GroupedByOfficer, 
+        {{"Arrest_Count", Order.Descending}}
+    ),
+    
+    Top5Officers = Table.FirstN(SortedByCount, 5),
+    
+    // ═══ I) Add metadata and formatting ═══════════════════════════════════
+    WithMonthYear = Table.AddColumn(
+        Top5Officers,
+        "Month_Year",
+        each MonthYearDisplay,
+        type text
+    ),
+    
+    WithRanking = Table.AddIndexColumn(
+        WithMonthYear,
+        "Rank",
+        1,
+        1,
+        Int64.Type
+    ),
+    
+    // Rename for final output
+    FinalRenamed = Table.RenameColumns(
+        WithRanking,
+        {
+            {"OfficerOfRecord", "Officer_Name_Clean"}
+        }
+    ),
+    
+    // ═══ J) Final type enforcement ════════════════════════════════════════
+    TypedData = Table.TransformColumnTypes(
+        FinalRenamed,
+        {
+            {"Officer_Name_Clean", type text},
+            {"Arrest_Count", Int64.Type},
+            {"Month_Year", type text},
+            {"Rank", Int64.Type}
+        }
+    ),
+    
+    // ═══ K) Add source file info for debugging ════════════════════════════
+    WithSourceInfo = if Table.RowCount(Sorted) > 0 then
+        Table.AddColumn(
+            TypedData,
+            "Source_File",
+            each Sorted{0}[Name],
+            type text
+        )
+    else
+        TypedData
+
+in
+    WithSourceInfo
+
+```
+
+```markdown
+// ___Arrest_Categories
+// 🕒 2025-09-03-17-30-00
+// Project: Arrest_Analysis/Arrest_Categories
+// Author: R. A. Carucci
+// Purpose: Simplified M Code that relies on Python preprocessing for geographic
+// data
+
+let
+    // ═══ A) Load latest Power BI ready file ═══════════════════════
+    FolderFiles = Folder.Files(
+        "C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"
+    ),
+    PowerBIFiles = Table.SelectRows(
+        FolderFiles,
+        each [Extension] = ".xlsx" and 
+             Text.Contains([Name], "PowerBI_Ready")
+    ),
+    Sorted = Table.Sort(PowerBIFiles, {{"Date modified", Order.Descending}}),
+    
+    // Load the latest file
+    Source = if Table.RowCount(Sorted) > 0 then
+        Excel.Workbook(Sorted{0}[Content], null, true){0}[Data]
+    else
+        error "No Power BI ready files found",
+
+    // ═══ B) Basic data cleaning ═══════════════════════════════════
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+    
+    // Filter to previous month - handle multiple date column name variations
+    ToDate = (x) => try Date.From(x) otherwise null,
+    Prev = Date.AddMonths(Date.From(DateTime.LocalNow()), -1),
+    PrevY = Date.Year(Prev),
+    PrevM = Date.Month(Prev),
+    
+    // Find the date column (handle variations)
+    DateColumnName = if Table.HasColumns(Headers, "Arrest Date") then "Arrest Date"
+                     else if Table.HasColumns(Headers, "Arrest_Date") then "Arrest_Date"
+                     else if Table.HasColumns(Headers, "ArrestDate") then "ArrestDate"
+                     else if Table.HasColumns(Headers, "Date") then "Date"
+                     else null,
+    
+    DateFiltered = if DateColumnName = null then
+        #table({"Name", "Age", "Address", "Charge", "Arrest Date", "Home_Category_Final", "ChargeCategory", "DataQualityScore", "SourceFile"}, {})
+    else
+        Table.SelectRows(
+            Headers,
+            each let d = ToDate(Record.Field(_, DateColumnName)) in
+                d <> null and Date.Year(d) = PrevY and Date.Month(d) = PrevM
+        ),
+
+    // ═══ C) Handle empty results gracefully ═══════════════════════════
+    // If no data found, return empty table with correct structure
+    HasData = Table.RowCount(DateFiltered) > 0,
+    
+    // Use Python-processed geographic data directly
+    WithHomeCategory = if not HasData then
+        #table({"Name", "Age", "Address", "Charge", "Arrest Date", "Home_Category_Final", "ChargeCategory", "DataQualityScore", "SourceFile"}, {})
+    else
+        Table.AddColumn(
+            DateFiltered,
+            "Home_Category_Final",
+            each 
+                // Use Python's Home_Category if available, otherwise fallback
+                if Table.HasColumns(DateFiltered, "Home_Category") then 
+                    [Home_Category]
+                else if Text.Contains(Text.Upper([Address] ? ? ""), "HACKENSACK") then 
+                    "Local"
+                else 
+                    "Check Data",
+            type text
+        ),
+
+    // ═══ D) Simple charge categorization ═══════════════════════════
+    AddChargeCategory = Table.AddColumn(
+        WithHomeCategory,
+        "ChargeCategory",
+        each 
+            let charge = Text.Upper([Charge] ? ? "") in
+            if Text.Contains(charge, "ASSAULT") then "Assault"
+            else if Text.Contains(charge, "SHOPLIFTING") then "Theft"
+            else if Text.Contains(charge, "BURGLARY") then "Burglary"
+            else if Text.Contains(charge, "ROBBERY") then "Robbery" 
+            else if Text.Contains(charge, "WARRANT") then "Warrant"
+            else if Text.Contains(charge, "DWI") then "DWI"
+            else if Text.Contains(charge, "DRUG") then "Drug Related"
+            else if Text.Contains(charge, "WEAPON") then "Weapons"
+            else "Other",
+        type text
+    ),
+
+    // ═══ E) Data quality indicators ═══════════════════════════════
+    AddDataQuality = Table.AddColumn(
+        AddChargeCategory,
+        "DataQualityScore", 
+        each 
+            (if [Name] <> null and [Name] <> "" then 1 else 0) +
+            (if [Age] <> null and Number.From([Age] ? ? 0) > 0 then 1 else 0) +
+            (if [Address] <> null and [Address] <> "" then 1 else 0) +
+            (if [Charge] <> null and [Charge] <> "" then 1 else 0) +
+            (if Table.HasColumns(AddChargeCategory, "ZIP") and [ZIP] <> null then 1 else 0),
+        type number
+    ),
+
+    // ═══ F) Final type enforcement ═══════════════════════════════
+    TypedData = Table.TransformColumnTypes(
+        AddDataQuality,
+        {
+            {"Age", type number},
+            {"DataQualityScore", type number},
+            {"Arrest Date", type date}
+        }
+    ),
+
+    // ═══ G) Add source tracking ═══════════════════════════════════
+    WithSourceInfo = Table.AddColumn(
+        TypedData,
+        "SourceFile",
+        each if Table.RowCount(Sorted) > 0 then Sorted{0}[Name] else "Unknown",
+        type text
+    )
+
+in
+    WithSourceInfo
+
+// ___Arrest_Distro
+// 🕒 2025-08-07-14-45-00
+// Project: Arrest_Analysis/Arrest_Distro
+// Author: R. A. Carucci
+// Purpose: Process arrest data from most recent Power BI ready file with enhanced null handling
+// Fixed: Resolved all column conflict issues
+
+let
+    // 1. Load folder of Power BI ready files
+    Source = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"),
+    
+    // 2. Filter for UCR-updated files (CSV or Excel)
+    PowerBIFiles = Table.SelectRows(Source, each
+        [Attributes]?[Hidden]? <> true and
+        (Text.EndsWith([Name], ".xlsx") or Text.EndsWith([Name], ".csv")) and
+        (Text.Contains([Name], "ucr_updated") or Text.Contains([Name], "POWERBI_READY") or Text.Contains([Name], "PowerBI_Ready"))
+    ),
+    
+    // 3. Sort by date modified to get the most recent file
+    SortedFiles = Table.Sort(PowerBIFiles, {{"Date modified", Order.Descending}}),
+    
+    // 4. Diagnostic: record which file we're loading
+    LatestFile = if Table.RowCount(SortedFiles) > 0 then SortedFiles{0} else error "No Power BI ready files found",
+    FileName = LatestFile[Name],
+    FileModifiedDate = LatestFile[Date modified],
+    DiagnosticInfo = Table.AddColumn(Table.FromRecords({LatestFile}), "FileDebug", each "Processing: " & [Name] & " (Modified: " & Date.ToText([Date modified]) & ")"),
+    
+    // 5. Load the most recent file
+    LoadedData = Table.AddColumn(DiagnosticInfo, "Data", each 
+        try 
+            if Text.EndsWith([Name], ".csv") then
+                let
+                    CsvData = Csv.Document([Content], [Delimiter=",", Columns=null, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+                    PromotedHeaders = Table.PromoteHeaders(CsvData, [PromoteAllScalars=true])
+                in
+                    PromotedHeaders
+            else
+                let
+                    ExcelFile = Excel.Workbook([Content], null, true),
+                    FirstSheet = ExcelFile{0}[Data],
+                    PromotedHeaders = Table.PromoteHeaders(FirstSheet, [PromoteAllScalars=true])
+                in
+                    PromotedHeaders
+        otherwise error "Failed to load file: " & [Name]
+    ),
+    
+    // 6. Extract the data table
+    DataTable = LoadedData{0}[Data],
+    
+    // 7. Remove entirely blank rows
+    RemoveNulls = Table.SelectRows(DataTable, each List.NonNullCount(Record.FieldValues(_))>0),
+    
+    // 8. Default "Not Provided" for missing addresses (only if Address_Defaulted doesn't exist)
+    WithDefaultAddress = if Table.HasColumns(RemoveNulls, "Address_Defaulted") then
+        RemoveNulls
+    else
+        Table.AddColumn(RemoveNulls, "Address_Defaulted", each 
+            if [Address] = null or [Address] = "" then "Not Provided" else try Text.From([Address]) otherwise "Not Provided"
+        , type text),
+    
+    // 9. Handle ZIP column - use existing if available, otherwise extract from address
+    WithZIP = if Table.HasColumns(WithDefaultAddress, "ZIP") then
+        // ZIP column already exists, just ensure it's text type
+        Table.TransformColumns(WithDefaultAddress, {{"ZIP", each try Text.From(_) otherwise "", type text}})
+    else if Table.HasColumns(WithDefaultAddress, "ExtractedZIP") then
+        // Use ExtractedZIP and rename it to ZIP
+        Table.RenameColumns(WithDefaultAddress, {{"ExtractedZIP", "ZIP"}})
+    else
+        // Extract ZIP from address
+        Table.AddColumn(WithDefaultAddress, "ZIP", each
+            let
+                addr = [Address_Defaulted],
+                tokens = if addr = "Not Provided" then {} else Text.Split(addr, " "),
+                candidates = List.Select(tokens, each 
+                    let s = Text.Select(_, {"0".."9"})
+                    in Text.Length(if Text.Contains(_, "-") then Text.BeforeDelimiter(_, "-") else s)=5
+                )
+            in
+                if List.Count(candidates)>0 
+                then Text.Select(if Text.Contains(candidates{0},"-") then Text.BeforeDelimiter(candidates{0},"-") else candidates{0}, {"0".."9"})
+                else null
+            , type text),
+    
+    // 10. Flag valid 5-digit ZIPs (only if ValidZIP doesn't exist)
+    WithValidZipFlag = if Table.HasColumns(WithZIP, "ValidZIP") then
+        WithZIP
+    else
+        Table.AddColumn(WithZIP, "ValidZIP", each
+            let z = try Text.From([ZIP]) otherwise ""
+            in Text.Length(z)=5 and Text.Length(Text.Select(z,{"0".."9"}))=5
+        , type logical),
+    
+    // 11. Ensure Arrest Date is a nullable date
+    ConvertedDates = if Table.HasColumns(WithValidZipFlag, "Arrest Date") then
+        Table.TransformColumns(WithValidZipFlag, {{"Arrest Date", each try Date.From(_) otherwise null, type nullable date}})
+    else
+        WithValidZipFlag,
+    
+    // 12. Add final record index (only if it doesn't already exist)
+    AddFinalIndex = if Table.HasColumns(ConvertedDates, "RecordIndex") then
+        ConvertedDates
+    else
+        Table.AddIndexColumn(ConvertedDates, "RecordIndex", 1, 1, Int64.Type),
+    
+    // 13. Load ZIP reference data
+    ZIPRef = try Csv.Document(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\GeographicData\ZipCodes\uszips.csv"), [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]) otherwise #table({"zip","state_id","county_name"},{}),
+    ZIPHeaders = Table.PromoteHeaders(ZIPRef, [PromoteAllScalars=true]),
+    ZIPNullHandled = Table.ReplaceValue(ZIPHeaders, null, "", Replacer.ReplaceValue, {"zip","state_id","county_name"}),
+    ZIPCleaned = Table.TransformColumnTypes(Table.SelectColumns(ZIPNullHandled,{"zip","state_id","county_name"}), {{"zip", type text}}),
+    
+    // 14. Join in state_id + county_name (only if they don't already exist)
+    JoinZip = if Table.HasColumns(AddFinalIndex, "state_id") and Table.HasColumns(AddFinalIndex, "county_name") then
+        AddFinalIndex
+    else
+        let
+            JoinResult = Table.NestedJoin(AddFinalIndex, "ZIP", ZIPCleaned, "zip", "ZipMeta", JoinKind.LeftOuter),
+            ExpandResult = Table.ExpandTableColumn(JoinResult, "ZipMeta", {"state_id","county_name"})
+        in ExpandResult,
+    
+    // 15. Uppercase full address for keyword logic (only if FullAddress2 doesn't exist)
+    AddFullAddress2 = if Table.HasColumns(JoinZip, "FullAddress2") then
+        JoinZip
+    else
+        Table.AddColumn(JoinZip, "FullAddress2", each 
+            if [Address_Defaulted] = "Not Provided" then "" else try Text.Upper([Address_Defaulted]) otherwise ""
+        , type text),
+    
+    // 16. Handle UCR columns (use existing if available, otherwise split)
+    WithUCR = if Table.HasColumns(AddFullAddress2, "UCR_Code") and Table.HasColumns(AddFullAddress2, "UCR_Desc") then
+        AddFullAddress2
+    else if Table.HasColumns(AddFullAddress2, "UCR #") then
+        let 
+            RemovedExisting = Table.RemoveColumns(AddFullAddress2, {"UCR_Code", "UCR_Desc"}, MissingField.Ignore),
+            split1 = Table.SplitColumn(RemovedExisting, "UCR #", Splitter.SplitTextByDelimiter(" ", QuoteStyle.Csv), {"UCR_Code","UCR_Desc"})
+        in Table.TransformColumns(split1, {
+               {"UCR_Code", each if _ = null then "" else Text.Trim(_), type text},
+               {"UCR_Desc", each if _ = null then "" else Text.Trim(_), type text}
+           })
+    else
+        let
+            AddUCRCode = if Table.HasColumns(AddFullAddress2, "UCR_Code") then AddFullAddress2 else Table.AddColumn(AddFullAddress2, "UCR_Code", each "", type text),
+            AddUCRDesc = if Table.HasColumns(AddUCRCode, "UCR_Desc") then AddUCRCode else Table.AddColumn(AddUCRCode, "UCR_Desc", each "", type text)
+        in AddUCRDesc,
+    
+    // 17. Categorize by home location (only if Home_Category doesn't exist)
+    AddHomeCategory = if Table.HasColumns(WithUCR, "Home_Category") then
+        WithUCR
+    else
+        Table.AddColumn(WithUCR, "Home_Category", each
+            let
+                addr = [FullAddress2],
+                st = try Text.From([state_id]) otherwise "",
+                cnty = try Text.From([county_name]) otherwise "",
+                z = try Text.From([ZIP]) otherwise "",
+                localZ = {"07601","07602"},
+                isLocalZip = if z = "" then false else List.Contains(localZ, z),
+                isHomeless = if addr = "" then false else Text.Contains(addr, "HOMELESS"),
+                isHack = if addr = "" then false else Text.Contains(addr, "HACKENSACK"),
+                inBergen = if cnty = "" then false else Text.Contains(Text.Upper(cnty), "BERGEN")
+            in
+                if addr = "" or isLocalZip or isHomeless or isHack then "Local"
+                else if st="NJ" and inBergen then "In-County"
+                else if st="NJ" then "Out-of-County | " & cnty
+                else if st<>"" then "Out-of-State | " & st
+                else "Unknown"
+        , type text),
+    
+    // 18. Add diagnostics for the loaded file (only if they don't exist)
+    AddDiagnostics = let
+        WithSourceFile = if Table.HasColumns(AddHomeCategory, "SourceFile") then
+            AddHomeCategory
+        else
+            Table.AddColumn(AddHomeCategory, "SourceFile", each FileName, type text),
+        WithFileDate = if Table.HasColumns(WithSourceFile, "FileModifiedDate") then
+            WithSourceFile
+        else
+            Table.AddColumn(WithSourceFile, "FileModifiedDate", each try Date.ToText(FileModifiedDate) otherwise "Unknown", type text),
+        WithTotalRecords = if Table.HasColumns(WithFileDate, "TotalRecordsLoaded") then
+            WithFileDate
+        else
+            Table.AddColumn(WithFileDate, "TotalRecordsLoaded", each Table.RowCount(WithFileDate), type number)
+    in WithTotalRecords
+in
+    AddDiagnostics
+
+// ___Top_5_Arrests
+// 🕒 2025-09-03-15-00-00
+// Project: Arrest_Analysis/Top_5_Arrest
+// Author: R. A. Carucci
+// Purpose: Fixed Top 5 Officers analysis with dynamic file loading and better error handling
+
+let
+    // ═══ A) Dynamic file discovery (same as your working main query) ═══════
+    FolderFiles = Folder.Files(
+        "C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"
+    ),
+    PowerBIFiles = Table.SelectRows(
+        FolderFiles,
+        each [Extension] = ".xlsx" and 
+             Text.Contains([Name], "PowerBI_Ready")
+    ),
+    Sorted = Table.Sort(PowerBIFiles, {{"Date modified", Order.Descending}}),
+    
+    // Load the latest file (same logic as working query)
+    Source = if Table.RowCount(Sorted) > 0 then
+        let
+            LatestFile = Sorted{0}[Content],
+            ExcelData = Excel.Workbook(LatestFile, null, true),
+            FirstSheet = ExcelData{0}[Data]
+        in
+            FirstSheet
+    else
+        error "No Power BI ready files found",
+
+    // ═══ B) Promote headers and handle column names ═══════════════════════
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+    
+    // Check if columns exist and rename safely
+    SafeRename = if Table.HasColumns(Headers, "Officer of Record") then
+        Table.RenameColumns(Headers, {{"Officer of Record", "OfficerOfRecord"}})
+    else if Table.HasColumns(Headers, "Officer_of_Record") then
+        Table.RenameColumns(Headers, {{"Officer_of_Record", "OfficerOfRecord"}})
+    else if Table.HasColumns(Headers, "OfficerOfRecord") then
+        Headers
+    else
+        error "Officer column not found in data",
+    
+    SafeRename2 = if Table.HasColumns(SafeRename, "Arrest Date") then
+        Table.RenameColumns(SafeRename, {{"Arrest Date", "ArrestDate"}})
+    else if Table.HasColumns(SafeRename, "Arrest_Date") then
+        Table.RenameColumns(SafeRename, {{"Arrest_Date", "ArrestDate"}})
+    else if Table.HasColumns(SafeRename, "ArrestDate") then
+        SafeRename
+    else
+        error "Arrest Date column not found in data",
+
+    // ═══ C) Calculate previous month with better date handling ═════════════
+    Current = Date.From(DateTime.LocalNow()),
+    PreviousMonth = Date.AddMonths(Current, -1),
+    TargetYear = Date.Year(PreviousMonth),
+    TargetMonth = Date.Month(PreviousMonth),
+    MonthYearDisplay = Date.MonthName(PreviousMonth) & " " & Text.From(TargetYear),
+    
+    // ═══ D) Filter to previous month with better error handling ════════════
+    ToDate = (x) => 
+        if x = null or x = "" then null
+        else try Date.From(x) otherwise try Date.FromText(Text.From(x)) otherwise null,
+    
+    PreviousMonthOnly = Table.SelectRows(
+        SafeRename2,
+        each 
+            let d = ToDate([ArrestDate]) in
+            d <> null and 
+            Date.Year(d) = TargetYear and 
+            Date.Month(d) = TargetMonth
+    ),
+    
+    // ═══ E) Verify we have data before proceeding ═════════════════════════
+    VerifyData = if Table.RowCount(PreviousMonthOnly) = 0 then
+        error ("No arrest data found for " & MonthYearDisplay & ". Check date filters and data availability.") else
+        PreviousMonthOnly,
+
+    // ═══ F) Clean officer names with simplified logic ═══════════════════════
+    CleanOfficerNames = Table.TransformColumns(
+        VerifyData,
+        {
+            {
+                "OfficerOfRecord", 
+                each 
+                    if _ = null or _ = "" then "UNKNOWN OFFICER"
+                    else
+                        let
+                            original = Text.Upper(Text.Trim(Text.From(_))),
+                            // Remove common prefixes
+                            step1 = Text.Replace(Text.Replace(Text.Replace(Text.Replace(
+                                original, "P.O. ", ""), "PO ", ""), "DET.

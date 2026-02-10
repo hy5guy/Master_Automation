@@ -88,18 +88,115 @@ def find_backfill_csv(backfill_root: Path, month: date) -> Path:
 
 
 def ensure_month_exports_are_xlsx(paths: Paths, run_month: date, dry_run: bool) -> None:
-    """Ensure the month exports exist as .xlsx (convert .xls if necessary)."""
+    """Ensure the month exports exist as .xlsx (convert .xls if necessary).
+    
+    Files are expected in: export/month/{year}/{yyyy}_{mm}_{type}activity.xlsx
+    e.g., export/month/2025/2025_12_otactivity.xlsx
+    """
+    year = run_month.year
+    mm = f"{run_month.month:02d}"
     yyyymm = month_key_yyyy_mm(run_month)
-    ot_xlsx = paths.overtime_dir / f"{yyyymm}_OTActivity.xlsx"
-    to_xlsx = paths.time_off_dir / f"{yyyymm}_TimeOffActivity.xlsx"
-    ot_xls = paths.overtime_dir / f"{yyyymm}_OTActivity.xls"
-    to_xls = paths.time_off_dir / f"{yyyymm}_TimeOffActivity.xls"
-
-    if ot_xlsx.exists() and to_xlsx.exists():
+    
+    # Check in export/month/{year}/ subdirectory structure
+    ot_subdir = paths.overtime_dir / "export" / "month" / str(year)
+    to_subdir = paths.time_off_dir / "export" / "month" / str(year)
+    
+    # Try multiple filename patterns (case-insensitive)
+    ot_patterns = [
+        f"{yyyymm}_otactivity.xlsx",
+        f"{yyyymm}_OTActivity.xlsx",
+        f"{year}_{mm}_otactivity.xlsx",
+        f"{year}_{mm}_OTActivity.xlsx",
+    ]
+    to_patterns = [
+        f"{yyyymm}_timeoffactivity.xlsx",
+        f"{yyyymm}_TimeOffActivity.xlsx",
+        f"{year}_{mm}_timeoffactivity.xlsx",
+        f"{year}_{mm}_TimeOffActivity.xlsx",
+    ]
+    
+    # Find existing files (case-insensitive search)
+    ot_found = None
+    to_found = None
+    
+    if ot_subdir.exists():
+        for pattern in ot_patterns:
+            candidates = list(ot_subdir.glob(pattern))
+            if not candidates:
+                # Try case-insensitive match
+                for f in ot_subdir.glob("*.xlsx"):
+                    if f.name.lower() == pattern.lower():
+                        candidates = [f]
+                        break
+            if candidates:
+                ot_found = candidates[0]
+                break
+    
+    if to_subdir.exists():
+        for pattern in to_patterns:
+            candidates = list(to_subdir.glob(pattern))
+            if not candidates:
+                # Try case-insensitive match
+                for f in to_subdir.glob("*.xlsx"):
+                    if f.name.lower() == pattern.lower():
+                        candidates = [f]
+                        break
+            if candidates:
+                to_found = candidates[0]
+                break
+    
+    # Check root directory as fallback (legacy location)
+    if not ot_found:
+        for pattern in ot_patterns:
+            candidates = list(paths.overtime_dir.glob(pattern))
+            if not candidates:
+                for f in paths.overtime_dir.glob("*.xlsx"):
+                    if f.name.lower() == pattern.lower():
+                        candidates = [f]
+                        break
+            if candidates:
+                ot_found = candidates[0]
+                break
+    
+    if not to_found:
+        for pattern in to_patterns:
+            candidates = list(paths.time_off_dir.glob(pattern))
+            if not candidates:
+                for f in paths.time_off_dir.glob("*.xlsx"):
+                    if f.name.lower() == pattern.lower():
+                        candidates = [f]
+                        break
+            if candidates:
+                to_found = candidates[0]
+                break
+    
+    if ot_found and to_found:
+        print(f"[INFO] Found export files:\n  Overtime: {ot_found}\n  Time Off: {to_found}")
         return
-
-    # If xlsx missing but xls present, convert using existing helper (Excel COM)
-    if (ot_xlsx.exists() or ot_xls.exists()) and (to_xlsx.exists() or to_xls.exists()):
+    
+    # Check for .xls files that need conversion
+    ot_xls_found = None
+    to_xls_found = None
+    
+    if ot_subdir.exists():
+        for pattern in [p.replace(".xlsx", ".xls") for p in ot_patterns]:
+            for f in ot_subdir.glob("*.xls"):
+                if f.name.lower() == pattern.lower():
+                    ot_xls_found = f
+                    break
+            if ot_xls_found:
+                break
+    
+    if to_subdir.exists():
+        for pattern in [p.replace(".xlsx", ".xls") for p in to_patterns]:
+            for f in to_subdir.glob("*.xls"):
+                if f.name.lower() == pattern.lower():
+                    to_xls_found = f
+                    break
+            if to_xls_found:
+                break
+    
+    if (ot_found or ot_xls_found) and (to_found or to_xls_found):
         if dry_run:
             print(f"[DRY RUN] Would convert .xls -> .xlsx for month {yyyymm} (if needed).")
             return
@@ -108,22 +205,28 @@ def ensure_month_exports_are_xlsx(paths: Paths, run_month: date, dry_run: bool) 
             raise FileNotFoundError(f"XLS->XLSX converter not found: {paths.xls_to_xlsx_multi}")
 
         # Convert only when .xlsx missing
-        if (not ot_xlsx.exists()) or (not to_xlsx.exists()):
+        if (not ot_found) or (not to_found):
             print(f"[INFO] Converting exports to .xlsx for {yyyymm} (Excel COM)...")
             subprocess.check_call([sys.executable, str(paths.xls_to_xlsx_multi), str(paths.overtime_dir), str(paths.time_off_dir)])
 
-        if not ot_xlsx.exists() or not to_xlsx.exists():
+        # Re-check after conversion
+        if not ot_found or not to_found:
             raise FileNotFoundError(
                 "After conversion, expected .xlsx exports are still missing:\n"
-                f"  {ot_xlsx} exists={ot_xlsx.exists()}\n"
-                f"  {to_xlsx} exists={to_xlsx.exists()}\n"
+                f"  Overtime: {ot_found or 'NOT FOUND'}\n"
+                f"  Time Off: {to_found or 'NOT FOUND'}\n"
+                f"  Searched in: {ot_subdir} and {to_subdir}"
             )
         return
 
     raise FileNotFoundError(
-        "Could not locate required exports for the month in either .xlsx or .xls form:\n"
-        f"  {ot_xlsx} / {ot_xls}\n"
-        f"  {to_xlsx} / {to_xls}\n"
+        f"Could not locate required exports for {yyyymm} in either .xlsx or .xls form:\n"
+        f"  Searched directories:\n"
+        f"    {ot_subdir}\n"
+        f"    {to_subdir}\n"
+        f"    {paths.overtime_dir} (root fallback)\n"
+        f"    {paths.time_off_dir} (root fallback)\n"
+        f"  Patterns tried: {ot_patterns[:2]} ... and {to_patterns[:2]} ..."
     )
 
 
@@ -332,8 +435,14 @@ def main() -> int:
     end_month = prev_month(today)
     start_month = end_month.replace(year=end_month.year - 1)  # 13-month window start month
 
-    # Backfill should come from the month BEFORE end_month (e.g., if end is 2025_11, backfill is 2025_10)
-    backfill_month = prev_month(end_month)
+    # Backfill should come from the CURRENT end_month (e.g., if end is 2025_12, backfill is 2025_12)
+    # Try current month first, then fallback to previous month if current doesn't exist
+    backfill_month = end_month
+    backfill_folder = backfill_root / month_key_yyyy_mm(backfill_month) / "vcs_time_report"
+    if not backfill_folder.exists():
+        # Fallback to previous month's backfill
+        backfill_month = prev_month(end_month)
+        print(f"[INFO] Current month backfill not found, using previous month: {month_key_yyyy_mm(backfill_month)}")
 
     fixed_path = paths.overtime_timeoff_dir / "output" / expected_fixed_filename(start_month, end_month)
 

@@ -1,0 +1,330 @@
+Avg Incidents Per Month = 
+VAR LastMonth = EOMONTH(TODAY(), -1)
+VAR FirstMonth = EDATE(LastMonth, -12)
+VAR Total = [Total Incidents Rolling 13]
+RETURN
+    DIVIDE(Total, 13, 0)
+
+BM MoM Change = 
+VAR CurrentCount = [IncidentCount]
+VAR PriorMonthDate = 
+    CALCULATE(
+        MAX(___DimMonth[MonthStart]),
+        DATEADD(___DimMonth[MonthStart], -1, MONTH)
+    )
+VAR PriorCount = 
+    CALCULATE(
+        [IncidentCount],
+        ___DimMonth[MonthStart] = PriorMonthDate
+    )
+VAR Change = CurrentCount - PriorCount
+RETURN
+    IF(ISBLANK(PriorCount), BLANK(), Change)
+
+BM MoM Change % = 
+VAR Change = [BM MoM Change]
+VAR PriorMonthDate = 
+    CALCULATE(
+        MAX(___DimMonth[MonthStart]),
+        DATEADD(___DimMonth[MonthStart], -1, MONTH)
+    )
+VAR PriorCount = 
+    CALCULATE(
+        [IncidentCount],
+        ___DimMonth[MonthStart] = PriorMonthDate
+    )
+RETURN
+    IF(PriorCount = 0 || ISBLANK(PriorCount), BLANK(), DIVIDE(Change, PriorCount))
+
+BM_Rolling13_Count = 
+VAR LastFullMonth = EOMONTH(TODAY(), -1)
+VAR FirstMonth = EOMONTH(LastFullMonth, -12) + 1
+RETURN
+CALCULATE(
+    DISTINCTCOUNT(___Benchmark[Report Number]),
+    ___Benchmark[MonthStart] >= FirstMonth,
+    ___Benchmark[MonthStart] <= LastFullMonth
+)
+
+BM_Rolling13_Count_Zero = 
+VAR LastFullMonthEnd   = EOMONTH(TODAY(), -1)                  // Oct 31, 2025
+VAR FirstMonthStart    = EOMONTH(LastFullMonthEnd, -12) + 1   // Nov 1, 2024
+RETURN
+COALESCE(
+    CALCULATE(
+        DISTINCTCOUNT(___Benchmark[Report Number]),
+        ___Benchmark[Incident Date] >= FirstMonthStart,
+        ___Benchmark[Incident Date] <= LastFullMonthEnd
+    ),
+    0
+)
+
+BM_YoY_Change = 
+VAR CurrentCount = [BM_Rolling13_Count]
+VAR PriorYearStart = DATEADD(DATEADD(EOMONTH(TODAY(), -1), -12, MONTH), -12, MONTH) + 1
+VAR PriorYearEnd = EOMONTH(TODAY(), -13)
+VAR PriorCount = 
+    CALCULATE(
+        DISTINCTCOUNT(___Benchmark[Report Number]),
+        ___Benchmark[Incident Date] >= PriorYearStart,
+        ___Benchmark[Incident Date] <= PriorYearEnd
+    )
+RETURN
+    IF(PriorCount = 0, BLANK(), DIVIDE(CurrentCount - PriorCount, PriorCount))
+
+Donut Subtitle = 
+VAR EndDate   = EOMONTH(TODAY(), -1)
+VAR StartDate = EDATE(EndDate, -12)
+RETURN
+"13-Month Period: " & FORMAT(StartDate, "MMM yyyy") & " - " & FORMAT(EndDate, "MMM yyyy")
+
+Donut Subtitle Short = 
+VAR EndDate   = EOMONTH(TODAY(), -1)
+VAR StartDate = EDATE(EndDate, -12)
+RETURN
+FORMAT(StartDate, "MMM yy") & " - " & FORMAT(EndDate, "MMM yy")
+
+Donut Subtitle with Count = 
+VAR EndDate   = EOMONTH(TODAY(), -1)
+VAR StartDate = EDATE(EndDate, -12)
+VAR TotalIncidents = [IncidentCount_13Month]
+RETURN
+FORMAT(StartDate, "MMM yyyy") & " - " & FORMAT(EndDate, "MMM yyyy") & 
+" | Total: " & FORMAT(TotalIncidents, "#,0")
+
+Donut Title = "Incident Distribution by Event Type"
+
+Donut Title = "Incident Distribution by Event Type"
+
+IncidentCount = 
+VAR Result = DISTINCTCOUNT(___Benchmark[Report Key])
+RETURN 
+    IF(ISBLANK(Result), 0, Result)
+
+IncidentCount_13Month = 
+VAR LastMonth = EOMONTH(TODAY(), -1)
+VAR FirstMonth = EDATE(LastMonth, -12)
+RETURN
+    CALCULATE(
+        DISTINCTCOUNT(___Benchmark[Report Key]),
+        ___DimMonth[MonthStart] >= FirstMonth,
+        ___DimMonth[MonthStart] <= LastMonth
+    )
+
+IncidentCount_Forced = 
+VAR CurrentEventType = SELECTEDVALUE(___DimEventType[EventType])
+RETURN
+    CALCULATE(
+        DISTINCTCOUNT(___Benchmark[Report Key]),
+        ___Benchmark[EventType] = CurrentEventType
+    )
+
+IncidentCount_NEW = 
+IF(
+    HASONEVALUE(___DimMonth[MonthStart]) && HASONEVALUE(___DimEventType[EventType]),
+    // Cell-level: specific month + event type
+    VAR Result = DISTINCTCOUNT(___Benchmark[Report Key])
+    RETURN IF(ISBLANK(Result), 0, Result),
+    // Total-level: sum the individual cells
+    SUMX(
+        VALUES(___DimMonth[MonthStart]),
+        VAR CurrentMonth = ___DimMonth[MonthStart]
+        RETURN
+            SUMX(
+                VALUES(___DimEventType[EventType]),
+                VAR CurrentEvent = ___DimEventType[EventType]
+                VAR CellCount = 
+                    CALCULATE(
+                        DISTINCTCOUNT(___Benchmark[Report Key]),
+                        ___DimMonth[MonthStart] = CurrentMonth,
+                        ___DimEventType[EventType] = CurrentEvent
+                    )
+                RETURN IF(ISBLANK(CellCount), 0, CellCount)
+            )
+    )
+)
+
+Line Chart Avg Incidents Per Month = 
+VAR TotalIncidents = 
+    CALCULATE(
+        [IncidentCount],
+        ALL(___DimMonth[MonthLabel])
+    )
+VAR MonthCount = DISTINCTCOUNT(___DimMonth[MonthLabel])
+RETURN
+    DIVIDE(TotalIncidents, MonthCount, 0)
+
+Line Chart Subtitle = 
+VAR EndDate   = EOMONTH(TODAY(), -1)
+VAR StartDate = EDATE(EndDate, -12)
+RETURN
+"Trend Analysis: " & FORMAT(StartDate, "MMMM yyyy") & " - " & FORMAT(EndDate, "MMMM yyyy")
+
+Line Chart Subtitle Short = 
+VAR EndDate   = EOMONTH(TODAY(), -1)
+VAR StartDate = EDATE(EndDate, -12)
+RETURN
+FORMAT(StartDate, "MMM yyyy") & " - " & FORMAT(EndDate, "MMM yyyy")
+
+Line Chart Title = "Incident Count by Date and Event Type"
+
+Matrix Subtitle = 
+VAR EndDate   = EOMONTH(TODAY(), -1)
+VAR StartDate = EDATE(EndDate, -12)
+RETURN
+"Rolling 13-Month Overview (" &
+    FORMAT(StartDate, "MMMM yyyy") & " - " & FORMAT(EndDate, "MMMM yyyy") & ")"
+
+Matrix Title = "Use of Force Incident Matrix"
+
+MonthHasData = 
+VAR MonthTotal =
+    CALCULATE (
+        DISTINCTCOUNT ( '___Benchmark'[Report Key] ),
+        ALL ( '___Benchmark'[EventType] )
+    )
+RETURN
+MonthTotal
+
+
+Most Frequent Event Type = 
+VAR LastMonth = EOMONTH(TODAY(), -1)
+VAR FirstMonth = EDATE(LastMonth, -12)
+VAR EventCounts = 
+    ADDCOLUMNS(
+        VALUES(___DimEventType[EventType]),
+        "@Count", CALCULATE(
+            DISTINCTCOUNT(___Benchmark[Report Key]),
+            ___Benchmark[MonthStart] >= FirstMonth,
+            ___Benchmark[MonthStart] <= LastMonth
+        )
+    )
+VAR MaxCount = MAXX(EventCounts, [@Count])
+VAR TopEvent = MAXX(FILTER(EventCounts, [@Count] = MaxCount), ___DimEventType[EventType])
+RETURN
+    TopEvent & " (" & FORMAT(MaxCount, "#,0") & ")"
+
+Officers_Count = 
+VAR CurrentMonth = SELECTEDVALUE(___DimMonth[MonthStart])
+VAR CurrentEventType = SELECTEDVALUE(___DimEventType[EventType])
+VAR Result = 
+    CALCULATE(
+        SUM(___Benchmark[# of Officers Involved]),
+        TREATAS({CurrentMonth}, ___Benchmark[MonthStart]),
+        ___Benchmark[EventType] = CurrentEventType
+    )
+RETURN
+    IF(ISBLANK(Result), 0, Result)
+
+Peak Incident Count = 
+MAXX(
+    ALLSELECTED(___DimMonth[MonthLabel]),
+    MAXX(
+        ALLSELECTED(___DimEventType[EventType]),
+        [IncidentCount]
+    )
+)
+
+Peak Incidents = 
+MAXX(
+    ALL(___DimMonth[MonthLabel]),
+    [IncidentCount]
+)
+
+Peak Month = 
+VAR MaxCount = MAXX(ALL(___DimMonth[MonthLabel]), [IncidentCount])
+VAR PeakMonth = 
+    MAXX(
+        FILTER(
+            ALL(___DimMonth[MonthLabel]),
+            [IncidentCount] = MaxCount
+        ),
+        ___DimMonth[MonthLabel]
+    )
+RETURN
+"Peak: " & PeakMonth & " (" & FORMAT(MaxCount, "#,0") & " incidents)"
+
+Peak Month Indicator = 
+VAR MaxCount = 
+    MAXX(
+        ALLSELECTED(___DimMonth[MonthLabel]),
+        MAXX(
+            ALLSELECTED(___DimEventType[EventType]),
+            [IncidentCount]
+        )
+    )
+VAR PeakDetails = 
+    FILTER(
+        ADDCOLUMNS(
+            CROSSJOIN(
+                ALL(___DimMonth[MonthLabel]),
+                ALL(___DimEventType[EventType])
+            ),
+            "@Count", [IncidentCount]
+        ),
+        [@Count] = MaxCount
+    )
+VAR PeakMonth = MAXX(PeakDetails, ___DimMonth[MonthLabel])
+VAR PeakEventType = MAXX(PeakDetails, ___DimEventType[EventType])
+RETURN
+"Peak: " & PeakMonth & " (" & PeakEventType & " - " & FORMAT(MaxCount, "#,0") & " incidents)"
+
+Peak Month Text = 
+VAR PeakCount = [Peak Incident Count]
+VAR PeakMonthValue = 
+    CALCULATE(
+        SELECTEDVALUE(___DimMonth[MonthLabel]),
+        FILTER(
+            ALL(___DimMonth[MonthLabel]),
+            CALCULATE([IncidentCount]) = PeakCount
+        )
+    )
+RETURN
+"Peak: " & PeakMonthValue & " (" & FORMAT(PeakCount, "#,0") & " incidents)"
+
+PeakMonthIndicatorSimple = 
+VAR MaxCount = 
+    CALCULATE(
+        [IncidentCount],
+        TOPN(
+            1,
+            ALLSELECTED(___DimMonth[MonthLabel], ___DimEventType[EventType]),
+            [IncidentCount],
+            DESC
+        )
+    )
+VAR Result = 
+    CONCATENATEX(
+        TOPN(
+            1,
+            ALLSELECTED(___DimMonth[MonthLabel], ___DimEventType[EventType]),
+            [IncidentCount],
+            DESC
+        ),
+        ___DimMonth[MonthLabel] & " (" & ___DimEventType[EventType] & " - " & FORMAT([IncidentCount], "#,0") & " incidents)",
+        ", "
+    )
+RETURN
+    "Peak: " & Result
+
+Subjects_Count = 
+VAR CurrentMonth = SELECTEDVALUE(___DimMonth[MonthStart])
+VAR CurrentEventType = SELECTEDVALUE(___DimEventType[EventType])
+VAR Result = 
+    CALCULATE(
+        SUM(___Benchmark[# of Subjects]),
+        TREATAS({CurrentMonth}, ___Benchmark[MonthStart]),
+        ___Benchmark[EventType] = CurrentEventType
+    )
+RETURN
+    IF(ISBLANK(Result), 0, Result)
+
+Total Incidents Rolling 13 = 
+VAR LastMonth = EOMONTH(TODAY(), -1)
+VAR FirstMonth = EDATE(LastMonth, -12)
+RETURN
+CALCULATE(
+    DISTINCTCOUNT(___Benchmark[Report Key]),
+    ___Benchmark[MonthStart] >= FirstMonth,
+    ___Benchmark[MonthStart] <= LastMonth
+)

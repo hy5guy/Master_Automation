@@ -1,0 +1,237 @@
+**CHANGELOG.md** (docs/CHANGELOG.md)
+   - Expanded the "Benchmark Data Architecture Migration" section under **Fixed** (2026-01-12)
+   - Added details about:
+     - Data architecture restructuring (398 incidents)
+     - Rolling 13-month window implementation (81 incidents)
+     - Performance improvements (3-5x faster queries)
+     - New folder structure
+     - Zero data loss verification
+   - Expanded "Benchmark M Code Queries - Finalized" section with:
+     - All three query files and their query names
+     - Syntax fixes (removed `Columns=13`, fixed double braces)
+     - Hardcoded paths for direct Power BI use
+
+### 2. **SUMMARY.md** (docs/SUMMARY.md)
+   - Added new section: **"Benchmark (Use-of-Force Tracking - Data Architecture Migration)"**
+   - Includes:
+     - Status and completion date
+     - Data architecture overview
+     - Data locations and paths
+     - Power BI M Code queries information
+     - Rolling 13-month window logic
+     - Data totals (all-time and rolling 13-month)
+     - Documentation references
+   - Updated "Recent Updates" section with Benchmark migration details
+   - Added Benchmark documentation to the "Documentation" section
+
+### 3. **README.md** (docs/README.md)
+   - Updated "Recent Updates" section with:
+     - Complete Benchmark Data Architecture Migration details
+     - Benchmark M Code Queries information
+     - Links to detailed documentation
+   - Expanded Benchmark section with:
+     - Migration completion details
+     - Performance improvements
+     - Query file names and query names
+     - Syntax fixes
+     - Links to BENCHMARK_DATA_ARCHITECTURE_MIGRATION.md
+
+All three files now document the Benchmark migration completed on 2026-01-12, including the data architecture changes, M code query updates, and syntax fixes. The documentation is consistent across all files and includes links to the detailed migration documentation. ---
+
+**User**
+
+make sure the documation is made in C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Benchmark too
+
+---
+
+**Cursor**
+
+
+Checking the Benchmark directory and copying the relevant documentation there:
+
+
+
+Copying the Benchmark migration documentation to the Benchmark ETL directory and checking if the README needs updating:
+
+
+
+Using the full path for the copy command:
+
+
+
+Updating the README.md in the Benchmark directory to reference the migration documentation and include the latest information:
+
+
+```markdown
+# Benchmark ETL
+
+**Purpose:** Rolling 13-month fact table across Use of Force, Show of Force, Vehicle Pursuit. **Status (2026-01-12):** ✅ **Data Architecture Migration Complete** - Production Ready
+
+---
+
+## Quick Reference
+
+- **ETL Root:** `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Benchmark`
+- **Data Export Root:** `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark`
+- **Power BI Queries:** See `benchmark_r13.m`, `benchmark_dim_month.m`, `benchmark__dim_event_type.m`
+
+---
+
+## Data Architecture (Post-Migration 2026-01-12)
+
+**New Query-Optimized Structure:**
+```
+05_EXPORTS\_Benchmark/
+├── all_events_combined/
+│   ├── master_combined_all_time.csv (398 records total)
+│   └── metadata.json
+├── by_time_period/
+│   ├── rolling_13month/
+│   │   ├── current_window.csv (81 records, Dec-24 to Dec-25)
+│   │   ├── by_event_type/ (3 pre-filtered CSVs)
+│   │   └── last_updated.txt
+│   ├── ytd_current/2026_ytd.csv
+│   └── archives/
+└── by_event_type/
+    ├── show_force/archives/
+    ├── use_force/archives/
+    └── vehicle_pursuit/archives/
+```
+
+**Key Improvements:**
+- ✅ Pre-filtered rolling 13-month datasets (3-5x faster queries)
+- ✅ Master combined dataset for all event types
+- ✅ Zero data loss verified in migration
+- ✅ Complete backup preserved at `_Benchmark_BACKUP_20260112/`
+
+---
+
+## Power BI M Code Queries
+
+**Current Production Queries:**
+- `benchmark_r13.m` (query: `___Benchmark`) - Rolling 13-month dataset query (recommended)
+- `benchmark_dim_month.m` (query: `___DimMonth`) - Month dimension table
+- `benchmark__dim_event_type.m` (query: `___DimEventType`) - Event type dimension table
+
+**All queries use hardcoded paths** (no parameters required) and are ready for production use. **Previous Structure (Deprecated):**
+- Old export roots (CSV): 
+  - `05_EXPORTS\Benchmark\use_force\complete_report\all_time\`
+  - `05_EXPORTS\Benchmark\show_force\complete_report\all_time\`
+  - `05_EXPORTS\Benchmark\vehicle_pursuit\complete_report\all_time\`
+- **Note:** Legacy structure preserved in backup. Use new structure for all queries. ---
+
+## Key Artifacts
+
+- `schemas/columns.schema.json` — Unified schema (model contract)
+- `schemas/data_dictionary.md` — Human-readable dictionary
+- `benchmark_restructure.py` — Monthly restructuring script (run at start of each month)
+- Power BI M code queries (see above)
+
+---
+
+## Monthly Maintenance
+
+**When:** First week of each month (after previous month completes)
+
+**Tasks:**
+1. Export new Benchmark data from source system
+2. Run `benchmark_restructure.py` to regenerate rolling window
+3. Refresh Power BI to pull updated `current_window.csv`
+
+**Script Location:** `Master_Automation/benchmark_restructure.py`
+
+---
+
+## Data Totals
+
+**All-Time (2020-07-16 to 2025-12-29):**
+- Total: 398 incidents
+  - Use of Force: 340
+  - Show of Force: 37
+  - Vehicle Pursuit: 21
+
+**Rolling 13-Month (Dec-24 to Dec-25):**
+- Total: 81 incidents
+  - Use of Force: 76
+  - Show of Force: 3
+  - Vehicle Pursuit: 2
+
+---
+
+## Documentation
+
+**Complete Migration Documentation:**
+- `BENCHMARK_DATA_ARCHITECTURE_MIGRATION.md` — Full migration details (this directory)
+- `Master_Automation/docs/BENCHMARK_DATA_ARCHITECTURE_MIGRATION.md` — Master documentation copy
+
+**Additional Documentation:**
+- `05_EXPORTS/_Benchmark/README.md` — Folder structure guide
+- `05_EXPORTS/_Benchmark/MIGRATION_REPORT_20260112.md` — Detailed migration report
+- `Master_Automation/2026_01_12_benchmark_m_codes_UPDATED.m` — Updated M-code reference (3 query options)
+
+---
+
+## Migration Status
+
+✅ **Migration Complete - Ready for Production**
+- Execution Date: 2026-01-12
+- Data Integrity: 100%
+- Performance Gain: 3-5x faster queries
+- Files Generated: 21
+- Legacy Backup: Preserved at `_Benchmark_BACKUP_20260112/`
+
+All Power BI dashboards can now use optimized query structure with pre-filtered rolling 13-month datasets. ---
+
+**Last Updated:** 2026-01-12  
+**Maintained by:** R. A. Carucci
+
+```
+
+
+Copied the documentation to the Benchmark ETL directory. Summary of updates:
+
+## Documentation Updates in Benchmark Directory
+
+### 1. **Copied Migration Documentation**
+   - ✅ Copied `BENCHMARK_DATA_ARCHITECTURE_MIGRATION.md` to `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Benchmark\`
+
+### 2. **Updated README.md**
+   - ✅ Updated `README.md` in the Benchmark directory with:
+     - Migration status and completion date
+     - New data architecture structure
+     - Performance improvements (3-5x faster)
+     - Updated Power BI M code query information
+     - Monthly maintenance process
+     - Data totals (all-time and rolling 13-month)
+     - Documentation references
+     - Migration status summary
+
+### 3. **Documentation Structure**
+   The Benchmark directory now contains:
+   - `README.md` — Updated with migration information
+   - `BENCHMARK_DATA_ARCHITECTURE_MIGRATION.md` — Complete migration documentation
+
+Both files are now in the Benchmark ETL directory and reference each other. The README includes links to the migration documentation and summarizes the changes made on 2026-01-12. The documentation is synchronized between:
+- `Master_Automation/docs/BENCHMARK_DATA_ARCHITECTURE_MIGRATION.md`
+- `02_ETL_Scripts/Benchmark/BENCHMARK_DATA_ARCHITECTURE_MIGRATION.md`
+- `02_ETL_Scripts/Benchmark/README.md` (updated)
+
+All documentation is up to date and available in the Benchmark ETL directory. ---
+
+**User**
+
+I'm preparing to export this chat. Please generate a descriptive filename that summarizes the main topic or task of this conversation. Requirements:
+• 4-8 words
+• Title Case (capitalize major words)
+• Replace spaces with underscores
+• Include .md extension
+• No dates or special characters
+
+Output only the filename, nothing else. After export, I'll process it using: scripts\quick_process_chatlog.bat
+
+---
+
+**Cursor**
+
+
+Benchmark_Migration_Documentation_Update.md

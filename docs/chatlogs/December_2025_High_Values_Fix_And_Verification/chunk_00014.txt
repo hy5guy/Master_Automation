@@ -1,0 +1,730 @@
+else:
+        print("[WARN] Some values in FIXED file don't match Visual")
+    
+    # Conclusion
+    print("\n" + "=" * 80)
+    print("CONCLUSION")
+    print("=" * 80)
+    
+    if matches == len(VISUAL_VALUES):
+        print("\n[OK] November 2025 (11-25) values are VERIFIED CORRECT")
+        print("  - Visual matches Backfill: 100%")
+        print("  - All 9 categories match exactly")
+        print("\nThe November 2025 backfill data is accurate and matches the Power BI visual.") return 0
+    else:
+        print("\n[WARN] Some discrepancies found between Visual and Backfill")
+        print("  - Review the differences above")
+        return 1
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(main())
+
+```
+
+
+## November 2025 (11-25) verification complete
+
+### Results summary
+
+**Visual vs Backfill: 100% match**
+- All 9 categories match exactly
+- Pass rate: 100.0% (9/9 matches)
+- Zero differences
+
+**FIXED file verification:**
+- The FIXED file from the correct window (2024-11 to 2025-11) matches the visual values:
+  - Accrued Comp. Time Total: 253.25 (29.00 + 224.25)
+  - Accrued Overtime Total: 493.25 (211.50 + 281.75)
+  - All usage categories match
+
+### Verified values for November 2025 (11-25)
+
+| Category | Value |
+|---------|-------|
+| Accrued Comp. Time - Non-Sworn | 29.00 |
+| Accrued Comp. Time - Sworn | 224.25 |
+| Accrued Overtime - Non-Sworn | 211.50 |
+| Accrued Overtime - Sworn | 281.75 |
+| Comp (Hours) | 389.00 |
+| Employee Sick Time (Hours) | 946.50 |
+| Used SAT Time (Hours) | 580.50 |
+| Military Leave (Hours) | 12.00 |
+| Injured on Duty (Hours) | 24.00 |
+
+### Note on v10 output discrepancy
+
+The current `monthly_breakdown.csv` shows different values because it was generated with a different date window (2024-12 to 2025-12) that includes December 2025. The FIXED file from the correct window (2024-11 to 2025-11) matches the visual and backfill. ### Conclusion
+
+November 2025 (11-25) values are verified correct. The backfill data matches the Power BI visual exactly, confirming the calculations are accurate. ---
+
+**User**
+
+the December visual C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\output\2026_01_13_18_32_31_Monthly Accrual and Usage Summary.csv has very high values compaired to the previous months investigate
+
+---
+
+**Cursor**
+
+
+Investigating the December visual values. Comparing them with previous months and the v10 script output:
+
+
+```python
+#!/usr/bin/env python3
+"""
+Investigate December 2025 High Values
+
+Compare December visual with previous months to identify why values are high.
+""" import pandas as pd
+from pathlib import Path
+
+# File paths
+DECEMBER_VISUAL = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\output\2026_01_13_18_32_31_Monthly Accrual and Usage Summary.csv")
+DECEMBER_EXPORT = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\2025_12_Monthly Accrual and Usage Summary.csv")
+FIXED_CURRENT = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_2024-12_2025-12.csv")
+MONTHLY_BREAKDOWN = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\analytics_output\monthly_breakdown.csv")
+
+def load_visual_csv(filepath: Path) -> pd.DataFrame:
+    """Load visual CSV and convert to comparable format.""" df = pd.read_csv(filepath)
+    
+    # Handle different formats
+    if "Time Category" in df.columns and "Sum of Value" in df.columns and "PeriodLabel" in df.columns:
+        # Long format
+        return df
+    elif "Time Category" in df.columns or "Time_Category" in df.columns:
+        # Wide format - convert to long
+        time_col = "Time Category" if "Time Category" in df.columns else "Time_Category"
+        long_rows = []
+        for _, row in df.iterrows():
+            category = row[time_col]
+            for col in df.columns:
+                if col == time_col:
+                    continue
+                if col.strip() and col not in ["Sum of 11-25", "Sum of 12-25"]:
+                    period = col.strip()
+                    value = row[col]
+                    try:
+                        value_float = float(value) if pd.notna(value) and str(value).strip() != "" else 0.0
+                        long_rows.append({
+                            "Time Category": category,
+                            "Sum of Value": value_float,
+                            "PeriodLabel": period
+                        })
+                    except (ValueError, TypeError):
+                        continue
+        return pd.DataFrame(long_rows)
+    return df
+
+def compare_months():
+    """Compare December with previous months.""" print("=" * 80)
+    print("DECEMBER 2025 HIGH VALUES INVESTIGATION")
+    print("=" * 80)
+    print()
+    
+    # Load December visual
+    print("Loading December visual...")
+    dec_visual = load_visual_csv(DECEMBER_VISUAL)
+    print(f"  Loaded {len(dec_visual)} records")
+    
+    # Load December export (for comparison)
+    print("Loading December export...")
+    dec_export = pd.read_csv(DECEMBER_EXPORT)
+    print(f"  Loaded {len(dec_export)} records")
+    
+    # Load FIXED file
+    print("Loading FIXED file...")
+    fixed_df = pd.read_csv(FIXED_CURRENT)
+    print(f"  Loaded {len(fixed_df)} months")
+    
+    # Load monthly breakdown
+    print("Loading monthly breakdown...")
+    monthly_df = pd.read_csv(MONTHLY_BREAKDOWN)
+    print(f"  Loaded {len(monthly_df)} records")
+    print()
+    
+    # Extract December 2025 (12-25) values from visual
+    dec_visual_1225 = dec_visual[dec_visual["PeriodLabel"] == "12-25"].copy() if "PeriodLabel" in dec_visual.columns else pd.DataFrame()
+    dec_export_1225 = dec_export[dec_export["PeriodLabel"] == "12-25"].copy()
+    
+    # Extract November 2025 (11-25) for comparison
+    dec_visual_1125 = dec_visual[dec_visual["PeriodLabel"] == "11-25"].copy() if "PeriodLabel" in dec_visual.columns else pd.DataFrame()
+    dec_export_1125 = dec_export[dec_export["PeriodLabel"] == "11-25"].copy()
+    
+    # Extract October 2025 (10-25) for comparison
+    dec_visual_1025 = dec_visual[dec_visual["PeriodLabel"] == "10-25"].copy() if "PeriodLabel" in dec_visual.columns else pd.DataFrame()
+    dec_export_1025 = dec_export[dec_export["PeriodLabel"] == "10-25"].copy()
+    
+    print("=" * 80)
+    print("DECEMBER 2025 (12-25) VALUES COMPARISON")
+    print("=" * 80)
+    print()
+    
+    # Build comparison
+    categories = [
+        "Accrued Comp. Time - Non-Sworn",
+        "Accrued Comp. Time - Sworn",
+        "Accrued Overtime - Non-Sworn",
+        "Accrued Overtime - Sworn",
+        "Comp (Hours)",
+        "Employee Sick Time (Hours)",
+        "Used SAT Time (Hours)",
+        "Military Leave (Hours)",
+        "Injured on Duty (Hours)",
+    ]
+    
+    print(f"{'Category':<50} {'Dec Visual':<15} {'Dec Export':<15} {'Nov (11-25)':<15} {'Oct (10-25)':<15} {'Ratio':<10}")
+    print("-" * 120)
+    
+    for category in categories:
+        # December visual
+        dec_vis_val = 0.0
+        if not dec_visual_1225.empty:
+            cat_row = dec_visual_1225[dec_visual_1225["Time Category"] == category]
+            if len(cat_row) > 0:
+                dec_vis_val = float(cat_row.iloc[0]["Sum of Value"])
+        
+        # December export
+        dec_exp_val = 0.0
+        cat_row = dec_export_1225[dec_export_1225["Time Category"] == category]
+        if len(cat_row) > 0:
+            dec_exp_val = float(cat_row.iloc[0]["Sum of Value"])
+        
+        # November for comparison
+        nov_val = 0.0
+        cat_row = dec_export_1125[dec_export_1125["Time Category"] == category]
+        if len(cat_row) > 0:
+            nov_val = float(cat_row.iloc[0]["Sum of Value"])
+        
+        # October for comparison
+        oct_val = 0.0
+        cat_row = dec_export_1025[dec_export_1025["Time Category"] == category]
+        if len(cat_row) > 0:
+            oct_val = float(cat_row.iloc[0]["Sum of Value"])
+        
+        # Calculate ratio vs November
+        ratio = (dec_vis_val / nov_val * 100) if nov_val > 0 else 0.0
+        
+        print(f"{category:<50} {dec_vis_val:>14.2f} {dec_exp_val:>14.2f} {nov_val:>14.2f} {oct_val:>14.2f} {ratio:>9.1f}%")
+    
+    # Check FIXED file for December
+    print("\n" + "=" * 80)
+    print("FIXED FILE DECEMBER 2025 VALUES")
+    print("=" * 80)
+    fixed_dec = fixed_df[fixed_df["Period"] == "2025-12"]
+    if len(fixed_dec) > 0:
+        row = fixed_dec.iloc[0]
+        print(f"\nAccrued_Comp_Time: {row['Accrued_Comp_Time']:.2f}")
+        print(f"Accrued_Overtime_Paid: {row['Accrued_Overtime_Paid']:.2f}")
+        print(f"Comp (Hours): {row['Used_Comp_Time']:.2f}")
+        print(f"Employee Sick Time: {row['Employee_Sick_Time_Hours']:.2f}")
+        print(f"Used SAT Time: {row['Used_SAT_Time_Hours']:.2f}")
+        print(f"Military Leave: {row['Military_Leave_Hours']:.2f}")
+        print(f"Injured on Duty: {row['Injured_on_Duty_Hours']:.2f}")
+    
+    # Check monthly breakdown for December
+    print("\n" + "=" * 80)
+    print("MONTHLY BREAKDOWN DECEMBER 2025 VALUES")
+    print("=" * 80)
+    monthly_dec = monthly_df[monthly_df["YearMonth"] == "2025-12"]
+    if len(monthly_dec) > 0:
+        print("\nAccruals by Class:")
+        for _, row in monthly_dec.iterrows():
+            print(f"  {row['Class']} - {row['Metric']}: {row['Hours']:.2f}")
+    
+    # Analysis
+    print("\n" + "=" * 80)
+    print("ANALYSIS")
+    print("=" * 80)
+    print("\nChecking for potential issues:")
+    
+    # Check if December visual has cumulative values
+    if not dec_visual_1225.empty:
+        total_comp = dec_visual_1225[dec_visual_1225["Time Category"].str.contains("Comp. Time", na=False)]["Sum of Value"].sum()
+        total_ot = dec_visual_1225[dec_visual_1225["Time Category"].str.contains("Overtime", na=False)]["Sum of Value"].sum()
+        
+        if total_comp > 2000 or total_ot > 3000:
+            print("  [WARN] December values appear unusually high")
+            print("  [INFO] Possible causes:")
+            print("    - Cumulative totals instead of monthly")
+            print("    - Date window includes more than December")
+            print("    - Duplicate records")
+            print("    - Incorrect aggregation")
+    
+    # Compare with export
+    if not dec_visual_1225.empty and not dec_export_1225.empty:
+        print("\nComparing December Visual vs December Export:")
+        for category in categories[:4]:  # Just accruals
+            vis_row = dec_visual_1225[dec_visual_1225["Time Category"] == category]
+            exp_row = dec_export_1225[dec_export_1225["Time Category"] == category]
+            
+            if len(vis_row) > 0 and len(exp_row) > 0:
+                vis_val = float(vis_row.iloc[0]["Sum of Value"])
+                exp_val = float(exp_row.iloc[0]["Sum of Value"])
+                diff = abs(vis_val - exp_val)
+                
+                if diff > 0.01:
+                    print(f"  [DIFF] {category}: Visual={vis_val:.2f}, Export={exp_val:.2f}, Diff={diff:.2f}")
+                else:
+                    print(f"  [MATCH] {category}: {vis_val:.2f}")
+
+if __name__ == "__main__":
+    compare_months()
+
+```
+
+
+December values are 3–7x higher than November. Investigating the cause:
+
+
+
+Creating a script to investigate the high December values:
+
+
+```python
+#!/usr/bin/env python3
+"""
+Analyze December 2025 Raw Export Data
+
+Check if the high values are due to:
+1. Date range issues
+2. Duplicate records
+3. Incorrect file processing
+"""
+
+import pandas as pd
+from pathlib import Path
+
+OVERTIME_EXPORT = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\export\month\2025\2025_12_otactivity.xlsx")
+TIME_OFF_EXPORT = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\month\2025\2025_12_timeoffactivity.xlsx")
+OVERTIME_ALL = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\export\full_year\2025\2025_all_otactivity.xlsx")
+TIME_OFF_ALL = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\full_year\2025\2025_all_timeoffactivity.xlsx")
+
+def analyze_file(filepath: Path, file_type: str):
+    """Analyze a single export file.""" print(f"\n{'='*80}")
+    print(f"ANALYZING: {filepath.name} ({file_type})")
+    print("="*80)
+    
+    df = pd.read_excel(filepath, engine="openpyxl")
+    
+    # Find date column
+    date_col = None
+    for col in df.columns:
+        if "date" in col.lower():
+            date_col = col
+            break
+    
+    if not date_col:
+        print("  [WARN] No date column found")
+        return
+    
+    # Parse dates
+    df["Date"] = pd.to_datetime(df[date_col], errors="coerce")
+    df = df[df["Date"].notna()].copy()
+    
+    print(f"\nDate Analysis:")
+    print(f"  Total rows: {len(df)}")
+    print(f"  Date range: {df['Date'].min()} to {df['Date'].max()}")
+    
+    # December 2025 only
+    dec_only = df[(df["Date"] >= "2025-12-01") & (df["Date"] <= "2025-12-31")].copy()
+    print(f"  December 2025 rows: {len(dec_only)}")
+    
+    # Check for duplicates
+    if "Employee" in df.columns and "Hours" in df.columns:
+        print(f"\nDuplicate Check:")
+        # Check for exact duplicates
+        dup_cols = ["Employee", date_col, "Hours"]
+        if all(col in df.columns for col in dup_cols):
+            duplicates = df.duplicated(subset=dup_cols, keep=False)
+            print(f"  Exact duplicates: {duplicates.sum()}")
+            if duplicates.sum() > 0:
+                print(f"  Duplicate rows:")
+                print(df[duplicates][["Employee", date_col, "Hours"]].head(10))
+    
+    # Check status
+    if "Status" in df.columns:
+        status_counts = df["Status"].value_counts()
+        print(f"\nStatus Distribution:")
+        for status, count in status_counts.items():
+            print(f"  {status}: {count}")
+    
+    # Hours analysis
+    if "Hours" in df.columns:
+        df["Hours"] = pd.to_numeric(df["Hours"], errors="coerce").fillna(0)
+        print(f"\nHours Analysis:")
+        print(f"  Total hours (all dates): {df['Hours'].sum():.2f}")
+        print(f"  December 2025 hours: {dec_only['Hours'].sum():.2f}")
+        print(f"  Average hours per row: {df['Hours'].mean():.2f}")
+        print(f"  Max hours in single row: {df['Hours'].max():.2f}")
+
+def compare_files():
+    """Compare December-specific file vs all-year file.""" print("="*80)
+    print("DECEMBER 2025 HIGH VALUES INVESTIGATION")
+    print("="*80)
+    
+    # Analyze December-specific files
+    if OVERTIME_EXPORT.exists():
+        analyze_file(OVERTIME_EXPORT, "Overtime - December Only")
+    else:
+        print(f"\n[WARN] File not found: {OVERTIME_EXPORT}")
+    
+    if TIME_OFF_EXPORT.exists():
+        analyze_file(TIME_OFF_EXPORT, "Time Off - December Only")
+    else:
+        print(f"\n[WARN] File not found: {TIME_OFF_EXPORT}")
+    
+    # Analyze all-year files for December data
+    if OVERTIME_ALL.exists():
+        print(f"\n{'='*80}")
+        print("ANALYZING: 2025_all_otactivity.xlsx (December 2025 data only)")
+        print("="*80)
+        df_all = pd.read_excel(OVERTIME_ALL, engine="openpyxl")
+        
+        # Find date column
+        date_col = None
+        for col in df_all.columns:
+            if "date" in col.lower():
+                date_col = col
+                break
+        
+        if date_col:
+            df_all["Date"] = pd.to_datetime(df_all[date_col], errors="coerce")
+            dec_all = df_all[(df_all["Date"] >= "2025-12-01") & (df_all["Date"] <= "2025-12-31")].copy()
+            
+            print(f"\nDecember 2025 in ALL file:")
+            print(f"  Total rows: {len(dec_all)}")
+            if "Hours" in df_all.columns:
+                df_all["Hours"] = pd.to_numeric(df_all["Hours"], errors="coerce").fillna(0)
+                print(f"  Total hours: {dec_all['Hours'].sum():.2f}")
+            
+            # Check for overlap with December-specific file
+            if OVERTIME_EXPORT.exists():
+                df_dec = pd.read_excel(OVERTIME_EXPORT, engine="openpyxl")
+                print(f"\nOverlap Check:")
+                print(f"  December-specific file rows: {len(df_dec)}")
+                print(f"  All file December rows: {len(dec_all)}")
+                
+                # Check if same records appear in both
+                if "Employee" in df_dec.columns and "Employee" in dec_all.columns:
+                    dec_employees = set(df_dec["Employee"].astype(str))
+                    all_employees = set(dec_all["Employee"].astype(str))
+                    overlap = len(dec_employees & all_employees)
+                    print(f"  Employee overlap: {overlap} employees in both files")
+    
+    if TIME_OFF_ALL.exists():
+        print(f"\n{'='*80}")
+        print("ANALYZING: 2025_all_timeoffactivity.xlsx (December 2025 data only)")
+        print("="*80)
+        df_all = pd.read_excel(TIME_OFF_ALL, engine="openpyxl")
+        
+        # Find date column
+        date_col = None
+        for col in df_all.columns:
+            if "date" in col.lower():
+                date_col = col
+                break
+        
+        if date_col:
+            df_all["Date"] = pd.to_datetime(df_all[date_col], errors="coerce")
+            dec_all = df_all[(df_all["Date"] >= "2025-12-01") & (df_all["Date"] <= "2025-12-31")].copy()
+            
+            print(f"\nDecember 2025 in ALL file:")
+            print(f"  Total rows: {len(dec_all)}")
+            if "Hours" in df_all.columns:
+                df_all["Hours"] = pd.to_numeric(df_all["Hours"], errors="coerce").fillna(0)
+                print(f"  Total hours: {dec_all['Hours'].sum():.2f}")
+
+if __name__ == "__main__":
+    compare_files()
+
+```
+
+
+The `2025_all_timeoffactivity.xlsx` has 744 December rows vs 290 in the December-specific file, suggesting duplicates or incorrect data. Checking what the v10 script actually processed:
+
+
+
+The `2025_all_timeoffactivity.xlsx` has 744 December rows vs 290 in the December-specific file, suggesting duplicates or incorrect data. Checking for duplicates and comparing the files:
+
+
+```python
+#!/usr/bin/env python3
+"""
+Check for duplicate records causing high December values
+"""
+
+import pandas as pd
+from pathlib import Path
+
+DEC_SPECIFIC = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\month\2025\2025_12_timeoffactivity.xlsx")
+ALL_FILE = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\full_year\2025\2025_all_timeoffactivity.xlsx")
+
+print("="*80)
+print("DECEMBER 2025 DUPLICATE CHECK")
+print("="*80)
+
+# Load December-specific file
+print("\n1. December-Specific File Analysis:")
+df_dec = pd.read_excel(DEC_SPECIFIC, engine="openpyxl")
+df_dec["Date"] = pd.to_datetime(df_dec["Date"], errors="coerce")
+df_dec = df_dec[df_dec["Date"].notna()].copy()
+df_dec = df_dec[(df_dec["Date"] >= "2025-12-01") & (df_dec["Date"] <= "2025-12-31")].copy()
+df_dec["Hours"] = pd.to_numeric(df_dec["Hours"], errors="coerce").fillna(0)
+
+print(f"   Total rows: {len(df_dec)}")
+print(f"   Total hours: {df_dec['Hours'].sum():.2f}")
+
+# Check for duplicates within December-specific file
+if "Employee" in df_dec.columns:
+    dup_key = ["Employee", "Date", "Hours", "Reason"]
+    if all(col in df_dec.columns for col in dup_key):
+        duplicates = df_dec.duplicated(subset=dup_key, keep=False)
+        print(f"   Duplicates: {duplicates.sum()}")
+
+# Load ALL file
+print("\n2. ALL File December Analysis:")
+df_all = pd.read_excel(ALL_FILE, engine="openpyxl")
+df_all["Date"] = pd.to_datetime(df_all["Date"], errors="coerce")
+df_all = df_all[df_all["Date"].notna()].copy()
+df_all_dec = df_all[(df_all["Date"] >= "2025-12-01") & (df_all["Date"] <= "2025-12-31")].copy()
+df_all_dec["Hours"] = pd.to_numeric(df_all_dec["Hours"], errors="coerce").fillna(0)
+
+print(f"   Total rows: {len(df_all_dec)}")
+print(f"   Total hours: {df_all_dec['Hours'].sum():.2f}")
+
+# Check for duplicates within ALL file
+if "Employee" in df_all_dec.columns:
+    dup_key = ["Employee", "Date", "Hours", "Reason"]
+    if all(col in df_all_dec.columns for col in dup_key):
+        duplicates = df_all_dec.duplicated(subset=dup_key, keep=False)
+        print(f"   Duplicates: {duplicates.sum()}")
+        if duplicates.sum() > 0:
+            print(f"\n   Sample duplicates in ALL file:")
+            dup_df = df_all_dec[duplicates].sort_values(["Employee", "Date"])
+            print(dup_df[["Employee", "Date", "Hours", "Reason"]].head(20))
+
+# Compare the two files
+print("\n3. File Comparison:")
+print(f"   December-specific rows: {len(df_dec)}")
+print(f"   ALL file December rows: {len(df_all_dec)}")
+print(f"   Difference: {len(df_all_dec) - len(df_dec)} rows")
+
+# Check if records from December-specific appear in ALL file
+if "Employee" in df_dec.columns and "Employee" in df_all_dec.columns:
+    # Create comparison keys
+    df_dec["_key"] = df_dec["Employee"].astype(str) + "|" + df_dec["Date"].astype(str) + "|" + df_dec["Hours"].astype(str)
+    df_all_dec["_key"] = df_all_dec["Employee"].astype(str) + "|" + df_all_dec["Date"].astype(str) + "|" + df_all_dec["Hours"].astype(str)
+    
+    dec_keys = set(df_dec["_key"])
+    all_keys = set(df_all_dec["_key"])
+    
+    overlap = len(dec_keys & all_keys)
+    only_in_dec = len(dec_keys - all_keys)
+    only_in_all = len(all_keys - dec_keys)
+    
+    print(f"\n   Overlap: {overlap} records appear in both files")
+    print(f"   Only in December-specific: {only_in_dec} records")
+    print(f"   Only in ALL file: {only_in_all} records")
+    
+    if only_in_all > 0:
+        print(f"\n   [WARN] {only_in_all} records in ALL file are NOT in December-specific file")
+        print(f"   This could cause double-counting if v10 processes both files!") # Check date distribution in ALL file
+print("\n4. ALL File Date Distribution (December 2025):")
+if "Date" in df_all_dec.columns:
+    date_counts = df_all_dec["Date"].value_counts().sort_index()
+    print(f"   Unique dates: {df_all_dec['Date'].nunique()}")
+    print(f"   Date range: {df_all_dec['Date'].min()} to {df_all_dec['Date'].max()}")
+    print(f"\n   Top 10 dates by row count:")
+    for date, count in date_counts.head(10).items():
+        print(f"     {date.date()}: {count} rows")
+
+# Summary
+print("\n" + "="*80)
+print("SUMMARY")
+print("="*80)
+print(f"\nDecember-specific file: {len(df_dec)} rows, {df_dec['Hours'].sum():.2f} hours")
+print(f"ALL file (December): {len(df_all_dec)} rows, {df_all_dec['Hours'].sum():.2f} hours")
+print(f"\nRatio: {len(df_all_dec) / len(df_dec):.2f}x more rows in ALL file")
+print(f"Hours ratio: {df_all_dec['Hours'].sum() / df_dec['Hours'].sum():.2f}x more hours in ALL file")
+
+if len(df_all_dec) > len(df_dec) * 1.5:
+    print("\n[WARN] ALL file has significantly more December records than December-specific file!") print("This suggests:")
+    print("  1. Duplicate records in ALL file")
+    print("  2. Different data source/export")
+    print("  3. v10 script may be double-counting if it processes both files")
+
+```
+
+
+The ALL file has 454 extra December records not in the December-specific file. The v10 script processes both files, which likely causes double-counting. Checking how v10 handles deduplication:
+
+
+
+Checking how v10 loads and processes files:
+
+
+
+Checking where v10 loads files and whether it deduplicates:
+
+
+
+The v10 script loads all files recursively and concatenates them without deduplication, causing double-counting. Creating a summary report:
+
+
+```markdown
+# December 2025 High Values Investigation Report
+
+## Summary
+
+**Issue**: December 2025 (12-25) values are 3-7x higher than previous months in the Power BI visual. **Root Cause**: The v10 script processes both the `2025_all_timeoffactivity.xlsx` file AND the `2025_12_timeoffactivity.xlsx` file without deduplication, causing double-counting of December records. ## Findings
+
+### 1. Value Comparison
+
+| Category | December (12-25) | November (11-25) | Ratio |
+|----------|-----------------|------------------|-------|
+| Accrued Comp. Time - Non-Sworn | 220.00 | 29.00 | **7.6x** |
+| Accrued Comp. Time - Sworn | 1,005.00 | 224.25 | **4.5x** |
+| Accrued Overtime - Non-Sworn | 602.00 | 211.50 | **2.8x** |
+| Accrued Overtime - Sworn | 1,228.00 | 281.75 | **4.4x** |
+| Comp (Hours) | 1,051.00 | 389.00 | **2.7x** |
+| Employee Sick Time (Hours) | 4,312.00 | 946.50 | **4.6x** |
+| Used SAT Time (Hours) | 2,714.00 | 580.50 | **4.7x** |
+| Military Leave (Hours) | 192.00 | 12.00 | **16.0x** |
+| Injured on Duty (Hours) | 128.00 | 24.00 | **5.3x** |
+
+### 2. File Analysis
+
+**December-Specific File** (`2025_12_timeoffactivity.xlsx`):
+- Total rows: 290
+- Total hours: 2,037.25
+- Date range: 2025-12-01 to 2025-12-31
+
+**ALL File** (`2025_all_timeoffactivity.xlsx`):
+- December rows: **744** (2.57x more than December-specific file)
+- December hours: **5,913.75** (2.90x more than December-specific file)
+- **454 additional records** NOT in December-specific file
+
+**Overlap Analysis**:
+- 289 records appear in both files
+- 0 records only in December-specific file
+- **454 records only in ALL file**
+
+### 3. Root Cause
+
+The `overtime_timeoff_13month_sworn_breakdown_v10.py` script:
+
+1. **Loads all files recursively** from both `_Overtime` and `_Time_Off` directories (line 608-609)
+2. **Concatenates all files** without deduplication (line 631)
+3. **Does NOT deduplicate** after concatenation
+
+This means:
+- Both `2025_all_timeoffactivity.xlsx` (744 December rows) AND `2025_12_timeoffactivity.xlsx` (290 December rows) are processed
+- All 744 rows from the ALL file are included, even though 289 overlap with the December-specific file
+- The 454 extra records in the ALL file are also included, causing inflated totals
+
+### 4. Expected vs Actual
+
+**Expected December values** (based on November pattern and December-specific file):
+- Should be similar to November values (slightly higher due to holiday season)
+- December-specific file shows 2,037.25 hours total
+
+**Actual December values**:
+- Include all 744 rows from ALL file = 5,913.75 hours
+- This explains the 2.9x multiplier seen in the results
+
+## Recommendations
+
+### Immediate Fix
+
+Add deduplication to the v10 script after concatenating files:
+
+```python
+# After line 631 in v10 script:
+df = pd.concat([ot_df, to_df], ignore_index=True)
+
+# ADD DEDUPLICATION:
+# For Overtime: deduplicate on Employee, Date, Hours, Pay Type
+# For Time Off: deduplicate on Employee, Date, Hours, Reason
+dedup_cols = ["EmployeeName", "Date", "Hours"]
+if "Category" in df.columns:
+    dedup_cols.append("Category")
+if "Reason" in df.columns:
+    dedup_cols.append("Reason")
+    
+df = df.drop_duplicates(subset=dedup_cols, keep="first")
+print(f"[INFO] Rows after deduplication: {len(df)}")
+```
+
+### Alternative Solutions
+
+1. **Exclude ALL files when month-specific files exist**:
+   - Check if month-specific file exists (e.g., `2025_12_timeoffactivity.xlsx`)
+   - If yes, skip the ALL file for that month
+
+2. **Prefer month-specific files over ALL files**:
+   - Process month-specific files first
+   - When processing ALL file, exclude months that have specific files
+
+3. **Fix the ALL file export**:
+   - Investigate why the ALL file has 454 extra December records
+   - These may be duplicates or incorrect data
+
+## Verification
+
+To verify the fix:
+
+1. Run v10 script with deduplication
+2. Compare December values with November values
+3. Check that December values are reasonable (not 3-7x higher)
+4. Verify that December-specific file values match the output
+
+## Files Analyzed
+
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\output\2026_01_13_18_32_31_Monthly Accrual and Usage Summary.csv`
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\2025_12_Monthly Accrual and Usage Summary.csv`
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\month\2025\2025_12_timeoffactivity.xlsx`
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\full_year\2025\2025_all_timeoffactivity.xlsx`
+
+```
+
+
+## Investigation complete: December high values
+
+### Root cause
+The v10 script processes both:
+- `2025_all_timeoffactivity.xlsx` (744 December rows)
+- `2025_12_timeoffactivity.xlsx` (290 December rows)
+
+Without deduplication, this causes double-counting. ### Findings
+1. The ALL file has 454 extra December records not in the December-specific file. 2. The v10 script concatenates all files without deduplication (line 631). 3. Result: December values are 3–7x higher than November. ### Comparison
+- December-specific file: 290 rows, 2,037.25 hours
+- ALL file (December): 744 rows, 5,913.75 hours
+- Overlap: 289 records appear in both files
+- Extra records: 454 records only in ALL file
+
+### Solution
+Add deduplication to the v10 script after concatenating files. The report includes code recommendations. A detailed report is saved at:
+`C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\DECEMBER_HIGH_VALUES_INVESTIGATION_REPORT.md`
+
+Should I update the v10 script to add deduplication? ---
+
+**User**
+
+add run the etl aso I can refresh the power bi to update with the correct numbers
+
+---
+
+**Cursor**
+
+
+Adding deduplication to the v10 script, then running the ETL to produce the corrected numbers:
+
+
+```python
+# -*- coding: utf-8 -*-
+"""
+overtime_timeoff_13month_sworn_breakdown_v10.py
+
+13-month only. Sworn vs NonSworn. Long + wide exports. Adds:
+- Manual header overrides for OT/Comp columns. - Wider OT detection (OT, O.T., O/T, DT, Doubletime, 1.5x, 2.0x, 2.5x, 150%, 200%, 250%). - Fixes long-form pay label regex to match 'overtime' without a space. - Column-sum diagnostics and clear reporting.

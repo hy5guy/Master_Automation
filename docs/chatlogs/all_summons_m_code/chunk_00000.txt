@@ -1,0 +1,413 @@
+// ___Summons
+// ___Summons
+// 🕒 2025-09-08-15-45-00
+// Summons_Analytics/ATS_Court_Data_Enhanced
+// Author: R. A. Carucci
+// Purpose: Load the enhanced summons dataset processed by ETL script
+
+let
+    // Load the enhanced dataset from your ETL output
+    Source = Excel.Workbook(
+        File.Contents(
+            "C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
+        null, true),
+
+    // Select the Summons_Data sheet
+    ATS_Court_Data_Sheet = Source{[Item = "Summons_Data",
+                                   Kind = "Sheet"]}[Data],
+
+// Promote headers
+#"Promoted Headers" =
+    Table.PromoteHeaders(ATS_Court_Data_Sheet, [PromoteAllScalars = true]),
+
+// Helper: Filter column type list to only include columns that exist
+ColumnTypes = {
+    {"PADDED_BADGE_NUMBER", type text}, 
+    {"OFFICER_DISPLAY_NAME", type text}, 
+    {"WG1", type text}, {"WG2", type text}, {"WG3", type text}, {"WG4", type text}, {"WG5", type text}, 
+    {"TICKET_NUMBER", type text}, 
+    {"ISSUE_DATE", type datetime}, 
+    {"VIOLATION_NUMBER", type text}, 
+    {"VIOLATION_TYPE", type text}, 
+    {"TYPE", type text}, 
+    {"STATUS", type text}, 
+    {"TOTAL_PAID_AMOUNT", type number}, 
+    {"FINE_AMOUNT", type number}, 
+    {"COST_AMOUNT", type number}, 
+    {"MISC_AMOUNT", type number}, 
+    {"Year", type number}, 
+    {"Month", type number}, 
+    {"YearMonthKey", type number}, 
+    {"Month_Year", type text}, 
+    {"DATA_QUALITY_SCORE", type number}, 
+    {"DATA_QUALITY_TIER", type text}, 
+    {"SOURCE_FILE", type text}, 
+    {"PROCESSING_TIMESTAMP", type datetime}, 
+    {"ETL_VERSION", type text}
+},
+ExistingColumns = Table.ColumnNames(#"Promoted Headers"),
+FilteredTypes = List.Select(ColumnTypes, each List.Contains(ExistingColumns, _{0})),
+
+// Set data types based on your enhanced dataset structure (only for existing columns)
+#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", FilteredTypes)
+
+in
+#"Changed Type"
+
+// ___Summons_Diagnostic
+// Diagnostic query to see what's actually in the summons data
+// Use this temporarily to understand the data structure
+
+let
+    Source = Excel.Workbook(
+        File.Contents(
+            "C:/Users/carucci_r/OneDrive - City of Hackensack/03_Staging/Summons/summons_powerbi_latest.xlsx"
+        ),
+        null,
+        true
+    ),
+    ATS_Court_Data_Sheet = Source{[Item = "Summons_Data", Kind = "Sheet"]}[Data],
+    #"Promoted Headers" = 
+        Table.PromoteHeaders(ATS_Court_Data_Sheet, [PromoteAllScalars = true]),
+    
+    // Get column names
+    ColumnNames = Table.ColumnNames(#"Promoted Headers"),
+    
+    // Most recent month
+    MaxYearMonthKey = List.Max(#"Promoted Headers"[YearMonthKey]),
+    Recent = Table.SelectRows(#"Promoted Headers", each [YearMonthKey] = MaxYearMonthKey),
+    
+    // Show distinct TYPE values
+    DistinctTypes = Table.Distinct(Table.SelectColumns(Recent, {"TYPE"})),
+    
+    // Show distinct WG2 values
+    DistinctWG2 = Table.Distinct(Table.SelectColumns(Recent, {"WG2"})),
+    
+    // Count by TYPE
+    TypeCounts = Table.Group(
+        Recent,
+        {"TYPE"},
+        {{"Count", each Table.RowCount(_), Int64.Type}}
+    ),
+    
+    // Sample of recent data
+    Sample = Table.FirstN(Recent, 10)
+in
+    Sample
+
+// ___Top_5_Parking
+// 🕒 2025-09-08-17-30-00
+// Project: SummonsMaster/Top_5_Parking_Dynamic
+// Author: R. A. Carucci
+// Purpose: Generate Top 5 Parking Violations for Most Recent Month in Data
+
+// ___Top_5_Parking_Violations
+// 🕒 2025-09-08-17-30-00
+// Project: SummonsMaster/Top_5_Parking_Dynamic
+// Author: R. A. Carucci
+// Purpose: Generate Top 5 Parking Violations for Most Recent Month in Data
+
+let
+    // Load the current ATS Court Data directly from Excel
+    Source = Excel.Workbook(
+        File.Contents(
+            "C:/Users/carucci_r/OneDrive - City of Hackensack/03_Staging/Summons/summons_powerbi_latest.xlsx"
+        ),
+        null,
+        true
+    ),
+    ATS_Court_Data_Sheet = Source{[Item = "Summons_Data", Kind = "Sheet"]}[Data],
+    #"Promoted Headers" = 
+        Table.PromoteHeaders(ATS_Court_Data_Sheet, [PromoteAllScalars = true]),
+
+    // Helper: Filter column type list to only include columns that exist
+    ColumnTypes = {
+        {"PADDED_BADGE_NUMBER", type text},
+        {"OFFICER_DISPLAY_NAME", type text},
+        {"OFFICER_NAME_RAW", type text},
+        {"WG1", type text}, {"WG2", type text}, {"WG3", type text},
+        {"WG4", type text}, {"WG5", type text},
+        {"TICKET_NUMBER", type text},
+        {"ISSUE_DATE", type datetime},
+        {"VIOLATION_NUMBER", type text},
+        {"VIOLATION_TYPE", type text},
+        {"TYPE", type text}, {"STATUS", type text},
+        {"TOTAL_PAID_AMOUNT", type number},
+        {"FINE_AMOUNT", type number},
+        {"COST_AMOUNT", type number},
+        {"MISC_AMOUNT", type number},
+        {"Year", Int64.Type}, {"Month", Int64.Type},
+        {"YearMonthKey", Int64.Type}, {"Month_Year", type text},
+        {"DATA_QUALITY_SCORE", type number},
+        {"DATA_QUALITY_TIER", type text},
+        {"SOURCE_FILE", type text},
+        {"PROCESSING_TIMESTAMP", type datetime},
+        {"ETL_VERSION", type text}
+    },
+    ExistingColumns = Table.ColumnNames(#"Promoted Headers"),
+    FilteredTypes = List.Select(ColumnTypes, each List.Contains(ExistingColumns, _{0})),
+
+    // Set proper data types (only for existing columns)
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", FilteredTypes),
+
+    // Find the most recent month using the YearMonthKey for efficiency
+    MaxYearMonthKey = List.Max(#"Changed Type"[YearMonthKey]),
+
+    // Filter for the most recent month using the key
+    #"Filtered Recent Month" = 
+        Table.SelectRows(#"Changed Type", each [YearMonthKey] = MaxYearMonthKey),
+
+    // Filter for Parking violations only (case-insensitive, handle variations, handle nulls)
+    #"Filtered Parking Only" = 
+        Table.SelectRows(
+            #"Filtered Recent Month", 
+            each 
+                let
+                    typeVal = if [TYPE] = null then "" else Text.Upper(Text.Trim(Text.From([TYPE])))
+                in
+                    typeVal = "P" or typeVal = "PARKING" or (typeVal = "" and [VIOLATION_TYPE] <> null and Text.Contains(Text.Upper(Text.From([VIOLATION_TYPE])), "PARKING"))
+        ),
+
+    // Officer fallback if display is missing
+    #"With Officer Fallback" = Table.AddColumn(
+        #"Filtered Parking Only",
+        "Officer_Effective",
+        each if [OFFICER_DISPLAY_NAME] <> null and [OFFICER_DISPLAY_NAME] <> ""
+             then [OFFICER_DISPLAY_NAME]
+             else try [OFFICER_NAME_RAW] otherwise null,
+        type text
+    ),
+
+    // Filter out records without officer name (WG2 can be empty)
+    #"Filtered Assigned Officers" = Table.SelectRows(
+        #"With Officer Fallback",
+        each [Officer_Effective] <> null and [Officer_Effective] <> ""
+    ),
+
+    // Add Bureau column (use WG2 if available, otherwise "Unknown")
+    #"With Bureau" = Table.AddColumn(
+        #"Filtered Assigned Officers",
+        "Bureau_Final",
+        each if [WG2] <> null and [WG2] <> "" then [WG2] else "Unknown",
+        type text
+    ),
+
+    // Group by Officer and count tickets (use TICKET_COUNT if available, otherwise count rows)
+    #"Grouped by Officer" = Table.Group(
+        #"With Bureau",
+        {"Officer_Effective", "Bureau_Final"},
+        {
+            {
+                "Summons_Count", 
+                each Table.RowCount(_), 
+                type number
+            }
+        }
+    ),
+
+    // Sort by summons count descending
+    #"Sorted by Count" = 
+        Table.Sort(#"Grouped by Officer", {{"Summons_Count", Order.Descending}}),
+
+    // Take top 5
+    #"Top 5 Officers" = Table.FirstN(#"Sorted by Count", 5),
+
+    // Add rank column
+    #"Added Index" = Table.AddIndexColumn(#"Top 5 Officers", "Rank", 1, 1),
+
+    // Reorder columns for better display
+    #"Reordered Columns" = Table.ReorderColumns(
+        #"Added Index",
+        {"Rank", "Officer_Effective", "Bureau_Final", "Summons_Count"}
+    ),
+
+    // Rename columns for better display
+    #"Renamed Columns" = Table.RenameColumns(
+        #"Reordered Columns",
+        {
+            {"Officer_Effective", "Officer"},
+            {"Bureau_Final", "Bureau"},
+            {"Summons_Count", "Summons Count"}
+        }
+    )
+in
+    #"Renamed Columns"
+
+// ___Top_5_Movong
+// ___Top_5_Moving_Violations (DROP-IN READY)
+// Fixes:
+// - Sums TICKET_COUNT (not RowCount)
+// - Normalizes badge join keys safely (null-safe + digits-only + pad to 4)
+// - Fills WG2 from Assignment Master when missing
+// - Uses OFFICER_NAME_RAW fallback when OFFICER_DISPLAY_NAME is blank
+// ___Top_5_Moving_Violations
+// 🕒 2025_11_10_13_20_49
+// Project: SummonsMaster/Top_5_Moving_Violations_Direct
+// Author: R. A. Carucci
+// Purpose: Generate Top 5 Moving Violations by Officer for Previous Month
+// (Direct Excel Reference)
+
+let
+  // Paths
+  ExcelPath = "C:/Users/carucci_r/OneDrive - City of Hackensack/03_Staging/Summons/summons_powerbi_latest.xlsx",
+  AMPath    = "C:/Users/carucci_r/OneDrive - City of Hackensack/09_Reference/Personnel/Assignment_Master_V2.csv",
+
+  // Load Excel
+  XlWB   = Excel.Workbook(File.Contents(ExcelPath), null, true),
+  XlRaw  = XlWB{[Item="Summons_Data", Kind="Sheet"]}[Data],
+  XlHdr  = Table.PromoteHeaders(XlRaw, [PromoteAllScalars=true]),
+  
+  // Helper: Filter column type list to only include columns that exist
+  ColumnTypes = {
+    {"PADDED_BADGE_NUMBER", type text},
+    {"OFFICER_DISPLAY_NAME", type text},
+    {"OFFICER_NAME_RAW", type text},
+    {"WG1", type text}, {"WG2", type text}, {"WG3", type text},
+    {"WG4", type text}, {"WG5", type text},
+    {"TICKET_NUMBER", type text},
+    {"ISSUE_DATE", type datetime},
+    {"VIOLATION_NUMBER", type text},
+    {"VIOLATION_TYPE", type text},
+    {"TYPE", type text}, {"STATUS", type text},
+    {"TOTAL_PAID_AMOUNT", type number},
+    {"FINE_AMOUNT", type number},
+    {"COST_AMOUNT", type number},
+    {"MISC_AMOUNT", type number},
+    {"Year", Int64.Type}, {"Month", Int64.Type},
+    {"YearMonthKey", Int64.Type}, {"Month_Year", type text},
+    {"DATA_QUALITY_SCORE", type number},
+    {"DATA_QUALITY_TIER", type text},
+    {"SOURCE_FILE", type text},
+    {"PROCESSING_TIMESTAMP", type datetime},
+    {"ETL_VERSION", type text},
+    {"WG2_ASSIGN", type text}
+  },
+  ExistingColumns = Table.ColumnNames(XlHdr),
+  FilteredTypes = List.Select(ColumnTypes, each List.Contains(ExistingColumns, _{0})),
+  
+  XlType = Table.TransformColumnTypes(XlHdr, FilteredTypes),
+
+  // Load Assignment Master
+  AM_Csv  = Csv.Document(File.Contents(AMPath), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+  AM_Hdr  = Table.PromoteHeaders(AM_Csv, [PromoteAllScalars=true]),
+
+  // Normalize join keys in AM
+  AM_KeyPrep1 = Table.AddColumn(
+                  AM_Hdr,
+                  "KEY_BADGE",
+                  each
+                    let
+                      b1 = try Text.From([PADDED_BADGE_NUMBER]) otherwise null,
+                      b2 = if b1 = null then try Text.From([BADGE_PAD]) otherwise null else b1,
+                      b3 = if b2 = null then try Text.From([Badge_Padded]) otherwise null else b2,
+                      b4 = if b3 = null then try Text.From([BadgeNumberPadded]) otherwise null else b3
+                    in b4,
+                  type text
+                ),
+  AM_KeyPrep2 = Table.TransformColumns(AM_KeyPrep1, {{"KEY_BADGE", each if _ = null then "" else _, type text}}),
+  AM_Slim     = Table.SelectColumns(AM_KeyPrep2, {"KEY_BADGE", "WG2"}, MissingField.Ignore),
+
+  // Normalize join keys in Excel
+  Xl_KeyPrep = Table.AddColumn(
+                 XlType,
+                 "KEY_BADGE",
+                 each if [PADDED_BADGE_NUMBER] <> null then Text.From([PADDED_BADGE_NUMBER]) else "",
+                 type text
+               ),
+
+  // Merge to bring WG2 from AM
+  Merged   = Table.NestedJoin(Xl_KeyPrep, {"KEY_BADGE"}, AM_Slim, {"KEY_BADGE"}, "AM", JoinKind.LeftOuter),
+  Expanded = Table.ExpandTableColumn(Merged, "AM", {"WG2"}, {"WG2_AM"}),
+
+  // Fill WG2 from AM when missing in Excel, then try WG2_ASSIGN as fallback
+  WithWG2  = Table.AddColumn(
+               Expanded,
+               "WG2_Filled",
+               each 
+                 let
+                   wg2_original = if [WG2] <> null and [WG2] <> "" then [WG2] else null,
+                   wg2_from_am = if wg2_original = null then [WG2_AM] else wg2_original,
+                   wg2_from_assign = if wg2_from_am = null or wg2_from_am = "" then try [WG2_ASSIGN] otherwise null else wg2_from_am
+                 in
+                   if wg2_from_assign = null then "" else wg2_from_assign,
+               type text
+             ),
+
+  // Most recent month
+  MaxYMK   = List.Max(WithWG2[YearMonthKey]),
+  Recent   = Table.SelectRows(WithWG2, each [YearMonthKey] = MaxYMK),
+
+  // Moving violations only (case-insensitive, handle variations, handle nulls)
+  Moving   = Table.SelectRows(
+    Recent, 
+    each 
+      let
+        typeVal = if [TYPE] = null then "" else Text.Upper(Text.Trim(Text.From([TYPE])))
+      in
+        typeVal = "M" or typeVal = "MOVING" or (typeVal = "" and [VIOLATION_TYPE] <> null and Text.Contains(Text.Upper(Text.From([VIOLATION_TYPE])), "MOVING"))
+  ),
+
+  // Exclude Traffic Bureau - they're not authorized for moving violations (case-insensitive)
+  // Check both WG2_Filled and WG2_ASSIGN
+  ExcludeTraffic = Table.SelectRows(
+    Moving,
+    each 
+      let
+        wg2Val = if [WG2_Filled] = null or [WG2_Filled] = "" then 
+                    (if [WG2_ASSIGN] = null then "" else Text.Upper(Text.Trim([WG2_ASSIGN])))
+                  else 
+                    Text.Upper(Text.Trim([WG2_Filled]))
+      in
+        wg2Val <> "" and wg2Val <> "TRAFFIC BUREAU"
+  ),
+
+  // Officer fallback if display is missing
+  WithOfficer = Table.AddColumn(
+                  ExcludeTraffic,
+                  "Officer_Effective",
+                  each if [OFFICER_DISPLAY_NAME] <> null and [OFFICER_DISPLAY_NAME] <> ""
+                       then [OFFICER_DISPLAY_NAME]
+                       else try [OFFICER_NAME_RAW] otherwise null,
+                  type text
+                ),
+
+  // Keep only rows with an officer name (WG2 can be empty, but officer must exist)
+  Assigned = Table.SelectRows(
+    WithOfficer, 
+    each [Officer_Effective] <> null and [Officer_Effective] <> ""
+  ),
+
+  // Group, sort, top 5, rank
+  // Sum TICKET_COUNT if column exists, otherwise count rows
+  // Use WG2_Filled if available, then try WG2_ASSIGN, otherwise "Unknown"
+  WithBureau = Table.AddColumn(
+    Assigned,
+    "Bureau_Final",
+    each 
+      let
+        wg2_filled = if [WG2_Filled] <> null and [WG2_Filled] <> "" then [WG2_Filled] else null,
+        wg2_assign = if wg2_filled = null then try [WG2_ASSIGN] otherwise null else wg2_filled
+      in
+        if wg2_assign = null or wg2_assign = "" then "Unknown" else wg2_assign,
+    type text
+  ),
+  Grouped  = Table.Group(
+    WithBureau, 
+    {"Officer_Effective", "Bureau_Final"}, 
+    {
+      {
+        "Summons Count", 
+        each Table.RowCount(_), 
+        Int64.Type
+      }
+    }
+  ),
+  Sorted   = Table.Sort(Grouped, {{"Summons Count", Order.Descending}}),
+  Top5     = Table.FirstN(Sorted, 5),
+  Ranked   = Table.AddIndexColumn(Top5, "Rank", 1, 1),
+
+  // Final columns
+  Renamed  = Table.RenameColumns(Ranked, {{"Officer_Effective", "Officer"}, {"Bureau_Final", "Bureau"}}),
+  Final    = Table.ReorderColumns(Renamed, {"Rank", "Officer", "Bureau", "Summons Count"})
+in
+  Final

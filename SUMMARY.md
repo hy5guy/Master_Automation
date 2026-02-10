@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-02-09
 **Status:** ✅ Production Ready - 100% Operational (ETL + Power BI)
-**Version:** 1.11.0
+**Version:** 1.12.0
 
 ---
 
@@ -20,7 +20,7 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
 | **Status** | ✅ Production Ready |
-| **Version** | 1.11.0 |
+| **Version** | 1.12.0 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -545,5 +545,5 @@ The manifest provides a machine-readable reference for the entire Master Automat
 
 **Maintained by:** R. A. Carucci  
 **Last Updated:** 2026-02-09  
-**Version:** 1.11.0
+**Version:** 1.12.0
 

@@ -1,0 +1,22 @@
+// If you want to use the month from the data (recommended):
+// Create a measure that references the query's month field
+Subtitle_Top_5_NEW = 
+VAR LatestMonth = CALCULATE(MAX('summons_top5_parking'[Month_Year]), ALL('summons_top5_parking'))
+VAR MonthDate = DATE(
+    VALUE(RIGHT(LatestMonth, 2)) + 2000,
+    VALUE(LEFT(LatestMonth, 2)),
+    1
+)
+RETURN
+FORMAT(MonthDate, "MMMM yyyy") & " - Department-Wide Performance"
+
+// Alternative: If you want to use the previous month from today's date:
+// This should show December 2025 if today is January 2026
+Subtitle_Top_5_NEW_Alt = 
+VAR PrevMonthEnd = EOMONTH(TODAY(), -1)
+RETURN
+FORMAT(PrevMonthEnd, "MMMM yyyy") & " - Department-Wide Performance"
+
+// Simple version (should work correctly):
+Subtitle_Top_5_NEW_Simple = 
+FORMAT(EOMONTH(TODAY(), -1), "MMMM yyyy") & " - Department-Wide Performance"

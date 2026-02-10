@@ -1,0 +1,518 @@
+---
+
+## [Unreleased]
+
+### Added
+- **Validation / QC helpers**
+  - `scripts/compare_policy_training_delivery.py` - Policy Training Delivery Cost: visual export vs ETL output vs backfill history
+  - `scripts/compare_summons_deptwide.py` - Summons Dept-Wide Moving/Parking: visual export vs backfill history + ETL current month
+  - `scripts/diagnose_summons_blank_bureau.py` - Summons: detect blank `WG2` (Bureau) rows that appear as blank Bureau in visuals
+  - `scripts/run_summons_with_overrides.py` - Summons: run ETL with injected badge overrides (without editing upstream project)
+
+### Verified
+- Policy Training Monthly: Delivery Cost history matches backfill; ETL computed the new month (11-25)
+- Summons: Dept-Wide Moving/Parking history matches backfill; ETL computed 11-25 from e-ticket export
+
+### Fixed
+- Summons “blank Bureau” row caused by missing assignment enrichment for badge 1711
+  - Added a run wrapper that injects a badge override (maps 1711 → Traffic Bureau) and regenerates `summons_powerbi_latest.xlsx`
+
+## [1.0.0] - 2025-12-11
+
+### Added
+
+#### Project Structure
+- **Folder scaffolding**
+  - `docs/` - Documentation files
+  - `chatlogs/` - AI chat logs
+  - `_DropExports/` - Optional staging folder
+  - `logs/` - ETL execution logs (auto-created)
+
+#### Documentation
+- `SUMMARY.md` - Project summary and quick reference
+- `CHANGELOG.md` - Version history (this file)
+- `docs/PROJECT_STRUCTURE.md` - Directory structure guide
+- `docs/FOLDER_STRUCTURE_CREATED.md` - Folder setup documentation
+- `chatlogs/README.md` - Chat log guidelines
+
+#### Scripts
+- **Migration verification script** (`verify_migration.ps1`)
+  - Automated 8-point verification checklist
+  - Validates config paths, directory structure, junctions, and script references
+  - Provides detailed status report
+
+- **Overtime TimeOff helpers**
+  - `scripts/overtime_timeoff_with_backfill.py` - Monthly wrapper (v10 + backfill + accrual history)
+  - `scripts/restore_fixed_from_backfill.py` - Restore history into `FIXED_monthly_breakdown_*.csv`
+    - Supports both WIDE exports (month columns) and LONG exports (`PeriodLabel` + `Sum of Value`)
+    - Optional `--include-accruals` flag (off by default)
+  - `scripts/compare_vcs_time_report_exports.py` - Compare refreshed exports vs baseline backfill exports
+
+#### Git Repository
+- Initialized local git repository
+- Added `.gitignore` for logs and temporary files
+
+### Changed
+
+#### Configuration (`config\scripts.json`)
+- Updated script filenames to match actual files:
+  - Arrests: `arrest_python_processor.py`
+  - Community Engagement: `deploy_production.py`
+  - Overtime TimeOff: `overtime_timeoff_with_backfill.py` (wrapper around v10 + backfill)
+  - Response Times: `response_time_diagnostic.py`
+  - Summons: `main_orchestrator.py`
+- Disabled scripts without Python files:
+  - Policy Training Monthly
+  - Arrest Data Source
+  - NIBRS
+- Updated `powerbi_drop_path` to OneDrive location
+- Backup created: `config\scripts.json.bak`
+
+#### Scripts
+- `scripts\run_all_etl.ps1` - Updated next-step instructions with new PowerBI_Date path
+- Removed all references to old `C:\Dev\PowerBI_Date` paths
+
+- `scripts/overtime_timeoff_with_backfill.py`
+  - Default backfill root updated to: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill`
+  - Now backfills `analytics_output\monthly_breakdown.csv` for prior 12 months from the same backfill export (preserves current month from v10)
+
+#### Documentation Organization
+- Moved all markdown files (except README.md) to `docs/` folder
+- Organized documentation by topic
+- Created chatlogs directory for AI conversations
+
+#### ETL Scripts
+- Updated Response Times script backfill path:
+  - Changed from: `C:\Dev\PowerBI_Date\Backfill\...`
+  - Changed to: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\...`
+
+### Fixed
+- All path references updated to reflect OneDrive migration
+- Script file path handling verified for OneDrive paths with spaces
+- Documentation consistency across all files
+- ETL script filenames verified and corrected
+
+- Overtime TimeOff historical “null/0” issue in Power BI visual
+  - Restored legacy usage rows into `FIXED_monthly_breakdown_*.csv` from backfill exports
+  - Populated accrual history by backfilling `analytics_output\monthly_breakdown.csv` (previously only current month existed)
+
+### Infrastructure
+- **Master_Automation Junction Created**
+  - Location: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Master_Automation`
+  - Target: `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`
+  - Type: NTFS Junction (symlink)
+
+### Verified
+- ✅ Config file paths correct
+- ✅ PowerBI_Date directory structure intact
+- ✅ Master_Automation junction functional
+- ✅ All script path references updated
+- ✅ Documentation paths corrected
+- ✅ Python executable accessible (Python 3.13.7)
+- ✅ Drop folder accessible and writable
+- ✅ All enabled script files exist and are accessible
+- ✅ Dry run test passed successfully
+
+---
+
+## [0.9.0] - 2025-12-11 - Migration to OneDrive
+
+### Added
+- Migration verification script (`verify_migration.ps1`)
+- Comprehensive migration documentation
+- Verification guides and summaries
+
+### Changed
+- **PowerBI_Date Migration**
+  - From: `C:\Dev\PowerBI_Date_Merged`
+  - To: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date`
+- Updated all path references in configuration and scripts
+- Updated documentation with new paths
+
+### Fixed
+- All old path references removed
+- Script logic verified for OneDrive paths
+
+---
+
+## [0.1.0] - 2025-12-09 - Initial Setup
+
+### Added
+- Initial Master_Automation workspace structure
+- ETL orchestrator scripts (`run_all_etl.ps1`, `run_all_etl.bat`, `run_etl_script.ps1`)
+- Configuration file (`config\scripts.json`)
+- Basic documentation (`README.md`, `QUICK_START.md`)
+
+### Features
+- Sequential ETL script execution
+- Error handling and logging
+- Power BI output integration
+- Selective script execution
+- Status reporting
+
+---
+
+## Future Updates
+
+### Planned
+- [ ] ETL script filename verification and auto-detection
+- [ ] Enhanced error reporting and recovery
+- [ ] Performance monitoring and optimization
+- [ ] Automated testing suite
+- [ ] Integration with Power BI refresh scheduling
+- [ ] Column reorder utility for backfill CSVs
+
+### Under Consideration
+- [ ] Web-based dashboard for ETL status
+- [ ] Email notifications for failures
+- [ ] Retry logic for transient errors
+- [ ] Parallel script execution option
+- [ ] Configuration UI
+- [ ] Automated backfill column ordering
+
+---
+
+## Notes
+
+- All paths are now OneDrive-synced for cloud backup and multi-device access
+- Junction link allows seamless access to Master_Automation from PowerBI_Date directory
+- Verification script should be run after any configuration changes
+- Logs directory is auto-created on first ETL run
+- Documentation organized in `docs/` folder for better structure
+- Chat logs should be saved to `chatlogs/` folder with date prefix
+
+---
+
+**Maintained by:** R. A. Carucci  
+**Last Updated:** 2025-12-11  
+**Current Version:** 1.0.0
+
+
+```
+
+Updated the docs to reflect the latest work:
+
+- **`README.md`**
+  - Added the new helper scripts:
+    - `compare_policy_training_delivery.py`
+    - `compare_summons_deptwide.py`
+    - `diagnose_summons_blank_bureau.py`
+    - `run_summons_with_overrides.py`
+  - Added sections documenting **Policy Training Monthly** validation and **Summons** validation + the badge **1711** override workflow. - **`SUMMARY.md`**
+  - Updated the “Disabled Scripts” note for Policy Training (it’s run from its own project folder). - Added sections for:
+    - **Policy Training Monthly (Backfill + Current Month)**
+    - **Summons (Backfill + Current Month From E‑Ticket)**, including the override runner and diagnostics. - Added “Recent Updates” bullets for Policy Training + Summons verification and the Summons badge 1711 fix. - **`CHANGELOG.md`**
+  - Added an **`[Unreleased]`** section capturing:
+    - the new validation/diagnostic scripts,
+    - verified results for Policy Training + Summons,
+    - the Summons blank Bureau fix via badge 1711 override runner. ---
+
+**User**
+
+@25_11_e_ticketexport.csv provide the number of moving (M) and parking (P) for people assigned Patrol
+
+---
+
+**Cursor**
+
+I’ll compute this directly from the raw e-ticket export by: (1) parsing the semicolon-delimited rows, (2) mapping `Officer Id` to assignment data (so we know who is assigned to **PATROL BUREAU**), and (3) counting `Case Type Code` = **M** vs **P** for those Patrol-assigned officers. ```python
+#!/usr/bin/env python3
+"""
+Count Moving (M) vs Parking (P) tickets in a raw e-ticket export for officers assigned to Patrol. Logic:
+- Parse the raw e-ticket export (semicolon-delimited payload lines, often CSV-wrapped in quotes)
+- Normalize Officer Id -> 4-digit string
+- Load Assignment_Master_V2.csv and select badges where WG2 == PATROL BUREAU
+- Count Case Type Code in {M, P} for those Patrol-assigned officers
+"""
+
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+import pandas as pd
+
+
+def parse_raw_eticket(path: Path) -> pd.DataFrame:
+    with path.open("r", encoding="utf-8", errors="ignore") as f:
+        header_line = f.readline().rstrip("\n")
+        header = header_line.split(";")
+        rows = []
+        for line in f:
+            line = line.rstrip("\n")
+            if not line:
+                continue
+            # Most rows are a quoted payload plus trailing commas:  "a;b;c;...;z",,,,,
+            if line.startswith('"'):
+                # take content inside first pair of quotes
+                try:
+                    inner = line.split('"', 2)[1]
+                except Exception:
+                    inner = line.strip('"')
+                parts = inner.split(";")
+            else:
+                parts = line.split(";")
+            if len(parts) < 10:
+                continue
+            row = dict(zip(header, parts + [""] * max(0, len(header) - len(parts))))
+            rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--eticket", required=True, help="Path to raw YY_MM_e_ticketexport.csv")
+    ap.add_argument(
+        "--assignment",
+        default=r"C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_V2.csv",
+        help="Path to Assignment_Master_V2.csv",
+    )
+    args = ap.parse_args()
+
+    et_path = Path(args.eticket)
+    am_path = Path(args.assignment)
+
+    et = parse_raw_eticket(et_path)
+    if et.empty:
+        raise SystemExit(f"No rows parsed from: {et_path}")
+
+    # Normalize keys
+    et["Officer Id"] = et.get("Officer Id", "").astype(str).str.strip()
+    et["Officer Id"] = et["Officer Id"].str.replace(".0", "", regex=False).str.zfill(4)
+    et["Case Type Code"] = et.get("Case Type Code", "").astype(str).str.strip().str.upper()
+
+    am = pd.read_csv(am_path, dtype=str)
+    am["PADDED_BADGE_NUMBER"] = am["PADDED_BADGE_NUMBER"].astype(str).str.strip()
+    am["PADDED_BADGE_NUMBER"] = am["PADDED_BADGE_NUMBER"].str.replace(".0", "", regex=False).str.zfill(4)
+    wg2 = am.get("WG2", "").astype(str).str.strip().str.upper()
+    patrol_badges = set(am.loc[wg2 == "PATROL BUREAU", "PADDED_BADGE_NUMBER"])
+
+    patrol = et[et["Officer Id"].isin(patrol_badges)].copy()
+    counts = patrol["Case Type Code"].value_counts()
+
+    m = int(counts.get("M", 0))
+    p = int(counts.get("P", 0))
+
+    print(f"ETicket file: {et_path}")
+    print(f"Patrol-assigned tickets: {len(patrol)}")
+    print(f"Moving (M): {m}")
+    print(f"Parking (P): {p}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+```
+
+Patrol-assigned tickets in `25_11_e_ticketexport.csv` (using `Assignment_Master_V2.csv` where `WG2 = PATROL BUREAU`):
+
+- **Moving (M): 249**
+- **Parking (P): 596**
+
+---
+
+**User**
+
+or check Officer Last Name from the export against @Assignment_Master_V2.csv @Summons  Moving & Parking  All Bureaus.csv  because the visual for patrol is incorrect the visual usewd WG2, TYPE and TICKET_COUNT for the wells
+
+---
+
+**Cursor**
+
+You’re right to sanity-check Patrol this way: **the visual is driven purely by `WG2` + `TYPE` + `TICKET_COUNT`**, so the definitive check is to recompute those same group totals directly from `summons_powerbi_latest.xlsx` and compare to your exported “All Bureaus” CSV. Next I’ll run that comparison and also list the top Patrol officers (by last name) contributing to the Patrol counts. ```python
+#!/usr/bin/env python3
+"""
+Validate the Summons 'Moving & Parking All Bureaus' visual export against the ETL output workbook. Compares:
+- visual export CSV with columns: Bureau, TYPE, Sum of TICKET_COUNT
+  (Bureau corresponds to WG2 in the ETL output)
+- ETL output workbook: summons_powerbi_latest.xlsx (Summons_Data sheet)
+
+Also prints Patrol officer last-name contributions for the month to help debug "Patrol is incorrect" issues.
+""" from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+
+def load_visual(path: Path) -> pd.DataFrame:
+    v = pd.read_csv(path)
+    v["Bureau"] = v["Bureau"].astype(str).str.strip()
+    v["TYPE"] = v["TYPE"].astype(str).str.strip().str.upper()
+    v["Sum of TICKET_COUNT"] = pd.to_numeric(v["Sum of TICKET_COUNT"], errors="coerce").fillna(0).astype(int)
+    return v
+
+
+def load_etl(xlsx: Path, month: str) -> pd.DataFrame:
+    df = pd.read_excel(xlsx, sheet_name="Summons_Data")
+    needed = ["WG2", "TYPE", "TICKET_COUNT", "Month_Year"]
+    missing = [c for c in needed if c not in df.columns]
+    if missing:
+        raise SystemExit(f"Missing columns in ETL workbook: {missing}")
+
+    df["Month_Year"] = df["Month_Year"].astype(str).str.strip()
+    df = df[df["Month_Year"] == month].copy()
+    df["WG2"] = df["WG2"].astype(str).str.strip()
+    df["TYPE"] = df["TYPE"].astype(str).str.strip().str.upper()
+    df["TICKET_COUNT"] = pd.to_numeric(df["TICKET_COUNT"], errors="coerce").fillna(0).astype(int)
+    return df
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--visual", required=True, help="Path to visual export CSV (All Bureaus)")
+    ap.add_argument("--etl-xlsx", required=True, help="Path to summons_powerbi_latest.xlsx")
+    ap.add_argument("--month", default="11-25", help="Month_Year label (MM-YY)")
+    ap.add_argument("--patrol-bureau", default="PATROL BUREAU", help="WG2 label used for Patrol")
+    args = ap.parse_args()
+
+    visual = load_visual(Path(args.visual))
+    etl = load_etl(Path(args.etl_xlsx), args.month)
+
+    # ETL grouped as the visual does: WG2 -> Bureau, TYPE, sum(TICKET_COUNT)
+    etl_grp = (
+        etl.groupby(["WG2", "TYPE"], as_index=False)["TICKET_COUNT"].sum()
+        .rename(columns={"WG2": "Bureau", "TICKET_COUNT": "Sum of TICKET_COUNT"})
+    )
+
+    # Keep only M/P in comparison because this visual is "Moving & Parking"
+    visual_mp = visual[visual["TYPE"].isin(["M", "P"])].copy()
+    etl_mp = etl_grp[etl_grp["TYPE"].isin(["M", "P"])].copy()
+
+    merged = visual_mp.merge(etl_mp, on=["Bureau", "TYPE"], how="outer", suffixes=("_visual", "_etl"), indicator=True)
+    missing = merged[merged["_merge"] != "both"][["Bureau", "TYPE", "_merge"]].sort_values(["Bureau", "TYPE"])
+    both = merged[merged["_merge"] == "both"].copy()
+    both["diff"] = both["Sum of TICKET_COUNT_visual"] - both["Sum of TICKET_COUNT_etl"]
+    diffs = both[both["diff"] != 0][
+        ["Bureau", "TYPE", "Sum of TICKET_COUNT_visual", "Sum of TICKET_COUNT_etl", "diff"]
+    ].sort_values(["Bureau", "TYPE"])
+
+    print(f"=== All Bureaus Visual vs ETL (month {args.month}) ===")
+    print(f"Missing keys: {len(missing)}")
+    print(f"Value diffs:  {len(diffs)}")
+    if len(missing):
+        print("\nMissing (first 50):")
+        print(missing.head(50).to_string(index=False))
+    if len(diffs):
+        print("\nDiffs (first 50):")
+        print(diffs.head(50).to_string(index=False))
+
+    # Patrol-specific drilldown: officer last names + M/P counts
+    patrol = etl[etl["WG2"].str.upper() == args.patrol_bureau.upper()].copy()
+    if "OFFICER_NAME_RAW" in patrol.columns:
+        patrol["OFFICER_NAME_RAW"] = patrol["OFFICER_NAME_RAW"].astype(str).str.strip()
+        # Last name is before comma in "LAST, FIRST"
+        patrol["Officer_Last_Name"] = patrol["OFFICER_NAME_RAW"].str.split(",", n=1).str[0].str.strip()
+    else:
+        patrol["Officer_Last_Name"] = ""
+
+    patrol_mp = patrol[patrol["TYPE"].isin(["M", "P"])].copy()
+    by_last = (
+        patrol_mp.groupby(["Officer_Last_Name", "TYPE"], as_index=False)["TICKET_COUNT"].sum()
+        .sort_values(["TICKET_COUNT"], ascending=False)
+    )
+    if not by_last.empty:
+        print("\n=== Patrol Drilldown (Officer Last Name, TYPE) ===")
+        print(by_last.head(30).to_string(index=False))
+
+    # Totals sanity
+    vis_tot = int(visual_mp["Sum of TICKET_COUNT"].sum())
+    etl_tot = int(etl_mp["Sum of TICKET_COUNT"].sum())
+    print(f"\nTotals (M+P) - Visual: {vis_tot}   ETL: {etl_tot}")
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+```
+
+The Patrol numbers in your **“Summons Moving & Parking All Bureaus”** export are **correct** *for the data that Power BI is currently loading from* `summons_powerbi_latest.xlsx`. I recomputed **exactly what the visual does** (group `Summons_Data` by `WG2` + `TYPE` and sum `TICKET_COUNT` for **11-25**) and compared it to your export:
+
+- **Missing keys:** 0  
+- **Value diffs:** 0  
+- **Totals (M+P):** Visual **2163** = ETL **2163**
+
+So the Patrol row (`WG2 = PATROL BUREAU`) in your export is consistent with the ETL output. ### Why it may *feel* “incorrect” vs the raw e-ticket export
+The raw `25_11_e_ticketexport.csv` contains more rows than are making it into the current ETL workbook, because `SummonsMaster_Simple.py` uses `pandas.read_csv(... on_bad_lines='skip')` and the raw file format causes many rows to be skipped. If you want Patrol counts based on the **full raw export**, we need to adjust the Summons ETL parsing to ingest all rows (like the robust parser we used in the earlier Patrol M/P count). ---
+
+**User**
+
+@new_Department-Wide Summons  Moving and Parking.csv 11-25 looks way off
+
+---
+
+**Cursor**
+
+Good catch — those 11-25 numbers changed because the Summons ETL workbook was regenerated again (with the 1711 override), and that run **ingested far fewer raw e-ticket rows** than the previous run. Next I’ll verify whether your new visual export matches the current `summons_powerbi_latest.xlsx` totals for 11-25, and then we can decide whether to harden the ETL parser so it doesn’t skip so many rows from the raw export. Your **new 11-25 values are not “off” relative to the current ETL** — they match exactly what Power BI is reading from `summons_powerbi_latest.xlsx`. ### What the clean diff says
+Comparing `new_Department-Wide Summons  Moving and Parking.csv` to:
+
+- **Backfill (2025_10)** for history months → **0 value diffs** (only `10-24` is missing from your export, which is expected if the visual window starts at 11-24)
+- **ETL workbook** for **11-25** → **0 value diffs**
+  - The only extra thing in ETL is `TYPE = C` for 11-25, which your visual likely filters out (it’s “Moving & Parking”). So: **M=77 and P=2086 for 11-25 is consistent with the ETL workbook you most recently generated. **
+
+### Why it changed from the earlier run
+The latest Summons run (with the 1711 override) ingested **fewer e-ticket rows** from the raw file than the earlier run, so the 11-25 totals dropped. If you want 11-25 to reflect the full raw `25_11_e_ticketexport.csv`, we need to harden the Summons ETL parser (it currently uses `pandas.read_csv(... on_bad_lines='skip')` which can silently drop lots of rows depending on formatting). If you want, I can:
+- compute the **true** M/P totals from the raw export (no skipping), and
+- then update `SummonsMaster_Simple.py` to parse the raw file robustly so the ETL workbook (and Power BI) matches the raw totals. ---
+
+**User**
+
+if i was to provide data and a prompt to another ai to check the sums what would i do
+
+---
+
+**Cursor**
+
+### What to give another AI (minimal + reproducible)
+Provide **3 things**: (1) the data files, (2) the exact rules, (3) the expected output format. #### 1) Attach/point to the files
+- **Raw export**: `25_11_e_ticketexport.csv`
+- **Assignment map**: `Assignment_Master_V2.csv`
+- (Optional) **ETL output**: `summons_powerbi_latest.xlsx`
+- (Optional) **Visual export**: `Summons  Moving & Parking  All Bureaus.csv` or `Department-Wide Summons  Moving and Parking.csv`
+
+#### 2) Give the rules (copy/paste)
+- Parse `25_11_e_ticketexport.csv` as **semicolon-delimited** payload lines (rows may be wrapped in quotes and have trailing commas). - Use `Officer Id` to join to `Assignment_Master_V2.csv` on `PADDED_BADGE_NUMBER` (left-pad with zeros to 4 digits). - Define **Patrol-assigned** as `Assignment_Master_V2.WG2 == "PATROL BUREAU"`. - Count **Moving vs Parking** using `Case Type Code`:
+  - `M` = Moving
+  - `P` = Parking
+- Restrict to **Issue Date in November 2025** (or state “use the whole file if it’s already the November export”). #### 3) Ask for a specific output
+Example output format:
+- `Patrol_M_Count = <int>`
+- `Patrol_P_Count = <int>`
+- Include a quick audit table: top 10 officers by count (optional)
+
+---
+
+### A ready-to-use prompt (paste into another AI)
+“Compute the number of Moving (M) and Parking (P) tickets issued by officers assigned to Patrol from the attached `25_11_e_ticketexport.csv` and `Assignment_Master_V2.csv`. Rules:
+- Parse the export’s semicolon-delimited payload (rows may be quoted and have trailing commas). - Use `Officer Id` from the export, normalize to 4-digit string (zero pad), and join to `Assignment_Master_V2.csv` on `PADDED_BADGE_NUMBER` (also normalize/pad). - Patrol-assigned means `WG2 == 'PATROL BUREAU'`. - Use `Case Type Code` for ticket type: `M` = Moving, `P` = Parking. - Filter to Issue Date month = 2025-11 (if needed). Return:
+- Patrol_M_Count and Patrol_P_Count as integers
+- Any assumptions you made about parsing/filters.”
+
+If you tell me which exact files you plan to share (raw only vs raw+ETL+visual), I can tailor the prompt to validate **visual vs ETL vs raw** in one pass. ---
+
+**User**
+
+provide a prompt for claude code with paths for it to check
+
+---
+
+**Cursor**
+
+Compute and verify Summons ticket counts using these local files:
+
+- Raw e-ticket export (November 2025): `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\25_11_e_ticketexport.csv`
+- Assignment mapping: `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\Assignment_Master_V2.csv`
+- ETL output workbook (Power BI source): `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx`
+- Power BI visual export (All Bureaus): `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\Summons  Moving & Parking  All Bureaus.csv`
+- Power BI visual export (Dept-Wide): `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\new_Department-Wide Summons  Moving and Parking.csv`
+- Backfill baseline (Dept-Wide history): `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_10\summons\2025_10_Department-Wide Summons  Moving and Parking.csv`
+
+Tasks:
+1) Parse the raw e-ticket CSV. It is semicolon-delimited, and many rows are a quoted semicolon payload with trailing commas. Extract fields at least: `Officer Id`, `Case Type Code`, `Issue Date`, `Ticket Number`. Filter to Issue Date in November 2025. 2) Using `Assignment_Master_V2.csv`, normalize badge IDs to 4-digit strings and identify Patrol-assigned officers as rows where `WG2 == "PATROL BUREAU"`. Join raw tickets on `Officer Id` ↔ `PADDED_BADGE_NUMBER`. Count Patrol-issued tickets by `Case Type Code` for Moving (M) and Parking (P). Output totals: Patrol_M and Patrol_P. 3) From `summons_powerbi_latest.xlsx` (sheet `Summons_Data`), compute totals for month `Month_Year == "11-25"` grouped by `WG2` and `TYPE`, summing `TICKET_COUNT`. Compare these grouped totals to the exported visual CSV `Summons  Moving & Parking  All Bureaus.csv` (Bureau corresponds to `WG2`) and report any mismatches. 4) From `summons_powerbi_latest.xlsx`, compute Dept-Wide totals for `Month_Year == "11-25"` grouped by `TYPE` (M and P only), summing `TICKET_COUNT`, and compare to `new_Department-Wide Summons  Moving and Parking.csv`. Report any mismatches. 5) Verify historical months in `new_Department-Wide Summons  Moving and Parking.csv` match the backfill baseline file for overlapping months (ignore months not present in one file). Report any mismatches.

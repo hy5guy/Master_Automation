@@ -1,0 +1,193 @@
+README.md Consolidation
+- Read both `README.md` and `README-PD_BCI_LTP.md`
+- Merge sections, prioritizing completeness
+- Add "Recent Updates" section referencing Phase 1-4 completion
+- Ensure all scripts documented:
+  - `scripts/overtime_timeoff_with_backfill.py`
+  - `scripts/summons_derived_outputs.py` (NEW)
+  - `02_ETL_Scripts/Community_Engagment/src/main_processor.py`
+  - `02_ETL_Scripts/Overtime_TimeOff/overtime_timeoff_13month_sworn_breakdown_v10.py`
+- Add new section:
+  ```markdown
+  ## Power BI M Code Management
+  
+  Individual query files are stored in `m_code/` for version control:
+  - **48 queries** split into separate `.m` files (as of 2026-01-07)
+  - Standard header format with timestamps and project paths
+  - Archive folder contains historical monolithic versions
+  - **Import to Power BI**: Copy `.m` file content into Advanced Editor
+  - **Naming convention**: `[QueryName]_YYYY_MM_DD.m`
+  
+  ### Query Organization
+  - Arrest Analysis: `Arrest_Categories`, `Arrest_Distro`, `Top_5_Arrests`
+  - Community Engagement: `Combined_Outreach_All`
+  - Summons Analysis: `Summons`, `Summons_Diagnostic`, `wg3`, `TopMoving`, `TopParking`, `Backfill`
+  - HR Analytics: `Overtime_Timeoff_v3`
+  - Operations: `Patrol`, `REMU`, `Detectives`, `SSOCC_Data`, `Drone`
+  - Utilities: Parameters and custom functions
+  
+  See `m_code/` directory for complete list. ```
+- Write merged content to `README.md`
+
+### 3. SUMMARY.md Consolidation
+- Read both `SUMMARY.md` and `SUMMARY-PD_BCI_LTP.md`
+- Read `PHASE_1-4_COMPLETION_SUMMARY.md` for accurate statistics
+- Create comprehensive summary including:
+  - Project purpose: "Hackensack PD monthly reporting automation and analytics"
+  - Key components: ETL scripts, Power BI queries (48 split files), automation orchestrator
+  - Recent accomplishments: Phase 1-4 fixes (all verified and tested)
+  - Active development: Phase 5-8 in progress (Patrol restructure, Policy Training, SSOCC integration)
+- Update statistics:
+  - **48 Power BI queries** (now in individual `.m` files)
+  - **7 ETL scripts** orchestrated via `config/scripts.json`
+  - **4 automated Summons CSV outputs** (new as of Phase 4)
+  - **13-month rolling window** for Monthly Accrual reporting
+- Write merged content to `SUMMARY.md`
+
+### 4. Archive Duplicates
+Move `-PD_BCI_LTP` versions to `docs/archive/` with timestamps:
+- `docs/archive/CHANGELOG-PD_BCI_LTP_20260107.md`
+- `docs/archive/README-PD_BCI_LTP_20260107.md`
+- `docs/archive/SUMMARY-PD_BCI_LTP_20260107.md`
+
+### 5. Create Consolidation Report
+Create `docs/CONSOLIDATION_REPORT.md`:
+```markdown
+# Documentation Consolidation Report
+**Date**: 2026-01-07  
+**Time**: 21:00 EST  
+**Author**: Cursor AI Agent 3
+
+## Summary
+Merged duplicate documentation files and integrated Phase 1-4 completion summary into authoritative versions. ## Source Documents
+- `PHASE_1-4_COMPLETION_SUMMARY.md` - Verified Phase 1-4 changes
+- `CHANGELOG.md` + `CHANGELOG-PD_BCI_LTP.md`
+- `README.md` + `README-PD_BCI_LTP.md`
+- `SUMMARY.md` + `SUMMARY-PD_BCI_LTP.md`
+
+## Changes Made
+
+### CHANGELOG.md
+- ✅ Added Phase 1-4 section with verified test results
+- Merged [X] entries from PD_BCI_LTP version
+- Deduplicated [Y] redundant entries
+- Added follow-up items from completion summary
+
+### README.md
+- Integrated [X] sections from PD_BCI_LTP version
+- ✅ Added "Power BI M Code Management" section (48 queries documented)
+- Updated script inventory with `summons_derived_outputs.py`
+- Added query organization reference
+
+### SUMMARY.md
+- Combined project scope from both versions
+- ✅ Updated statistics (48 queries, 7 ETL scripts, 4 Summons outputs)
+- Added Phase 1-4 accomplishments with verification status
+- Documented Phase 5-8 roadmap
+
+## Archived Files
+- CHANGELOG-PD_BCI_LTP.md → `docs/archive/CHANGELOG-PD_BCI_LTP_20260107.md`
+- README-PD_BCI_LTP.md → `docs/archive/README-PD_BCI_LTP_20260107.md`
+- SUMMARY-PD_BCI_LTP.md → `docs/archive/SUMMARY-PD_BCI_LTP_20260107.md`
+
+## Verification
+- [ ] All Phase 1-4 changes documented in CHANGELOG
+- [ ] M code management section added to README
+- [ ] Project statistics updated in SUMMARY
+- [ ] Duplicate files archived with timestamps
+- [ ] No information lost during consolidation
+```
+
+## Deliverables
+1. ✅ Consolidated `CHANGELOG.md` (Phase 1-4 verified entries at top)
+2. ✅ Consolidated `README.md` (M code management + updated scripts)
+3. ✅ Consolidated `SUMMARY.md` (48 queries, current statistics)
+4. ✅ Archived `-PD_BCI_LTP` files in `docs/archive/`
+5. ✅ `CONSOLIDATION_REPORT.md` with verification checklist
+
+Start execution now. ```
+
+***
+
+## **Next: Agent 4 (QA/Verification) Prompt**
+
+**I'll provide this after Agent 2 completes** (~15 minutes). Agent 4 will verify:
+- Agent 2's 48 split files are correct
+- Each file has proper headers
+- No M code was lost during split
+- Then validates Agent 1's Phase 5 work when ready
+
+***
+
+## **Current Agent Status**
+
+| Agent | Status | Task | ETA |
+|-------|--------|------|-----|
+| **Agent 1** | ⏸️ Paused | Phase 5-8 work | Resumes 9:15 PM |
+| **Agent 2** | ⏳ Ready to start | M code splitting | 15 min (9:15 PM) |
+| **Agent 3** | ⏳ Ready to start | Doc consolidation | 30 min (9:30 PM) |
+| **Agent 4** | 📋 Prompt pending | QA/Verification | After Agent 2 |
+
+***
+
+## **Action Items for You**
+
+1. ✅ **Send Agent 2 prompt** (M code splitting) - Click Send in that window
+2. ✅ **Send Agent 3 prompt** (Documentation) - Copy prompt above into NEW window
+3. ⏳ **Wait for Agent 2 completion** (~15 minutes)
+4. ⏳ **I'll provide Agent 4 prompt** after Agent 2 finishes
+
+**All agents are orchestrated to work in parallel with no conflicts. Proceed with Agent 2 and Agent 3 now. **
+
+---
+
+**Cursor**
+
+## Agent 1 status: paused and ready
+
+### Current status
+- Phase 4 completion summary created: `docs/PHASE_1-4_COMPLETION_SUMMARY.md`
+- All Phase 1-4 test checkpoints verified and documented
+- Ready to resume Phase 5 after Agent 2 completes M code splitting
+
+### What I've completed
+1. Phase 4 summary document:
+   - All 4 phases documented with test results
+   - Files changed: 2 created, 4 modified, 4 outputs generated
+   - 3 follow-up items identified (non-blocking)
+   - Ready for Agent 3 to integrate into CHANGELOG
+
+2. Verification confirmed:
+   - Scripts exist and are timestamped correctly
+   - Output files generated successfully
+   - Config updates verified
+
+### Waiting for Agent 2
+- Expected completion: ~9:15 PM (15 minutes)
+- Will resume Phase 5 on individual `.m` files after split
+- Will work on `Patrol_Operations/Patrol_2026_01_07.m` (or similar filename)
+
+### Ready for coordination
+- Agent 2: M code splitting (send prompt now)
+- Agent 3: Documentation consolidation (send prompt now)
+- Agent 4: QA/Verification (prompt pending after Agent 2 completes)
+
+Agent 1 is paused and ready to resume Phase 5 once Agent 2 confirms the 48 files are split. ---
+
+**User**
+
+I'm preparing to export this chat. Please generate a descriptive filename that summarizes the main topic or task of this conversation. Requirements:
+• 4-8 words
+• Title Case (capitalize major words)
+• Replace spaces with underscores
+• Include .md extension
+• No dates or special characters
+
+Output only the filename, nothing else. After export, I'll process it using: scripts\quick_process_chatlog.bat
+
+---
+
+**Cursor**
+
+
+Power_BI_Visual_Export_Verification_And_Fixes.md

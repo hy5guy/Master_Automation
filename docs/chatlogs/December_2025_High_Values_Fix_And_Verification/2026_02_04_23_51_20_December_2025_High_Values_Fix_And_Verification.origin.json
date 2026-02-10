@@ -1,0 +1,42 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "hours",
+        "print",
+        "time",
+        "str",
+        "return",
+        "comp"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# December 2025 export data and script verification\n_Exported on 1/13/2026 at 19:03:40 EST from Cursor (2.3.35)_\n\n---\n\n**User**\n\n1. I need to verify the values on the:\n**December 2025 Export of Visual's Data**:\n- C:\\Users\\carucci_r\\OneDr...",
+      "first_line": "# December 2025 export data and script verification"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-04T23:51:20.683490",
+  "department": "admin"
+}

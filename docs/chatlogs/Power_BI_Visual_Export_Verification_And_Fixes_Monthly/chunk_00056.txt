@@ -1,0 +1,816 @@
+Rows: M, P, Total
+    """
+    base = df.loc[df["TYPE"].isin(["M", "P"])].copy()
+
+    # (YearMonthKey, Month_Year) -> ensure stable month ordering
+    month_map = (
+        base[["YearMonthKey", "Month_Year"]]
+        .drop_duplicates()
+        .sort_values("YearMonthKey")
+    )
+    months = month_map["Month_Year"].tolist()
+
+    grouped = (
+        base.groupby(["TYPE", "Month_Year"], as_index=False)["TICKET_COUNT"]
+        .sum()
+    )
+    wide = grouped.pivot(index="TYPE", columns="Month_Year", values="TICKET_COUNT").fillna(0)
+    wide = wide.reindex(columns=months, fill_value=0).astype("int64")
+    wide.insert(0, "TYPE", wide.index)
+    wide = wide.reset_index(drop=True)
+
+    # Add Total row (M+P)
+    totals = wide.loc[wide["TYPE"].isin(["M", "P"]), months].sum(axis=0).to_frame().T
+    totals.insert(0, "TYPE", ["Total"])
+    out = pd.concat([wide, totals], ignore_index=True)
+    return out
+
+
+def build_wg2_movers_parkers(df: pd.DataFrame, latest_month_key: int) -> pd.DataFrame:
+    """
+    Output columns: WG2, M, P, C (C == Total)
+    """
+    cur = df.loc[(df["YearMonthKey"] == latest_month_key) & (df["TYPE"].isin(["M", "P"]))].copy()
+    if cur.empty:
+        raise ValueError(f"No M/P summons found for latest month key: {latest_month_key}")
+
+    grouped = cur.groupby(["WG2", "TYPE"], as_index=False)["TICKET_COUNT"].sum()
+    wide = grouped.pivot(index="WG2", columns="TYPE", values="TICKET_COUNT").fillna(0).astype("int64")
+    for col in ["M", "P"]:
+        if col not in wide.columns:
+            wide[col] = 0
+    wide["C"] = (wide["M"] + wide["P"]).astype("int64")
+    wide = wide.reset_index()
+    wide = wide[["WG2", "M", "P", "C"]].sort_values("C", ascending=False)
+    return wide
+
+
+def build_top5(df: pd.DataFrame, latest_month_key: int, summons_type: str) -> pd.DataFrame:
+    label = "Moving Summons" if summons_type == "M" else "Parking Summons"
+    cur = df.loc[(df["YearMonthKey"] == latest_month_key) & (df["TYPE"] == summons_type)].copy()
+    if cur.empty:
+        # Return an empty but schema-correct frame so Power BI doesn't error. return pd.DataFrame({"Proposed Standardized Name": [], label: []}).astype({label: "int64"})
+
+    grouped = (
+        cur.groupby("OFFICER_DISPLAY_NAME", as_index=False)["TICKET_COUNT"]
+        .sum()
+        .sort_values("TICKET_COUNT", ascending=False)
+        .head(5)
+    )
+    grouped = grouped.rename(
+        columns={
+            "OFFICER_DISPLAY_NAME": "Proposed Standardized Name",
+            "TICKET_COUNT": label,
+        }
+    )
+    grouped[label] = grouped[label].astype("int64")
+    return grouped
+
+
+def write_outputs(paths: Paths) -> dict[str, Path]:
+    df = load_summons_df(paths.summons_latest_xlsx)
+    latest_key = compute_latest_month_key(df)
+
+    out_dir = paths.derived_output_dir
+    out_dir.mkdir(parents=True, exist_ok=True)
+    stamp = _ts()
+
+    backfill = build_backfill_summary(df)
+    wg2 = build_wg2_movers_parkers(df, latest_key)
+    top_m = build_top5(df, latest_key, "M")
+    top_p = build_top5(df, latest_key, "P")
+
+    files: dict[str, Path] = {
+        "backfill": out_dir / f"backfill_summons_summary_{stamp}.csv",
+        "wg2": out_dir / f"wg2_movers_parkers_{stamp}.csv",
+        "top_moving": out_dir / f"top5_moving_{stamp}.csv",
+        "top_parking": out_dir / f"top5_parking_{stamp}.csv",
+    }
+
+    backfill.to_csv(files["backfill"], index=False)
+    wg2.to_csv(files["wg2"], index=False)
+    top_m.to_csv(files["top_moving"], index=False)
+    top_p.to_csv(files["top_parking"], index=False)
+
+    return files
+
+
+def main() -> int:
+    paths = Paths(
+        summons_latest_xlsx=Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
+        derived_output_dir=Path(__file__).resolve().parent / "derived_output",
+    )
+
+    files = write_outputs(paths)
+    print("[OK] Summons derived outputs generated:")
+    for k, p in files.items():
+        print(f"  - {k}: {p}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+```
+
+```python
+*** Begin Patch
+*** Update File: 02_ETL_Scripts/Summons/main_orchestrator.py
+@@
+ def run_production_etl():
+     """Run production ETL pipeline"""
+     try:
+         import subprocess
+-        result = subprocess.run([sys.executable, "summons_etl_enhanced.py"], 
++        # Production pipeline (per repo docs) writes:
++        #   03_Staging\\Summons\\summons_powerbi_latest.xlsx
++        result = subprocess.run([sys.executable, "SummonsMaster.py"],
+                               capture_output=True, text=True)
+         print(result.stdout)
+         if result.stderr:
+             print("STDERR:", result.stderr)
+         return result.returncode == 0
+     except Exception as e:
+         print(f"❌ ETL failed: {e}")
+         return False
++
++
++def run_derived_outputs():
++    """Generate derived CSV outputs for Power BI summons visuals"""
++    try:
++        import subprocess
++        result = subprocess.run([sys.executable, "summons_derived_outputs.py"],
++                              capture_output=True, text=True)
++        print(result.stdout)
++        if result.stderr:
++            print("STDERR:", result.stderr)
++        return result.returncode == 0
++    except Exception as e:
++        print(f"❌ Derived outputs failed: {e}")
++        return False
+@@
+     steps = [
+         ("🔍 Step 1: Deployment Validation", run_deployment_validation),
+         ("📁 Step 2: File Discovery & Staging", run_file_finder),
+         ("⚙️ Step 3: Production ETL Pipeline", run_production_etl),
+-        ("🧪 Step 4: Utility Tests", run_tests)
++        ("📊 Step 4: Derived CSV Outputs", run_derived_outputs),
++        ("🧪 Step 5: Utility Tests", run_tests)
+     ]
+*** End Patch
+```
+
+```python
+*** Begin Patch
+*** Update File: 02_ETL_Scripts/Summons/main_orchestrator.py
+@@
+ def run_production_etl():
+     """Run production ETL pipeline"""
+     try:
+         import subprocess
+-        result = subprocess.run([sys.executable, "summons_etl_enhanced.py"], 
++        # Production pipeline (current) writes:
++        #   03_Staging\Summons\summons_powerbi_latest.xlsx (sheet: Summons_Data)
++        result = subprocess.run([sys.executable, "SummonsMaster.py"],
+                               capture_output=True, text=True)
+         print(result.stdout)
+         if result.stderr:
+             print("STDERR:", result.stderr)
+         return result.returncode == 0
+     except Exception as e:
+         print(f"❌ ETL failed: {e}")
+         return False
++
++
++def run_derived_outputs():
++    """Generate derived CSV outputs used by Power BI summons visuals"""
++    try:
++        import subprocess
++        result = subprocess.run([sys.executable, "summons_derived_outputs.py"],
++                              capture_output=True, text=True)
++        print(result.stdout)
++        if result.stderr:
++            print("STDERR:", result.stderr)
++        return result.returncode == 0
++    except Exception as e:
++        print(f"❌ Derived outputs failed: {e}")
++        return False
+@@
+     steps = [
+         ("🔍 Step 1: Deployment Validation", run_deployment_validation),
+         ("📁 Step 2: File Discovery & Staging", run_file_finder),
+         ("⚙️ Step 3: Production ETL Pipeline", run_production_etl),
+-        ("🧪 Step 4: Utility Tests", run_tests)
++        ("📊 Step 4: Derived CSV Outputs", run_derived_outputs),
++        ("🧪 Step 5: Utility Tests", run_tests)
+     ]
+*** End Patch
+```
+
+```python
+#!/usr/bin/env python3
+# 🕒 2026-01-08
+# Purpose:
+#   Generate the 4 CSV files that the Power BI Summons queries currently reference:
+#     - PowerBI_Date\\backfill_summons_summary.csv        (wide backfill summary)
+#     - PowerBI_Date\\wg2_movers_parkers_nov2025.csv      (WG2 movers/parkers table; "C" column is Total)
+#     - PowerBI_Date\\top5_moving_1125.csv                (Top 5 moving officers)
+#     - PowerBI_Date\\top5_parking_1125.csv               (Top 5 parking officers)
+#
+# Source of truth:
+#   03_Staging\\Summons\\summons_powerbi_latest.xlsx (sheet: Summons_Data)
+#
+# Notes:
+# - Files are overwritten in place (filenames are historical artifacts in the M code,
+#   but contents are always generated from the latest month in the workbook). from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+from datetime import datetime
+
+import pandas as pd
+
+
+@dataclass(frozen=True)
+class Paths:
+    source_xlsx: Path
+    powerbi_date_dir: Path
+
+
+def _safe_int(s: pd.Series) -> pd.Series:
+    return pd.to_numeric(s, errors="coerce").fillna(0).round(0).astype("int64")
+
+
+def load_df(source_xlsx: Path) -> pd.DataFrame:
+    if not source_xlsx.exists():
+        raise FileNotFoundError(f"Missing source workbook: {source_xlsx}")
+
+    df = pd.read_excel(source_xlsx, sheet_name="Summons_Data", engine="openpyxl")
+    required = {
+        "YearMonthKey",
+        "Month_Year",
+        "TYPE",
+        "TICKET_COUNT",
+        "WG2",
+        "OFFICER_DISPLAY_NAME",
+        "IS_AGGREGATE",
+    }
+    missing = sorted(required - set(df.columns))
+    if missing:
+        raise ValueError(f"Summons_Data missing required columns: {missing}")
+
+    df = df.copy()
+    df["TICKET_COUNT"] = _safe_int(df["TICKET_COUNT"])
+    df["YearMonthKey"] = _safe_int(df["YearMonthKey"])
+    df["Month_Year"] = df["Month_Year"].astype(str).str.strip()
+    df["TYPE"] = df["TYPE"].astype(str).str.strip().str.upper()
+    df["WG2"] = df["WG2"].astype(str).str.strip()
+    df["OFFICER_DISPLAY_NAME"] = df["OFFICER_DISPLAY_NAME"].astype(str).str.strip()
+    df["IS_AGGREGATE"] = df["IS_AGGREGATE"].fillna(False).astype(bool)
+
+    # Exclude aggregate rows so totals don't double count and Top5/WG breakdowns are correct
+    df = df.loc[~df["IS_AGGREGATE"]].copy()
+    return df
+
+
+def latest_month_key(df: pd.DataFrame) -> int:
+    if df.empty:
+        raise ValueError("No non-aggregate summons rows found; cannot compute latest month.") return int(df["YearMonthKey"].max())
+
+
+def write_backfill_summary(df: pd.DataFrame, out_csv: Path) -> None:
+    base = df.loc[df["TYPE"].isin(["M", "P"])].copy()
+
+    month_map = (
+        base[["YearMonthKey", "Month_Year"]]
+        .drop_duplicates()
+        .sort_values("YearMonthKey")
+    )
+    months = month_map["Month_Year"].tolist()
+
+    grouped = base.groupby(["TYPE", "Month_Year"], as_index=False)["TICKET_COUNT"].sum()
+    wide = grouped.pivot(index="TYPE", columns="Month_Year", values="TICKET_COUNT").fillna(0)
+    wide = wide.reindex(columns=months, fill_value=0).astype("int64")
+
+    wide.insert(0, "TYPE", wide.index)
+    wide = wide.reset_index(drop=True)
+
+    total_row = wide.loc[wide["TYPE"].isin(["M", "P"]), months].sum(axis=0).to_frame().T
+    total_row.insert(0, "TYPE", ["Total"])
+
+    out = pd.concat([wide, total_row], ignore_index=True)
+    out.to_csv(out_csv, index=False)
+
+
+def write_wg2_movers_parkers(df: pd.DataFrame, ym_key: int, out_csv: Path) -> None:
+    cur = df.loc[(df["YearMonthKey"] == ym_key) & (df["TYPE"].isin(["M", "P"]))].copy()
+    grouped = cur.groupby(["WG2", "TYPE"], as_index=False)["TICKET_COUNT"].sum()
+    wide = grouped.pivot(index="WG2", columns="TYPE", values="TICKET_COUNT").fillna(0).astype("int64")
+    for col in ["M", "P"]:
+        if col not in wide.columns:
+            wide[col] = 0
+    wide["C"] = (wide["M"] + wide["P"]).astype("int64")  # M code renames C -> Total
+    wide = wide.reset_index()[["WG2", "M", "P", "C"]]
+    wide.to_csv(out_csv, index=False)
+
+
+def write_top5(df: pd.DataFrame, ym_key: int, summons_type: str, out_csv: Path) -> None:
+    label = "Moving Summons" if summons_type == "M" else "Parking Summons"
+    cur = df.loc[(df["YearMonthKey"] == ym_key) & (df["TYPE"] == summons_type)].copy()
+
+    if cur.empty:
+        pd.DataFrame({"Proposed Standardized Name": [], label: []}).to_csv(out_csv, index=False)
+        return
+
+    top = (
+        cur.groupby("OFFICER_DISPLAY_NAME", as_index=False)["TICKET_COUNT"]
+        .sum()
+        .sort_values("TICKET_COUNT", ascending=False)
+        .head(5)
+        .rename(columns={"OFFICER_DISPLAY_NAME": "Proposed Standardized Name", "TICKET_COUNT": label})
+    )
+    top[label] = top[label].astype("int64")
+    top.to_csv(out_csv, index=False)
+
+
+def main() -> int:
+    paths = Paths(
+        source_xlsx=Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
+        powerbi_date_dir=Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date"),
+    )
+
+    df = load_df(paths.source_xlsx)
+    ym_key = latest_month_key(df)
+
+    out_backfill = paths.powerbi_date_dir / "backfill_summons_summary.csv"
+    out_wg2 = paths.powerbi_date_dir / "wg2_movers_parkers_nov2025.csv"
+    out_top_m = paths.powerbi_date_dir / "top5_moving_1125.csv"
+    out_top_p = paths.powerbi_date_dir / "top5_parking_1125.csv"
+
+    write_backfill_summary(df, out_backfill)
+    write_wg2_movers_parkers(df, ym_key, out_wg2)
+    write_top5(df, ym_key, "M", out_top_m)
+    write_top5(df, ym_key, "P", out_top_p)
+
+    print("[OK] Summons derived CSVs written:")
+    print(f"  - {out_backfill}")
+    print(f"  - {out_wg2}  (latest YearMonthKey={ym_key})")
+    print(f"  - {out_top_m}")
+    print(f"  - {out_top_p}")
+    print(f"[INFO] Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+```
+
+```json
+{
+  "settings": {
+    "powerbi_drop_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\_DropExports",
+    "log_directory": "logs",
+    "python_executable": "python",
+    "continue_on_error": true,
+    "cleanup_temp_files": true
+  },
+  "scripts": [
+    {
+      "name": "Arrests",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Arrests",
+      "script": "arrest_python_processor.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 1,
+      "timeout_minutes": 30,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "arrest",
+        "court"
+      ]
+    },
+    {
+      "name": "Community Engagement",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagment",
+      "script": "src\\main_processor.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 2,
+      "timeout_minutes": 15,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "community",
+        "outreach",
+        "engagement"
+      ]
+    },
+    {
+      "name": "Overtime TimeOff",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\scripts",
+      "script": "overtime_timeoff_with_backfill.py",
+      "enabled": true,
+      "output_to_powerbi": false,
+      "order": 3,
+      "timeout_minutes": 45,
+      "output_patterns": [
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\output\\FIXED_monthly_breakdown_*.csv",
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\analytics_output\\monthly_breakdown.csv",
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\analytics_output\\executive_summary.csv"
+      ],
+      "keywords": [
+        "vcs",
+        "time",
+        "overtime",
+        "accrual"
+      ]
+    },
+    {
+      "name": "Policy Training Monthly",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Policy_Training_Monthly",
+      "script": "main.py",
+      "enabled": false,
+      "output_to_powerbi": true,
+      "order": 4,
+      "timeout_minutes": 15,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "policy",
+        "training"
+      ]
+    },
+    {
+      "name": "Response Times",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Response_Times",
+      "script": "response_time_diagnostic.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 5,
+      "timeout_minutes": 30,
+      "output_patterns": [
+        "diagnostic_output\\response_time_comparison_*.xlsx",
+        "diagnostic_output\\supervisor_brief_*.txt",
+        "diagnostic_output\\unmapped_incidents*.csv"
+      ],
+      "keywords": [
+        "response",
+        "time"
+      ]
+    },
+    {
+      "name": "Summons",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Summons",
+      "script": "main_orchestrator.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 6,
+      "timeout_minutes": 15,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "summon",
+        "violation",
+        "moving",
+        "parking"
+      ]
+    },
+    {
+      "name": "Summons Derived Outputs (PowerBI_Date CSVs)",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\scripts",
+      "script": "summons_derived_outputs.py",
+      "enabled": true,
+      "output_to_powerbi": false,
+      "order": 6.5,
+      "timeout_minutes": 10,
+      "output_patterns": [
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\backfill_summons_summary.csv",
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\wg2_movers_parkers_nov2025.csv",
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\top5_moving_1125.csv",
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\top5_parking_1125.csv"
+      ],
+      "keywords": [
+        "summons",
+        "derived",
+        "wg2",
+        "top5",
+        "backfill"
+      ]
+    },
+    {
+      "name": "Arrest Data Source",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\01_DataSources\\ARREST_DATA",
+      "script": "main.py",
+      "enabled": false,
+      "output_to_powerbi": false,
+      "order": 7,
+      "timeout_minutes": 20,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "arrest"
+      ]
+    },
+    {
+      "name": "NIBRS",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\01_DataSources\\NIBRS",
+      "script": "main.py",
+      "enabled": false,
+      "output_to_powerbi": true,
+      "order": 8,
+      "timeout_minutes": 25,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "nibrs"
+      ]
+    }
+  ]
+}
+
+
+```
+
+## Phase 4 ✅ Summons path errors fixed (Option A: Python outputs)
+
+### What was broken
+Your four Summons Power Query tables (`___Backfill`, `___wg3`, `___TopMoving`, `___TopParking`) were pointing at **CSV files that didn’t exist** in `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\`. ### What I implemented
+- **New script**: `scripts/summons_derived_outputs.py`
+  - Reads: `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx` (sheet `Summons_Data`)
+  - Writes/overwrites these exact files that your current M code references:
+    - `PowerBI_Date\backfill_summons_summary.csv`
+    - `PowerBI_Date\wg2_movers_parkers_nov2025.csv`
+    - `PowerBI_Date\top5_moving_1125.csv`
+    - `PowerBI_Date\top5_parking_1125.csv`
+  - Uses the **latest month in the workbook** (currently `YearMonthKey=202511` / `11-25`) and excludes `IS_AGGREGATE=True` rows so counts are correct. - **Orchestrator update**: `config/scripts.json`
+  - **Community Engagement** now runs the real ETL: `src\\main_processor.py`
+  - Added a new step **after Summons**:
+    - **Summons Derived Outputs (PowerBI_Date CSVs)** (order `6.5`) runs `scripts/summons_derived_outputs.py`
+
+### Phase 4 test results (ran locally)
+- Script ran successfully and all four CSVs now exist:
+  - `Test-Path` returned **True** for all 4 files. - Spot-check outputs:
+  - `top5_moving_1125.csv` has correct 2-column schema and values
+  - `wg2_movers_parkers_nov2025.csv` has `WG2,M,P,C` and `C = M + P`
+
+### Files changed / added
+- **Added**: `scripts/summons_derived_outputs.py`
+- **Updated**: `config/scripts.json` (Community Engagement script + new Summons derived step)
+
+If you refresh the Summons visuals now, those 4 queries should stop erroring because the CSVs are present and up to date. ---
+
+**User**
+
+## Response for Cursor AI
+
+**Proceed to Phase 5. ** Phase 4 checkpoint passed with excellent implementation. ### Phase 4 Validation Complete ✓
+
+Your Python script approach (Option A) is production-ready and follows your established workflow patterns:
+
+- **4 missing CSVs now generated**: All files exist in correct `PowerBI_Date\` location
+- **Dynamic month detection**: Script uses latest `YearMonthKey` (202511/11-25) from source data
+- **Data accuracy ensured**: `IS_AGGREGATE=True` rows excluded for correct counts
+- **Orchestrator integrated**: New step 6.5 runs after Summons ETL, before Policy Training
+- **Community Engagement fix applied**: Config now points to actual ETL (`main_processor.py`)
+
+### Why This Implementation Works Well
+
+**Aligns with your workflow**:
+- Leverages existing `summons_powerbi_latest.xlsx` as single source of truth
+- Automated via orchestrator (no manual runs needed)
+- Maintains separation: raw Summons ETL → staging → derived outputs for Power BI
+- CSVs overwrite monthly, keeping filenames stable for M code references
+
+**Data integrity maintained**:
+- Aggregates excluded (prevents double-counting)
+- Top 5 logic uses `TICKET_COUNT` (not row counts)
+- WG2 filtering works for movers/parkers breakdown
+- Backfill summary provides historical context
+
+### Phase 5 Execution Guidance
+
+**For the Power Query Agent**, focus on Patrol query restructure:
+
+**Target query**: `___Patrol` (line ~1658)
+
+**Current state**:
+- Loads from `patrol_monthly.xlsm`
+- Month columns in wide format (not unpivoted)
+- Manual summons entry in Excel workbook
+- Different structure than Detectives query
+
+**Target structure** (match Detectives at line ~3347):
+1. **Unpivot month columns**: Transform from wide (Jan, Feb, Mar...) to long (Month, Value)
+2. **Add date parsing**: Convert `MM-YY` text → proper Date column
+3. **Add Month_Sort_Order**: Numeric field for chronological sorting (202401, 202402...)
+4. **Add rolling 13-month window**: Filter to show only last 13 months
+5. **Add reporting period metadata**: Current_Month flag, Period labels
+6. **Organize fields pane**: Sections for Dimensions, Measures, Time Intelligence
+
+**Summons automation** (Phase 5.2):
+- Remove manual entry from `patrol_monthly.xlsm`
+- Create calculated columns in Power Query:
+  - `Total Moving Summons`: Merge with summons data where `WG2 = "PATROL BUREAU"` AND `TYPE = "M"`
+  - `Total Parking Summons`: Same filter with `TYPE = "P"`
+- Source from `summons_powerbi_latest.xlsx` or newly created `wg2_movers_parkers_nov2025.csv`
+
+**Implementation approach**:
+
+**Step 1**: Copy Detectives query structure as template
+**Step 2**: Modify source to load `patrol_monthly.xlsm` instead of Detectives source
+**Step 3**: Apply same transformation steps (unpivot, date parsing, sorting)
+**Step 4**: Add merge with Summons data for Moving/Parking totals
+**Step 5**: Test query refresh and verify field structure matches
+
+**Testing checkpoint**: After Phase 5, verify:
+- Patrol query structure matches Detectives (unpivoted, dated, sorted)
+- Rolling 13-month window shows correct months
+- Total Moving/Parking Summons auto-calculate from summons data (no manual entry)
+- Fields pane organized with sections like Detectives query
+- Existing Patrol visuals still work (backwards compatible)
+
+### Phase 4 Documentation Note
+
+Add to your project log:
+- Created `summons_derived_outputs.py` generating 4 Power BI CSV files
+- Integrated into orchestrator at step 6.5 (post-Summons ETL)
+- Uses latest month dynamically (currently 11-25)
+- Excludes aggregates for accurate TICKET_COUNT sums
+- Community Engagement config corrected to use `main_processor.py`
+
+**Proceed to Phase 5. ** Patrol restructure and summons automation are next. [1][2]
+
+[1](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/10459886/88376f25-6b5e-474e-ab72-79da411d9ad0/image.jpg)
+[2](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/10459886/62b427a4-b02b-4e50-9b54-bc4f4815bd19/image.jpg)
+[3](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/10459886/397da813-2b59-4e3e-980d-fddc85a4b88d/overtime_timeoff_with_backfill.py)
+
+## Three-Agent Parallel Execution Plan (Option C)
+
+Perfect. Here's your orchestration strategy with **three Cursor AI agents** working in parallel:
+
+***
+
+## Agent Assignments
+
+### **Agent 1: Phase 5-8 Implementation** (Primary Development)
+**Role**: Continue Power BI report fixes and enhancements  
+**Start**: After Agent 2 completes (15-minute wait)  
+**Works on**: Individual `.m` files for Phase 5-8 tasks
+
+### **Agent 2: M Code Splitting** (Infrastructure)
+**Role**: Split monolithic M code into 48 version-controlled files  
+**Start**: Immediately  
+**Works on**: File transformation and organization
+
+### **Agent 3: Documentation Consolidation** (Technical Writing)
+**Role**: Merge duplicate documentation, update with Phase 1-4 changes  
+**Start**: Immediately (parallel with Agent 2)  
+**Works on**: CHANGELOG, README, SUMMARY consolidation
+
+### **Agent 4: QA & Verification** (Quality Assurance)
+**Role**: Verify Agent 1's Phase 5-8 changes, validate Agent 2's split files  
+**Start**: After Agent 2 completes, validates each Phase checkpoint  
+**Works on**: Testing, verification, output validation
+
+***
+
+## Detailed Agent Instructions
+
+***
+
+## **AGENT 2 PROMPT: M Code Splitting Task**
+
+**Paste this into a NEW Cursor chat window:**
+
+```
+# Task: Split Monolithic Power BI M Code into 48 Individual Files
+
+## Context
+You are splitting a large Power BI M code file that contains 48 queries. This file includes Phase 1-4 fixes:
+- Phase 1: Path corrections (6 incorrect references fixed)
+- Phase 2: ETL pipeline fixes (December 2025 processing, backfill restoration)
+- Phase 3: Combined Outreach query path fix
+- Phase 4: Summons derived outputs (4 CSV files now auto-generated)
+
+## Source File
+`C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\m_code\2026_01_07_all_queries.m`
+
+## 48 Query Names (In Order - From Power BI Left Pane)
+1. ___Arrest_Categories
+2. ___Arrest_Distro
+3. ___Top_5_Arrests
+4. ___ComprehensiveDateTable
+5. ___Chief2
+6. ___Drone
+7. ___Combined_Outreach_All
+8. ___CSB_Monthly
+9. ___Det_case_dispositions_clearance
+10. ___STACP_pt_1_2
+11. ___Patrol
+12. ___REMU
+13. ___Benchmark
+14. ___DimMonth
+15. ___DimEventType
+16. ___Overtime_Timeoff_v3
+17. ___ResponseTimeCalculator
+18. ___Traffic
+19. ___Social_Media
+20. ___SSOCC_Data
+21. ___Summons
+22. ___Summons_Diagnostic
+23. ___NJBRS_Monthly_Report
+24. ___In_Person_Training
+25. ___Cost_of_Training
+26. ___chief_projects
+27. ___Detectives
+28. RootExportPath (parameter)
+29. EtlRootPath (parameter)
+30. SourceMode (parameter)
+31. RangeStart (parameter)
+32. RangeEnd (parameter)
+33. RequiredTypes (function)
+34. fnGetFiles (function)
+35. fnReadCsv (function)
+36. fnEnsureColumns (function)
+37. fnApplyRenameMap (function)
+38. fnLoadRow (function)
+39. Parameters_Check (query)
+40. ___Top_5_Parking
+41. ___Top_5_Moving
+42. ___wg3
+43. ___TopParking
+44. ___TopMoving
+45. ___Backfill
+46. Top_5_Arrest_Diagnostic
+47. Top_5_All_Time
+48. Raw_Data_Preview
+
+## Header Template
+```m
+// ___[Query_Name]
+// ___[Query_Name]
+// 🕒 YYYY-MM-DD-HH-mm-ss
+// Project: [Project_Path]/[Query_Name]
+// Author: R. A. Carucci
+// Purpose: [Brief description - extract from existing comments if present]
+```
+
+## Project Path Mapping
+| Query Pattern | Project Path |
+|---------------|-------------|
+| ___Arrest_* | Arrest_Analysis/[QueryName] |
+| ___Combined_Outreach_All | Community_Engagement/Combined_Outreach |
+| ___CSB_Monthly | CSB_Reporting/Monthly |
+| ___Det_case_* | Detective_Operations/[QueryName] |
+| ___STACP_* | STACP_Analysis/[QueryName] |
+| ___Patrol | Patrol_Operations/Patrol |
+| ___REMU | REMU_Operations/REMU |
+| ___Benchmark | Benchmark_Reporting/Benchmark |
+| ___Overtime_Timeoff_* | HR_Analytics/Overtime_Timeoff |
+| ___ResponseTimeCalculator | Response_Time_Analysis/Calculator |
+| ___Summons* | Summons_Analysis/[QueryName] |
+| ___Traffic | Traffic_Analysis/Traffic |
+| ___Social_Media | Social_Media_Monitoring/Social_Media |
+| ___SSOCC_Data | SSOCC_Operations/SSOCC_Data |
+| ___Drone | Drone_Operations/Drone |
+| ___NJBRS_* | NJBRS_Reporting/[QueryName] |
+| ___In_Person_Training | Training_Analysis/In_Person_Training |
+| ___Cost_of_Training | Training_Analysis/Cost_of_Training |
+| ___chief_projects | Executive_Projects/Chief_Projects |
+| ___Detectives | Detective_Operations/Detectives |
+| Parameters/Functions | Utilities/[Name] |
+| ___Top_5_* | Top_Rankings/[QueryName] |
+| ComprehensiveDateTable | Date_Dimension/ComprehensiveDateTable |
+| ___Dim* | Dimension_Tables/[QueryName] |
+
+## Steps
+1. **Archive monolithic file**:
+   - Copy `2026_01_07_all_queries.m` → `archive/2026_01_07_all_queries_20260107_210000.m`
+
+2. **Parse M code blocks**:
+   - Detect `let ... in` boundaries
+   - Match blocks to 48 query names (in order from list above)
+
+3. **For each matched query**:
+   - Check if header exists:
+     - **If yes**: Preserve existing timestamp, update query name if incorrect
+     - **If no**: Add header with current timestamp (2026-01-07-21-00-00)
+   - Determine Project path from mapping table above
+   - Extract Purpose from existing comments (look for `// Purpose:` or comments near top of query)
+   - If no Purpose found, use generic: "Power BI query for [QueryName] data processing"
+
+4. **File naming**:
+   - Strip leading underscores: `___Arrest_Categories` → `Arrest_Categories_2026_01_07.m`
+   - Save to: `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\m_code\`
+
+5.

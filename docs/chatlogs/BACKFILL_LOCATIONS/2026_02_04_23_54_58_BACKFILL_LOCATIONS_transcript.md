@@ -1,0 +1,391 @@
+# Backfill Locations
+
+**Processing Date:** 2026-02-04 23:54:58
+**Source File:** BACKFILL_LOCATIONS.md
+**Total Chunks:** 1
+
+---
+
+# Backfill Data Locations
+
+**Last Updated:** 2025-12-09  
+**Backfill Period:** November 2024 - October 2025  
+**Base Directory:** `C:\Dev\PowerBI_Date\Backfill\2025_10\`
+
+---
+
+## Overview
+
+This document tracks backfill data locations for Power BI reports. **All backfill data** covers the period from **November 2024 through October 2025**. ### Two Processing Methods:
+
+1. **ETL Script Processing** (5 reports): Python ETL scripts process backfill data and calculate data for **November 2025 only** (the previous month). Scripts run automatically and output to Power BI drop folder. 2. **M Code Processing** (13+ reports): Power BI M code (Power Query) directly queries data sources. M code may need updates to reference backfill directories for the historical period (November 2024 - October 2025), then use live source data for November 2025 and forward. **Total Backfill Directories:** 18 directories found
+
+---
+
+## Backfill Directories
+
+### 1. VCS Time Report (Overtime TimeOff)
+**Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\vcs_time_report`
+
+**Description:**  
+- Contains backfill data for Overtime and Time-Off
+- Backfill period: **November 2024 - October 2025**
+- Script calculates data for **November 2025 only** (previous month)
+- Script processes backfill data and outputs to Power BI
+
+**Related ETL Script:** `Overtime TimeOff`  
+**Script Location:** `02_ETL_Scripts\Overtime_TimeOff\overtime_timeoff_13month_sworn_breakdown_v10.py`
+
+---
+
+### 2. Policy Training
+**Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\policy_training`
+
+**Description:**  
+- Backfill data for Policy Training Monthly reports
+- Contains historical training metrics and compliance data
+
+**Related ETL Script:** `Policy Training Monthly`  
+**Script Location:** `02_ETL_Scripts\Policy_Training_Monthly\src\policy_training_etl.py`
+
+---
+
+### 3. Response Time
+**Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\response_time`
+
+**Description:**  
+- Backfill data for Response Times/CAD data
+- Contains historical response time metrics for November 2024 - October 2025
+
+**Backfill Files:**
+- `2025_10_Average Response Times Values are in mmss.csv` - Data for Average Response Times table
+- `2025_10_Response Times by Priority.csv` - Data for Response Times by Priority line graph
+
+**Power BI M Code Query:** `___ResponseTimeCalculator`  
+**Processing Method:** M code in Power BI (not ETL script)
+
+**ETL Script Status:** `Response Times` script exists but requires source files in `05_EXPORTS\_CAD\` directory  
+**Script Location:** `02_ETL_Scripts\Response_Times\scripts\process_cad_data_for_powerbi_FINAL.py`  
+**Note:** M code handles backfill data directly; ETL script may be used for future processing
+
+---
+
+### 4. Social Media
+**Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\social_media`
+
+**Description:**  
+- Backfill data for Social Media/Community Engagement reports
+- Contains historical engagement metrics
+
+**Related ETL Script:** `Community Engagement`  
+**Script Location:** `02_ETL_Scripts\Community_Engagment\src\main_processor.py`
+
+---
+
+### 5. Safe Streets Operations Control Center (SSOCC)
+**Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\ssocc`
+
+**Description:**  
+- Backfill data for Safe Streets Operations Control Center reports
+- Contains operational metrics and control center data
+
+**Related ETL Script:** Not currently configured in Master_Automation
+
+---
+
+### 6. STACP
+**Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\stacp`
+
+**Description:**  
+- Backfill data for STACP-related reports
+- Contains STACP-specific metrics
+
+**Related ETL Script:** Not currently configured in Master_Automation
+
+---
+
+### 7. Summons
+**Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\summons`
+
+**Description:**  
+- Backfill data for Summons reports
+- Contains historical summons and violation data
+
+**Related ETL Script:** `Summons`  
+**Script Location:** `02_ETL_Scripts\Summons\SummonsMaster.py`
+
+---
+
+### 8. Traffic
+**Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\traffic`
+
+**Description:**  
+- Backfill data for Traffic reports
+- Contains traffic-related metrics
+
+**Related ETL Script:** Not currently configured in Master_Automation
+
+---
+
+### 9. NIBRS
+**Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\nibrs`
+
+**Description:**  
+- Backfill data for NIBRS (National Incident-Based Reporting System) reports
+- Contains incident reporting data
+
+**Related ETL Script:** `NIBRS` (currently disabled - no Python scripts found)  
+**Script Location:** `01_DataSources\NIBRS\main.py` (not found)
+
+---
+
+### 10. Drone
+**Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\drone`
+
+**Description:**  
+- Backfill data for Drone operations reports
+- Contains drone operation metrics
+
+**Related ETL Script:** Not currently configured in Master_Automation
+
+---
+
+### 11. Detectives
+**Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\detectives`
+
+**Description:**  
+- Backfill data for Detectives operations reports
+- Contains detective case and investigation metrics
+
+**Related ETL Script:** Not currently configured in Master_Automation
+
+---
+
+### 12. CSB (Community Services Bureau)
+**Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\csb`
+
+**Description:**  
+- Backfill data for Community Services Bureau reports
+- Contains community services metrics
+
+**Related ETL Script:** Not currently configured in Master_Automation
+
+---
+
+### 13. Chief Law Enforcement Duties
+**Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\chief_law_enforcement_duties`
+
+**Description:**  
+- Backfill data for Chief Law Enforcement Duties reports
+- Contains leadership and administrative metrics
+
+**Related ETL Script:** Not currently configured in Master_Automation
+
+---
+
+## Backfill Process Notes
+
+### Backfill Period (All Categories)
+- **Backfill Data Period:** November 2024 - October 2025 (all backfill directories)
+- **Script Processing Period:** November 2025 only (previous month)
+- **Data Source:** Files from respective `C:\Dev\PowerBI_Date\Backfill\2025_10\[category]\` directories
+- **Process:** All ETL scripts process backfill data for 11/24-10/25, then calculate data for 11/25 only
+
+### General Process
+1. Backfill data is stored in `C:\Dev\PowerBI_Date\Backfill\2025_10\` directory
+2. Each report category has its own subdirectory
+3. ETL scripts process backfill data (11/24-10/25) and calculate forward-looking data (11/25 only)
+4. Outputs are copied to Power BI drop folder: `C:\Dev\PowerBI_Date\_DropExports\`
+5. Final organization handled by `organize_backfill_exports.ps1`
+
+---
+
+## Integration with Master ETL Automation
+
+### Currently Configured ETL Scripts
+- ✅ **Overtime TimeOff** - Configured and working
+- ✅ **Policy Training Monthly** - Configured and working
+- ⚠️ **Response Times** - ETL script configured but using M code for backfill (`___ResponseTimeCalculator`)
+- ✅ **Community Engagement** - Configured and working
+- ✅ **Summons** - Configured and working
+- ❌ **NIBRS** - Disabled (no Python scripts found; may use M code instead)
+
+### Backfill Directories Without ETL Scripts (M Code Handled)
+
+The following backfill directories exist but are **populated directly by M code (Power Query) in Power BI** rather than through Python ETL scripts. **Important:** The M code in Power BI may need to be updated to reference the backfill data directories for the historical period (November 2024 - October 2025). #### Response Times (M Code Handled)
+- **Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\response_time`
+- **Status:** 📊 Handled by M code in Power BI
+- **M Code Query:** `___ResponseTimeCalculator`
+- **Backfill Files:**
+  - `2025_10_Average Response Times Values are in mmss.csv` (for table)
+  - `2025_10_Response Times by Priority.csv` (for line graph)
+- **Action Required:** Update M code query `___ResponseTimeCalculator` to reference backfill directory for historical period
+
+#### Complete List of M Code Reports
+
+1. **Arrest** (May also have ETL script)
+   - **Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\arrest`
+   - **Status:** 📊 Handled by M code in Power BI
+   - **Backfill Files:**
+     - `2025_10_Arrest Categories by...`
+     - `2025_10_Arrest Distribution...`
+     - `2025_10_TOP 5 ARREST LEADERS...`
+   - **Note:** Arrests ETL script exists; this may be additional reporting or alternative view
+   - **Action Required:** Update M code to reference backfill directory for historical period
+
+2. **SSOCC** (Safe Streets Operations Control Center)
+   - **Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\ssocc`
+   - **Status:** 📊 Handled by M code in Power BI
+   - **Backfill Files:**
+     - `2025_10_Safe Streets Operati...`
+   - **Action Required:** Update M code to reference backfill directory for historical period
+
+3. **STACP** (School Threat Assessment & Crisis Prevention)
+   - **Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\stacp`
+   - **Status:** 📊 Handled by M code in Power BI
+   - **Backfill Files:**
+     - `2025_10_School Threat Assess...` (multiple files)
+   - **Action Required:** Update M code to reference backfill directory for historical period
+
+4. **Traffic**
+   - **Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\traffic`
+   - **Status:** 📊 Handled by M code in Power BI
+   - **Backfill Files:**
+     - `2025_10_Motor Vehicle Accide...`
+     - `2025_10_Traffic Bureau.csv`
+   - **Action Required:** Update M code to reference backfill directory for historical period
+
+5. **Drone**
+   - **Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\drone`
+   - **Status:** 📊 Handled by M code in Power BI
+   - **Backfill Files:**
+     - `2025_10_DFR Activity Perform...`
+     - `2025_10_Non-DFR Performance...`
+   - **Action Required:** Update M code to reference backfill directory for historical period
+
+6. **Detectives**
+   - **Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\detectives`
+   - **Status:** 📊 Handled by M code in Power BI
+   - **Backfill Files:**
+     - `2025_10_Detective Case Dispo...`
+     - `2025_10_Detective Clearance...`
+     - `2025_10_Detective Division...` (multiple files)
+   - **Action Required:** Update M code to reference backfill directory for historical period
+
+7. **CSB** (Community Services Bureau)
+   - **Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\csb`
+   - **Status:** 📊 Handled by M code in Power BI
+   - **Backfill Files:**
+     - `2025_10_Crime Suppressions B...`
+   - **Action Required:** Update M code to reference backfill directory for historical period
+
+8. **Chief Law Enforcement Duties**
+   - **Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\chief_law_enforcement_duties`
+   - **Status:** 📊 Handled by M code in Power BI
+   - **Backfill Files:**
+     - `2025_10_Chief Law Enforcement...`
+   - **Action Required:** Update M code to reference backfill directory for historical period
+
+9. **Chief Projects**
+   - **Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\chief_projects`
+   - **Status:** 📊 Handled by M code in Power BI
+   - **Backfill Files:**
+     - `2025_10_Chief Michael Antist...`
+   - **Action Required:** Update M code to reference backfill directory for historical period
+
+10. **Community Outreach** (Social Media/Community Engagement)
+    - **Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\community_outreach`
+    - **Status:** 📊 Handled by M code in Power BI
+    - **Backfill Files:**
+      - `2025_10_Engagement Initiatives...`
+    - **Note:** May overlap with Community Engagement ETL script
+    - **Action Required:** Update M code to reference backfill directory for historical period
+
+10. **CSB** (Community Services Bureau)
+    - **Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\csb`
+    - **Status:** 📊 Handled by M code in Power BI
+    - **Backfill Files:**
+      - `2025_10_Crime Suppressions B...`
+    - **Action Required:** Update M code to reference backfill directory for historical period
+
+11. **NIBRS** (May be handled by M code)
+    - **Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\nibrs`
+    - **Status:** ⚠️ ETL script exists but disabled (no Python scripts found)
+    - **Alternative:** May be handled by M code in Power BI
+    - **Backfill Files:**
+      - `2025_10_13-Month NIBRS Clear...` (multiple files)
+    - **Action Required:** Update M code to reference backfill directory for historical period (if using M code)
+
+12. **Patrol**
+    - **Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\patrol`
+    - **Status:** 📊 Handled by M code in Power BI
+    - **Backfill Files:**
+      - `2025_10_Patrol Division.csv`
+    - **Action Required:** Update M code to reference backfill directory for historical period
+
+13. **REMU** (Records & Evidence Management Unit)
+    - **Path:** `C:\Dev\PowerBI_Date\Backfill\2025_10\remu`
+    - **Status:** 📊 Handled by M code in Power BI
+    - **Backfill Files:**
+      - `2025_10_Records & Evidence U...`
+    - **Action Required:** Update M code to reference backfill directory for historical period
+
+14. **Social Media**
+    - Path: `C:\Dev\PowerBI_Date\Backfill\2025_10\social_media`
+    - Status: 📊 Handled by M code in Power BI
+    - Backfill Files:
+      - `2025_10_Social Media Posts.csv`
+    - Note: May overlap with Community Engagement ETL script
+    - Action Required: Update M code to reference backfill directory for historical period
+
+
+---
+
+## Data Processing Methods
+
+### ETL Script Processing
+Reports with ETL scripts (Overtime TimeOff, Policy Training, Response Times, Community Engagement, Summons) are processed as follows:
+1. ETL scripts run and process backfill data (November 2024 - October 2025)
+2. Scripts calculate data for November 2025 only (previous month)
+3. Outputs are automatically copied to Power BI drop folder
+4. Power BI refreshes from the drop folder
+
+### M Code Direct Processing
+Reports using M code (13+ reports including: Arrest, SSOCC, STACP, Traffic, Drone, Detectives, CSB, Chief Law Enforcement Duties, Chief Projects, Patrol, REMU, NIBRS, and others) are processed differently:
+1. **M code in Power BI** directly queries source data
+2. M code may need updates to reference backfill directories for historical period
+3. Backfill data is stored in `C:\Dev\PowerBI_Date\Backfill\2025_10\[category]\`
+4. Power BI M code should reference backfill directory for dates November 2024 - October 2025
+5. For November 2025 and forward, M code queries live source data
+
+**M Code Update Requirements:**
+- Update Power Query M code to check backfill directory first for historical dates
+- Implement date-based logic to use backfill data for November 2024 - October 2025
+- Use live source data for November 2025 and forward
+- Ensure seamless transition between backfill and live data sources
+
+## Maintenance
+
+When adding new backfill data:
+1. Place files in appropriate `C:\Dev\PowerBI_Date\Backfill\2025_10\[category]\` directory
+2. Update this document if new categories are added
+3. For ETL script reports: Scripts automatically process new data on next run
+4. For M code reports: Update Power BI M code to reference backfill directory if needed
+5. If new ETL scripts are created, add them to `config\scripts.json`
+6. Test script execution or M code updates before production use
+
+---
+
+## Related Documentation
+
+- `README.md` - Master ETL Automation overview
+- `QUICK_START.md` - Quick reference guide
+- `VERIFICATION_REPORT.md` - Script path verification details
+- `M_CODE_UPDATE_GUIDE.md` - Guide for updating Power BI M code queries
+- `ACTION_ITEMS.md` - Outstanding action items and tasks
+- `config\scripts.json` - ETL script configuration
+
+---
+
+**Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\BACKFILL_LOCATIONS.md`
+

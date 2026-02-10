@@ -1,0 +1,42 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "code",
+        "text",
+        "let",
+        "type",
+        "data",
+        "column"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Data source file path error\n_Exported on 2/9/2026 at 16:54:17 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\n@m_code/___ResponseTimeCalculator.m \nhas this error DataSource.NotFound: File or Folder: Could not find a part of the path 'C:\\Dev\\...",
+      "first_line": "# Data source file path error"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-09T16:54:30.855540",
+  "department": "admin"
+}

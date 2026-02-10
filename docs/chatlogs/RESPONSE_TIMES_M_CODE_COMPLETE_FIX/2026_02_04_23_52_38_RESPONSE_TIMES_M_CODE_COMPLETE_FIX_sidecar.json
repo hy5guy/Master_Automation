@@ -1,0 +1,62 @@
+{
+  "source_file": "RESPONSE_TIMES_M_CODE_COMPLETE_FIX.txt",
+  "source_path": "C:\\_chunker\\02_data\\RESPONSE_TIMES_M_CODE_COMPLETE_FIX.txt",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\RESPONSE_TIMES_M_CODE_COMPLETE_FIX\\2026_02_04_23_52_38_RESPONSE_TIMES_M_CODE_COMPLETE_FIX.origin.json",
+  "created_at": "2026_02_04_23_52_38",
+  "tags": [
+    "ai",
+    "data",
+    "json",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "notes",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "table",
+      "type",
+      "text",
+      "date",
+      "average_response_time",
+      "parts"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "// ==============================================================================\n// RESPONSE TIMES M CODE - COMPLETE FIX WITH DATE SORT KEY\n// Query Name: ___ResponseTimeCalculator\n// ====================================================...",
+    "first_line": "// =============================================================================="
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-04T23:52:38+00:00_RESPONSE_TIMES_M_CODE_COMPLETE_FIX_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "average_response_time",
+        "data",
+        "date",
+        "json",
+        "parts",
+        "sql",
+        "table",
+        "text",
+        "type"
+      ],
+      "key_terms": [
+        "table",
+        "type",
+        "text",
+        "date",
+        "average_response_time",
+        "parts"
+      ],
+      "summary": "// ==============================================================================\n// RESPONSE TIMES M CODE - COMPLETE FIX WITH DATE SORT KEY\n// Query Name: ___ResponseTimeCalculator\n// ====================================================...",
+      "char_length": 11051,
+      "byte_length": 11351
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

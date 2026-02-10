@@ -1,0 +1,747 @@
+# December 2025 export data and script verification
+_Exported on 1/13/2026 at 19:03:40 EST from Cursor (2.3.35)_
+
+---
+
+**User**
+
+1. I need to verify the values on the:
+**December 2025 Export of Visual's Data**:
+- C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\2025_12_Monthly Accrual and Usage Summary.csv 
+
+matches the backfill data from: C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\projects\PowerBI_Date\Backfill\2025_11\vcs_time_report\2025_11_Monthly Accrual and Usage Summary.csv
+
+And the python script that processed the following exports were done correcly:
+**Export**:
+1. C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\month\2025\2025_12_timeoffactivity.xlsx
+2. C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\export\month\2025\2025_12_otactivity.xlsx
+
+There should not be diffrence between 12/24 through 11/25. 2. based on the python script that processed the Overtime and Time Off exports? The single project for the time off and overtime  is here C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff. I want to pass the prompt along with the exported data so an AI can check our calculations
+
+---
+
+**Cursor**
+
+
+Reviewing the relevant files and scripts to verify the data and document the calculations. Reviewing the main processing scripts to understand the calculations:
+
+
+
+Checking for a wrapper script that handles backfill:
+
+
+
+Creating a verification script and documentation. Comparing the data first:
+
+
+
+Creating a verification script and documentation:
+
+
+```python
+#!/usr/bin/env python3
+"""
+Verification script for December 2025 Overtime/TimeOff data processing
+
+This script:
+1. Compares December 2025 export with November 2025 backfill data
+2. Validates that months 12-24 through 11-25 match between the two sources
+3. Generates a detailed comparison report
+"""
+
+from __future__ import annotations
+
+import pandas as pd
+from pathlib import Path
+from typing import Dict, Tuple
+import sys
+
+# File paths
+DEC_EXPORT = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\2025_12_Monthly Accrual and Usage Summary.csv")
+NOV_BACKFILL = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\projects\PowerBI_Date\Backfill\2025_11\vcs_time_report\2025_11_Monthly Accrual and Usage Summary.csv")
+
+# Expected months to compare (12-24 through 11-25)
+EXPECTED_MONTHS = [
+    "12-24", "01-25", "02-25", "03-25", "04-25", "05-25",
+    "06-25", "07-25", "08-25", "09-25", "10-25", "11-25"
+]
+
+# Time categories to compare
+ACCRUAL_CATEGORIES = [
+    "Accrued Comp. Time - Non-Sworn",
+    "Accrued Comp. Time - Sworn",
+    "Accrued Overtime - Non-Sworn",
+    "Accrued Overtime - Sworn",
+]
+
+USAGE_CATEGORIES = [
+    "Comp (Hours)",
+    "Employee Sick Time (Hours)",
+    "Injured on Duty (Hours)",
+    "Military Leave (Hours)",
+    "Used SAT Time (Hours)",
+]
+
+ALL_CATEGORIES = ACCRUAL_CATEGORIES + USAGE_CATEGORIES
+
+
+def parse_period_label(label: str) -> str:
+    """Normalize period label format (handles variations like '24-Nov', '12-24', etc.)""" label = str(label).strip()
+    # Handle '24-Nov' format -> '11-24'
+    if "-" in label and len(label.split("-")) == 2:
+        parts = label.split("-")
+        if len(parts[0]) == 2 and parts[1].isalpha():
+            # Format: '24-Nov' -> '11-24'
+            month_map = {
+                "Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04",
+                "May": "05", "Jun": "06", "Jul": "07", "Aug": "08",
+                "Sep": "09", "Oct": "10", "Nov": "11", "Dec": "12"
+            }
+            month = month_map.get(parts[1][:3], "")
+            year = parts[0]
+            if month and year:
+                return f"{month}-{year}"
+    return label
+
+
+def load_december_export(path: Path) -> pd.DataFrame:
+    """Load December export (long format: Time Category, Sum of Value, PeriodLabel)"""
+    df = pd.read_csv(path)
+    
+    # Normalize column names
+    df.columns = df.columns.str.strip()
+    
+    # Map to standard names
+    time_col = None
+    value_col = None
+    period_col = None
+    
+    for col in df.columns:
+        col_lower = col.lower()
+        if "time category" in col_lower or "time_category" in col_lower:
+            time_col = col
+        elif "value" in col_lower or "sum of value" in col_lower:
+            value_col = col
+        elif "period" in col_lower or "periodlabel" in col_lower:
+            period_col = col
+    
+    if not all([time_col, value_col, period_col]):
+        raise ValueError(f"Missing required columns. Found: {list(df.columns)}")
+    
+    # Normalize period labels
+    df["PeriodLabel_norm"] = df[period_col].apply(parse_period_label)
+    
+    # Create comparison structure
+    result = df[[time_col, value_col, "PeriodLabel_norm"]].copy()
+    result.columns = ["Time_Category", "Value", "PeriodLabel"]
+    
+    # Convert values to float
+    result["Value"] = pd.to_numeric(result["Value"], errors="coerce")
+    
+    return result
+
+
+def load_november_backfill(path: Path) -> pd.DataFrame:
+    """Load November backfill (wide format: Time_Category column + month columns)"""
+    df = pd.read_csv(path)
+    
+    # Normalize column names
+    df.columns = df.columns.str.strip()
+    
+    # Find time category column
+    time_col = None
+    for col in df.columns:
+        if "time" in col.lower() and "category" in col.lower():
+            time_col = col
+            break
+    
+    if not time_col:
+        raise ValueError(f"Missing Time_Category column. Found: {list(df.columns)}")
+    
+    # Get month columns (everything except time category)
+    month_cols = [c for c in df.columns if c != time_col]
+    
+    # Convert to long format
+    long_rows = []
+    for _, row in df.iterrows():
+        category = str(row[time_col]).strip()
+        if not category or category == "nan":
+            continue
+        
+        for month_col in month_cols:
+            period_label = parse_period_label(month_col)
+            value = row[month_col]
+            
+            # Convert to float
+            try:
+                value_float = float(value) if pd.notna(value) and str(value).strip() != "" else 0.0
+            except (ValueError, TypeError):
+                value_float = 0.0
+            
+            long_rows.append({
+                "Time_Category": category,
+                "PeriodLabel": period_label,
+                "Value": value_float
+            })
+    
+    result = pd.DataFrame(long_rows)
+    return result
+
+
+def compare_data(dec_df: pd.DataFrame, nov_df: pd.DataFrame) -> Dict:
+    """Compare December export with November backfill for months 12-24 through 11-25"""
+    
+    results = {
+        "matches": [],
+        "differences": [],
+        "missing_in_dec": [],
+        "missing_in_nov": [],
+        "summary": {}
+    }
+    
+    # Filter to expected months
+    dec_filtered = dec_df[dec_df["PeriodLabel"].isin(EXPECTED_MONTHS)].copy()
+    nov_filtered = nov_df[nov_df["PeriodLabel"].isin(EXPECTED_MONTHS)].copy()
+    
+    # Normalize category names (handle variations)
+    category_map = {
+        "Accrued Comp. Time - Non-Sworn": ["Accrued Comp. Time - Non-Sworn"],
+        "Accrued Comp. Time - Sworn": ["Accrued Comp. Time - Sworn"],
+        "Accrued Overtime - Non-Sworn": ["Accrued Overtime - Non-Sworn"],
+        "Accrued Overtime - Sworn": ["Accrued Overtime - Sworn"],
+        "Comp (Hours)": ["Comp (Hours)"],
+        "Employee Sick Time (Hours)": ["Employee Sick Time (Hours)"],
+        "Injured on Duty (Hours)": ["Injured on Duty (Hours)"],
+        "Military Leave (Hours)": ["Military Leave (Hours)"],
+        "Used SAT Time (Hours)": ["Used SAT Time (Hours)"],
+    }
+    
+    # Create comparison matrix
+    for category in ALL_CATEGORIES:
+        for month in EXPECTED_MONTHS:
+            dec_val = dec_filtered[
+                (dec_filtered["Time_Category"] == category) &
+                (dec_filtered["PeriodLabel"] == month)
+            ]["Value"]
+            dec_val = float(dec_val.iloc[0]) if len(dec_val) > 0 else None
+            
+            nov_val = nov_filtered[
+                (nov_filtered["Time_Category"] == category) &
+                (nov_filtered["PeriodLabel"] == month)
+            ]["Value"]
+            nov_val = float(nov_val.iloc[0]) if len(nov_val) > 0 else None
+            
+            if dec_val is None and nov_val is None:
+                continue
+            elif dec_val is None:
+                results["missing_in_dec"].append({
+                    "Category": category,
+                    "Month": month,
+                    "Nov_Value": nov_val
+                })
+            elif nov_val is None:
+                results["missing_in_nov"].append({
+                    "Category": category,
+                    "Month": month,
+                    "Dec_Value": dec_val
+                })
+            else:
+                diff = abs(dec_val - nov_val)
+                tolerance = 0.01  # Allow small floating point differences
+                
+                if diff <= tolerance:
+                    results["matches"].append({
+                        "Category": category,
+                        "Month": month,
+                        "Value": dec_val
+                    })
+                else:
+                    results["differences"].append({
+                        "Category": category,
+                        "Month": month,
+                        "Dec_Value": dec_val,
+                        "Nov_Value": nov_val,
+                        "Difference": diff,
+                        "Percent_Diff": (diff / nov_val * 100) if nov_val != 0 else float('inf')
+                    })
+    
+    # Summary statistics
+    results["summary"] = {
+        "total_comparisons": len(results["matches"]) + len(results["differences"]),
+        "matches": len(results["matches"]),
+        "differences": len(results["differences"]),
+        "missing_in_dec": len(results["missing_in_dec"]),
+        "missing_in_nov": len(results["missing_in_nov"]),
+    }
+    
+    return results
+
+
+def generate_report(comparison_results: Dict, output_path: Path) -> None:
+    """Generate a detailed comparison report"""
+    
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write("=" * 80 + "\n")
+        f.write("DECEMBER 2025 DATA VERIFICATION REPORT\n")
+        f.write("=" * 80 + "\n\n")
+        
+        f.write("COMPARISON SUMMARY\n")
+        f.write("-" * 40 + "\n")
+        summary = comparison_results["summary"]
+        f.write(f"Total Comparisons: {summary['total_comparisons']}\n")
+        f.write(f"Matches: {summary['matches']}\n")
+        f.write(f"Differences: {summary['differences']}\n")
+        f.write(f"Missing in December: {summary['missing_in_dec']}\n")
+        f.write(f"Missing in November: {summary['missing_in_nov']}\n\n")
+        
+        if comparison_results["differences"]:
+            f.write("DIFFERENCES FOUND\n")
+            f.write("-" * 40 + "\n")
+            for diff in comparison_results["differences"]:
+                f.write(f"\nCategory: {diff['Category']}\n")
+                f.write(f"Month: {diff['Month']}\n")
+                f.write(f"December Value: {diff['Dec_Value']:.6f}\n")
+                f.write(f"November Value: {diff['Nov_Value']:.6f}\n")
+                f.write(f"Difference: {diff['Difference']:.6f}\n")
+                if diff['Percent_Diff'] != float('inf'):
+                    f.write(f"Percent Difference: {diff['Percent_Diff']:.2f}%\n")
+                f.write("\n")
+        
+        if comparison_results["missing_in_dec"]:
+            f.write("MISSING IN DECEMBER EXPORT\n")
+            f.write("-" * 40 + "\n")
+            for missing in comparison_results["missing_in_dec"]:
+                f.write(f"Category: {missing['Category']}, Month: {missing['Month']}, "
+                       f"Nov Value: {missing['Nov_Value']:.6f}\n")
+            f.write("\n")
+        
+        if comparison_results["missing_in_nov"]:
+            f.write("MISSING IN NOVEMBER BACKFILL\n")
+            f.write("-" * 40 + "\n")
+            for missing in comparison_results["missing_in_nov"]:
+                f.write(f"Category: {missing['Category']}, Month: {missing['Month']}, "
+                       f"Dec Value: {missing['Dec_Value']:.6f}\n")
+            f.write("\n")
+        
+        if comparison_results["matches"]:
+            f.write(f"SUCCESSFUL MATCHES: {len(comparison_results['matches'])} values match between sources\n\n")
+
+
+def main():
+    print("Loading December 2025 export...")
+    try:
+        dec_df = load_december_export(DEC_EXPORT)
+        print(f"  Loaded {len(dec_df)} rows from December export")
+    except Exception as e:
+        print(f"ERROR loading December export: {e}")
+        sys.exit(1)
+    
+    print("Loading November 2025 backfill...")
+    try:
+        nov_df = load_november_backfill(NOV_BACKFILL)
+        print(f"  Loaded {len(nov_df)} rows from November backfill")
+    except Exception as e:
+        print(f"ERROR loading November backfill: {e}")
+        sys.exit(1)
+    
+    print("\nComparing data for months 12-24 through 11-25...")
+    comparison_results = compare_data(dec_df, nov_df)
+    
+    # Generate report
+    output_path = Path(__file__).parent / "analytics_output" / "december_2025_verification_report.txt"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    generate_report(comparison_results, output_path)
+    
+    print("\n" + "=" * 80)
+    print("VERIFICATION SUMMARY")
+    print("=" * 80)
+    summary = comparison_results["summary"]
+    print(f"Total Comparisons: {summary['total_comparisons']}")
+    print(f"✓ Matches: {summary['matches']}")
+    print(f"✗ Differences: {summary['differences']}")
+    print(f"⚠ Missing in December: {summary['missing_in_dec']}")
+    print(f"⚠ Missing in November: {summary['missing_in_nov']}")
+    print(f"\nDetailed report saved to: {output_path}")
+    
+    if summary['differences'] > 0:
+        print("\n⚠ WARNING: Differences found! Review the detailed report.") return 1
+    elif summary['missing_in_dec'] > 0 or summary['missing_in_nov'] > 0:
+        print("\n⚠ WARNING: Missing values detected! Review the detailed report.") return 1
+    else:
+        print("\n✓ All values match between December export and November backfill!") return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+
+```
+
+
+Creating the AI verification prompt document:
+
+
+```markdown
+# AI Verification Prompt: Overtime & Time Off Data Processing Calculations
+
+## Context
+
+This document provides a complete description of the Python ETL scripts that process Overtime and Time Off data for the Hackensack Police Department. Use this information to verify that the calculations are correct. ## Data Sources
+
+### Input Files (Monthly Exports)
+
+1. **Overtime Export**: `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\export\month\{year}\{yyyy}_{mm}_otactivity.xlsx`
+   - Contains overtime hours worked by employees
+   - May be in wide format (multiple OT columns) or long format (single Hours column with PayType description)
+
+2. **Time Off Export**: `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\month\{year}\{yyyy}_{mm}_timeoffactivity.xlsx`
+   - Contains time off usage (sick, vacation, comp time used, etc.) - May be in wide format or long format
+
+3. **Personnel Reference**: `C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_V2.xlsx`
+   - Maps employee names to titles/ranks
+   - Used to classify employees as "Sworn" or "NonSworn"
+
+### Backfill Data (Historical Reference)
+
+**Backfill Export**: `C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\projects\PowerBI_Date\Backfill\{YYYY_MM}\vcs_time_report\{YYYY_MM}_Monthly Accrual and Usage Summary.csv`
+- Contains previously validated monthly totals for historical months
+- Format: Wide format with Time_Category column and month columns (e.g., "12-24", "01-25", etc.) - Used to restore historical months (12-24 through 10-25) while preserving current month (11-25) from processing
+
+### Output Files
+
+1. **FIXED_monthly_breakdown_{start}_{end}.csv**: `02_ETL_Scripts\Overtime_TimeOff\output\`
+   - 13-month rolling window of monthly aggregates
+   - Columns: Period, Accrued_Comp_Time, Accrued_Overtime_Paid, Employee_Sick_Time_Hours, Used_SAT_Time_Hours, Used_Comp_Time, Military_Leave_Hours, Injured_on_Duty_Hours, Vacation_Hours
+
+2. **monthly_breakdown.csv**: `02_ETL_Scripts\Overtime_TimeOff\analytics_output\`
+   - Long format: YearMonth, Class (Sworn/NonSworn), Metric (Accrued Comp. Time / Accrued Overtime), Hours
+   - Used for accrual calculations in Power BI
+
+3. **Visual Export**: `05_EXPORTS\{YYYY_MM}_Monthly Accrual and Usage Summary.csv`
+   - Final output for Power BI visualization
+   - Format: Time Category, Sum of Value, PeriodLabel (long format)
+   - Contains 13 months of data (12-24 through 12-25)
+
+## Processing Script: `overtime_timeoff_13month_sworn_breakdown_v10.py`
+
+### Key Functions and Logic
+
+#### 1. Data Loading (`load_folder`)
+
+**Purpose**: Recursively loads all Excel/CSV files from Overtime and Time Off directories. **Process**:
+- Searches for `*.xlsx` and `*.csv` files recursively
+- For each file, calls `coerce_common()` to convert to standardized long format
+- Handles both wide format (multiple OT/Comp columns) and long format (single Hours column)
+
+#### 2. Format Detection (`coerce_common`, `detect_wide_cols`)
+
+**Wide Format Detection**:
+- Identifies numeric columns that represent OT or Comp Time hours
+- Uses regex patterns to detect:
+  - Overtime: "overtime", "o.t. ", "o/t", "dt", "double time", "1.5x", "2.0x", "2.5x", "150%", "200%", "250%"
+  - Comp Time: "comp", "compensatory", "comp time", "ct"
+- Detects rates: 1.0 (10), 1.5 (15), 2.0 (20), 2.5 (25)
+- Excludes columns matching usage patterns: "used", "taken", "vacation", "sick", "holiday", "leave", "pto"
+
+**Long Format Processing**:
+- Extracts: EmployeeName, Date, Status, Hours, PayType/Description
+- Classifies Category (OT or COMP) from PayType text
+- Detects Rate from PayType text (1.5, 2.0, 2.5, etc.) **Critical Rule**: Time Off files exclude COMP category rows to prevent double-counting:
+- Time Off COMP = hours USED (already counted in usage)
+- Overtime COMP = hours ACCRUED (what we track)
+
+#### 3. Employee Classification (`merge_personnel`, `classify_title`)
+
+**Sworn Titles**: "P.O. ", "CHIEF", "LT.", "SPO III", "SGT. ", "DET. ", "CAPT." **NonSworn Titles**: "SPO II", "HCOP", "C.O. ", "DPW", "CLK", "PEO", "TM", "PLA"
+
+**Name Normalization**:
+- Converts "LastName, FirstName" → "FirstName LastName"
+- Removes titles/ranks and badge numbers
+- Applies manual overrides for known name mismatches
+
+#### 4. Status Filtering (`filter_approved`)
+
+**Approved Statuses** (normalized): "approved", "approvedwstip", "approvedwithstip", "approvedwithstipend", "approvedwithstipulation"
+
+Only rows with approved status are included in calculations. #### 5. Date Window (`apply_window`, `month_window_13`)
+
+**13-Month Rolling Window**:
+- Always ends on the last day of the previous month
+- Example (run on 2025-12-15): start = 2024-11-01, end = 2025-11-30
+- Only includes transactions within this window
+
+#### 6. Accrual Calculations (`compute_metrics`)
+
+**Accrued Comp. Time**:
+- Sum of all hours where Category = "COMP" from Overtime files
+- Grouped by MemberClass (Sworn/NonSworn) and YearMonth
+- Excludes COMP from Time Off files (those are usage, not accruals)
+
+**Accrued Overtime**:
+- Sum of all hours where Category = "OT" from Overtime files
+- Grouped by MemberClass (Sworn/NonSworn) and YearMonth
+- Includes all OT rates (1.5x, 2.0x, 2.5x) - no rate-based filtering
+
+#### 7. Usage Calculations (`build_usage_from_timeoff`)
+
+**From Time Off Files Only** (raw data before comp exclusion):
+
+**Classification Logic** (Reason-first, then fallback to text):
+- **Sick Time**: Reason contains "sick" OR text contains "sick", "ill", "illness", "sck"
+- **SAT Time**: Reason contains "sat" OR text contains "sat"
+- **Comp Time Used**: Reason contains "comp" OR text contains "comp", "compensatory", "comp time used", "ct used"
+- **Military Leave**: Reason contains "mil" or "military leave" OR text contains "military", "mil"
+- **Vacation**: Reason contains "vac", "vacation", "annual", "pto", "personal time off" OR text contains "vacation", "annual", "pto", "personal time"
+- **Injured on Duty**: Text contains "iod", "injured on duty", "injury on duty"
+
+**Aggregation**:
+- Sum hours per category per month
+- Creates monthly totals for each usage type
+
+#### 8. Monthly Breakdown Generation
+
+**FIXED_monthly_breakdown.csv Structure**:
+- One row per month in the 13-month window
+- Columns:
+  - Period: YYYY-MM format
+  - Accrued_Comp_Time: Total COMP hours (Sworn + NonSworn) for that month
+  - Accrued_Overtime_Paid: Total OT hours (Sworn + NonSworn) for that month
+  - Employee_Sick_Time_Hours: Sick time usage for that month
+  - Used_SAT_Time_Hours: SAT time usage for that month
+  - Used_Comp_Time: Comp time USED (not accrued) for that month
+  - Military_Leave_Hours: Military leave usage for that month
+  - Injured_on_Duty_Hours: IOD usage for that month
+  - Vacation_Hours: Vacation usage for that month
+
+**monthly_breakdown.csv Structure** (for accruals):
+- One row per month/class/metric combination
+- Columns: YearMonth, Class (Sworn/NonSworn), Metric (Accrued Comp. Time / Accrued Overtime), Hours
+
+## Backfill Process: `overtime_timeoff_with_backfill.py`
+
+### Workflow
+
+1. **Run v10 Script**: Processes current month exports, generates FIXED_monthly_breakdown and monthly_breakdown
+
+2. **Restore FIXED from Backfill** (`restore_fixed_from_backfill.py`):
+   - Reads prior-month visual export (e.g., 2025_11_Monthly Accrual and Usage Summary.csv)
+   - Overwrites historical months (12-24 through 10-25) in FIXED_monthly_breakdown
+   - Preserves current month (11-25) from v10 processing
+   - Only restores usage categories (not accruals, unless explicitly enabled)
+
+3. **Backfill monthly_breakdown.csv** (`backfill_monthly_breakdown_from_backfill`):
+   - Extracts accrual values (Accrued Comp. Time - Sworn/NonSworn, Accrued Overtime - Sworn/NonSworn) from backfill
+   - Maps to monthly_breakdown schema: (YearMonth, Class, Metric, Hours)
+   - For months prior to end_month: uses backfill values
+   - For end_month: prefers v10 values, falls back to backfill if missing
+
+### Backfill Format Handling
+
+**Wide Format** (month columns):
+- Time_Category column + month columns (e.g., "12-24", "01-25")
+- Extracts value from intersection of category row and month column
+
+**Long Format** (PeriodLabel):
+- Time Category, Sum of Value, PeriodLabel columns
+- Extracts value from matching category and period label
+
+## Verification Requirements
+
+### For December 2025 Export
+
+**Compare**:
+- `05_EXPORTS\2025_12_Monthly Accrual and Usage Summary.csv` (December export)
+- `00_dev\projects\PowerBI_Date\Backfill\2025_11\vcs_time_report\2025_11_Monthly Accrual and Usage Summary.csv` (November backfill)
+
+**Expected Result**:
+- Months 12-24 through 11-25 should match exactly between the two files
+- December export should have month 12-25 (current month from processing)
+- November backfill should NOT have month 12-25 (it's the prior month's export)
+
+**Categories to Verify**:
+1. Accrued Comp. Time - Non-Sworn
+2. Accrued Comp. Time - Sworn
+3. Accrued Overtime - Non-Sworn
+4. Accrued Overtime - Sworn
+5. Comp (Hours) - usage
+6. Employee Sick Time (Hours)
+7. Injured on Duty (Hours)
+8. Military Leave (Hours)
+9. Used SAT Time (Hours)
+
+### Calculation Verification Checklist
+
+1. **Accrual Calculations**:
+   - [ ] Only Overtime files contribute to accruals (not Time Off files)
+   - [ ] COMP category from Time Off files is excluded (those are usage)
+   - [ ] All OT rates (1.5x, 2.0x, 2.5x) are included in Accrued Overtime
+   - [ ] Sworn/NonSworn split is correct based on personnel file
+
+2. **Usage Calculations**:
+   - [ ] Only Time Off files contribute to usage metrics
+   - [ ] Classification logic correctly identifies sick, SAT, comp used, military, vacation, IOD
+   - [ ] Reason column takes precedence over free-text classification
+
+3. **Date Window**:
+   - [ ] Only transactions within 13-month window are included
+   - [ ] Window ends on last day of previous month
+   - [ ] Window start is 12 months before window end
+
+4. **Status Filtering**:
+   - [ ] Only approved transactions are included
+   - [ ] Status normalization handles variations (approved, approvedwstip, etc.) 5. **Backfill Process**:
+   - [ ] Historical months (12-24 through 10-25) come from backfill
+   - [ ] Current month (11-25) comes from v10 processing
+   - [ ] No mixing or overwriting of current month with backfill
+
+## Files to Review
+
+1. **Main Processing Script**: `02_ETL_Scripts\Overtime_TimeOff\overtime_timeoff_13month_sworn_breakdown_v10.py`
+2. **Wrapper Script**: `scripts\overtime_timeoff_with_backfill.py`
+3. **Restore Script**: `scripts\restore_fixed_from_backfill.py`
+4. **Verification Script**: `02_ETL_Scripts\Overtime_TimeOff\verify_december_2025_data.py`
+
+## Expected Output Format
+
+### December 2025 Export (Long Format)
+```csv
+Time Category,Sum of Value,PeriodLabel
+Accrued Comp. Time - Non-Sworn,87,12-24
+Accrued Comp. Time - Non-Sworn,17,01-25
+... Accrued Comp. Time - Sworn,274,12-24
+...
+Comp (Hours),236,12-24
+...
+```
+
+### November 2025 Backfill (Wide Format)
+```csv
+24-Nov,25-Jan,25-Feb,...,Time_Category,25-Oct,Sum of 11-25
+80.25,17,35.5,...,Accrued Comp. Time - Non-Sworn,20,0
+181.5,135.75,202.5,...,Accrued Comp. Time - Sworn,293.75,0
+...
+```
+
+## Questions for AI Verification
+
+1. **Are the accrual calculations correct? **
+   - Should COMP from Time Off files be excluded? (Yes - those are usage, not accruals)
+   - Should all OT rates be included? (Yes - 1.5x, 2.0x, 2.5x all count as overtime)
+   - Is the Sworn/NonSworn split logic correct? 2. **Are the usage classifications correct? **
+   - Is the Reason-first, then fallback logic appropriate? - Are the regex patterns correctly identifying each category? 3. **Is the backfill process correct? **
+   - Should historical months be overwritten with backfill? (Yes, for usage categories)
+   - Should current month be preserved from v10? (Yes)
+   - Should accruals be backfilled? (Optional, but typically yes for full history)
+
+4. **Are there any edge cases or potential errors? **
+   - Name normalization issues? - Date parsing problems? - Status filtering edge cases? - Missing data handling? ## Running Verification
+
+Execute the verification script:
+```bash
+python "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\verify_december_2025_data.py"
+```
+
+This will:
+1. Load both December export and November backfill
+2. Compare values for months 12-24 through 11-25
+3. Generate a detailed report showing matches, differences, and missing values
+4. Exit with code 0 if all match, 1 if differences found
+
+```
+
+
+Running the verification script and creating a summary document:
+
+
+
+Fixing the Unicode encoding issue:
+
+
+```python
+#!/usr/bin/env python3
+"""
+Verification script for December 2025 Overtime/TimeOff data processing
+
+This script:
+1. Compares December 2025 export with November 2025 backfill data
+2. Validates that months 12-24 through 11-25 match between the two sources
+3. Generates a detailed comparison report
+"""
+
+from __future__ import annotations
+
+import pandas as pd
+from pathlib import Path
+from typing import Dict, Tuple
+import sys
+
+# File paths
+DEC_EXPORT = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\2025_12_Monthly Accrual and Usage Summary.csv")
+NOV_BACKFILL = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\projects\PowerBI_Date\Backfill\2025_11\vcs_time_report\2025_11_Monthly Accrual and Usage Summary.csv")
+
+# Expected months to compare (12-24 through 11-25)
+EXPECTED_MONTHS = [
+    "12-24", "01-25", "02-25", "03-25", "04-25", "05-25",
+    "06-25", "07-25", "08-25", "09-25", "10-25", "11-25"
+]
+
+# Time categories to compare
+ACCRUAL_CATEGORIES = [
+    "Accrued Comp. Time - Non-Sworn",
+    "Accrued Comp. Time - Sworn",
+    "Accrued Overtime - Non-Sworn",
+    "Accrued Overtime - Sworn",
+]
+
+USAGE_CATEGORIES = [
+    "Comp (Hours)",
+    "Employee Sick Time (Hours)",
+    "Injured on Duty (Hours)",
+    "Military Leave (Hours)",
+    "Used SAT Time (Hours)",
+]
+
+ALL_CATEGORIES = ACCRUAL_CATEGORIES + USAGE_CATEGORIES
+
+
+def parse_period_label(label: str) -> str:
+    """Normalize period label format (handles variations like '24-Nov', '12-24', etc.)""" label = str(label).strip()
+    # Handle '24-Nov' format -> '11-24'
+    if "-" in label and len(label.split("-")) == 2:
+        parts = label.split("-")
+        if len(parts[0]) == 2 and parts[1].isalpha():
+            # Format: '24-Nov' -> '11-24'
+            month_map = {
+                "Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04",
+                "May": "05", "Jun": "06", "Jul": "07", "Aug": "08",
+                "Sep": "09", "Oct": "10", "Nov": "11", "Dec": "12"
+            }
+            month = month_map.get(parts[1][:3], "")
+            year = parts[0]
+            if month and year:
+                return f"{month}-{year}"
+    return label
+
+
+def load_december_export(path: Path) -> pd.DataFrame:
+    """Load December export (long format: Time Category, Sum of Value, PeriodLabel)"""
+    df = pd.read_csv(path)
+    
+    # Normalize column names
+    df.columns = df.columns.str.strip()
+    
+    # Map to standard names
+    time_col = None
+    value_col = None
+    period_col = None
+    
+    for col in df.columns:
+        col_lower = col.lower()
+        if "time category" in col_lower or "time_category" in col_lower:
+            time_col = col
+        elif "value" in col_lower or "sum of value" in col_lower:
+            value_col = col
+        elif "period" in col_lower or "periodlabel" in col_lower:
+            period_col = col
+    
+    if not all([time_col, value_col, period_col]):
+        raise ValueError(f"Missing required columns.

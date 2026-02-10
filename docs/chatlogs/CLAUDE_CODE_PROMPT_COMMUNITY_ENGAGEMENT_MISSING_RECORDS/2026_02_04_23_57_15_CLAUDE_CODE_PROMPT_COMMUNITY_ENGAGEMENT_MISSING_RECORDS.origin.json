@@ -1,0 +1,36 @@
+{
+  "tags": [
+    "ai",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "markdown",
+    "python",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "events",
+        "etl",
+        "december",
+        "2025",
+        "output",
+        "source"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Claude Code Prompt: Community Engagement ETL Missing Records Investigation\n\n> **RESOLVED** ✅ (2026-01-12)\n> \n> **Resolution:** The issue was resolved by re-running the ETL script. The ETL output file was outdated (last run: December 10...",
+      "first_line": "# Claude Code Prompt: Community Engagement ETL Missing Records Investigation"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-04T23:57:15.974580",
+  "department": "admin"
+}

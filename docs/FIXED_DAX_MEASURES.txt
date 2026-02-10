@@ -1,0 +1,71 @@
+// ==============================================================================
+// FIXED DAX MEASURES FOR RESPONSE TIMES
+// Updated to use Date_Sort_Key instead of Date
+// Filtered on Response_Type directly (matching our M code output)
+// ==============================================================================
+
+Urgent_Avg_13M = 
+VAR CurrYear = YEAR(TODAY())
+VAR CurrMonth = MONTH(TODAY())
+VAR EndMonthTemp = CurrMonth - 1
+VAR EndMonth = IF(EndMonthTemp = 0, 12, EndMonthTemp)
+VAR EndYear = IF(EndMonthTemp = 0, CurrYear - 1, CurrYear)
+VAR StartMonthTemp = EndMonth - 12
+VAR StartMonth = IF(StartMonthTemp <= 0, StartMonthTemp + 12, StartMonthTemp)
+VAR StartYear = IF(StartMonthTemp <= 0, EndYear - 1, EndYear)
+VAR StartDate = DATE(StartYear, StartMonth, 1)
+VAR EndDate = DATE(EndYear, EndMonth, 1)
+RETURN
+CALCULATE(
+    AVERAGE('___ResponseTimeCalculator'[Average_Response_Time]),
+    '___ResponseTimeCalculator'[Response_Type] = "Urgent",
+    '___ResponseTimeCalculator'[Date_Sort_Key] >= StartDate,
+    '___ResponseTimeCalculator'[Date_Sort_Key] <= EndDate
+)
+
+Routine_Avg_13M = 
+VAR CurrYear = YEAR(TODAY())
+VAR CurrMonth = MONTH(TODAY())
+VAR EndMonthTemp = CurrMonth - 1
+VAR EndMonth = IF(EndMonthTemp = 0, 12, EndMonthTemp)
+VAR EndYear = IF(EndMonthTemp = 0, CurrYear - 1, CurrYear)
+VAR StartMonthTemp = EndMonth - 12
+VAR StartMonth = IF(StartMonthTemp <= 0, StartMonthTemp + 12, StartMonthTemp)
+VAR StartYear = IF(StartMonthTemp <= 0, EndYear - 1, EndYear)
+VAR StartDate = DATE(StartYear, StartMonth, 1)
+VAR EndDate = DATE(EndYear, EndMonth, 1)
+RETURN
+CALCULATE(
+    AVERAGE('___ResponseTimeCalculator'[Average_Response_Time]),
+    '___ResponseTimeCalculator'[Response_Type] = "Routine",
+    '___ResponseTimeCalculator'[Date_Sort_Key] >= StartDate,
+    '___ResponseTimeCalculator'[Date_Sort_Key] <= EndDate
+)
+
+Emergency_Avg_13M = 
+VAR CurrYear = YEAR(TODAY())
+VAR CurrMonth = MONTH(TODAY())
+VAR EndMonthTemp = CurrMonth - 1
+VAR EndMonth = IF(EndMonthTemp = 0, 12, EndMonthTemp)
+VAR EndYear = IF(EndMonthTemp = 0, CurrYear - 1, CurrYear)
+VAR StartMonthTemp = EndMonth - 12
+VAR StartMonth = IF(StartMonthTemp <= 0, StartMonthTemp + 12, StartMonthTemp)
+VAR StartYear = IF(StartMonthTemp <= 0, EndYear - 1, EndYear)
+VAR StartDate = DATE(StartYear, StartMonth, 1)
+VAR EndDate = DATE(EndYear, EndMonth, 1)
+RETURN
+CALCULATE(
+    AVERAGE('___ResponseTimeCalculator'[Average_Response_Time]),
+    '___ResponseTimeCalculator'[Response_Type] = "Emergency",
+    '___ResponseTimeCalculator'[Date_Sort_Key] >= StartDate,
+    '___ResponseTimeCalculator'[Date_Sort_Key] <= EndDate
+)
+
+// ==============================================================================
+// CHANGES MADE:
+// 1. Removed filter on [Summary_Type] (column doesn't exist)
+// 2. Removed filter on [Category] (column doesn't exist)
+// 3. Changed [Date] to [Date_Sort_Key] (the date column we created)
+// 4. Filter directly on [Response_Type] = "Urgent"/"Routine"/"Emergency"
+// ==============================================================================
+

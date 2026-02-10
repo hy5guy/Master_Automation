@@ -1,0 +1,61 @@
+{
+  "source_file": "Claude_Md_Created_And_GitHub_Connection_Check.md",
+  "source_path": "C:\\_chunker\\02_data\\Claude_Md_Created_And_GitHub_Connection_Check.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Claude_Md_Created_And_GitHub_Connection_Check\\2026_02_04_23_03_52_Claude_Md_Created_And_GitHub_Connection_Check.origin.json",
+  "created_at": "2026_02_04_23_03_52",
+  "tags": [
+    "code",
+    "docs",
+    "markdown",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "github",
+      "repository",
+      "project",
+      "directory",
+      "master_automation",
+      "git"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Claude.md file generation\n_Exported on 2/4/2026 at 23:00:43 EST from Cursor (2.4.28)_\n\n---\n\n**User**\n\n@c:\\_chunker\\Claude.md the attached Claude.md was made for another project please use it as an example to create a Claude.md for this...",
+    "first_line": "# Claude.md file generation"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-04T23:03:52+00:00_Claude_Md_Created_And_GitHub_Connection_Check_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "code",
+        "directory",
+        "docs",
+        "github",
+        "markdown",
+        "master_automation",
+        "project",
+        "repository",
+        "sql"
+      ],
+      "key_terms": [
+        "github",
+        "repository",
+        "project",
+        "directory",
+        "master_automation",
+        "git"
+      ],
+      "summary": "# Claude.md file generation\n_Exported on 2/4/2026 at 23:00:43 EST from Cursor (2.4.28)_\n\n---\n\n**User**\n\n@c:\\_chunker\\Claude.md the attached Claude.md was made for another project please use it as an example to create a Claude.md for this...",
+      "char_length": 3766,
+      "byte_length": 3864
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

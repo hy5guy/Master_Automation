@@ -1,0 +1,107 @@
+{
+  "source_file": "Master_Automation_Documentation_Consolidation_And_Directory_Cleanup.md",
+  "source_path": "C:\\_chunker\\02_data\\Master_Automation_Documentation_Consolidation_And_Directory_Cleanup.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Master_Automation_Documentation_Consolidation_And_Directory_\\2026_02_09_10_11_57_Master_Automation_Documentation_Consolidation_And_Directory_.origin.json",
+  "created_at": "2026_02_09_10_11_57",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "files",
+      "users",
+      "carucci_r",
+      "onedrive",
+      "city",
+      "hackensack"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Documentation file merging and update\n_Exported on 2/9/2026 at 10:03:56 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\nread the multipel version of the README, CHANGELOG & SUMMARY. the versions with the suffix \"-PD_BCI_LTP\" are from I assum...",
+    "first_line": "# Documentation file merging and update"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-09T10:11:57+00:00_Master_Automation_Documentation_Consolidation_And_Directory__chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "carucci_r",
+        "city",
+        "code",
+        "data",
+        "docs",
+        "files",
+        "hackensack",
+        "json",
+        "legal",
+        "markdown",
+        "onedrive",
+        "police",
+        "powershell",
+        "sql",
+        "users"
+      ],
+      "key_terms": [
+        "files",
+        "onedrive",
+        "users",
+        "carucci_r",
+        "city",
+        "hackensack"
+      ],
+      "summary": "# Documentation file merging and update\n_Exported on 2/9/2026 at 10:03:56 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\nread the multipel version of the README, CHANGELOG & SUMMARY.",
+      "char_length": 30123,
+      "byte_length": 31325
+    },
+    {
+      "chunk_id": "2026-02-09T10:11:57+00:00_Master_Automation_Documentation_Consolidation_And_Directory__chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "13-month",
+        "ai",
+        "code",
+        "complete",
+        "cursor",
+        "data",
+        "docs",
+        "json",
+        "legal",
+        "local",
+        "markdown",
+        "police",
+        "powershell",
+        "sql",
+        "workbench"
+      ],
+      "key_terms": [
+        "data",
+        "complete",
+        "workbench",
+        "13-month",
+        "cursor",
+        "local"
+      ],
+      "summary": "Let me document what I've observed:\n\n## Screenshots Analysis - December 2025 Exports\n\n### ✅ Visuals with Complete Data (Looking Good)\n\n1.",
+      "char_length": 6279,
+      "byte_length": 6425
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

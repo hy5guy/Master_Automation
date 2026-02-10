@@ -1,0 +1,940 @@
+*time` | `response_time` | "response_time", "response times" |
+
+---
+
+## Step 3: Manual Archive Organization
+
+For single-month visuals that don't need backfill:
+
+**Create archive folders:**
+```powershell
+$month = "2025_12"
+$basePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\$month"
+
+# Create archive folders
+New-Item -ItemType Directory -Path "$basePath\arrest\archive" -Force
+New-Item -ItemType Directory -Path "$basePath\community_outreach\archive" -Force
+New-Item -ItemType Directory -Path "$basePath\policy_training\archive" -Force
+```
+
+**Move archive files:**
+```powershell
+# Example: Move arrest archive visuals
+$source = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\TOP_5_Arrest_Leaders.csv"
+$dest = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_12\arrest\archive\2025_12_TOP_5_Arrest_Leaders.csv"
+Move-Item -Path $source -Destination $dest
+```
+
+---
+
+## Required Visuals Checklist
+
+### ✅ Backfill Visuals (Required for ETL Scripts)
+
+- [ ] **Summons**
+  - Visual: Monthly summons data
+  - Category: `summons`
+  - Script: `Summons\main_orchestrator.py`
+  - Location: `Backfill\YYYY_MM\summons\`
+
+- [ ] **Overtime TimeOff**
+  - Visual: "Monthly Accrual and Usage Summary"
+  - Category: `vcs_time_report`
+  - Script: `Overtime_TimeOff\overtime_timeoff_13month_sworn_breakdown_v11.py`
+  - Location: `Backfill\YYYY_MM\vcs_time_report\`
+
+- [ ] **Community Engagement**
+  - Visual: Monthly community engagement data
+  - Category: `community_outreach`
+  - Script: `Community_Engagment\deploy_production.py`
+  - Location: `Backfill\YYYY_MM\community_outreach\`
+
+- [ ] **Policy Training Monthly**
+  - Visual: Monthly training data
+  - Category: `policy_training`
+  - Script: `Policy_Training_Monthly\` (currently disabled - no Python files)
+  - Location: `Backfill\YYYY_MM\policy_training\`
+
+### 📁 Archive Visuals (Optional - for reference)
+
+- [ ] TOP 5 ARREST LEADERS → `arrest\archive\`
+- [ ] Arrest Distribution by Local, State & Out of State → `arrest\archive\`
+- [ ] Arrest Categories by Type and Gender → `arrest\archive\`
+- [ ] Engagement Initiatives by Bureau → `community_outreach\archive\`
+- [ ] In-Person Training → `policy_training\archive\`
+
+---
+
+## Current Backfill Status
+
+**2025_12 (Current Month):**
+- ✅ summons: 6 files
+- ✅ community_outreach: 24 files
+- ✅ policy_training: 10 files
+- ✅ response_time: 9 files
+- ⚠️ uncategorized: 121 files (may need manual review)
+
+**2025_10 (Previous Month):**
+- ✅ summons: 4 files
+- ✅ vcs_time_report: 3 files
+- ✅ community_outreach: 2 files
+- ✅ policy_training: 4 files
+
+---
+
+## Verification
+
+### Check Exported Files
+```powershell
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\*.csv"
+```
+
+### Check Organized Files
+```powershell
+$month = "2025_12"
+$backfillPath = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\$month"
+Get-ChildItem "$backfillPath\*\*.csv" -Recurse | Select-Object FullName
+```
+
+### Check Specific Categories
+```powershell
+# Check summons
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_12\summons\*.csv"
+
+# Check overtime/timeoff
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_12\vcs_time_report\*.csv"
+
+# Check community engagement
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_12\community_outreach\*.csv"
+
+# Check policy training
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_12\policy_training\*.csv"
+```
+
+---
+
+## Troubleshooting
+
+### File Not Categorized Correctly
+
+**Solution:** Rename file to match pattern, or manually move:
+
+```powershell
+# Example: Manually categorize a file
+$source = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\my_file.csv"
+$dest = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_12\summons\2025_12_my_file.csv"
+Move-Item -Path $source -Destination $dest
+```
+
+### Archive Folder Doesn't Exist
+
+**Solution:** Create archive folders:
+
+```powershell
+$month = "2025_12"
+$basePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\$month"
+$categories = @("arrest", "community_outreach", "policy_training")
+foreach ($cat in $categories) {
+    $archivePath = "$basePath\$cat\archive"
+    if (-not (Test-Path $archivePath)) {
+        New-Item -ItemType Directory -Path $archivePath -Force
+    }
+}
+```
+
+---
+
+## Summary
+
+**Backfill Visuals (Multi-Month):**
+1. Export from Power BI → `_DropExports\`
+2. Run `organize_backfill_exports.ps1`
+3. Files moved to `Backfill\YYYY_MM\category\`
+
+**Archive Visuals (Single Month):**
+1. Export from Power BI → `_DropExports\`
+2. Manually move to `Backfill\YYYY_MM\category\archive\`
+3. Or create archive structure and organize manually
+
+---
+
+**Last Updated:** 2025-12-11  
+**Status:** Ready for visual exports
+
+```
+
+
+Created a guide. Summary:
+
+## Visual export guide
+
+### Backfill visuals (multi-month data)
+
+These visuals need to be exported for ETL scripts:
+
+1. Summons
+   - Export to: `_DropExports\`
+   - Auto-categorized to: `Backfill\YYYY_MM\summons\`
+   - Filename pattern: Contains "summon", "moving", "parking", or "violation"
+
+2. Monthly Accrual and Usage Summary (Overtime TimeOff)
+   - Export to: `_DropExports\`
+   - Auto-categorized to: `Backfill\YYYY_MM\vcs_time_report\`
+   - Filename pattern: Contains "monthly. *accrual" or "vcs. *time"
+
+3. Community Engagement
+   - Export to: `_DropExports\`
+   - Auto-categorized to: `Backfill\YYYY_MM\community_outreach\`
+   - Filename pattern: Contains "community", "outreach", or "engagement"
+
+4. Policy Training Monthly
+   - Export to: `_DropExports\`
+   - Auto-categorized to: `Backfill\YYYY_MM\policy_training\`
+   - Filename pattern: Contains "policy" or "training"
+
+### Archive visuals (single-month snapshots)
+
+These visuals are for archive only (not backfill):
+
+- TOP 5 ARREST LEADERS → `arrest\archive\`
+- Arrest Distribution by Local, State & Out of State → `arrest\archive\`
+- Arrest Categories by Type and Gender → `arrest\archive\`
+- Engagement Initiatives by Bureau → `community_outreach\archive\`
+- In-Person Training → `policy_training\archive\`
+
+## Quick workflow
+
+1. Export visuals from Power BI → Save to `_DropExports\`
+2. Run organization script:
+   ```powershell
+   cd "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date"
+   .\tools\organize_backfill_exports.ps1
+   ```
+3. Manual archive (for single-month visuals):
+   - Create `archive\` folders if needed
+   - Move single-month visuals to `category\archive\` folders
+
+## Full guide
+
+See `docs\VISUAL_EXPORT_CHECKLIST.md` for:
+- Detailed export instructions
+- Filename patterns for auto-categorization
+- Verification commands
+- Troubleshooting tips
+
+The organization script automatically categorizes files based on filename patterns, so use descriptive filenames when exporting from Power BI. ```powershell
+   cd "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date"
+   .\tools\organize_backfill_exports.ps1
+```
+
+---
+
+**User**
+
+Summons data:
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\_DropExports\Summons  Moving & Parking  All Bureaus.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\_DropExports\Top 5 Non-Parking Violations - Department Wide.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\_DropExports\Top 5 Moving Violations - Department Wide.csv
+
+Overtime for vcs time
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\_DropExports\Monthly Accrual and Usage Summary.csv
+
+Community Engagement
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\_DropExports\Engagement Initiatives by Bureau.csv
+
+Policy Training Monthly
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\_DropExports\In-Person Training.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\_DropExports\Training Cost by Delivery Method.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\_DropExports\Training Metrics Comprehensive Report.csv
+
+
+---
+
+**Cursor**
+
+
+Moving the files to the correct location and organizing them. Checking current locations:
+
+
+
+Verifying files were moved, then organizing them:
+
+
+
+Running the organization script, then moving archive files:
+
+
+
+Creating a summary of what was organized:
+
+
+```markdown
+# Visual Export Organization Summary
+
+**Date:** 2025-12-11  
+**Month:** 2025_12  
+**Status:** ✅ Organized (with 3 uncategorized files)
+
+---
+
+## ✅ Successfully Organized
+
+### 📊 Backfill Files (Multi-Month Data)
+
+#### Summons (4 files)
+- ✅ `2025_12_Summons  Moving & Parking  All Bureaus.csv`
+- ✅ `2025_12_Department-Wide Summons  Moving and Parking.csv`
+- ✅ `2025_12_Top 5 Moving Violations - Department Wide.csv`
+- ✅ `2025_12_Top 5 Non-Parking Violations - Department Wide.csv`
+
+**Location:** `Backfill\2025_12\summons\`
+
+#### Overtime/TimeOff (1 file)
+- ✅ `2025_12_Monthly Accrual and Usage Summary.csv`
+
+**Location:** `Backfill\2025_12\vcs_time_report\`
+
+#### Community Engagement (1 file)
+- ✅ `2025_12_Engagement Initiatives by Bureau.csv` (already existed, skipped duplicate)
+
+**Location:** `Backfill\2025_12\community_outreach\`
+
+#### Policy Training (3 files)
+- ✅ `2025_12_Training Cost by Delivery Method.csv`
+- ✅ `2025_12_Training Metrics Comprehensive Report.csv`
+- ✅ `2025_12_In-Person Training.csv` (moved to archive - see below)
+
+**Location:** `Backfill\2025_12\policy_training\`
+
+---
+
+### 📁 Archive Files (Single-Month Snapshots)
+
+#### Arrest Archive (3 files)
+- ✅ `2025_12_TOP_5_ARREST_LEADERS.csv`
+- ✅ `2025_12_Arrest_Distribution.csv`
+- ✅ `2025_12_Arrest_Categories.csv`
+
+**Location:** `Backfill\2025_12\arrest\archive\`
+
+#### Community Outreach Archive (1 file)
+- ✅ `2025_12_Engagement_Initiatives_by_Bureau.csv`
+
+**Location:** `Backfill\2025_12\community_outreach\archive\`
+
+#### Policy Training Archive (1 file)
+- ✅ `2025_12_In_Person_Training.csv`
+
+**Location:** `Backfill\2025_12\policy_training\archive\`
+
+---
+
+## ⚠️ Uncategorized Files (Need Manual Review)
+
+These files could not be automatically categorized and remain in `_DropExports\`:
+
+1. **Incident Count by Date and Event Type.csv**
+   - **Suggested Category:** `detectives` or `patrol`
+   - **Action:** Review file content and manually categorize
+
+2. **Incident Distribution by Event Type.csv**
+   - **Suggested Category:** `detectives` or `patrol`
+   - **Action:** Review file content and manually categorize
+
+3. **Use of Force Incident Matrix.csv**
+   - **Suggested Category:** `detectives` or create new category
+   - **Action:** Review file content and manually categorize
+
+**To Manually Categorize:**
+```powershell
+# Example: Move to detectives category
+$source = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\Incident Count by Date and Event Type.csv"
+$dest = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_12\detectives\2025_12_Incident_Count_by_Date_and_Event_Type.csv"
+Move-Item -Path $source -Destination $dest
+```
+
+---
+
+## 📋 Files Organized by Category
+
+| Category | Backfill Files | Archive Files | Total |
+|----------|---------------|---------------|-------|
+| **summons** | 4 | 0 | 4 |
+| **vcs_time_report** | 1 | 0 | 1 |
+| **community_outreach** | 1 | 1 | 2 |
+| **policy_training** | 2 | 1 | 3 |
+| **arrest** | 0 | 3 | 3 |
+| **Other categories** | 9 | 0 | 9 |
+| **Uncategorized** | 3 | 0 | 3 |
+| **TOTAL** | **20** | **5** | **25** |
+
+---
+
+## ✅ Required Visuals Status
+
+### For ETL Scripts
+
+| Visual | Status | Location |
+|--------|--------|----------|
+| **Summons** | ✅ Organized | `Backfill\2025_12\summons\` (4 files) |
+| **Monthly Accrual and Usage Summary** | ✅ Organized | `Backfill\2025_12\vcs_time_report\` |
+| **Community Engagement** | ✅ Organized | `Backfill\2025_12\community_outreach\` |
+| **Policy Training Monthly** | ✅ Organized | `Backfill\2025_12\policy_training\` |
+
+### Archive Visuals
+
+| Visual | Status | Location |
+|--------|--------|----------|
+| TOP 5 ARREST LEADERS | ✅ Archived | `Backfill\2025_12\arrest\archive\` |
+| Arrest Distribution | ✅ Archived | `Backfill\2025_12\arrest\archive\` |
+| Arrest Categories | ✅ Archived | `Backfill\2025_12\arrest\archive\` |
+| Engagement Initiatives by Bureau | ✅ Archived | `Backfill\2025_12\community_outreach\archive\` |
+| In-Person Training | ✅ Archived | `Backfill\2025_12\policy_training\archive\` |
+
+---
+
+## Next Steps
+
+### Immediate
+1. ✅ **Review uncategorized files** - Determine correct categories
+2. ✅ **Manually categorize** - Move uncategorized files to appropriate folders
+3. ✅ **Verify file locations** - Confirm all required visuals are in correct locations
+
+### Future
+- Export visuals monthly following this workflow
+- Use archive folders for single-month snapshots
+- Keep backfill folders for multi-month historical data
+
+---
+
+## Verification Commands
+
+### Check Backfill Files
+```powershell
+$month = "2025_12"
+$basePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\$month"
+
+# Summons
+Get-ChildItem "$basePath\summons\*.csv"
+
+# Overtime/TimeOff
+Get-ChildItem "$basePath\vcs_time_report\*.csv"
+
+# Community Engagement
+Get-ChildItem "$basePath\community_outreach\*.csv" | Where-Object { $_.Name -notlike "*archive*" }
+
+# Policy Training
+Get-ChildItem "$basePath\policy_training\*.csv" | Where-Object { $_.Name -notlike "*archive*" }
+```
+
+### Check Archive Files
+```powershell
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_12\*\archive\*.csv" -Recurse
+```
+
+### Check Uncategorized
+```powershell
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\*.csv"
+```
+
+---
+
+**Status:** ✅ **Organization Complete**  
+**Action Required:** Review and categorize 3 uncategorized files
+
+```
+
+
+## Organization complete
+
+### Backfill files (multi-month data)
+
+**Summons** (4 files) → `Backfill\2025_12\summons\`
+- Summons Moving & Parking All Bureaus.csv
+- Department-Wide Summons Moving and Parking.csv
+- Top 5 Moving Violations - Department Wide.csv
+- Top 5 Non-Parking Violations - Department Wide.csv
+
+**Overtime/TimeOff** (1 file) → `Backfill\2025_12\vcs_time_report\`
+- Monthly Accrual and Usage Summary.csv
+
+**Community Engagement** (1 file) → `Backfill\2025_12\community_outreach\`
+- Engagement Initiatives by Bureau.csv
+
+**Policy Training** (2 files) → `Backfill\2025_12\policy_training\`
+- Training Cost by Delivery Method.csv
+- Training Metrics Comprehensive Report.csv
+
+### Archive files (single-month snapshots)
+
+**Arrest Archive** (3 files) → `Backfill\2025_12\arrest\archive\`
+- TOP 5 ARREST LEADERS.csv
+- Arrest Distribution by Local, State & Out of State.csv
+- Arrest Categories by Type and Gender.csv
+
+**Community Outreach Archive** (1 file) → `Backfill\2025_12\community_outreach\archive\`
+- Engagement Initiatives by Bureau.csv
+
+**Policy Training Archive** (1 file) → `Backfill\2025_12\policy_training\archive\`
+- In-Person Training.csv
+
+### Uncategorized files (need manual review)
+
+3 files remain in `_DropExports\`:
+- Incident Count by Date and Event Type.csv
+- Incident Distribution by Event Type.csv
+- Use of Force Incident Matrix.csv
+
+**Action:** Review these files and manually categorize them if needed. ---
+
+## Summary
+
+- All required visuals for ETL scripts are organized
+- Archive visuals moved to archive folders
+- Files are ready for ETL script use
+- 3 files need manual categorization
+
+Full details saved to: `docs\EXPORT_ORGANIZATION_SUMMARY.md`
+
+---
+
+**User**
+
+what is the orchestrator to run all the scripts? ---
+
+**Cursor**
+
+
+The orchestrator is `scripts\run_all_etl.ps1`. Showing how to use it:
+
+
+
+## Main orchestrator
+
+**Script:** `scripts\run_all_etl.ps1`
+
+**Location:**
+```
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\run_all_etl.ps1
+```
+
+---
+
+## Quick usage
+
+### Run all enabled scripts
+```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+.\scripts\run_all_etl.ps1
+```
+
+### Preview (dry run)
+```powershell
+.\scripts\run_all_etl.ps1 -DryRun
+```
+
+### Run specific scripts
+```powershell
+.\scripts\run_all_etl.ps1 -ScriptNames "Arrests","Summons"
+```
+
+### Skip Power BI copy step
+```powershell
+.\scripts\run_all_etl.ps1 -SkipPowerBI
+```
+
+---
+
+## Alternative: batch file
+
+Double-click or run:
+```batch
+scripts\run_all_etl.bat
+```
+
+---
+
+## What it does
+
+1. Reads configuration from `config\scripts.json`
+2. Runs enabled scripts in order (1-6)
+3. Logs execution to `logs\` folder
+4. Copies successful outputs to Power BI drop folder
+5. Provides summary report
+
+---
+
+## Currently enabled scripts (will run)
+
+1. **Arrests** (`arrest_python_processor.py`)
+2. **Community Engagement** (`deploy_production.py`)
+3. **Overtime TimeOff** (`overtime_timeoff_13month_sworn_breakdown_v11.py`)
+4. **Response Times** (`response_time_diagnostic.py`)
+5. **Summons** (`main_orchestrator.py`)
+
+---
+
+## Helper script
+
+To run a single script:
+```powershell
+.\scripts\run_etl_script.ps1 -ScriptName "Arrests"
+```
+
+This calls `run_all_etl.ps1` with the specific script name. ---
+
+The main orchestrator is `scripts\run_all_etl.ps1` — run it to execute all enabled ETL scripts. ```plaintext
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\run_all_etl.ps1
+```
+
+```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+.\scripts\run_all_etl.ps1
+```
+
+```powershell
+.\scripts\run_all_etl.ps1 -DryRun
+```
+
+```powershell
+.\scripts\run_all_etl.ps1 -ScriptNames "Arrests","Summons"
+```
+
+```powershell
+.\scripts\run_all_etl.ps1 -SkipPowerBI
+```
+
+```bat
+scripts\run_all_etl.bat
+```
+
+```powershell
+.\scripts\run_etl_script.ps1 -ScriptName "Arrests"
+```
+
+---
+
+**User**
+
+@scripts/run_etl_script.ps1 @scripts/run_all_etl.ps1 why are there two of these
+
+---
+
+**Cursor**
+
+
+Explaining the difference and purpose of each script:
+
+
+
+## Why two scripts
+
+### 1. `run_all_etl.ps1` — Main orchestrator
+- Purpose: Full-featured orchestrator
+- Features:
+  - Runs all enabled scripts (default)
+  - Can run specific scripts: `-ScriptNames 'Arrests','Summons'`
+  - Dry run mode: `-DryRun`
+  - Skip Power BI: `-SkipPowerBI`
+  - Handles execution, logging, error handling
+
+### 2. `run_etl_script.ps1` — Convenience wrapper
+- Purpose: Simpler syntax for running a single script
+- What it does: Calls `run_all_etl.ps1` internally
+- Code:
+```powershell
+# It just does this:
+& $orchestrator -ScriptNames $ScriptName
+```
+
+## Comparison
+
+| Feature | `run_all_etl.ps1` | `run_etl_script.ps1` |
+|---------|-------------------|---------------------|
+| Run all scripts | ✅ Default | ❌ No |
+| Run single script | ✅ `-ScriptNames 'Arrests'` | ✅ `-ScriptName 'Arrests'` |
+| Run multiple scripts | ✅ `-ScriptNames 'A','B'` | ❌ No |
+| Dry run | ✅ `-DryRun` | ❌ No |
+| Skip Power BI | ✅ `-SkipPowerBI` | ❌ No |
+| Syntax simplicity | More verbose | Simpler |
+
+## Examples
+
+**Using main orchestrator:**
+```powershell
+# Run all
+.\scripts\run_all_etl.ps1
+
+# Run one
+.\scripts\run_all_etl.ps1 -ScriptNames "Arrests"
+
+# Run multiple
+.\scripts\run_all_etl.ps1 -ScriptNames "Arrests","Summons"
+```
+
+**Using wrapper:**
+```powershell
+# Run one (simpler syntax)
+.\scripts\run_etl_script.ps1 -ScriptName "Arrests"
+```
+
+## Recommendation
+
+Keep both:
+- `run_all_etl.ps1` — Full control and features
+- `run_etl_script.ps1` — Quick single-script runs
+
+Or consolidate:
+- Remove `run_etl_script.ps1` and always use `run_all_etl.ps1`
+- Slightly more verbose, but one script to maintain
+
+The wrapper is optional. If you prefer one script, we can remove `run_etl_script.ps1` and use `run_all_etl.ps1` for everything. Should I remove the wrapper, or keep both? ```powershell
+# It just does this:
+& $orchestrator -ScriptNames $ScriptName
+```
+
+```powershell
+# Run all
+.\scripts\run_all_etl.ps1
+
+# Run one
+.\scripts\run_all_etl.ps1 -ScriptNames "Arrests"
+
+# Run multiple
+.\scripts\run_all_etl.ps1 -ScriptNames "Arrests","Summons"
+```
+
+```powershell
+# Run one (simpler syntax)
+.\scripts\run_etl_script.ps1 -ScriptName "Arrests"
+```
+
+---
+
+**User**
+
+lets do a dryrun@scripts/run_all_etl.ps1 
+
+---
+
+**Cursor**
+
+
+Running a dry run of the orchestrator:
+
+
+
+Dry run completed successfully. ## Dry run results
+
+### Scripts that would execute (5 total)
+
+1. Arrests (Order: 1)
+   - Script: `arrest_python_processor.py`
+   - Path: `02_ETL_Scripts\Arrests\`
+
+2. Community Engagement (Order: 2)
+   - Script: `deploy_production.py`
+   - Path: `02_ETL_Scripts\Community_Engagment\`
+
+3. Overtime TimeOff (Order: 3)
+   - Script: `overtime_timeoff_13month_sworn_breakdown_v11.py`
+   - Path: `02_ETL_Scripts\Overtime_TimeOff\`
+
+4. Response Times (Order: 5)
+   - Script: `response_time_diagnostic.py`
+   - Path: `02_ETL_Scripts\Response_Times\`
+
+5. Summons (Order: 6)
+   - Script: `main_orchestrator.py`
+   - Path: `02_ETL_Scripts\Summons\`
+
+### Status
+- All 5 scripts found and ready
+- All paths verified
+- Configuration loaded successfully
+- Log file created: `logs\2025-12-11_16-57-58_ETL_Run.log`
+
+### Next steps
+To run the scripts:
+```powershell
+.\scripts\run_all_etl.ps1
+```
+
+The orchestrator is ready to execute all enabled scripts. ```powershell
+.\scripts\run_all_etl.ps1
+```
+
+---
+
+**User**
+
+Lets go through the results. Overtime_Timedue m code is below, the Comp (Hours), Employee Sick Time (Hours), Injured on Duty (Hours), Military Leave (Hours) and Used SAT Time (Hours) are incorrectly all null for 11-24 through 09-25. All of the 11-25 are all null. Please investigate and fix
+
+ // 🕒 2025-10-09
+// Monthly Accrual & Usage Summary (13 months, Sworn/Non-Sworn split for
+// accruals)
+// - Uses FIXED_monthly_breakdown for all NON-accrual categories
+// - Uses analytics_output/monthly_breakdown.csv for Sworn/Non accruals
+// - Anchors overlap months (09-24..08-25) to last published totals
+// - Always outputs 13 monthly columns (even if latest month missing in FIXED
+// file)
+
+let
+    /* =========================
+       Paths & Config
+       ========================= */
+    OutputFolder     = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output",
+    AnalyticsFolder  = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\analytics_output",
+    
+    // Anchoring config: only anchor periods before cutover
+    UseAnchoring     = true,
+    CutoverLabel     = "09-25",  // Raw values from 09-25 onward
+    
+    // Convert CutoverLabel to a real date for proper comparison
+    CutoverDate =
+        let
+            cYear  = Number.FromText("20" & Text.End(CutoverLabel, 2)),
+            cMonth = Number.FromText(Text.Start(CutoverLabel, 2))
+        in
+#date(cYear, cMonth, 1),
+
+    /* =========================
+       Rolling 13-month window (exclude current month)
+       ========================= */
+    NowDT   = DateTime.LocalNow(),
+    CurrY   = Date.Year(NowDT),
+    CurrM   = Date.Month(NowDT),
+    EndY    = if CurrM = 1 then CurrY - 1 else CurrY,
+    EndM    = if CurrM = 1 then 12 else CurrM - 1,
+    StartY  = EndY - 1,
+    StartM  = EndM,
+
+    StartDate = #date(StartY, StartM, 1),
+    EndDate   = #date(EndY,   EndM,   1),
+
+    // List of month starts within window
+    MonthList = List.Generate(
+        () => StartDate,
+        each _ <= EndDate,
+        each Date.AddMonths(_, 1)
+    ),
+
+    // Period keys: YYYY-MM and display labels: MM-YY
+    PeriodKeysYYYYMM = List.Transform(MonthList, each
+        Text.From(Date.Year(_)) & "-" & Text.PadStart(Text.From(Date.Month(_)), 2, "0")),
+    PeriodLabelsMMYY = List.Transform(MonthList, each
+        Text.PadStart(Text.From(Date.Month(_)), 2, "0") & "-" & Text.End(Text.From(Date.Year(_)), 2)),
+
+    /* =========================
+       Load latest FIXED_monthly_breakdown (legacy totals)
+       ========================= */
+    OutFiles     = Folder.Files(OutputFolder),
+    FixedFiltered= Table.SelectRows(OutFiles, each Text.Contains([Name], "FIXED_monthly_breakdown") and Text.EndsWith([Name], ".csv")),
+    FixedSorted  = Table.Sort(FixedFiltered, {{"Date modified", Order.Descending}}),
+    FixedContent = if Table.RowCount(FixedSorted) > 0 then FixedSorted{0}[Content] else null,
+    FixedCsv     = if FixedContent <> null
+                   then Csv.Document(FixedContent, [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv])
+                   else #table({}, {}),
+
+    FixedHeaders = Table.PromoteHeaders(FixedCsv, [PromoteAllScalars=true]),
+    
+    // Force canonical column order to prevent future drift
+    FixedReordered = Table.ReorderColumns(
+                       FixedHeaders,
+                       {"Year","Month","Month_Name","Period","Date",
+                        "Accrued_Comp_Time","Accrued_Overtime_Paid",
+                        "Employee_Sick_Time_Hours","Used_SAT_Time_Hours","Vacation_Hours",
+                        "Used_Comp_Time","Military_Leave_Hours","Injured_on_Duty_Hours"}
+                     ),
+    
+    FixedTypes   = Table.TransformColumnTypes(
+                     FixedReordered,
+                     {{"Year", Int64.Type}, {"Month", Int64.Type}, {"Month_Name", type text},
+                      {"Period", type text}, {"Date", type date},
+                      {"Accrued_Comp_Time", type number}, {"Accrued_Overtime_Paid", type number},
+                      {"Employee_Sick_Time_Hours", type number}, {"Used_SAT_Time_Hours", type number},
+                      {"Vacation_Hours", type number}, {"Used_Comp_Time", type number},
+                      {"Military_Leave_Hours", type number}, {"Injured_on_Duty_Hours", type number}}
+                   ),
+
+    // Filter to 13-month window (by YYYY-MM)
+    Fixed13 = Table.SelectRows(FixedTypes, each List.Contains(PeriodKeysYYYYMM, [Period])),
+
+    // Legacy (NON-accrual) categories only
+    LegacySelect =
+        Table.SelectColumns(
+            Fixed13,
+            {"Period","Employee_Sick_Time_Hours","Used_SAT_Time_Hours","Vacation_Hours",
+             "Used_Comp_Time","Military_Leave_Hours","Injured_on_Duty_Hours"}),
+
+    LegacyUnpivot =
+        Table.Unpivot(
+            LegacySelect,
+            {"Employee_Sick_Time_Hours","Used_SAT_Time_Hours","Vacation_Hours",
+             "Used_Comp_Time","Military_Leave_Hours","Injured_on_Duty_Hours"},
+            "Orig","Value"),
+
+    NameMap =
+#table({"Orig", "Time_Category"},
+               {{"Employee_Sick_Time_Hours","Employee Sick Time (Hours)"},
+                {"Used_SAT_Time_Hours","Used SAT Time (Hours)"},
+                {"Vacation_Hours","Vacation (Hours)"},
+                {"Used_Comp_Time","Comp (Hours)"},
+                {"Military_Leave_Hours","Military Leave (Hours)"},
+                {"Injured_on_Duty_Hours","Injured on Duty (Hours)"}}),
+
+    LegacyJoin = Table.NestedJoin(LegacyUnpivot, {"Orig"}, NameMap, {"Orig"}, "Lk", JoinKind.LeftOuter),
+    LegacyNamed= Table.TransformColumns(LegacyJoin, {{"Lk", each if _<>null and Table.RowCount(_)>0 then _{0}[Time_Category] else null}}),
+    LegacyPrep =
+        Table.TransformColumns(
+            Table.RenameColumns(LegacyNamed, {{"Lk","Time_Category"}}),
+            {{"Value", each if _=null then 0 else _, type number}}),
+
+    // Add display Period (MM-YY) for consistent pivot - date-driven
+    LegacyWithLabel =
+        Table.AddColumn(
+            LegacyPrep, "PeriodLabel",
+            each Date.ToText(Date.FromText([Period] & "-01"), "MM-yy"),
+            type text),
+
+    /* =========================
+       Load sworn-split monthly_breakdown (analytics_output)
+       ========================= */
+    AFiles = Folder.Files(AnalyticsFolder),
+    MBFile = Table.SelectRows(AFiles, each [Name] = "monthly_breakdown.csv"),
+    MBCont = if Table.RowCount(MBFile)>0 then MBFile{0}[Content] else null,
+    MBCsv  = if MBCont <> null
+             then Csv.Document(MBCont,[Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv])
+             else #table({},{}),
+
+    MBHeaders = Table.PromoteHeaders(MBCsv, [PromoteAllScalars=true]),
+    MBTypes   = Table.TransformColumnTypes(MBHeaders,
+                  {{"YearMonth", type text}, {"Class", type text}, {"Metric", type text}, {"Hours", type number}}),
+
+    // Keep window + only accrual metrics
+    MBWindow = Table.SelectRows(MBTypes, each List.Contains(PeriodKeysYYYYMM, [YearMonth])),
+    MBAccrual= Table.SelectRows(MBWindow, each [Metric] = "Accrued Comp. Time" or [Metric] = "Accrued Overtime"),
+
+    // Period label for MB - date-driven
+    MBWithLabel =
+        Table.AddColumn(
+            MBAccrual, "PeriodLabel",
+            each let d = Date.FromText([YearMonth] & "-01")
+                 in Date.ToText(d, "MM-yy"),
+            type text),
+
+    // Friendly split row names
+    MBWithCat =
+        Table.AddColumn(MBWithLabel, "Time_Category",
+            each if [Metric] = "Accrued Comp. Time"
+                 then "Accrued Comp. Time - " & (if [Class]="Sworn" then "Sworn" else "Non-Sworn")
+                 else "Accrued Overtime - " & (if [Class]="Sworn" then "Sworn" else "Non-Sworn"),
+            type text),
+
+    // Map the split rows to an unsplit base metric used by the prior CSV
+    WithBaseMetric =
+        Table.AddColumn(
+            MBWithCat,
+            "BaseMetric",
+            each if Text.StartsWith([Time_Category], "Accrued Comp. Time")
+                 then "Accrued Comp.

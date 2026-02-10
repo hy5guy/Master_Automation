@@ -1,0 +1,714 @@
+```python
+#!/usr/bin/env python3
+"""
+restore_fixed_from_backfill.py
+
+Populates historical months in a FIXED_monthly_breakdown_*.csv using a Power BI
+visual export "Monthly Accrual and Usage Summary" backfill CSV. Why this fixes your Power BI issue
+----------------------------------
+Your Overtime/TimeDue M query uses FIXED_monthly_breakdown for NON-accrual rows:
+  - Comp (Hours)
+  - Employee Sick Time (Hours)
+  - Injured on Duty (Hours)
+  - Military Leave (Hours)
+  - Used SAT Time (Hours)
+
+If FIXED has zeros for historical months (11-24 .. 09-25), those rows show as
+0/null in the visual. This script overwrites those FIXED columns for any month
+label present in the backfill export (e.g., 10-24 .. 10-25). Usage (PowerShell)
+------------------
+python .\\scripts\\restore_fixed_from_backfill.py `
+  --fixed \"C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\output\\FIXED_monthly_breakdown_2024-11_2025-11.csv\" `
+  --backfill \"C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\00_dev\\PowerBI_Date\\Backfill\\2025_10\\vcs_time_report\\2025_10_Monthly Accrual and Usage Summary.csv\" `
+  --inplace
+
+Notes
+-----
+- Creates a `.bak` backup alongside the FIXED file when using `--inplace`. - If the backfill export does NOT contain a month label (e.g. "11-25"), that
+  row is skipped (you need the newer backfill export that includes that month).
+""" from __future__ import annotations
+
+import argparse
+import csv
+import shutil
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+
+def _norm_month_label(label: str) -> str:
+    """Normalize labels like 'Sum of 11-25' -> '11-25' and trim whitespace.""" s = (label or "").strip()
+    if not s:
+        return s
+    s_lower = s.lower()
+    if s_lower.startswith("sum of "):
+        s = s[7:].strip()
+    return s
+
+
+def _period_to_mmyy(period_yyyy_mm: str) -> str:
+    """Convert 'YYYY-MM' -> 'MM-YY'.""" yyyy, mm = period_yyyy_mm.split("-")
+    return f"{mm}-{yyyy[2:]}"
+
+
+@dataclass(frozen=True)
+class BackfillValues:
+    by_category: Dict[str, Dict[str, float]]
+
+    def get(self, category: str, label: str) -> Optional[float]:
+        d = self.by_category.get(category)
+        if not d:
+            return None
+        return d.get(label)
+
+
+def load_backfill_csv(path: Path) -> BackfillValues:
+    if not path.exists():
+        raise FileNotFoundError(f"Backfill CSV not found: {path}")
+
+    with path.open("r", newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        if not reader.fieldnames:
+            raise ValueError("Backfill CSV has no headers")
+
+        # Detect Time Category column name
+        time_col = None
+        for candidate in ("Time_Category", "Time Category", "TimeCategory"):
+            if candidate in reader.fieldnames:
+                time_col = candidate
+                break
+        if not time_col:
+            raise ValueError(
+                f"Backfill CSV missing Time Category column. Found: {reader.fieldnames}"
+            )
+
+        # Support TWO export shapes:
+        # 1) WIDE (legacy visual export): one row per category, month labels as columns
+        #    e.g. Time_Category,10-24,11-24,...,10-25
+        # 2) LONG (table export from a long query): one row per (category, periodlabel)
+        #    e.g. Time_Category,Sum of Value,PeriodLabel
+        is_long = ("PeriodLabel" in reader.fieldnames) and (
+            "Value" in reader.fieldnames
+            or "Sum of Value" in reader.fieldnames
+            or "Sum ofValue" in reader.fieldnames
+            or "Sum of  Value" in reader.fieldnames
+        )
+
+        by_cat: Dict[str, Dict[str, float]] = {}
+
+        if is_long:
+            # Find value column
+            value_col = None
+            for candidate in ("Value", "Sum of Value", "Sum ofValue", "Sum of  Value"):
+                if candidate in reader.fieldnames:
+                    value_col = candidate
+                    break
+            if not value_col:
+                raise ValueError(f"Backfill LONG CSV missing value column. Found: {reader.fieldnames}")
+
+            for row in reader:
+                cat = (row.get(time_col) or "").strip()
+                if not cat:
+                    continue
+                label = _norm_month_label((row.get("PeriodLabel") or "").strip())
+                if not label:
+                    continue
+                raw_val = (row.get(value_col) or "").strip()
+                if raw_val == "":
+                    continue
+                try:
+                    val = float(raw_val)
+                except ValueError:
+                    continue
+                by_cat.setdefault(cat, {})[label] = val
+        else:
+            month_cols: List[Tuple[str, str]] = []
+            for col in reader.fieldnames:
+                if col == time_col:
+                    continue
+                month_cols.append((col, _norm_month_label(col)))
+
+            for row in reader:
+                cat = (row.get(time_col) or "").strip()
+                if not cat:
+                    continue
+                out: Dict[str, float] = {}
+                for raw_col, norm_col in month_cols:
+                    raw_val = (row.get(raw_col) or "").strip()
+                    if raw_val == "":
+                        continue
+                    try:
+                        out[norm_col] = float(raw_val)
+                    except ValueError:
+                        continue
+                by_cat[cat] = out
+
+    return BackfillValues(by_category=by_cat)
+
+
+def read_fixed_rows(path: Path) -> Tuple[List[str], List[Dict[str, str]]]:
+    if not path.exists():
+        raise FileNotFoundError(f"FIXED CSV not found: {path}")
+    with path.open("r", newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        if not reader.fieldnames:
+            raise ValueError("FIXED CSV has no headers")
+        rows = list(reader)
+        return list(reader.fieldnames), rows
+
+
+def write_fixed_rows(path: Path, fieldnames: List[str], rows: List[Dict[str, str]]) -> None:
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        for r in rows:
+            writer.writerow(r)
+
+
+def restore_fixed_from_backfill(
+    fixed_path: Path, backfill_path: Path, inplace: bool, include_accruals: bool
+) -> Path:
+    backfill = load_backfill_csv(backfill_path)
+    fieldnames, rows = read_fixed_rows(fixed_path)
+
+    required_fixed_cols = [
+        "Period",
+        "Accrued_Comp_Time",
+        "Accrued_Overtime_Paid",
+        "Employee_Sick_Time_Hours",
+        "Used_SAT_Time_Hours",
+        "Used_Comp_Time",
+        "Military_Leave_Hours",
+        "Injured_on_Duty_Hours",
+        "Vacation_Hours",
+    ]
+    missing_fixed = [c for c in required_fixed_cols if c not in fieldnames]
+    if missing_fixed:
+        raise ValueError(f"FIXED CSV missing required columns: {missing_fixed}")
+
+    legacy_map = {
+        "Employee Sick Time (Hours)": "Employee_Sick_Time_Hours",
+        "Used SAT Time (Hours)": "Used_SAT_Time_Hours",
+        "Comp (Hours)": "Used_Comp_Time",
+        "Military Leave (Hours)": "Military_Leave_Hours",
+        "Injured on Duty (Hours)": "Injured_on_Duty_Hours",
+        "Vacation (Hours)": "Vacation_Hours",
+    }
+
+    accrual_pairs = {
+        "Accrued_Comp_Time": (
+            "Accrued Comp. Time - Non-Sworn",
+            "Accrued Comp. Time - Sworn",
+        ),
+        "Accrued_Overtime_Paid": (
+            "Accrued Overtime - Non-Sworn",
+            "Accrued Overtime - Sworn",
+        ),
+    }
+
+    updated_rows = 0
+    updated_cells = 0
+    for r in rows:
+        period = (r.get("Period") or "").strip()
+        if not period:
+            continue
+        label = _period_to_mmyy(period)
+
+        row_changed = False
+        for backfill_cat, fixed_col in legacy_map.items():
+            val = backfill.get(backfill_cat, label)
+            if val is None:
+                continue
+            r[fixed_col] = f"{val}"
+            row_changed = True
+            updated_cells += 1
+
+        # Optional: restore accrual totals from the backfill export. # Disabled by default because some exports may have accrual history as 0
+        # (e.g., exported from a visual that was already broken). if include_accruals:
+            for fixed_col, (cat_a, cat_b) in accrual_pairs.items():
+                a = backfill.get(cat_a, label)
+                b = backfill.get(cat_b, label)
+                if a is None or b is None:
+                    continue
+                r[fixed_col] = f"{(a + b)}"
+                row_changed = True
+                updated_cells += 1
+
+        if row_changed:
+            updated_rows += 1
+
+    if inplace:
+        backup = fixed_path.with_suffix(fixed_path.suffix + ".bak")
+        shutil.copy2(fixed_path, backup)
+        out_path = fixed_path
+    else:
+        out_path = fixed_path.with_name(fixed_path.stem + "_RESTORED.csv")
+        backup = None
+
+    write_fixed_rows(out_path, fieldnames, rows)
+
+    print(f"[OK] Backfill used: {backfill_path}")
+    if backup:
+        print(f"[OK] Backup created: {backup}")
+    print(f"[OK] FIXED written: {out_path}")
+    print(f"[OK] Rows updated: {updated_rows}/{len(rows)}")
+    print(f"[OK] Cells updated: {updated_cells}")
+    if not include_accruals:
+        print("[INFO] Accrual totals were NOT restored from backfill (legacy categories only).") return out_path
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--fixed", required=True, help="Path to FIXED_monthly_breakdown_*.csv")
+    parser.add_argument("--backfill", required=True, help="Path to backfill visual export CSV")
+    parser.add_argument("--inplace", action="store_true", help="Overwrite FIXED file (creates .bak)")
+    parser.add_argument(
+        "--include-accruals",
+        action="store_true",
+        help="Also restore Accrued_Comp_Time and Accrued_Overtime_Paid totals from backfill export. ",
+    )
+    args = parser.parse_args()
+
+    restore_fixed_from_backfill(
+        Path(args.fixed),
+        Path(args.backfill),
+        bool(args.inplace),
+        bool(args.include_accruals),
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+
+```
+
+### What your attached export is (and why it matters)
+Your `Monthly Accrual and Usage Summary.csv` is a **LONG** export shape:
+
+- `Time_Category`
+- `Sum of Value`
+- `PeriodLabel`
+
+That’s different from the prior backfill files we were using (the **WIDE** shape with month columns like `11-24, 12-24, ..., 10-25`). Also: in your attached export, the **accrual categories** are **0 for 11-24..10-25** (because the visual was broken at export time), so we must **not** use that file to overwrite accrual totals or it would re-zero them. ### Changes I made so this export is usable (safely)
+I updated `scripts/restore_fixed_from_backfill.py` to:
+
+- **Support LONG exports** like yours (`PeriodLabel` + `Sum of Value`)
+- **Restore legacy categories only by default** (Comp/Sick/IOD/Mil/SAT/Vac) and **NOT overwrite accrual totals** unless explicitly requested with `--include-accruals`
+
+### Verified
+I ran the restore against your current FIXED using your attached file and wrote a new output:
+
+- `...\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_2024-11_2025-11_RESTORED.csv`
+
+It preserved the accrual totals (did not zero them) and kept the legacy values correct:
+
+```1:14:C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_2024-11_2025-11_RESTORED.csv
+Year,Month,Month_Name,Period,Date,Accrued_Comp_Time,Accrued_Overtime_Paid,Employee_Sick_Time_Hours,Used_SAT_Time_Hours,Vacation_Hours,Used_Comp_Time,Military_Leave_Hours,Injured_on_Duty_Hours
+2024,11,November,2024-11,2024-11-01,261.75,864.0,730.0,560.0,0.0,218.25,168.0,216.0
+...
+2025,11,November,2025-11,2025-11-01,253.25,493.25,946.5,580.5,0.0,389.0,12.0,24.0
+```
+
+### What you should do
+- If your Power BI query is still showing nulls after refresh, confirm it’s reading the **updated** FIXED file (`FIXED_monthly_breakdown_2024-11_2025-11.csv`) in `...\02_ETL_Scripts\Overtime_TimeOff\output` (not an older cached version). - Going forward, you can use either:
+  - The normal backfill file in `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\...` (WIDE), or
+  - This LONG export like you attached — and it will only backfill legacy categories safely by default. ```plaintext
+Year,Month,Month_Name,Period,Date,Accrued_Comp_Time,Accrued_Overtime_Paid,Employee_Sick_Time_Hours,Used_SAT_Time_Hours,Vacation_Hours,Used_Comp_Time,Military_Leave_Hours,Injured_on_Duty_Hours
+2024,11,November,2024-11,2024-11-01,261.75,864.0,730.0,560.0,0.0,218.25,168.0,216.0
+...
+2025,11,November,2025-11,2025-11-01,253.25,493.25,946.5,580.5,0.0,389.0,12.0,24.0
+```
+
+---
+
+**User**
+
+why is the backfill being imported to the query an populating the 12 previous months in fill, then the puthon script runs and its output for only the previous month is saved C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output and the power bi query takes that data set. as of now@Monthly Accrual and Usage Summary.csv   4/9 of the rows are null for 11/24-10/25
+
+---
+
+**Cursor**
+
+### What’s actually happening (and why 4/9 rows are still blank)
+- **Power BI is not “importing backfill” directly** here. Your `___Overtime_Timeoff_v3.m` loads two sources:
+  - **Legacy usage rows** (Comp/Sick/IOD/Mil/SAT) from `output\FIXED_monthly_breakdown_*.csv`
+  - **Accrual rows** (the 4 “Accrued … Sworn/Non‑Sworn” rows) from `analytics_output\monthly_breakdown.csv`
+- Right now, your FIXED file is good (history is filled), **but `analytics_output\monthly_breakdown.csv` only contains the current month (11‑25)**, so those **4 accrual rows have no historical rows to join**, which is why you’re seeing **4/9 blank for 11/24–10/25**. ### Next step
+I’m going to update the wrapper (`scripts/overtime_timeoff_with_backfill.py`) so that after it applies backfill to the FIXED file, it also **backfills `analytics_output\monthly_breakdown.csv` for the prior 12 months** using the same backfill export — while keeping the current month’s accrual values from the v10 run. Then a refresh should populate all 9 categories across the 13-month window. ```python
+#!/usr/bin/env python3
+"""
+Overtime TimeOff monthly pipeline wrapper
+
+What this does (automates the correct workflow)
+-----------------------------------------------
+1) Ensure current month exports are readable by v10:
+   - v10 reads *.xlsx and *.csv (NOT *.xls)
+   - If only *.xls exist for the month, we convert using the existing
+     xls_to_xlsx_archiver_com_multi.py (Excel COM) and verify *.xlsx exists. 2) Run the production script:
+   - overtime_timeoff_13month_sworn_breakdown_v10.py
+   - Produces output/FIXED_monthly_breakdown_{start}_{end}.csv (13 months)
+
+3) Re-apply prior-month backfill to pin historical months:
+   - Uses previous-month visual export (e.g., 2025_10 Monthly Accrual and Usage Summary)
+   - Overwrites months present in that backfill (typically the prior 12 months)
+   - Keeps the new month (e.g., 11-25) from the v10 run
+
+This yields a FIXED file that Power Query can load with:
+  - History from backfill (11-24 .. 10-25)
+  - Current month from processing (11-25)
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import subprocess
+import sys
+from dataclasses import dataclass
+from datetime import date, timedelta
+from pathlib import Path
+from typing import Optional
+
+
+@dataclass(frozen=True)
+class Paths:
+    overtime_timeoff_dir: Path
+    overtime_dir: Path
+    time_off_dir: Path
+    backfill_root: Path
+    v10_script: Path
+    xls_to_xlsx_multi: Path
+    restore_script: Path
+
+
+def prev_month(d: date) -> date:
+    """Return a date in the previous month (day=1).""" first = d.replace(day=1)
+    last_prev = first - timedelta(days=1)
+    return last_prev.replace(day=1)
+
+
+def month_key_yyyy_mm(d: date) -> str:
+    return f"{d.year:04d}_{d.month:02d}"
+
+
+def month_key_yyyy_mm_dash(d: date) -> str:
+    return f"{d.year:04d}-{d.month:02d}"
+
+
+def expected_fixed_filename(start_month: date, end_month: date) -> str:
+    return f"FIXED_monthly_breakdown_{month_key_yyyy_mm_dash(start_month)}_{month_key_yyyy_mm_dash(end_month)}.csv"
+
+
+def find_backfill_csv(backfill_root: Path, month: date) -> Path:
+    """Find the prior-month backfill visual export for vcs_time_report.""" folder = backfill_root / month_key_yyyy_mm(month) / "vcs_time_report"
+    if not folder.exists():
+        raise FileNotFoundError(f"Backfill folder not found: {folder}")
+
+    preferred = [
+        folder / f"{month_key_yyyy_mm(month)}_Monthly Accrual and Usage Summary.csv",
+        folder / "Monthly Accrual and Usage Summary.csv",
+    ]
+    for p in preferred:
+        if p.exists():
+            return p
+
+    # Fallback: any similarly named file in the folder
+    candidates = sorted(folder.glob("*Monthly Accrual and Usage Summary*.csv"), key=lambda p: p.stat().st_mtime, reverse=True)
+    if candidates:
+        return candidates[0]
+
+    raise FileNotFoundError(f"No 'Monthly Accrual and Usage Summary' CSV found in {folder}")
+
+
+def ensure_month_exports_are_xlsx(paths: Paths, run_month: date, dry_run: bool) -> None:
+    """Ensure the month exports exist as .xlsx (convert .xls if necessary).""" yyyymm = month_key_yyyy_mm(run_month)
+    ot_xlsx = paths.overtime_dir / f"{yyyymm}_OTActivity.xlsx"
+    to_xlsx = paths.time_off_dir / f"{yyyymm}_TimeOffActivity.xlsx"
+    ot_xls = paths.overtime_dir / f"{yyyymm}_OTActivity.xls"
+    to_xls = paths.time_off_dir / f"{yyyymm}_TimeOffActivity.xls"
+
+    if ot_xlsx.exists() and to_xlsx.exists():
+        return
+
+    # If xlsx missing but xls present, convert using existing helper (Excel COM)
+    if (ot_xlsx.exists() or ot_xls.exists()) and (to_xlsx.exists() or to_xls.exists()):
+        if dry_run:
+            print(f"[DRY RUN] Would convert .xls -> .xlsx for month {yyyymm} (if needed).") return
+
+        if not paths.xls_to_xlsx_multi.exists():
+            raise FileNotFoundError(f"XLS->XLSX converter not found: {paths.xls_to_xlsx_multi}")
+
+        # Convert only when .xlsx missing
+        if (not ot_xlsx.exists()) or (not to_xlsx.exists()):
+            print(f"[INFO] Converting exports to .xlsx for {yyyymm} (Excel COM)...")
+            subprocess.check_call([sys.executable, str(paths.xls_to_xlsx_multi), str(paths.overtime_dir), str(paths.time_off_dir)])
+
+        if not ot_xlsx.exists() or not to_xlsx.exists():
+            raise FileNotFoundError(
+                "After conversion, expected .xlsx exports are still missing:\n"
+                f"  {ot_xlsx} exists={ot_xlsx.exists()}\n"
+                f"  {to_xlsx} exists={to_xlsx.exists()}\n"
+            )
+        return
+
+    raise FileNotFoundError(
+        "Could not locate required exports for the month in either .xlsx or .xls form:\n"
+        f"  {ot_xlsx} / {ot_xls}\n"
+        f"  {to_xlsx} / {to_xls}\n"
+    )
+
+
+def run_v10(paths: Paths, dry_run: bool) -> None:
+    if dry_run:
+        print(f"[DRY RUN] Would run v10: {paths.v10_script}")
+        return
+    subprocess.check_call([sys.executable, str(paths.v10_script)], cwd=str(paths.overtime_timeoff_dir))
+
+
+def restore_fixed(paths: Paths, fixed_path: Path, backfill_csv: Path, dry_run: bool) -> None:
+    if dry_run:
+        print(f"[DRY RUN] Would restore FIXED from backfill:\n  FIXED={fixed_path}\n  Backfill={backfill_csv}")
+        return
+    subprocess.check_call(
+        [sys.executable, str(paths.restore_script), "--fixed", str(fixed_path), "--backfill", str(backfill_csv), "--inplace"],
+        cwd=str(paths.restore_script.parent),
+    )
+
+
+def _periodlabel_to_yearmonth(period_label: str) -> str:
+    """Convert 'MM-YY' -> 'YYYY-MM'.""" s = (period_label or "").strip()
+    if len(s) != 5 or s[2] != "-":
+        raise ValueError(f"Unexpected PeriodLabel format: {period_label!r}")
+    mm = int(s[0:2])
+    yy = int(s[3:5])
+    yyyy = 2000 + yy
+    return f"{yyyy:04d}-{mm:02d}"
+
+
+def backfill_monthly_breakdown_from_backfill(
+    backfill_csv: Path,
+    analytics_folder: Path,
+    start_month: date,
+    end_month: date,
+    dry_run: bool,
+) -> None:
+    """
+    Ensure analytics_output/monthly_breakdown.csv has a full 13-month history for accrual rows
+    by using the prior-month backfill export for months start_month..(end_month-1),
+    and keeping end_month values from the v10 output if present.
+    """ target = analytics_folder / "monthly_breakdown.csv"
+
+    # Build window list
+    months: list[date] = []
+    cur = start_month.replace(day=1)
+    end = end_month.replace(day=1)
+    while cur <= end:
+        months.append(cur)
+        cur = (cur.replace(day=28) + timedelta(days=4)).replace(day=1)  # next month
+    window_set = {f"{m.year:04d}-{m.month:02d}" for m in months}
+
+    # Read current (v10) monthly_breakdown if present to preserve end_month values. current_rows: dict[tuple[str, str, str], float] = {}
+    if target.exists():
+        with target.open("r", newline="", encoding="utf-8-sig") as f:
+            r = csv.DictReader(f)
+            for row in r:
+                ym = (row.get("YearMonth") or "").strip()
+                cls = (row.get("Class") or "").strip()
+                met = (row.get("Metric") or "").strip()
+                hrs = (row.get("Hours") or "").strip()
+                if not ym or not cls or not met or hrs == "":
+                    continue
+                try:
+                    v = float(hrs)
+                except ValueError:
+                    continue
+                current_rows[(ym, cls, met)] = v
+
+    # Parse backfill (WIDE expected; LONG also supported)
+    with backfill_csv.open("r", newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        if not reader.fieldnames:
+            raise ValueError("Backfill CSV has no headers")
+
+        time_col = "Time_Category" if "Time_Category" in reader.fieldnames else ("Time Category" if "Time Category" in reader.fieldnames else None)
+        if not time_col:
+            raise ValueError(f"Backfill CSV missing Time_Category column. Found: {reader.fieldnames}")
+
+        is_long = ("PeriodLabel" in reader.fieldnames) and any(c in reader.fieldnames for c in ("Value", "Sum of Value"))
+        value_col = None
+        if is_long:
+            value_col = "Value" if "Value" in reader.fieldnames else "Sum of Value"
+
+        # Collect accrual backfill values: (YearMonth, Class, Metric) -> Hours
+        backfill_rows: dict[tuple[str, str, str], float] = {}
+
+        def add_value(period_label: str, category: str, value: float) -> None:
+            # Only accrual categories
+            if not category.startswith("Accrued "):
+                return
+            # Skip window-external months
+            ym = _periodlabel_to_yearmonth(period_label)
+            if ym not in window_set:
+                return
+            # Map to monthly_breakdown schema
+            metric = "Accrued Comp. Time" if category.startswith("Accrued Comp. Time") else "Accrued Overtime"
+            cls = "NonSworn" if "Non-Sworn" in category else "Sworn"
+            backfill_rows[(ym, cls, metric)] = float(value)
+
+        if is_long:
+            for row in reader:
+                cat = (row.get(time_col) or "").strip()
+                pl = (row.get("PeriodLabel") or "").strip()
+                raw = (row.get(value_col) or "").strip()
+                if not cat or not pl or raw == "":
+                    continue
+                try:
+                    v = float(raw)
+                except ValueError:
+                    continue
+                add_value(pl, cat, v)
+        else:
+            # WIDE: month columns + Time_Category column
+            month_cols = [c for c in reader.fieldnames if c and c != time_col]
+            for row in reader:
+                cat = (row.get(time_col) or "").strip()
+                if not cat:
+                    continue
+                for col in month_cols:
+                    if col == time_col:
+                        continue
+                    pl = col.strip()
+                    raw = (row.get(col) or "").strip()
+                    if raw == "":
+                        continue
+                    try:
+                        v = float(raw)
+                    except ValueError:
+                        continue
+                    add_value(pl, cat, v)
+
+    # Compose final file rows:
+    # - For months prior to end_month: use backfill (must exist for full history)
+    # - For end_month: prefer current (v10) values; fallback to backfill if missing
+    end_ym = f"{end_month.year:04d}-{end_month.month:02d}"
+    keys: list[tuple[str, str, str]] = []
+    for m in months:
+        ym = f"{m.year:04d}-{m.month:02d}"
+        for cls in ("NonSworn", "Sworn"):
+            for metric in ("Accrued Comp. Time", "Accrued Overtime"):
+                keys.append((ym, cls, metric))
+
+    out_lines: list[tuple[str, str, str, float]] = []
+    missing: list[tuple[str, str, str]] = []
+    for k in keys:
+        ym, cls, metric = k
+        if ym == end_ym and k in current_rows:
+            out_lines.append((ym, cls, metric, current_rows[k]))
+        elif k in backfill_rows:
+            out_lines.append((ym, cls, metric, backfill_rows[k]))
+        elif k in current_rows:
+            out_lines.append((ym, cls, metric, current_rows[k]))
+        else:
+            missing.append(k)
+            out_lines.append((ym, cls, metric, 0.0))
+
+    if dry_run:
+        print(f"[DRY RUN] Would write accrual history to: {target}")
+        if missing:
+            print(f"[DRY RUN][WARN] Missing accrual backfill values for {len(missing)} keys (will write 0.0).") return
+
+    analytics_folder.mkdir(parents=True, exist_ok=True)
+    with target.open("w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(["YearMonth", "Class", "Metric", "Hours"])
+        for ym, cls, metric, hrs in out_lines:
+            w.writerow([ym, cls, metric, f"{hrs}"])
+
+    print(f"[OK] monthly_breakdown.csv backfilled: {target}")
+    if missing:
+        print(f"[WARN] Missing accrual values for {len(missing)} month/class/metric keys; wrote 0.0 for those cells.") def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--backfill-root",
+        default=r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill",
+        help="Root folder containing Backfill\\YYYY_MM\\vcs_time_report\\... CSVs",
+    )
+    parser.add_argument("--dry-run", action="store_true", help="Show what would happen without executing.") args = parser.parse_args()
+
+    overtime_timeoff_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff")
+    overtime_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime")
+    time_off_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off")
+    backfill_root = Path(args.backfill_root)
+
+    paths = Paths(
+        overtime_timeoff_dir=overtime_timeoff_dir,
+        overtime_dir=overtime_dir,
+        time_off_dir=time_off_dir,
+        backfill_root=backfill_root,
+        v10_script=overtime_timeoff_dir / "overtime_timeoff_13month_sworn_breakdown_v10.py",
+        xls_to_xlsx_multi=overtime_dir / "xls_to_xlsx_archiver_com_multi.py",
+        restore_script=Path(__file__).resolve().parent / "restore_fixed_from_backfill.py",
+    )
+
+    today = date.today()
+    # v10 window ends on previous month
+    end_month = prev_month(today)
+    start_month = end_month.replace(year=end_month.year - 1)  # 13-month window start month
+
+    # Backfill should come from the month BEFORE end_month (e.g., if end is 2025_11, backfill is 2025_10)
+    backfill_month = prev_month(end_month)
+
+    fixed_path = paths.overtime_timeoff_dir / "output" / expected_fixed_filename(start_month, end_month)
+
+    print(f"[INFO] Window end month: {month_key_yyyy_mm_dash(end_month)}")
+    print(f"[INFO] Expected FIXED: {fixed_path}")
+    print(f"[INFO] Backfill month: {month_key_yyyy_mm(backfill_month)}")
+
+    ensure_month_exports_are_xlsx(paths, end_month, dry_run=bool(args.dry_run))
+    run_v10(paths, dry_run=bool(args.dry_run))
+
+    if not fixed_path.exists() and not args.dry_run:
+        # Fallback: pick newest FIXED file if name differs for any reason
+        out_dir = paths.overtime_timeoff_dir / "output"
+        candidates = sorted(out_dir.glob("FIXED_monthly_breakdown_*.csv"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if not candidates:
+            raise FileNotFoundError(f"No FIXED_monthly_breakdown_*.csv found in {out_dir}")
+        fixed_path = candidates[0]
+        print(f"[WARN] Expected FIXED not found; using newest: {fixed_path}")
+
+    backfill_csv = find_backfill_csv(paths.backfill_root, backfill_month)
+    print(f"[INFO] Using backfill CSV: {backfill_csv}")
+
+    restore_fixed(paths, fixed_path=fixed_path, backfill_csv=backfill_csv, dry_run=bool(args.dry_run))
+
+    # Backfill accrual history for the 13-month window so Power BI accrual rows are populated
+    backfill_monthly_breakdown_from_backfill(
+        backfill_csv=backfill_csv,
+        analytics_folder=paths.overtime_timeoff_dir / "analytics_output",
+        start_month=start_month,
+        end_month=end_month,
+        dry_run=bool(args.dry_run),
+    )
+
+    print("[OK] Pipeline complete.") return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+
+```
+
+### Why you were seeing **4/9 rows null**
+Those **4 rows** are your **accrual** categories:
+
+- Accrued Comp. Time – Non‑Sworn  
+- Accrued Comp. Time – Sworn  
+- Accrued Overtime – Non‑Sworn  
+- Accrued Overtime – Sworn  
+
+In `___Overtime_Timeoff_v3.m`, those 4 rows come from **`analytics_output\monthly_breakdown.csv`**, and that file previously contained **only 2025‑11** — so for 11/24–10/25 there was simply **no data to join**, which surfaced as blanks/nulls in the visual/export.

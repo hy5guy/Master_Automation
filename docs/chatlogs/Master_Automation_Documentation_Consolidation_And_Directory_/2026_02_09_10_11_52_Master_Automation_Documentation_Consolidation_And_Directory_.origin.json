@@ -1,0 +1,38 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "files",
+        "users",
+        "carucci_r",
+        "onedrive",
+        "city",
+        "hackensack"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Documentation file merging and update\n_Exported on 2/9/2026 at 10:03:56 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\nread the multipel version of the README, CHANGELOG & SUMMARY. the versions with the suffix \"-PD_BCI_LTP\" are from I assum...",
+      "first_line": "# Documentation file merging and update"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-09T10:11:52.236954",
+  "department": "admin"
+}

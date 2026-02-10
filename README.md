@@ -169,7 +169,52 @@ Logs are saved to:
 
 ## Recent Updates
 
-### 2026-02-09: v1.11.0 - Response Time Power BI M Code Fixed (31% Error Rate → 0%) ✅
+### 2026-02-09: v1.12.0 - Response Time Backfill Baseline Established ✅
+
+**Backfill Structure Created** - Formal baseline for Response Time data established
+
+#### What Was Done:
+- **Backfill Directory Structure Created** - 13 monthly directories (Jan 2025 - Jan 2026)
+  - Location: `PowerBI_Date\Backfill\YYYY_MM\response_time\`
+  - Files: `YYYY_MM_Average_Response_Times__Values_are_in_mmss.csv`
+  - Each file: 3 rows (Emergency, Routine, Urgent) + header
+  - Source: Current validated visual export data
+
+- **M Code Updated to v2.8.3** - Restored Backfill priority
+  - Priority: Backfill > visual_export > outputs > _DropExports
+  - Ensures loading of validated data with January 14 methodology
+  - Maintains compatibility with fallback sources
+
+- **Fresh Calculator Disabled** - Marked as experimental
+  - Set `enabled: false` in `config\scripts.json`
+  - Reason: Missing January 14 deduplication/filtering logic
+  - Script available for future enhancement: `scripts\response_time_fresh_calculator.py`
+
+#### October 2025 Baseline Values:
+| Type | Value | Source |
+|------|-------|--------|
+| Emergency | 02:49 | Validated backfill |
+| Routine | 02:11 | Validated backfill |
+| Urgent | 02:52 | Validated backfill |
+
+#### Monthly Workflow Established:
+1. Run ETL for new month
+2. Refresh Power BI
+3. Export Response Time visual to CSV
+4. Save to: `Backfill\YYYY_MM\response_time\YYYY_MM_Average_Response_Times__Values_are_in_mmss.csv`
+5. Next month: Power BI automatically picks it up
+
+#### Documentation Created:
+- `docs/RESPONSE_TIME_v2.8.3_BACKFILL_RESTORE.md` - Revert decision guide
+- `docs/BACKFILL_BASELINE_CREATED_2026_02_09.md` - Baseline creation details
+- `docs/RESPONSE_TIME_COMPLETE_SESSION_SUMMARY_2026_02_09.md` - Complete summary
+- `docs/RESPONSE_TIME_FINAL_STATUS_2026_02_09.md` - Final status checklist
+
+**Status:** Backfill baseline established, validated data preserved, monthly workflow documented
+
+---
+
+### 2026-02-09: v1.11.0 - Response Time Power BI M Code Fixed (31% Error Rate → 0%) ✅ **DEPLOYED**
 
 **Critical Power BI Fix** - Response Time query fully operational with 0% errors! **PRODUCTION DEPLOYED ✅**
 
@@ -431,6 +476,6 @@ The manifest provides a machine-readable reference for the entire Master Automat
 
 **Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`  
 **Last Updated:** 2026-02-09  
-**Version:** 1.11.0  
+**Version:** 1.12.0  
 **Status:** ✅ Production Ready - 100% Operational (ETL + Power BI)
 

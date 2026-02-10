@@ -1,0 +1,138 @@
+// ==============================================================================
+// RESPONSE TIMES M CODE - CORRECTED VERSION
+// Query Name: ___ResponseTimeCalculator
+// ==============================================================================
+// FIXES THE COLUMN NAME ERRORS:
+// - "Response Type" → "Response_Type"
+// - Adds "Average_Response_Time" column (calculated from MM:SS format)
+// - "First Response_Time_MMSS" → "Response_Time_MMSS"
+// ==============================================================================
+
+let
+    // ========================================================================
+    // LOAD NOVEMBER 2025 DATA (ETL Output)
+    // ========================================================================
+    
+    Nov2025Raw = Csv.Document(
+        File.Contents("C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\2025_12_Average_Response_Times__Values_are_in_mmss.csv"),
+        [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]
+    ),
+    
+    // Promote headers: Response Type, MM-YY, First Response_Time_MMSS
+    Nov2025Headers = Table.PromoteHeaders(Nov2025Raw, [PromoteAllScalars=true]),
+    
+    // Rename columns to match expected schema
+    Nov2025Renamed = Table.RenameColumns(
+        Nov2025Headers,
+        {
+            {"Response Type", "Response_Type"},
+            {"First Response_Time_MMSS", "Response_Time_MMSS"},
+            {"MM-YY", "MM_YY"}
+        }
+    ),
+    
+    // Add Average_Response_Time column by converting MM:SS to minutes
+    Nov2025WithAvg = Table.AddColumn(
+        Nov2025Renamed,
+        "Average_Response_Time",
+        each let
+            timeStr = Text.Trim(Text.From([Response_Time_MMSS])),
+            parts = Text.Split(timeStr, ":"),
+            minutes = if List.Count(parts) >= 2 then
+                let
+                    mins = Number.From(parts{0}),
+                    secs = Number.From(parts{1}),
+                    totalMins = mins + (secs / 60.0)
+                in
+                    totalMins
+            else
+                null
+        in
+            minutes,
+        type number
+    ),
+    
+    // ========================================================================
+    // LOAD BACKFILL DATA (Nov 2024 - Oct 2025)
+    // ========================================================================
+    
+    BackfillRaw = Csv.Document(
+        File.Contents("C:\Dev\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Average Response Times  Values are in mmss.csv"),
+        [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]
+    ),
+    
+    // Promote headers (structure may vary - adjust as needed)
+    BackfillHeaders = Table.PromoteHeaders(BackfillRaw, [PromoteAllScalars=true]),
+    
+    // Rename columns to standardize (handle various possible column names)
+    BackfillRenamed = Table.RenameColumns(
+        BackfillHeaders,
+        {
+            // Try common variations
+            {"Response Type", "Response_Type"},
+            {"Response_Type", "Response_Type"}, // Already correct
+            {"First Response_Time_MMSS", "Response_Time_MMSS"},
+            {"Response_Time_MMSS", "Response_Time_MMSS"}, // Already correct
+            {"Response Time MMSS", "Response_Time_MMSS"},
+            {"MM-YY", "MM_YY"},
+            {"MM_YY", "MM_YY"}, // Already correct
+            {"Avg_Response_Time", "Average_Response_Time"},
+            {"Average Response Time", "Average_Response_Time"}
+        },
+        MissingField.Ignore
+    ),
+    
+    // Add Average_Response_Time if it doesn't exist (calculate from MM:SS)
+    BackfillWithAvg = if Table.HasColumns(BackfillRenamed, "Average_Response_Time") then
+        BackfillRenamed
+    else
+        Table.AddColumn(
+            BackfillRenamed,
+            "Average_Response_Time",
+            each let
+                timeStr = Text.Trim(Text.From([Response_Time_MMSS])),
+                parts = Text.Split(timeStr, ":"),
+                minutes = if List.Count(parts) >= 2 then
+                    let
+                        mins = Number.From(parts{0}),
+                        secs = Number.From(parts{1}),
+                        totalMins = mins + (secs / 60.0)
+                    in
+                        totalMins
+                else
+                    null
+            in
+                minutes,
+            type number
+        ),
+    
+    // ========================================================================
+    // COMBINE DATASETS
+    // ========================================================================
+    
+    Combined = Table.Combine({BackfillWithAvg, Nov2025WithAvg}),
+    
+    // ========================================================================
+    // ENSURE ALL REQUIRED COLUMNS EXIST
+    // ========================================================================
+    
+    // The report expects these columns:
+    // - Response_Type
+    // - Average_Response_Time
+    // - Response_Time_MMSS
+    
+    Result = Combined
+    
+in
+    Result
+
+// ==============================================================================
+// NOTES:
+// 1. This script ensures columns match what your Power BI measures expect:
+//    - Emergency_Avg_13M, Routine_Avg_13M, Urgent_Avg_13M all reference
+//      "Average_Response_Time" column
+// 2. Column names are standardized to use underscores (Response_Type, not "Response Type")
+// 3. Average_Response_Time is calculated from Response_Time_MMSS (MM:SS format)
+// 4. Both backfill and November 2025 data are combined
+// ==============================================================================
+

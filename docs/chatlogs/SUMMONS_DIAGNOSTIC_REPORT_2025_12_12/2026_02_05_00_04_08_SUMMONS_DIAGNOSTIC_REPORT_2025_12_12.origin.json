@@ -1,0 +1,38 @@
+{
+  "tags": [
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "bureau",
+        "wg2",
+        "data",
+        "measure",
+        "correctly",
+        "status"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Summons Data Diagnostic Report\n\n**Date:** 2025-12-12\n**Analyst:** Claude Code Assistant\n**Purpose:** Comprehensive troubleshooting and validation of Summons Power BI data\n**Status:** ✓ COMPLETED - ALL ISSUES RESOLVED\n\n---\n\n## Executive...",
+      "first_line": "# Summons Data Diagnostic Report"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-05T00:04:08.463262",
+  "department": "admin"
+}

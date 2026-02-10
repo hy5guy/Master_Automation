@@ -1,0 +1,37 @@
+{
+  "tags": [
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "table",
+        "text",
+        "then",
+        "else",
+        "date",
+        "type"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "// ___Arrest_Categories\n// 🕒 2025-09-03-17-30-00\n// Project: Arrest_Analysis/Arrest_Categories\n// Author: R. A.",
+      "first_line": "// ___Arrest_Categories"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-05T00:00:41.810695",
+  "department": "admin"
+}

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Response Time ETL - Executive Packet</title>
+  <style>
+    :root{
+      --hpd-navy:#0d233c;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --border:#e5e7eb;
+      --kpi:#f2f4f8;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:"DIN","DIN Next","DIN Condensed","Segoe UI",Arial,sans-serif;line-height:1.35;}
+    .topbar{background:var(--hpd-navy);color:#fff;padding:18px 20px;}
+    .wrap{max-width:1100px;margin:0 auto;padding:18px 16px 40px 16px;}
+    .topbar .wrap{padding:0 16px;}
+    .title{font-family:"DIN Condensed","DIN","Segoe UI",Arial,sans-serif;font-size:30px;letter-spacing:0.5px;margin:0;}
+    .meta{margin-top:8px;font-size:13px;opacity:0.92;display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.08);font-size:12px;}
+    .pill .dot{width:8px;height:8px;border-radius:50%;background:#34d399;}
+    .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px;}
+    .kpi{background:var(--kpi);border:1px solid var(--border);border-radius:14px;padding:14px 14px 12px 14px;min-height:92px;}
+    .kpi-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;}
+    .kpi-value{font-size:26px;margin-top:6px;font-weight:700;}
+    .kpi-sub{font-size:12px;color:var(--muted);margin-top:4px;}
+    .grid{display:grid;grid-template-columns:1.2fr 0.8fr;gap:14px;margin-top:14px;}
+    .panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.04);}
+    h2{margin:0 0 10px 0;font-size:16px;color:var(--hpd-navy);letter-spacing:0.02em;}
+    h3{margin:14px 0 8px 0;font-size:14px;color:var(--hpd-navy);}
+    .list{margin:0;padding-left:18px;}
+    .list li{margin:6px 0;}
+    .tbl{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid var(--border);border-radius:12px;}
+    .tbl thead th{text-align:left;background:#f8fafc;padding:10px 10px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border);}
+    .tbl tbody td{padding:10px 10px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:top;}
+    .tbl tbody tr:last-child td{border-bottom:none;}
+    .muted{color:var(--muted);font-size:13px;}
+    .tagrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+    .tag{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:#fff;font-size:12px;color:var(--text);}
+    .footer{margin-top:18px;color:var(--muted);font-size:12px;text-align:center;}
+    @media (max-width: 980px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr));}.grid{grid-template-columns:1fr;}}
+    @media print{ .print-page-break{break-before:page;page-break-before:always;} .no-print-break-inside{break-inside:avoid;page-break-inside:avoid;}body{background:#fff;}.panel{box-shadow:none;}.topbar{-webkit-print-color-adjust:exact; print-color-adjust:exact;}.kpi{-webkit-print-color-adjust:exact; print-color-adjust:exact;}}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="wrap">
+      <h1 class="title">Response Time ETL. Executive Packet</h1>
+      <div class="meta">
+        <span class="pill"><span class="dot"></span>✅ Complete - Ready for Production</span>
+        <span class="pill">Date: January 14, 2026</span>
+        <span class="pill">Prepared for: Chief Briefing</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="kpis"><div class="kpi">
+      <div class="kpi-label">Input Records</div>
+      <div class="kpi-value">122,532</div>
+      <div class="kpi-sub">Raw CAD export</div>
+    </div>
+<div class="kpi">
+      <div class="kpi-label">After Deduplication</div>
+      <div class="kpi-value">94,162</div>
+      <div class="kpi-sub">Duplicates removed. 23.1%</div>
+    </div>
+<div class="kpi">
+      <div class="kpi-label">After All Filters</div>
+      <div class="kpi-value">23,224</div>
+      <div class="kpi-sub">Final records used</div>
+    </div>
+<div class="kpi">
+      <div class="kpi-label">Monthly Outputs</div>
+      <div class="kpi-value">13</div>
+      <div class="kpi-sub">Dec 2024 to Dec 2025</div>
+    </div></div>
+
+    <div class="grid">
+      <div class="panel no-print-break-inside">
+        <h2>Executive Summary</h2>
+        <div class="tagrow">
+          <span class="tag">Deduplication</span>
+          <span class="tag">Dispatched-only filtering</span>
+          <span class="tag">Category overrides</span>
+          <span class="tag">Admin incident removal</span>
+          <span class="tag">Power BI backfill</span>
+        </div>
+
+        <h3>Problem</h3>
+        <div class="muted">Duplicate officer responses inflated counts and skewed averages.</div>
+
+        <h3>Primary Fix</h3>
+        <ul class='list'><li>Deduplicate by ReportNumberNew. Keep the first officer response per call.</li>
+<li>Run deduplication before any response time calculations.</li></ul>
+
+        <h3>Code Changes</h3>
+        <ul class='list'><li>**New ETL Script:** `response_time_monthly_generator.py` (v2.0.0)</li>
+<li>**Configuration File:** `config/response_time_filters.json`</li>
+<li>**Processing Pipeline:** Expanded from 6 steps to 12 steps</li></ul>
+
+        <h3>Data Changes</h3>
+        <ul class='list'><li>**Deduplication:** Each call counted once (not per officer)</li>
+<li>**Filtering:** Only relevant dispatched calls included</li>
+<li>**Metrics:** More accurate representation of actual response times</li>
+<li>**Coverage:** Full 13-month range (Dec 2024 - Dec 2025)</li></ul>
+      </div>
+
+      <div class="panel print-page-break no-print-break-inside">
+        <h2>Executive Statistics</h2>
+
+        <h3>Processing Totals</h3>
+        <table class="tbl">
+      <thead><tr><th>Stage</th><th>Records</th></tr></thead>
+      <tbody><tr><td>Input</td><td>122,532</td></tr>
+<tr><td>After Deduplication</td><td>94,162</td></tr>
+<tr><td>After How Reported Filter</td><td>66,129</td></tr>
+<tr><td>After All Filters</td><td>23,224</td></tr></tbody>
+    </table>
+
+        <h3>Data Quality Checks</h3>
+        <ul class='list'><li>✅ All records have valid Response_Type</li>
+<li>✅ All records have valid Category_Type</li>
+<li>✅ All response times within valid window (0-10 minutes)</li>
+<li>✅ All records have valid YearMonth</li>
+<li>✅ No duplicate ReportNumberNew values</li></ul>
+
+        <h3>October 2025 Comparison</h3>
+        <table class="tbl">
+      <thead><tr><th>Response Type</th><th>Old Average</th><th>New Average</th><th>Difference</th><th>Change</th></tr></thead>
+      <tbody><tr><td>**Emergency**</td><td>2:49 (2.82 min)</td><td>2:51 (2.85 min)</td><td>+0.03 min</td><td>Minimal change</td></tr>
+<tr><td>**Routine**</td><td>2:11 (2.18 min)</td><td>3:31 (3.52 min)</td><td>+1.33 min</td><td>**Significant increase**</td></tr>
+<tr><td>**Urgent**</td><td>2:52 (2.87 min)</td><td>2:55 (2.92 min)</td><td>+0.05 min</td><td>Minimal change</td></tr></tbody>
+    </table>
+      </div>
+    </div>
+
+    <div class="grid" style="grid-template-columns:1fr;">
+      <div class="panel no-print-break-inside">
+        <h2>Tactical Intelligence</h2>
+
+        <h3>Enhanced Filtering Logic</h3>
+        <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:8px;">
+          <div class="panel" style="padding:12px;border-radius:14px;">
+            <h3 style="margin-top:0;">How Reported</h3>
+            <div class='muted'>No items.</div>
+          </div>
+          <div class="panel" style="padding:12px;border-radius:14px;">
+            <h3 style="margin-top:0;">Category Type</h3>
+            <div class='muted'>No items.</div>
+          </div>
+          <div class="panel" style="padding:12px;border-radius:14px;">
+            <h3 style="margin-top:0;">Specific Incidents</h3>
+            <div class='muted'>No items.</div>
+          </div>
+          <div class="panel" style="padding:12px;border-radius:14px;">
+            <h3 style="margin-top:0;">Data Quality</h3>
+            <div class='muted'>No items.</div>
+          </div>
+        </div>
+
+        <h3>Processing Pipeline (12 Steps)</h3>
+        <ul class='list'><li>**Deduplication** by ReportNumberNew (removes officer duplicates)</li>
+<li>**How Reported filter** (excludes Self-Initiated)</li>
+<li>**YearMonth creation** from date fields</li>
+<li>**Date range filter** (2024-12 to 2025-12)</li>
+<li>**Admin incident filter** (existing administrative filters)</li>
+<li>**Response time calculation** (Time Out - Time Dispatched)</li>
+<li>**Time window filter** (0-10 minutes only)</li>
+<li>**Response Type + Category_Type mapping** (from CallType_Categories.csv)</li>
+<li>**Category_Type filter** (with inclusion overrides)</li>
+<li>**Specific incident filter** (42 administrative incidents)</li>
+<li>**Data verification** (quality checks)</li>
+<li>**Final validation** (valid Response Type only)</li></ul>
+
+        <h3>Next Steps</h3>
+        <ul class='list'><li>✅ **ETL Script Updated** - v2.0.0 complete</li>
+<li>✅ **Monthly CSV Files Generated** - 13 months (Dec 2024 - Dec 2025)</li>
+<li>✅ **Data Validation Complete** - All quality checks passed</li>
+<li>⏳ **Power BI Refresh** - Update Power BI query to use new data</li>
+<li>⏳ **Verification** - Review Power BI reports for accuracy</li></ul>
+
+        <h3>Contact and Documentation</h3>
+        <ul class='list'><li>ETL Script: 02_ETL_Scripts/Response_Times/response_time_monthly_generator.py</li>
+<li>Configuration: config/response_time_filters.json</li>
+<li>Documentation: docs/CHANGELOG.md (v1.7.0)</li>
+<li>Output Location: PowerBI_Date/Backfill/YYYY_MM/response_time/</li></ul>
+      </div>
+    </div>
+
+    <div class="footer">
+      HPD | SSOCC | Response Time ETL Executive Packet | By: P.O. R. A. Carucci | Generated: 2026-01-14
+    </div>
+  </div>
+</body>
+</html>

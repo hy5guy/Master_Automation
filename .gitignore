@@ -6,6 +6,13 @@ logs/archive/
 # Temporary files
 _DropExports/*
 !_DropExports/.gitkeep
+tmpclaude-*-cwd
+
+# Output directories (testing/validation data)
+outputs/visual_exports/*
+outputs/large_exports/*
+outputs/misc/*
+!outputs/**/.gitkeep
 
 # Python
 __pycache__/

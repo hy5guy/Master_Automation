@@ -1,0 +1,79 @@
+{
+  "source_file": "PHASE_1-4_COMPLETION_SUMMARY.md",
+  "source_path": "C:\\_chunker\\02_data\\PHASE_1-4_COMPLETION_SUMMARY.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\PHASE_1-4_COMPLETION_SUMMARY\\2026_02_05_00_01_50_PHASE_1-4_COMPLETION_SUMMARY.origin.json",
+  "created_at": "2026_02_05_00_01_50",
+  "tags": [
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "csv",
+      "phase",
+      "path",
+      "files",
+      "month",
+      "script"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Phase 1-4 Completion Summary\n**Date**: 2026-01-07  \n**Session**: Power BI Monthly Report Fixes  \n**Status**: ✅ All Phases Complete\n\n---\n\n## Executive Summary\n\nAll four critical phases of the Power BI monthly report fixes have been comp...",
+    "first_line": "# Phase 1-4 Completion Summary"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-05T00:01:50+00:00_PHASE_1-4_COMPLETION_SUMMARY_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "code",
+        "data",
+        "docs",
+        "excel",
+        "files",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "month",
+        "path",
+        "phase",
+        "police",
+        "powershell",
+        "python",
+        "script",
+        "sql",
+        "training"
+      ],
+      "key_terms": [
+        "csv",
+        "phase",
+        "path",
+        "files",
+        "month",
+        "script"
+      ],
+      "summary": "# Phase 1-4 Completion Summary\n**Date**: 2026-01-07  \n**Session**: Power BI Monthly Report Fixes  \n**Status**: ✅ All Phases Complete\n\n---\n\n## Executive Summary\n\nAll four critical phases of the Power BI monthly report fixes have been comp...",
+      "char_length": 11644,
+      "byte_length": 12031
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

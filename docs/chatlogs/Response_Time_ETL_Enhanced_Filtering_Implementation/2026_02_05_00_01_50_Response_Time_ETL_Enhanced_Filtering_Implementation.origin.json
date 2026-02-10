@@ -1,0 +1,39 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "multi",
+      "department": "admin",
+      "key_terms": [
+        "logger",
+        "info",
+        "filter",
+        "category_type",
+        "mapping",
+        "file"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "Microsoft Windows [Version 10.0.26200.7462]\n(c) Microsoft Corporation. All rights reserved.",
+      "first_line": "Microsoft Windows [Version 10.0.26200.7462]"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-05T00:01:50.580980",
+  "department": "admin"
+}

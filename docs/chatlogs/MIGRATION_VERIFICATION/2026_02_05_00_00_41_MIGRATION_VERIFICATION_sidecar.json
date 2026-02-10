@@ -1,0 +1,76 @@
+{
+  "source_file": "MIGRATION_VERIFICATION.md",
+  "source_path": "C:\\_chunker\\02_data\\MIGRATION_VERIFICATION.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\MIGRATION_VERIFICATION\\2026_02_05_00_00_41_MIGRATION_VERIFICATION.origin.json",
+  "created_at": "2026_02_05_00_00_41",
+  "tags": [
+    "code",
+    "data",
+    "docs",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "onedrive",
+      "users",
+      "carucci_r",
+      "city",
+      "hackensack",
+      "powerbi_date"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Master_Automation Migration Verification Guide\n\n## Overview\n\nThis guide helps you verify that the Master_Automation workspace is correctly configured after the PowerBI_Date migration to OneDrive. **Migration Date:** 2025-12-11  \n**New...",
+    "first_line": "# Master_Automation Migration Verification Guide"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-05T00:00:41+00:00_MIGRATION_VERIFICATION_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "carucci_r",
+        "city",
+        "code",
+        "data",
+        "docs",
+        "hackensack",
+        "json",
+        "legal",
+        "markdown",
+        "onedrive",
+        "police",
+        "powerbi_date",
+        "powershell",
+        "python",
+        "sql",
+        "training",
+        "users"
+      ],
+      "key_terms": [
+        "onedrive",
+        "users",
+        "carucci_r",
+        "city",
+        "hackensack",
+        "powerbi_date"
+      ],
+      "summary": "# Master_Automation Migration Verification Guide\n\n## Overview\n\nThis guide helps you verify that the Master_Automation workspace is correctly configured after the PowerBI_Date migration to OneDrive.",
+      "char_length": 8437,
+      "byte_length": 8827
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

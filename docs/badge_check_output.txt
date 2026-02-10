@@ -1,0 +1,75 @@
+
+================================================================================
+BADGE NORMALIZATION DIAGNOSTIC
+================================================================================
+Run time: 2026-01-02 17:52:21
+
+Loading e-ticket export: C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket\2025\2025_12_eticket_export.csv
+Loaded 3,383 rows from e-ticket export
+================================================================================
+E-TICKET EXPORT: Officer Id Analysis
+================================================================================
+
+Total Officer Id values: 3,383
+Unique Officer Id values: 58
+
+Length distribution:
+  4 characters: 3,383 values
+
+[OK] All Officer Id values are 4-digit padded format
+
+Loading Assignment Master CSV: C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_V2.csv
+Loaded 163 rows from Assignment Master CSV
+
+================================================================================
+ASSIGNMENT_MASTER_V2.CSV: PADDED_BADGE_NUMBER Analysis
+================================================================================
+
+Total PADDED_BADGE_NUMBER values: 163
+Unique PADDED_BADGE_NUMBER values: 152
+
+[OK] No floating point numbers found
+
+Length distribution:
+  4 characters: 163 values
+
+[OK] All PADDED_BADGE_NUMBER values are 4-digit format
+
+Comparing BADGE_NUMBER vs PADDED_BADGE_NUMBER:
+  [OK] All PADDED_BADGE_NUMBER values correctly pad BADGE_NUMBER
+
+================================================================================
+MATCHING ANALYSIS: E-ticket Officer Id vs Assignment Master
+================================================================================
+
+E-ticket unique Officer Ids: 58
+Assignment Master unique PADDED_BADGE_NUMBER: 152
+
+Matches: 57
+E-ticket only (not in Assignment Master): 1
+Assignment Master only (not in e-ticket): 95
+ERROR loading Assignment Master CSV: 'charmap' codec can't encode characters in position 2-3: character maps to <undefined>
+
+Loading Assignment Master XLSX: C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_V2.xlsx
+Loaded 163 rows from Assignment Master XLSX
+
+================================================================================
+ASSIGNMENT_MASTER_V2.XLSX: PADDED_BADGE_NUMBER Analysis (Older Version)
+================================================================================
+
+Total PADDED_BADGE_NUMBER values: 151
+Unique PADDED_BADGE_NUMBER values: 151
+
+[OK] No floating point numbers found
+
+[OK] All PADDED_BADGE_NUMBER values are 4-digit format
+
+================================================================================
+COMPARISON: CSV vs XLSX
+================================================================================
+
+[OK] Both versions appear correct
+
+================================================================================
+DIAGNOSTIC COMPLETE
+================================================================================

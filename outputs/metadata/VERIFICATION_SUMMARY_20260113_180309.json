@@ -1,0 +1,41 @@
+{
+  "current_month": "2025_12",
+  "backfill_month": "2025_11",
+  "start_time": "2026-01-13T18:03:09.255484",
+  "end_time": "2026-01-13T18:03:09.255484",
+  "duration_seconds": 0.0,
+  "total_verifications": 2,
+  "passed": 0,
+  "failed": 0,
+  "skipped": 2,
+  "errors": 0,
+  "overall_pass_rate": 0.0,
+  "verifications": [
+    {
+      "name": "Overtime & Time Off",
+      "priority": 1,
+      "start_time": "2026-01-13 18:03:09.255484",
+      "status": "SKIPPED",
+      "pass_rate": 0.0,
+      "issues": [
+        "Missing export files: Monthly Accrual and Usage Summary.csv"
+      ],
+      "report_path": null,
+      "end_time": "2026-01-13 18:03:09.255484",
+      "duration": 0.0
+    },
+    {
+      "name": "Arrests",
+      "priority": 2,
+      "start_time": "2026-01-13 18:03:09.255484",
+      "status": "SKIPPED",
+      "pass_rate": 0.0,
+      "issues": [
+        "Missing export files: Arrest Categories by Type and Gender.csv, Arrest Distribution by Local, State & Out of State.csv, TOP 5 ARREST LEADERS.csv"
+      ],
+      "report_path": null,
+      "end_time": "2026-01-13 18:03:09.255484",
+      "duration": 0.0
+    }
+  ]
+}

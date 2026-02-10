@@ -1,0 +1,40 @@
+{
+  "tags": [
+    "ai",
+    "conversation",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "log",
+        "err",
+        "txt",
+        "times",
+        "timeoff",
+        "engagement"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Directory Tree: Master_Automation\n\n📁 Master_Automation\n  - 📁 .claude\n    - 📄 settings.local.json\n  - 📁 02_ETL_Scripts\n    - 📁 Overtime_TimeOff\n  - 📁 2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\n    - 📄 2025_12_11_22_32_...",
+      "first_line": "# Directory Tree: Master_Automation"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-04T23:53:49.921533",
+  "department": "admin"
+}

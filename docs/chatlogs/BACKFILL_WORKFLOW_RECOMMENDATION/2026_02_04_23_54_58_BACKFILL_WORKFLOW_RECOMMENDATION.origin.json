@@ -1,0 +1,36 @@
+{
+  "tags": [
+    "code",
+    "data",
+    "docs",
+    "json",
+    "markdown",
+    "powershell",
+    "python",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "files",
+        "category",
+        "all",
+        "fix",
+        "column",
+        "csv"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Backfill Workflow Recommendation\n\n**Date:** 2025-12-11  \n**Question:** Should column order be fixed before or after organizing exports? ---\n\n## Current Workflow\n\n### Step 1: Export Visuals from Power BI\n- Export CSV files from Power BI...",
+      "first_line": "# Backfill Workflow Recommendation"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-04T23:54:58.541900",
+  "department": "admin"
+}
