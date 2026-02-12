@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-02-10
+**Last Updated:** 2026-02-12
 **Status:** ✅ Production Ready - 100% Operational (ETL + Power BI)
-**Version:** 1.13.0
+**Version:** 1.14.0
 
 ---
 
@@ -20,7 +20,7 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
 | **Status** | ✅ Production Ready |
-| **Version** | 1.13.0 |
+| **Version** | 1.14.0 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -37,6 +37,10 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 ✅ **Dry Run Mode** - Preview what would execute  
 ✅ **Input Validation** - Validates required export files before execution  
 ✅ **OneDrive Sync** - All paths synced for cloud backup  
+✅ **Path portability** - `ONEDRIVE_BASE` / `ONEDRIVE_HACKENSACK` env vars (Python `path_config.py`, PowerShell `$OneDriveBase`)  
+✅ **Overtime/TimeOff hardening** - Pre-flight validation, strict file discovery, output schema check, test_pipeline.bat  
+✅ **Visual export normalization** - Orchestrator normalizes "Monthly Accrual and Usage Summary" CSVs in _DropExports before organize_backfill  
+✅ **Summons backfill prep** - `summons_backfill_merge.py` for gap months (03-25, 07-25, 10-25, 11-25); injection point documented  
 
 ---
 
@@ -71,6 +75,7 @@ Master_Automation/
 ├── verify_migration.ps1         # Migration verification
 ├── Master_Automation.code-workspace  # VS Code workspace
 ├── .gitignore                   # Git ignore rules
+├── requirements.txt             # Python deps (pandas, openpyxl) for validation & summons backfill
 ├── config/                      # Configuration files
 │   ├── scripts.json            # ETL script configuration
 │   ├── response_time_filters.json  # Response Time filters
@@ -79,7 +84,13 @@ Master_Automation/
 │   ├── run_all_etl.ps1         # Main orchestrator
 │   ├── run_all_etl.bat         # Batch wrapper
 │   ├── run_etl_script.ps1      # Single script runner
-│   ├── (helper Python scripts)
+│   ├── path_config.py          # Centralized get_onedrive_root() for portability
+│   ├── validate_exports.py     # Pre-flight OT/TimeOff export check
+│   ├── validate_outputs.py     # FIXED CSV schema validation
+│   ├── test_pipeline.bat       # Overtime/TimeOff test: validate → dry-run → validate outputs
+│   ├── summons_backfill_merge.py  # Merge gap months into summons df (injection in main_orchestrator)
+│   ├── normalize_visual_export_for_backfill.py  # Normalize visual exports for backfill
+│   ├── (other helper Python scripts)
 │   └── _testing/               # Benchmark/debug scripts (4 files)
 ├── docs/                        # Documentation files
 │   ├── response_time/          # Response Time docs (13 files)
@@ -107,6 +118,12 @@ Master_Automation/
 ---
 
 ## Quick Start
+
+### Python environment
+Install dependencies for validation and Summons backfill (env used by `config/scripts.json`):
+```powershell
+pip install -r requirements.txt
+```
 
 ### Run All ETL Scripts
 

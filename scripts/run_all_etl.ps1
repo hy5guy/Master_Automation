@@ -15,6 +15,11 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $automationDir = Split-Path -Parent $scriptDir
 $configPath = Join-Path $automationDir "config\scripts.json"
 
+# OneDrive base for paths (align with Python path_config; enables portability)
+$OneDriveBase = $env:ONEDRIVE_BASE
+if (-not $OneDriveBase) { $OneDriveBase = $env:ONEDRIVE_HACKENSACK }
+if (-not $OneDriveBase) { $OneDriveBase = "C:\Users\carucci_r\OneDrive - City of Hackensack" }
+
 # Colors
 # PowerShell 7+ supports ANSI escape sequences; Windows PowerShell 5.1 typically does not.
 $useAnsi = $false
@@ -60,9 +65,9 @@ function Save-MonthlyReport {
     # Format: YYYY_MM_Monthly_FINAL_LAP.pbix (e.g., 2025_12_Monthly_FINAL_LAP.pbix for December 2025)
     $reportFileName = "${year}_${monthNum}_Monthly_FINAL_LAP.pbix"
     
-    # Base paths
-    $templatesDir = "C:\Users\carucci_r\OneDrive - City of Hackensack\15_Templates"
-    $monthlyReportsBase = "C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports"
+    # Base paths (use OneDrive base for portability)
+    $templatesDir = Join-Path $OneDriveBase "15_Templates"
+    $monthlyReportsBase = Join-Path $OneDriveBase "Shared Folder\Compstat\Monthly Reports"
     
     # Target directory: YEAR\MONTH_NUMBER_monthname (e.g., 2025\12_december)
     $targetDir = Join-Path $monthlyReportsBase $year
@@ -155,7 +160,7 @@ function Test-RequiredInputs {
     switch ($scriptName) {
         "Summons" {
             # Format: YYYY/YYYY_MM_eticket_export.csv OR YYYY/month/YYYY_MM_eticket_export.csv
-            $eticketBase = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket"
+            $eticketBase = Join-Path $OneDriveBase "05_EXPORTS\_Summons\E_Ticket"
             
             # Try direct path first (e.g., 2026/2026_01_eticket_export.csv)
             $eticketPath = Join-Path $eticketBase "$year\$($year)_$($month)_eticket_export.csv"
@@ -202,7 +207,7 @@ function Test-RequiredInputs {
             # NOTE: Source moved to timereport folder (2026-02-09)
             # Current structure: timereport/monthly/YYYY_MM_timereport.xlsx
             # Fallback: timereport/YYYY/YYYY_MM_Monthly_CAD.xlsx
-            $cadBase = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\timereport"
+            $cadBase = Join-Path $OneDriveBase "05_EXPORTS\_CAD\timereport"
             
             # Try monthly folder first (preferred structure)
             $monthlyFolder = Join-Path $cadBase "monthly"
@@ -246,7 +251,7 @@ function Test-RequiredInputs {
             # NOTE: Source moved to timereport folder (2026-02-09)
             # Current structure: timereport/monthly/YYYY_MM_timereport.xlsx
             # Fallback: timereport/YYYY/YYYY_MM_Monthly_CAD.xlsx
-            $cadBase = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\timereport"
+            $cadBase = Join-Path $OneDriveBase "05_EXPORTS\_CAD\timereport"
             
             # Try monthly folder first (preferred structure)
             $monthlyFolder = Join-Path $cadBase "monthly"
@@ -287,7 +292,7 @@ function Test-RequiredInputs {
         
         "Overtime TimeOff" {
             # Check for VCS time report exports (if known location)
-            $vcsBase = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS"
+            $vcsBase = Join-Path $OneDriveBase "05_EXPORTS"
             $vcsPath = Join-Path $vcsBase "_VCS_Time_Report"
             
             if (Test-Path $vcsPath) {
@@ -606,6 +611,69 @@ foreach ($scriptConfig in $scripts) {
     }
 }
 
+# Visual Export Normalization – normalize raw Power BI visual exports in _DropExports before organize_backfill_exports
+$dropPath = $settings.powerbi_drop_path
+$normalizeScript = Join-Path $automationDir "scripts\normalize_visual_export_for_backfill.py"
+$monthlyAccrualPattern = "*Monthly Accrual and Usage Summary*.csv"
+
+if (Test-Path $dropPath) {
+    Write-Log ""
+    Write-Log "=== Visual Export Normalization ==="
+    Write-Host ""
+    Write-Step "Visual Export Normalization"
+    $toNormalize = Get-ChildItem -Path $dropPath -Filter $monthlyAccrualPattern -File -ErrorAction SilentlyContinue
+    if ($toNormalize.Count -eq 0) {
+        Write-Host "  No files matching '$monthlyAccrualPattern' in $dropPath" -ForegroundColor Gray
+        Write-Log "  No Monthly Accrual and Usage Summary CSVs found in drop folder"
+    }
+    else {
+        foreach ($file in $toNormalize) {
+            if ($DryRun) {
+                Write-Host "  [DRY RUN] Would normalize: $($file.Name)" -ForegroundColor Gray
+                Write-Log "  [DRY RUN] Would normalize: $($file.FullName)"
+                continue
+            }
+            Write-Log "  Normalizing: $($file.FullName)"
+            Write-Host "  Normalizing: $($file.Name)" -ForegroundColor Gray
+            $normInput = $file.FullName
+            $normOutput = $file.FullName
+            try {
+                $psiNorm = New-Object System.Diagnostics.ProcessStartInfo
+                $psiNorm.FileName = $settings.python_executable
+                $psiNorm.Arguments = "`"$normalizeScript`" --input `"$normInput`" --output `"$normOutput`""
+                $psiNorm.WorkingDirectory = $automationDir
+                $psiNorm.UseShellExecute = $false
+                $psiNorm.RedirectStandardOutput = $true
+                $psiNorm.RedirectStandardError = $true
+                $psiNorm.CreateNoWindow = $true
+                $procNorm = New-Object System.Diagnostics.Process
+                $procNorm.StartInfo = $psiNorm
+                $null = $procNorm.Start()
+                $null = $procNorm.StandardOutput.ReadToEndAsync()
+                $errNorm = $procNorm.StandardError.ReadToEndAsync()
+                $procNorm.WaitForExit(60000)
+                $exitNorm = $procNorm.ExitCode
+                if ($exitNorm -eq 0) {
+                    Write-Success "  Normalized: $($file.Name)"
+                    Write-Log "  SUCCESS: Normalized $($file.Name)"
+                }
+                else {
+                    Write-Warn "  Normalization failed for $($file.Name) (exit $exitNorm). Continuing."
+                    Write-Log "  WARNING: Normalization failed for $($file.Name) - exit code $exitNorm"
+                    if ($errNorm.Result) { Write-Log "  stderr: $($errNorm.Result.Trim())" }
+                }
+            }
+            catch {
+                Write-Warn "  Error normalizing $($file.Name): $_"
+                Write-Log "  ERROR normalizing $($file.Name): $_"
+            }
+        }
+    }
+}
+else {
+    Write-Log "  Power BI drop path not found; skipping Visual Export Normalization: $dropPath"
+}
+
 # Summary
 $totalDuration = (Get-Date) - $startTime
 $successCount = ($results | Where-Object { $_.Status -eq "Success" }).Count
@@ -650,7 +718,7 @@ if ($successCount -eq $results.Count) {
     if (-not $SkipPowerBI) {
         Write-Host ""
         Write-Host "Next step: Run Power BI organization script" -ForegroundColor Cyan
-        Write-Host "  cd `"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date`"" -ForegroundColor Gray
+        Write-Host "  cd `"$OneDriveBase\PowerBI_Date`"" -ForegroundColor Gray
         Write-Host "  .\tools\organize_backfill_exports.ps1" -ForegroundColor Gray
     }
     exit 0

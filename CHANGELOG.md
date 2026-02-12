@@ -15,6 +15,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.14.0] - 2026-02-12
+
+### Added
+- **Path centralization (portability)**
+  - `scripts/path_config.py` – `get_onedrive_root()` using `ONEDRIVE_BASE` or `ONEDRIVE_HACKENSACK`; fallback for local dev
+  - All Python scripts that use paths now import or fall back to this (overtime_timeoff_with_backfill, validate_exports, validate_outputs, summons_backfill_merge, normalize_visual_export_for_backfill)
+  - `run_all_etl.ps1` – `$OneDriveBase` from env, all validation and Save-MonthlyReport paths use `Join-Path $OneDriveBase`
+- **Overtime/TimeOff hardening**
+  - `scripts/validate_exports.py` – Pre-flight check for `YYYY_MM_otactivity.xlsx` and `YYYY_MM_timeoffactivity.xlsx` (existence, readable Excel, required columns Date/Hours/Employee/Group); retry on OneDrive sync lock
+  - `scripts/validate_outputs.py` – Validates FIXED CSV schema (YearMonth, Class, Metric, Hours; 13 months; numeric Hours)
+  - `scripts/overtime_timeoff_with_backfill.py` – Strict file discovery (exact `YYYY_MM_*.xlsx` only), distinct .xls→.xlsx conversion step; `validate_fixed_schema()` before exit
+  - `scripts/test_pipeline.bat` – Runs validate_exports → overtime --dry-run → validate_outputs
+- **Visual Export Normalization in orchestrator**
+  - `run_all_etl.ps1` – New phase before summary: scans `_DropExports` for `*Monthly Accrual and Usage Summary*.csv`, runs `normalize_visual_export_for_backfill.py --input <path> --output <path>` (in-place); supports -DryRun
+- **Summons backfill (gap months 03-25, 07-25, 10-25, 11-25)**
+  - `scripts/summons_backfill_merge.py` – Full implementation: load backfill CSVs, normalize columns (RENAME_MAP), filter by gap month, align to main df, concat; MM-YY validation; Wide-format detection and warning
+  - `docs/SUMMONS_BACKFILL_INJECTION_POINT.md` – Injection point for `main_orchestrator.py`, dependencies, caveats (date format, schema drift)
+- **Dependencies**
+  - `requirements.txt` – pandas, openpyxl for validate_exports and summons_backfill_merge
+  - README and docs updated: Python environment must have these for orchestrator-run scripts
+
+### Changed
+- **Overtime/TimeOff** – Removed multi-pattern/fallback file search; paths built from `get_onedrive_root()`; `--backfill-root` default is now under OneDrive root
+- **normalize_visual_export_for_backfill.py** – Default backfill root from `path_config` (`_default_backfill_root()`); `--backfill-root` optional
+- **Documentation** – `docs/VISUAL_EXPORT_NORMALIZATION_AND_SUMMONS_BACKFILL.md` (normalization phase + Summons follow-up); README Quick Start: Python environment + `pip install -r requirements.txt`
+
+### Fixed
+- Orchestrator and validation no longer rely on hardcoded user paths when `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) is set
+
+---
+
 ## [1.13.0] - 2026-02-10
 
 ### Added

@@ -27,12 +27,24 @@ from __future__ import annotations
 
 import argparse
 import csv
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Optional
+
+# Centralized path resolution (avoid hardcoded user paths)
+try:
+    from path_config import get_onedrive_root
+except ImportError:
+    # Fallback if path_config not found (e.g. running outside scripts dir)
+    def get_onedrive_root() -> Path:
+        base = os.environ.get("ONEDRIVE_BASE") or os.environ.get("ONEDRIVE_HACKENSACK")
+        if base:
+            return Path(base)
+        return Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack")
 
 
 @dataclass(frozen=True)
@@ -88,146 +100,84 @@ def find_backfill_csv(backfill_root: Path, month: date) -> Path:
 
 
 def ensure_month_exports_are_xlsx(paths: Paths, run_month: date, dry_run: bool) -> None:
-    """Ensure the month exports exist as .xlsx (convert .xls if necessary).
-    
-    Files are expected in: export/month/{year}/{yyyy}_{mm}_{type}activity.xlsx
-    e.g., export/month/2025/2025_12_otactivity.xlsx
+    """Ensure the month exports exist as .xlsx at the exact path. Convert .xls if necessary (no fallback search).
+
+    Strict: only looks for YYYY_MM_otactivity.xlsx and YYYY_MM_timeoffactivity.xlsx in
+    export/month/{year}/. Conversion .xls -> .xlsx is a distinct pre-step when .xlsx is missing.
     """
     year = run_month.year
-    mm = f"{run_month.month:02d}"
     yyyymm = month_key_yyyy_mm(run_month)
-    
-    # Check in export/month/{year}/ subdirectory structure
     ot_subdir = paths.overtime_dir / "export" / "month" / str(year)
     to_subdir = paths.time_off_dir / "export" / "month" / str(year)
-    
-    # Try multiple filename patterns (case-insensitive)
-    ot_patterns = [
-        f"{yyyymm}_otactivity.xlsx",
-        f"{yyyymm}_OTActivity.xlsx",
-        f"{year}_{mm}_otactivity.xlsx",
-        f"{year}_{mm}_OTActivity.xlsx",
-    ]
-    to_patterns = [
-        f"{yyyymm}_timeoffactivity.xlsx",
-        f"{yyyymm}_TimeOffActivity.xlsx",
-        f"{year}_{mm}_timeoffactivity.xlsx",
-        f"{year}_{mm}_TimeOffActivity.xlsx",
-    ]
-    
-    # Find existing files (case-insensitive search)
-    ot_found = None
-    to_found = None
-    
-    if ot_subdir.exists():
-        for pattern in ot_patterns:
-            candidates = list(ot_subdir.glob(pattern))
-            if not candidates:
-                # Try case-insensitive match
-                for f in ot_subdir.glob("*.xlsx"):
-                    if f.name.lower() == pattern.lower():
-                        candidates = [f]
-                        break
-            if candidates:
-                ot_found = candidates[0]
-                break
-    
-    if to_subdir.exists():
-        for pattern in to_patterns:
-            candidates = list(to_subdir.glob(pattern))
-            if not candidates:
-                # Try case-insensitive match
-                for f in to_subdir.glob("*.xlsx"):
-                    if f.name.lower() == pattern.lower():
-                        candidates = [f]
-                        break
-            if candidates:
-                to_found = candidates[0]
-                break
-    
-    # Check root directory as fallback (legacy location)
-    if not ot_found:
-        for pattern in ot_patterns:
-            candidates = list(paths.overtime_dir.glob(pattern))
-            if not candidates:
-                for f in paths.overtime_dir.glob("*.xlsx"):
-                    if f.name.lower() == pattern.lower():
-                        candidates = [f]
-                        break
-            if candidates:
-                ot_found = candidates[0]
-                break
-    
-    if not to_found:
-        for pattern in to_patterns:
-            candidates = list(paths.time_off_dir.glob(pattern))
-            if not candidates:
-                for f in paths.time_off_dir.glob("*.xlsx"):
-                    if f.name.lower() == pattern.lower():
-                        candidates = [f]
-                        break
-            if candidates:
-                to_found = candidates[0]
-                break
-    
-    if ot_found and to_found:
-        print(f"[INFO] Found export files:\n  Overtime: {ot_found}\n  Time Off: {to_found}")
+
+    ot_xlsx = ot_subdir / f"{yyyymm}_otactivity.xlsx"
+    to_xlsx = to_subdir / f"{yyyymm}_timeoffactivity.xlsx"
+
+    if ot_xlsx.exists() and to_xlsx.exists():
+        print(f"[INFO] Found export files:\n  Overtime: {ot_xlsx}\n  Time Off: {to_xlsx}")
         return
-    
-    # Check for .xls files that need conversion
-    ot_xls_found = None
-    to_xls_found = None
-    
-    if ot_subdir.exists():
-        for pattern in [p.replace(".xlsx", ".xls") for p in ot_patterns]:
-            for f in ot_subdir.glob("*.xls"):
-                if f.name.lower() == pattern.lower():
-                    ot_xls_found = f
-                    break
-            if ot_xls_found:
-                break
-    
-    if to_subdir.exists():
-        for pattern in [p.replace(".xlsx", ".xls") for p in to_patterns]:
-            for f in to_subdir.glob("*.xls"):
-                if f.name.lower() == pattern.lower():
-                    to_xls_found = f
-                    break
-            if to_xls_found:
-                break
-    
-    if (ot_found or ot_xls_found) and (to_found or to_xls_found):
+
+    # Distinct pre-step: if .xlsx missing, try .xls and convert once
+    ot_xls = ot_subdir / f"{yyyymm}_otactivity.xls"
+    to_xls = to_subdir / f"{yyyymm}_timeoffactivity.xls"
+    if (ot_xlsx.exists() or ot_xls.exists()) and (to_xlsx.exists() or to_xls.exists()):
         if dry_run:
             print(f"[DRY RUN] Would convert .xls -> .xlsx for month {yyyymm} (if needed).")
             return
-
         if not paths.xls_to_xlsx_multi.exists():
             raise FileNotFoundError(f"XLS->XLSX converter not found: {paths.xls_to_xlsx_multi}")
-
-        # Convert only when .xlsx missing
-        if (not ot_found) or (not to_found):
-            print(f"[INFO] Converting exports to .xlsx for {yyyymm} (Excel COM)...")
-            subprocess.check_call([sys.executable, str(paths.xls_to_xlsx_multi), str(paths.overtime_dir), str(paths.time_off_dir)])
-
-        # Re-check after conversion
-        if not ot_found or not to_found:
-            raise FileNotFoundError(
-                "After conversion, expected .xlsx exports are still missing:\n"
-                f"  Overtime: {ot_found or 'NOT FOUND'}\n"
-                f"  Time Off: {to_found or 'NOT FOUND'}\n"
-                f"  Searched in: {ot_subdir} and {to_subdir}"
-            )
+        print(f"[INFO] Converting exports to .xlsx for {yyyymm} (Excel COM)...")
+        subprocess.check_call(
+            [sys.executable, str(paths.xls_to_xlsx_multi), str(paths.overtime_dir), str(paths.time_off_dir)]
+        )
+        if not ot_xlsx.exists():
+            raise FileNotFoundError(f"After conversion, Overtime .xlsx still missing: {ot_xlsx}")
+        if not to_xlsx.exists():
+            raise FileNotFoundError(f"After conversion, Time Off .xlsx still missing: {to_xlsx}")
+        print(f"[INFO] Found export files after conversion:\n  Overtime: {ot_xlsx}\n  Time Off: {to_xlsx}")
         return
 
     raise FileNotFoundError(
-        f"Could not locate required exports for {yyyymm} in either .xlsx or .xls form:\n"
-        f"  Searched directories:\n"
-        f"    {ot_subdir}\n"
-        f"    {to_subdir}\n"
-        f"    {paths.overtime_dir} (root fallback)\n"
-        f"    {paths.time_off_dir} (root fallback)\n"
-        f"  Patterns tried: {ot_patterns[:2]} ... and {to_patterns[:2]} ..."
+        f"Required exports not found for {yyyymm}. Expected exactly:\n"
+        f"  Overtime:   {ot_xlsx}\n"
+        f"  Time Off:   {to_xlsx}\n"
+        f"  (Or same base name with .xls for conversion.)"
     )
+
+
+REQUIRED_FIXED_COLUMNS = {"YearMonth", "Class", "Metric", "Hours"}
+EXPECTED_MONTH_COUNT = 13
+
+
+def validate_fixed_schema(file_path: Path) -> None:
+    """Validate FIXED CSV schema before exit. Raises ValueError if invalid (prevents bad data reaching Power BI)."""
+    if not file_path.exists():
+        raise FileNotFoundError(f"FIXED file not found: {file_path}")
+    with file_path.open("r", newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        headers = set(reader.fieldnames or [])
+    missing = REQUIRED_FIXED_COLUMNS - headers
+    if missing:
+        raise ValueError(f"FIXED CSV missing required columns: {sorted(missing)}. Found: {sorted(headers)}")
+
+    months: set[str] = set()
+    with file_path.open("r", newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            ym = (row.get("YearMonth") or "").strip()
+            if ym:
+                months.add(ym)
+            hrs = (row.get("Hours") or "").strip()
+            if hrs != "":
+                try:
+                    float(hrs)
+                except ValueError:
+                    raise ValueError(f"FIXED CSV has non-numeric Hours value: {hrs!r}")
+
+    if len(months) != EXPECTED_MONTH_COUNT:
+        raise ValueError(
+            f"FIXED CSV must contain exactly {EXPECTED_MONTH_COUNT} unique YearMonth values; found {len(months)}: {sorted(months)}"
+        )
 
 
 def run_v10(paths: Paths, dry_run: bool) -> None:
@@ -409,16 +359,17 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--backfill-root",
-        default=r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill",
-        help="Root folder containing Backfill\\YYYY_MM\\vcs_time_report\\... CSVs",
+        default=None,
+        help="Root folder containing Backfill\\YYYY_MM\\vcs_time_report\\... (default: <OneDrive>\\PowerBI_Date\\Backfill)",
     )
     parser.add_argument("--dry-run", action="store_true", help="Show what would happen without executing.")
     args = parser.parse_args()
 
-    overtime_timeoff_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff")
-    overtime_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime")
-    time_off_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off")
-    backfill_root = Path(args.backfill_root)
+    root = get_onedrive_root()
+    overtime_timeoff_dir = root / "02_ETL_Scripts" / "Overtime_TimeOff"
+    overtime_dir = root / "05_EXPORTS" / "_Overtime"
+    time_off_dir = root / "05_EXPORTS" / "_Time_Off"
+    backfill_root = Path(args.backfill_root) if args.backfill_root else root / "PowerBI_Date" / "Backfill"
 
     paths = Paths(
         overtime_timeoff_dir=overtime_timeoff_dir,
@@ -475,6 +426,10 @@ def main() -> int:
         end_month=end_month,
         dry_run=bool(args.dry_run),
     )
+
+    if not args.dry_run and fixed_path.exists():
+        validate_fixed_schema(fixed_path)
+        print("[OK] FIXED schema validated.")
 
     print("[OK] Pipeline complete.")
     return 0

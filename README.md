@@ -17,6 +17,7 @@ Master_Automation/
 ├── verify_migration.ps1         # Automated verification script
 ├── Master_Automation.code-workspace  # VS Code workspace
 ├── .gitignore                   # Git ignore rules
+├── requirements.txt             # Python deps (pandas, openpyxl) for validation & Summons backfill
 ├── config/
 │   ├── scripts.json            # Configuration for all ETL scripts
 │   ├── response_time_filters.json  # Response Time filter configuration
@@ -25,7 +26,13 @@ Master_Automation/
 │   ├── run_all_etl.ps1         # PowerShell orchestrator (recommended)
 │   ├── run_all_etl.bat         # Batch file orchestrator
 │   ├── run_etl_script.ps1      # Helper script to run individual scripts
+│   ├── path_config.py                       # Centralized get_onedrive_root() for portability
 │   ├── overtime_timeoff_with_backfill.py     # Overtime/TimeOff monthly wrapper (v10 + backfill)
+│   ├── validate_exports.py                  # Pre-flight OT/TimeOff export validation
+│   ├── validate_outputs.py                   # FIXED CSV schema validation
+│   ├── test_pipeline.bat                     # Overtime/TimeOff test suite
+│   ├── summons_backfill_merge.py             # Summons gap-month merge (03-25, 07-25, 10-25, 11-25)
+│   ├── normalize_visual_export_for_backfill.py  # Normalize visual exports for backfill
 │   ├── restore_fixed_from_backfill.py        # Restores history into FIXED_monthly_breakdown
 │   ├── compare_vcs_time_report_exports.py    # Diff tool for visual exports/backfill validation
 │   ├── compare_policy_training_delivery.py   # Policy Training: visual vs ETL/backfill diff
@@ -59,6 +66,14 @@ Master_Automation/
 ```
 
 ## Quick Start
+
+### Python environment
+
+The orchestrator runs Python scripts using the executable in `config/scripts.json` (`python_executable`). That environment must have `pandas` and `openpyxl` for pre-flight validation and Summons backfill. From the repo root:
+
+```powershell
+pip install -r requirements.txt
+```
 
 ### Run All ETL Scripts
 

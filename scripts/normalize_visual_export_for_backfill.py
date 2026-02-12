@@ -24,17 +24,30 @@ from __future__ import annotations
 
 import argparse
 import csv
+import os
 import re
 from pathlib import Path
 from typing import List, Optional, Tuple
+
+try:
+    from path_config import get_onedrive_root
+except ImportError:
+    def get_onedrive_root() -> Path:
+        base = os.environ.get("ONEDRIVE_BASE") or os.environ.get("ONEDRIVE_HACKENSACK")
+        if base:
+            return Path(base)
+        return Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack")
+
+
+def _default_backfill_root() -> Path:
+    """Backfill root (PowerBI_Date\\Backfill) using centralized path config."""
+    return get_onedrive_root() / "PowerBI_Date" / "Backfill"
 
 
 # Column names the pipeline expects (restore_fixed_from_backfill, backfill_monthly_breakdown)
 TIME_CAT_CANDIDATES = ("Time_Category", "Time Category", "TimeCategory")
 VALUE_CANDIDATES = ("Value", "Sum of Value", "Sum ofValue", "Sum of  Value")
 PERIOD_LABEL_COL = "PeriodLabel"
-
-BACKFILL_ROOT_DEFAULT = r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill"
 VCS_TIME_REPORT = "vcs_time_report"
 BACKFILL_FILENAME = "Monthly Accrual and Usage Summary.csv"
 
@@ -235,8 +248,8 @@ def main() -> int:
     ap.add_argument(
         "--backfill-root",
         type=Path,
-        default=Path(BACKFILL_ROOT_DEFAULT),
-        help="Backfill root folder (Backfill\\YYYY_MM\\vcs_time_report\\...)",
+        default=None,
+        help="Backfill root folder (default: <OneDrive>\\PowerBI_Date\\Backfill)",
     )
     ap.add_argument(
         "--wide",
@@ -265,6 +278,8 @@ def main() -> int:
     if fmt == "unknown" or not time_col:
         print("[ERROR] Could not detect Long or Wide format or Time Category column.")
         return 1
+
+    backfill_root = args.backfill_root if args.backfill_root is not None else _default_backfill_root()
 
     if args.output is not None:
         output_path = args.output.resolve()
@@ -296,7 +311,7 @@ def main() -> int:
                 return 1
         # Standard name: YYYY_MM_Monthly Accrual and Usage Summary.csv
         out_name = f"{backfill_month}_{BACKFILL_FILENAME}"
-        output_path = (args.backfill_root / backfill_month / VCS_TIME_REPORT / out_name).resolve()
+        output_path = (backfill_root / backfill_month / VCS_TIME_REPORT / out_name).resolve()
         print(f"[INFO] Backfill month: {backfill_month} -> {output_path}")
 
     if fmt == "long" and value_col:
