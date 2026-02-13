@@ -48,11 +48,18 @@ let
         let 
             MonthText = [Month_MM_YY],
             Parts = Text.Split(MonthText, "-"),
-            MonthNum = if List.Count(Parts) >= 1 then Parts{0} else "01",
-            YearNum = if List.Count(Parts) >= 2 then Parts{1} else "26",
+            MonthPart = if List.Count(Parts) >= 1 then Parts{0} else "01",
+            YearPart = if List.Count(Parts) >= 2 then Parts{1} else "26",
+            // Try to convert year to number, skip if fails
+            YearNum = try Number.From(YearPart) otherwise null,
             // Assume 50+ = 19xx, else 20xx
-            FullYear = if Value.FromText(YearNum) >= 50 then 1900 + Value.FromText(YearNum) else 2000 + Value.FromText(YearNum),
-            DateValue = try #date(FullYear, Value.FromText(MonthNum), 1) otherwise null
+            FullYear = if YearNum = null then null
+                       else if YearNum >= 50 then 1900 + YearNum 
+                       else 2000 + YearNum,
+            MonthNum = try Number.From(MonthPart) otherwise null,
+            DateValue = if MonthNum = null or FullYear = null 
+                        then null 
+                        else try #date(FullYear, MonthNum, 1) otherwise null
         in DateValue, 
         type date),
     
@@ -89,14 +96,13 @@ let
     // Add reporting period metadata
     AddedReportingMeta = Table.AddColumn(FilteredMonths, "ReportingPeriod", each ReportingPeriod, type text),
     
-    // Calculate number of months included (should be 13 or less if data incomplete)
-    AddedMonthCount = Table.AddColumn(AddedReportingMeta, "MonthsIncluded", each 
-        let
-            UniqueMonths = Table.Group(FilteredMonths, {"Date"}, 
-                {{"Count", each Table.RowCount(_), type number}}),
-            MonthCount = Table.RowCount(UniqueMonths)
-        in MonthCount, 
-        type number),
+    // Calculate number of unique months in the filtered dataset
+    UniqueMonthsCount = Table.RowCount(
+        Table.Group(FilteredMonths, {"Date"}, {{"Count", each Table.RowCount(_), type number}})
+    ),
+    
+    // Add month count to all rows
+    AddedMonthCount = Table.AddColumn(AddedReportingMeta, "MonthsIncluded", each UniqueMonthsCount, type number),
     
     // Classify cases as High Impact or Administrative
     AddedCaseType = Table.AddColumn(AddedMonthCount, "Case_Type", each 

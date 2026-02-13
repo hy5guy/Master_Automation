@@ -142,15 +142,19 @@ let
     WithDate = Table.AddColumn(Cleaned, "Date", each
         let
             mTxt = [Month],
-            mNum = try Value.FromText(Text.Start(mTxt, 2)) otherwise null,
-            y2   = try Value.FromText(Text.End(mTxt, 2)) otherwise null,
-            // Assume 50+ = 19xx, else 20xx
+            // Extract first 2 characters for month
+            mStr = Text.Start(mTxt, 2),
+            mNum = try Number.From(mStr) otherwise null,
+            // Extract last 2 characters for year
+            yStr = Text.End(mTxt, 2),
+            y2   = try Number.From(yStr) otherwise null,
+            // Assume 50+ = 19xx, else 20xx (only if y2 is valid number)
             y4   = if y2 = null then null 
                    else if y2 >= 50 then 1900 + y2 
                    else 2000 + y2
         in
             if mNum = null or y4 = null then null 
-            else #date(y4, mNum, 1),
+            else try #date(y4, mNum, 1) otherwise null,
         type date
     ),
 
