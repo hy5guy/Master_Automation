@@ -1,16 +1,24 @@
 # STACP Visual Fix - Quick Reference
 
-## Problem #1: Year Detection (RESOLVED)
-Visual only showed December 2025 data (12-25) - year detection hardcoded for "24" or "25".
+## Problems Fixed (3 Total)
 
-## Problem #2: Inconsistent Date Format (RESOLVED)
-Excel file has both `3-25` (unpadded) and `03-25` (padded) column formats.
-Old M code only detected padded columns → missing 7 months (Mar-Sep 2025).
+### Problem #1: Year Detection (RESOLVED ✅)
+Year detection hardcoded for "24" or "25" - ignored "26" columns.
 
-## Solution
-Replace query `___STACP_pt_1_2` with fixed code that handles BOTH formats.
+### Problem #2: Inconsistent Date Format (RESOLVED ✅)
+Excel had both `3-25` (unpadded) and `03-25` (padded) formats.
+Old M code only detected padded columns.
+
+### Problem #3: 13-Month Window Calculation (RESOLVED ✅)
+Window calculation was broken - only kept 2 months instead of 13.
+**Root cause**: `StartMonth = EndMonth - 1` should have been `StartMonth = EndMonth`
+
+## Current Status
+
+✅ **ALL ISSUES FIXED**
 
 ## Deploy Steps
+
 1. Open Power BI → **Transform Data**
 2. Find query: `___STACP_pt_1_2`
 3. Click **View** → **Advanced Editor**
@@ -18,21 +26,37 @@ Replace query `___STACP_pt_1_2` with fixed code that handles BOTH formats.
 5. Click **Done** → **Close & Apply**
 
 ## Verify Fix
+
 ✅ Filter shows **13 months**: 01-25, 02-25, 03-25... 12-25, 01-26  
 ✅ Both Part 1 and Part 2 visuals show all tracked items with 13 columns  
-✅ Months 03-25 through 09-25 now appear (previously missing)  
+✅ Diagnostic query shows "Columns in 13-Month Window: 13"  
 ✅ No Power Query errors
 
+## Before/After (Diagnostic Results)
+
+**Before Fix**:
+- Columns in 13-Month Window: **2** (12-25, 01-26) ❌
+
+**After Fix**:
+- Columns in 13-Month Window: **13** (01-25 through 01-26) ✅
+
 ## What Was Fixed
-- **Column Detection**: Now validates month is 1-12 (handles both `3-25` and `03-25`)
-- **Year Detection**: Works for any 2-digit year (24, 25, 26, 27... forever)
-- **Normalization**: Both formats normalize to `MM-YY` for consistent sorting
+
+1. **Year Detection**: Works for any 2-digit year (24, 25, 26, 27... forever)
+2. **Date Format**: Handles both `3-25` and `03-25` formats
+3. **Window Calc**: Fixed `StartMonth = EndMonth` (was `EndMonth - 1`)
 
 ## Files
+
 - **Fixed M Code**: `m_code\stacp\STACP_pt_1_2_FIXED.m`
-- **Year Detection Fix**: `docs\STACP_YEAR_DETECTION_FIX_2026_02_13.md`
-- **Date Format Fix**: `docs\STACP_INCONSISTENT_DATE_FORMAT_FIX.md`
+- **Diagnostic**: `m_code\stacp\STACP_DIAGNOSTIC.m`
+- **Docs**:
+  - `docs\STACP_YEAR_DETECTION_FIX_2026_02_13.md`
+  - `docs\STACP_INCONSISTENT_DATE_FORMAT_FIX.md`
+  - `docs\STACP_WINDOW_CALCULATION_FIX.md`
+  - `docs\STACP_TROUBLESHOOTING_GUIDE.md`
 
 ---
-*Quick Reference - Updated 2026-02-13*
-*Git Commits: d99f7ff, dd372f3, 550f256*
+*Quick Reference - Updated 2026-02-13*  
+*Git Commits: d99f7ff, dd372f3, 550f256, a6ddd0a, 75d3d77, c8e49fe*  
+*Status: READY TO DEPLOY*
