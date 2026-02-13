@@ -15,6 +15,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.15.0] - 2026-02-12
+
+### Added
+- **13-month rolling window enforcement** for Power BI visual exports
+  - **Normalizer** (`scripts/normalize_visual_export_for_backfill.py`): `calculate_13_month_window()`, `enforce_13_month_window()`, CLI `--enforce-13-month`; keeps **PeriodLabel** for Overtime/TimeOff backfill; period column detection order: PeriodLabel, Period, Month_Year
+  - **Process script** (`scripts/process_powerbi_exports.py`): **match_pattern** (regex) in `find_mapping_for_file()` for dynamic visual names (e.g. NIBRS); **enforce_13_month** parameter in `run_normalize()`; dry-run and production pass `enforce_13_month_window` from mapping to normalizer
+  - **Mapping** (`Standards/config/powerbi_visuals/visual_export_mapping.json`): 32 visuals; 24 with `enforce_13_month_window: true`, 8 with `false` (Arrests, Top 5 Summons, All Bureaus Summons, In-Person Training, Incident Distribution); NIBRS entry has `match_pattern: "^13-Month NIBRS Clearance Rate Trend"`
+  - **Validation** (`scripts/validate_13_month_window.py`): validate single file or `--scan-folder` for 13-month window
+- **Documentation**
+  - `docs/13_MONTH_WINDOW_IMPLEMENTATION_GUIDE.md` – Deployment, data flow, validation, troubleshooting
+  - `docs/13_MONTH_WINDOW_CORRECTIONS.md` – Selective enforcement, NIBRS pattern matching
+  - `docs/13_MONTH_QUICK_REFERENCE.md` – List of 24 vs 8 visuals, quick test
+
+### Changed
+- **Normalizer** – Replaced with v2 logic (13-month window, PeriodLabel preserved for monthly accrual)
+- **Process script** – In-place patches: match_pattern support, run_normalize(enforce_13_month), call sites pass enforce_window from mapping
+
+---
+
 ## [1.14.0] - 2026-02-12
 
 ### Added

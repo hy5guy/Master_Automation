@@ -1,37 +1,30 @@
 #!/usr/bin/env python3
 """
-Normalize a Power BI visual export "Monthly Accrual and Usage Summary" for backfill.
+Normalize Power BI visual exports for backfill consumption with 13-month rolling window enforcement.
 
-Bridges the default export structure with what the pipeline expects:
-- LONG (default): Time Category, Sum of Value, PeriodLabel — already accepted by
-  restore_fixed_from_backfill.py and overtime_timeoff_with_backfill. This script
-  normalizes column names and PeriodLabel values (e.g. "Sum of 11-25" -> "11-25").
-- WIDE: optional output with months as columns for any consumer that expects it.
+Handles Long (default) and Wide formats, normalizes column names and period labels,
+and optionally enforces a 13-month rolling data window (ending with previous complete month).
 
 Usage:
-  python scripts\\normalize_visual_export_for_backfill.py ^
-    --input "path\\to\\2025_12_Monthly Accrual and Usage Summary.csv" ^
-    [--backfill-month 2025_12] ^
-    [--backfill-root "C:\\...\\PowerBI_Date\\Backfill"] ^
-    [--wide] ^
-    [--dry-run]
-
-If --backfill-month is omitted, it is inferred from the filename (e.g. 2025_12_...)
-or from the latest period in the data (MM-YY -> 20YY-MM).
+  python normalize_visual_export_for_backfill.py --input <path> --output <path> [--format summons|training_cost] [--enforce-13-month] [--dry-run]
 """
 
 from __future__ import annotations
 
 import argparse
-import csv
-import os
+import logging
 import re
+import sys
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import TYPE_CHECKING
+
+import pandas as pd
 
 try:
     from path_config import get_onedrive_root
 except ImportError:
+    import os
     def get_onedrive_root() -> Path:
         base = os.environ.get("ONEDRIVE_BASE") or os.environ.get("ONEDRIVE_HACKENSACK")
         if base:
@@ -39,298 +32,422 @@ except ImportError:
         return Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack")
 
 
-def _default_backfill_root() -> Path:
-    """Backfill root (PowerBI_Date\\Backfill) using centralized path config."""
-    return get_onedrive_root() / "PowerBI_Date" / "Backfill"
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+logger = logging.getLogger(__name__)
 
 
-# Column names the pipeline expects (restore_fixed_from_backfill, backfill_monthly_breakdown)
-TIME_CAT_CANDIDATES = ("Time_Category", "Time Category", "TimeCategory")
-VALUE_CANDIDATES = ("Value", "Sum of Value", "Sum ofValue", "Sum of  Value")
-PERIOD_LABEL_COL = "PeriodLabel"
-VCS_TIME_REPORT = "vcs_time_report"
-BACKFILL_FILENAME = "Monthly Accrual and Usage Summary.csv"
-
-
-def _norm_month_label(label: str) -> str:
-    """Normalize 'Sum of 11-25' -> '11-25', trim whitespace."""
-    s = (label or "").strip()
-    if not s:
-        return s
-    s_lower = s.lower()
-    if s_lower.startswith("sum of "):
-        s = s[7:].strip()
-    return s
-
-
-def _period_label_to_year_month(period_label: str) -> Optional[Tuple[int, int]]:
-    """Parse MM-YY or similar to (year, month). Returns None if invalid."""
-    s = _norm_month_label(period_label)
-    if not s or len(s) < 5:
-        return None
-    # MM-YY or M-YY
-    parts = s.split("-")
-    if len(parts) != 2:
-        return None
-    try:
-        mm = int(parts[0].strip())
-        yy = int(parts[1].strip())
-        if yy < 100:
-            year = 2000 + yy
+def calculate_13_month_window(as_of_date: datetime | None = None) -> tuple[str, str, list[str]]:
+    """
+    Calculate 13-month rolling window ending with previous complete month.
+    
+    Operational Rule:
+    - End Date: Previous month from today (never include current month)
+    - Start Date: 12 months before end date
+    - Window: 13 full months (start + 12 = 13 total)
+    
+    Args:
+        as_of_date: Reference date (defaults to today)
+    
+    Returns:
+        Tuple of (start_period, end_period, all_periods)
+        Periods in MM-YY format (e.g. "01-25")
+    
+    Example:
+        Today: February 12, 2026
+        End: January 2026 (01-26)
+        Start: January 2025 (01-25)
+        Window: 01-25, 02-25, ..., 12-25, 01-26 (13 months)
+    """
+    if as_of_date is None:
+        as_of_date = datetime.now()
+    
+    # End date: previous month
+    if as_of_date.month == 1:
+        end_year = as_of_date.year - 1
+        end_month = 12
+    else:
+        end_year = as_of_date.year
+        end_month = as_of_date.month - 1
+    
+    # Start date: 12 months before end
+    start_date = datetime(end_year, end_month, 1) - timedelta(days=365)
+    # Adjust to first of month 12 months prior
+    if start_date.month == end_month:
+        # If we landed on same month, go back one more month
+        if start_date.month == 1:
+            start_year = start_date.year - 1
+            start_month = 12
         else:
-            year = yy
-        if 1 <= mm <= 12 and year >= 2000:
-            return (year, mm)
-    except ValueError:
-        pass
-    return None
+            start_year = start_date.year
+            start_month = start_date.month - 1
+    else:
+        start_year = start_date.year
+        start_month = start_date.month
+    
+    # Generate all 13 periods
+    periods = []
+    current_year = start_year
+    current_month = start_month
+    
+    for _ in range(13):
+        period = f"{current_month:02d}-{str(current_year)[-2:]}"
+        periods.append(period)
+        
+        # Next month
+        if current_month == 12:
+            current_month = 1
+            current_year += 1
+        else:
+            current_month += 1
+    
+    start_period = f"{start_month:02d}-{str(start_year)[-2:]}"
+    end_period = f"{end_month:02d}-{str(end_year)[-2:]}"
+    
+    return start_period, end_period, periods
 
 
-def _infer_backfill_month_from_filename(path: Path) -> Optional[str]:
-    """e.g. 2025_12_Monthly Accrual... or Monthly Accrual..._2025_12.csv -> 2025_12."""
-    name = path.stem
-    # 2025_12_...
-    m = re.match(r"^(\d{4}_\d{2})_", name)
-    if m:
-        return m.group(1)
-    # ..._2025_12
-    m = re.search(r"_(\d{4}_\d{2})(?:\.[^.]+)?$", name)
-    if m:
-        return m.group(1)
-    return None
+def _period_label_to_year_month(label: str) -> tuple[int, int] | None:
+    """
+    Parse period label to (year, month) if it matches MM-YY format.
+    Returns None if not a valid month label.
+    
+    Examples:
+      "01-25" -> (2025, 1)
+      "Sum of 11-25" -> (2025, 11)
+      "Random Text" -> None
+    """
+    if not isinstance(label, str):
+        return None
+    
+    # Strip "Sum of " prefix if present
+    clean = label.strip()
+    if clean.lower().startswith("sum of "):
+        clean = clean[7:].strip()
+    
+    # Match MM-YY pattern
+    m = re.match(r"^(\d{2})-(\d{2})$", clean)
+    if not m:
+        return None
+    
+    mm, yy = m.groups()
+    month = int(mm)
+    year = int(yy)
+    
+    if not (1 <= month <= 12):
+        return None
+    
+    # Convert 2-digit year to 4-digit (assume 20xx)
+    if year < 100:
+        year = 2000 + year
+    
+    return (year, month)
 
 
-def detect_format(reader: csv.DictReader) -> Tuple[str, Optional[str], Optional[str]]:
-    """Returns (format, time_col, value_col). format is 'long' or 'wide'."""
-    names = [c for c in (reader.fieldnames or []) if c]
-    time_col = None
-    for c in TIME_CAT_CANDIDATES:
-        if c in names:
-            time_col = c
-            break
-    if not time_col:
-        return "unknown", None, None
+def enforce_13_month_window(df: pd.DataFrame, period_column: str = "Period") -> pd.DataFrame:
+    """
+    Filter dataframe to only include records from the 13-month rolling window.
+    
+    Args:
+        df: DataFrame with period column
+        period_column: Name of column containing MM-YY period labels
+    
+    Returns:
+        Filtered DataFrame with validation warnings
+    """
+    if period_column not in df.columns:
+        logger.warning(
+            "Cannot enforce 13-month window: column '%s' not found. Available columns: %s",
+            period_column,
+            list(df.columns)
+        )
+        return df
+    
+    start_period, end_period, valid_periods = calculate_13_month_window()
+    
+    logger.info(
+        "Enforcing 13-month window: %s through %s (%d periods)",
+        start_period,
+        end_period,
+        len(valid_periods)
+    )
+    
+    # Normalize period labels in dataframe
+    df[period_column] = df[period_column].astype(str).str.strip()
+    df[period_column] = df[period_column].str.replace(r"^Sum of ", "", regex=True).str.strip()
+    
+    # Filter to valid periods
+    original_count = len(df)
+    df_filtered = df[df[period_column].isin(valid_periods)].copy()
+    filtered_count = len(df_filtered)
+    
+    if filtered_count < original_count:
+        removed_periods = set(df[period_column].unique()) - set(valid_periods)
+        logger.info(
+            "Filtered out %d rows from %d periods outside 13-month window: %s",
+            original_count - filtered_count,
+            len(removed_periods),
+            sorted(removed_periods)[:5]
+        )
+    
+    # Validate coverage
+    actual_periods = set(df_filtered[period_column].unique())
+    missing_periods = set(valid_periods) - actual_periods
+    
+    if missing_periods:
+        logger.warning(
+            "13-month window incomplete: %d missing periods: %s",
+            len(missing_periods),
+            sorted(missing_periods)
+        )
+    
+    if not df_filtered.empty:
+        logger.info(
+            "13-month window validated: %d periods present, %d rows",
+            len(actual_periods),
+            len(df_filtered)
+        )
+    
+    return df_filtered
 
-    if PERIOD_LABEL_COL in names:
-        value_col = None
-        for c in VALUE_CANDIDATES:
-            if c in names:
-                value_col = c
-                break
-        if value_col:
-            return "long", time_col, value_col
 
-    # Wide: first column is time, rest are month-like (e.g. 01-25, 11-24)
-    month_cols = [c for c in names if c != time_col and _period_label_to_year_month(_norm_month_label(c))]
-    if month_cols:
-        return "wide", time_col, None
+def normalize_monthly_accrual(df: pd.DataFrame, enforce_window: bool = False) -> pd.DataFrame:
+    """
+    Normalize Monthly Accrual and Usage Summary (default format).
+    Handles Long format with Time Category, PeriodLabel, Sum of Value.
+    Keeps PeriodLabel (overtime_timeoff_with_backfill expects it).
+    """
+    logger.info("Normalizing Monthly Accrual format (default)")
+    
+    # Normalize column names (keep PeriodLabel for OT backfill parser)
+    rename_map = {
+        "Time Category": "Time_Category",
+        "Sum of Value": "Value",
+        "Sum of  Value": "Value",  # double space variant
+    }
+    df = df.rename(columns=rename_map)
 
-    return "unknown", time_col, None
+    if "PeriodLabel" in df.columns:
+        df["PeriodLabel"] = df["PeriodLabel"].astype(str).str.strip()
+        df["PeriodLabel"] = df["PeriodLabel"].str.replace(r"^Sum of ", "", regex=True).str.strip()
+        if enforce_window:
+            df = enforce_13_month_window(df, period_column="PeriodLabel")
+    if "Value" in df.columns:
+        df["Value"] = pd.to_numeric(df["Value"], errors="coerce").fillna(0)
+
+    return df
 
 
-def normalize_long(
+def normalize_summons(df: pd.DataFrame, enforce_window: bool = False) -> pd.DataFrame:
+    """
+    Normalize Summons visual exports (Long format).
+    Expected columns: PeriodLabel or Month_Year, Bureau or WG2, Moving/Parking or TYPE, Sum of Value or TICKET_COUNT.
+    """
+    logger.info("Normalizing Summons format")
+    
+    # Detect format: Long vs Wide
+    cols = df.columns.tolist()
+    month_like = [c for c in cols if isinstance(c, str) and _period_label_to_year_month(c) is not None]
+    
+    if month_like:
+        logger.warning(
+            "Summons export appears to be Wide format (month columns: %s). "
+            "Long format (PeriodLabel) is required for backfill. Attempting to unpivot.",
+            month_like[:5]
+        )
+        # Attempt to unpivot
+        id_cols = [c for c in cols if c not in month_like]
+        df = df.melt(id_vars=id_cols, value_vars=month_like, var_name="PeriodLabel", value_name="TICKET_COUNT")
+    
+    # Normalize column names
+    rename_map = {
+        "PeriodLabel": "Month_Year",
+        "Bureau": "WG2",
+        "Sum of Value": "TICKET_COUNT",
+        "Value": "TICKET_COUNT",
+        "Sum of TICKET_COUNT": "TICKET_COUNT",
+        "Moving/Parking": "TYPE",
+        "Type": "TYPE",
+    }
+    
+    df = df.rename(columns=rename_map)
+    
+    # Clean period labels
+    if "Month_Year" in df.columns:
+        df["Month_Year"] = df["Month_Year"].astype(str).str.strip()
+        df["Month_Year"] = df["Month_Year"].str.replace(r"^Sum of ", "", regex=True).str.strip()
+        
+        # Enforce 13-month window if requested
+        if enforce_window:
+            df = enforce_13_month_window(df, period_column="Month_Year")
+    
+    # Ensure TICKET_COUNT is numeric
+    if "TICKET_COUNT" in df.columns:
+        df["TICKET_COUNT"] = pd.to_numeric(df["TICKET_COUNT"], errors="coerce").fillna(0)
+    
+    # Ensure WG2 and TYPE exist
+    if "WG2" not in df.columns:
+        df["WG2"] = "Unknown"
+    if "TYPE" not in df.columns:
+        df["TYPE"] = "Unknown"
+    
+    df["WG2"] = df["WG2"].fillna("Unknown").astype(str)
+    df["TYPE"] = df["TYPE"].fillna("Unknown").astype(str)
+    
+    return df
+
+
+def normalize_training_cost(df: pd.DataFrame, enforce_window: bool = False) -> pd.DataFrame:
+    """
+    Normalize Training Cost by Delivery Method (Long format).
+    Expected columns: Delivery_Type, PeriodLabel or period columns, Sum of Value or Cost.
+    """
+    logger.info("Normalizing Training Cost format")
+    
+    # Detect format: Long vs Wide
+    cols = df.columns.tolist()
+    month_like = [c for c in cols if isinstance(c, str) and _period_label_to_year_month(c) is not None]
+    
+    if month_like:
+        logger.info("Training Cost export is Wide format (month columns: %s). Unpivoting to Long.", month_like[:5])
+        # Unpivot
+        id_cols = [c for c in cols if c not in month_like]
+        df = df.melt(id_vars=id_cols, value_vars=month_like, var_name="PeriodLabel", value_name="Cost")
+    
+    # Normalize column names
+    rename_map = {
+        "PeriodLabel": "Period",
+        "Delivery_Type": "Delivery_Type",
+        "Sum of Value": "Cost",
+        "Value": "Cost",
+        "Sum of Cost": "Cost",
+    }
+    
+    df = df.rename(columns=rename_map)
+    
+    # Clean period labels
+    if "Period" in df.columns:
+        df["Period"] = df["Period"].astype(str).str.strip()
+        df["Period"] = df["Period"].str.replace(r"^Sum of ", "", regex=True).str.strip()
+        
+        # Enforce 13-month window if requested
+        if enforce_window:
+            df = enforce_13_month_window(df, period_column="Period")
+    
+    # Ensure Cost is numeric
+    if "Cost" in df.columns:
+        df["Cost"] = pd.to_numeric(df["Cost"], errors="coerce").fillna(0)
+    
+    # Ensure Delivery_Type exists
+    if "Delivery_Type" not in df.columns:
+        df["Delivery_Type"] = "Unknown"
+    
+    return df
+
+
+def normalize_export(
     input_path: Path,
-    time_col: str,
-    value_col: str,
     output_path: Path,
-    dry_run: bool,
-) -> None:
-    """Read Long CSV, normalize labels and column names, write standard Long."""
-    rows_out: List[dict] = []
-    with input_path.open("r", newline="", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            cat = (row.get(time_col) or "").strip()
-            pl_raw = (row.get(PERIOD_LABEL_COL) or "").strip()
-            pl = _norm_month_label(pl_raw)
-            val = (row.get(value_col) or "").strip()
-            if not cat or not pl:
-                continue
-            rows_out.append({
-                "Time Category": cat,
-                "Sum of Value": val,
-                "PeriodLabel": pl,
-            })
-
-    if dry_run:
-        print(f"[DRY RUN] Would write {len(rows_out)} rows to {output_path}")
-        return
-
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=["Time Category", "Sum of Value", "PeriodLabel"])
-        w.writeheader()
-        w.writerows(rows_out)
-    print(f"[OK] Wrote {len(rows_out)} rows -> {output_path}")
-
-
-def normalize_wide(
-    input_path: Path,
-    time_col: str,
-    output_path: Path,
-    dry_run: bool,
-) -> None:
-    """Read Wide CSV, normalize column headers (Sum of 01-25 -> 01-25), write Wide."""
-    with input_path.open("r", newline="", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        names = list(reader.fieldnames or [])
-        rows = list(reader)
-
-    # Normalize header: Time Category + month columns
-    new_names = [time_col if n == time_col else _norm_month_label(n) or n for n in names]
-    # Keep column order; use first row to build dict keys
-    fieldnames = [n for n in new_names if n]
-
-    if dry_run:
-        print(f"[DRY RUN] Would write Wide {len(rows)} rows, columns {fieldnames[:5]}... -> {output_path}")
-        return
-
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
-        w.writeheader()
-        for row in rows:
-            new_row = {}
-            for old_name, new_name in zip(names, new_names):
-                if new_name and old_name in row:
-                    new_row[new_name] = row[old_name]
-            w.writerow(new_row)
-    print(f"[OK] Wrote Wide {len(rows)} rows -> {output_path}")
-
-
-def long_to_wide(input_path: Path, time_col: str, value_col: str, output_path: Path, dry_run: bool) -> None:
-    """Pivot Long to Wide: one row per Time Category, columns = PeriodLabel."""
-    by_cat: dict[str, dict[str, str]] = {}
-    periods: List[str] = []
-    with input_path.open("r", newline="", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            cat = (row.get(time_col) or "").strip()
-            pl = _norm_month_label((row.get(PERIOD_LABEL_COL) or "").strip())
-            val = (row.get(value_col) or "").strip()
-            if not cat or not pl:
-                continue
-            if pl not in periods:
-                periods.append(pl)
-            by_cat.setdefault(cat, {})[pl] = val
-
-    # Sort periods chronologically (MM-YY)
-    def period_key(p: str) -> Tuple[int, int]:
-        t = _period_label_to_year_month(p)
-        return t if t else (0, 0)
-
-    periods.sort(key=period_key)
-    fieldnames = ["Time Category"] + periods
-
-    if dry_run:
-        print(f"[DRY RUN] Would write Wide {len(by_cat)} rows, columns {len(periods)} months -> {output_path}")
-        return
-
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=fieldnames)
-        w.writeheader()
-        for cat in sorted(by_cat.keys()):
-            row = {"Time Category": cat, **by_cat[cat]}
-            w.writerow(row)
-    print(f"[OK] Wrote Wide {len(by_cat)} rows -> {output_path}")
+    normalizer_format: str = "monthly_accrual",
+    enforce_13_month: bool = False,
+    dry_run: bool = False,
+) -> bool:
+    """
+    Normalize a Power BI visual export and write to output_path.
+    
+    Args:
+        input_path: Source CSV file
+        output_path: Destination CSV file
+        normalizer_format: Format type (monthly_accrual, summons, training_cost)
+        enforce_13_month: If True, filter to 13-month rolling window
+        dry_run: If True, preview only (no file write)
+    
+    Returns:
+        True on success, False on failure
+    """
+    if not input_path.exists():
+        logger.error("Input file not found: %s", input_path)
+        return False
+    
+    try:
+        # Read CSV
+        df = pd.read_csv(input_path, low_memory=False)
+        
+        if df.empty:
+            logger.warning("Input file is empty: %s", input_path)
+            return False
+        
+        logger.info("Loaded %d rows from %s", len(df), input_path.name)
+        
+        # Apply normalization based on format
+        if normalizer_format == "summons":
+            df = normalize_summons(df, enforce_window=enforce_13_month)
+        elif normalizer_format == "training_cost":
+            df = normalize_training_cost(df, enforce_window=enforce_13_month)
+        else:  # monthly_accrual (default)
+            df = normalize_monthly_accrual(df, enforce_window=enforce_13_month)
+        
+        if df.empty:
+            logger.error("After normalization, dataframe is empty. Check 13-month window filters.")
+            return False
+        
+        if dry_run:
+            logger.info("[DRY RUN] Would write %d rows to %s", len(df), output_path)
+            logger.info("[DRY RUN] Preview (first 5 rows):\n%s", df.head())
+            if enforce_13_month:
+                period_col = next(
+                    (c for c in ("PeriodLabel", "Period", "Month_Year") if c in df.columns),
+                    None,
+                )
+                if period_col:
+                    unique_periods = sorted(df[period_col].unique())
+                    logger.info("[DRY RUN] Periods in output: %s", unique_periods)
+            return True
+        
+        # Write output
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        df.to_csv(output_path, index=False, encoding="utf-8")
+        logger.info("Wrote %d rows to %s", len(df), output_path)
+        return True
+        
+    except Exception as e:
+        logger.error("Normalization failed: %s", e, exc_info=True)
+        return False
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Normalize Monthly Accrual and Usage Summary export for backfill.")
-    ap.add_argument("--input", "-i", required=True, type=Path, help="Input CSV (Long or Wide export)")
-    ap.add_argument(
-        "--backfill-month",
-        type=str,
-        default=None,
-        help="YYYY_MM (e.g. 2025_12). Inferred from filename or data if omitted.",
+    parser = argparse.ArgumentParser(description="Normalize Power BI visual exports for backfill")
+    parser.add_argument("--input", type=Path, required=True, help="Input CSV file")
+    parser.add_argument("--output", type=Path, required=True, help="Output CSV file")
+    parser.add_argument(
+        "--format",
+        choices=["monthly_accrual", "summons", "training_cost"],
+        default="monthly_accrual",
+        help="Normalization format (default: monthly_accrual)"
     )
-    ap.add_argument(
-        "--backfill-root",
-        type=Path,
-        default=None,
-        help="Backfill root folder (default: <OneDrive>\\PowerBI_Date\\Backfill)",
-    )
-    ap.add_argument(
-        "--wide",
+    parser.add_argument(
+        "--enforce-13-month",
         action="store_true",
-        help="Output Wide format (months as columns). Default is Long.",
+        help="Enforce 13-month rolling window (ending with previous complete month)"
     )
-    ap.add_argument("--dry-run", action="store_true", help="Do not write files.")
-    ap.add_argument(
-        "--output",
-        "-o",
-        type=Path,
-        default=None,
-        help="Explicit output path. If set, --backfill-month and --backfill-root are ignored.",
+    parser.add_argument("--dry-run", action="store_true", help="Preview only, do not write output")
+    
+    args = parser.parse_args()
+    
+    # Log 13-month window for reference
+    if args.enforce_13_month:
+        start, end, periods = calculate_13_month_window()
+        logger.info("13-month window: %s to %s (%d periods)", start, end, len(periods))
+    
+    success = normalize_export(
+        input_path=args.input,
+        output_path=args.output,
+        normalizer_format=args.format,
+        enforce_13_month=args.enforce_13_month,
+        dry_run=args.dry_run,
     )
-    args = ap.parse_args()
-
-    input_path = args.input.resolve()
-    if not input_path.exists():
-        print(f"[ERROR] Input not found: {input_path}")
-        return 1
-
-    with input_path.open("r", newline="", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        fmt, time_col, value_col = detect_format(reader)
-
-    if fmt == "unknown" or not time_col:
-        print("[ERROR] Could not detect Long or Wide format or Time Category column.")
-        return 1
-
-    backfill_root = args.backfill_root if args.backfill_root is not None else _default_backfill_root()
-
-    if args.output is not None:
-        output_path = args.output.resolve()
-    else:
-        backfill_month = args.backfill_month or _infer_backfill_month_from_filename(input_path)
-        if not backfill_month:
-            # Infer from latest period in data
-            with input_path.open("r", newline="", encoding="utf-8-sig") as f:
-                reader = csv.DictReader(f)
-                latest = None
-                for row in reader:
-                    if fmt == "long" and value_col:
-                        pl = _norm_month_label((row.get(PERIOD_LABEL_COL) or "").strip())
-                    else:
-                        for col in (reader.fieldnames or []):
-                            if col != time_col:
-                                pl = _norm_month_label(col)
-                                break
-                        else:
-                            pl = ""
-                    t = _period_label_to_year_month(pl) if pl else None
-                    if t and (latest is None or t > latest):
-                        latest = t
-                if latest:
-                    y, m = latest
-                    backfill_month = f"{y:04d}_{m:02d}"
-            if not backfill_month:
-                print("[ERROR] Could not infer backfill month. Use --backfill-month YYYY_MM or --output path.")
-                return 1
-        # Standard name: YYYY_MM_Monthly Accrual and Usage Summary.csv
-        out_name = f"{backfill_month}_{BACKFILL_FILENAME}"
-        output_path = (backfill_root / backfill_month / VCS_TIME_REPORT / out_name).resolve()
-        print(f"[INFO] Backfill month: {backfill_month} -> {output_path}")
-
-    if fmt == "long" and value_col:
-        if args.wide:
-            long_to_wide(input_path, time_col, value_col, output_path, args.dry_run)
-        else:
-            normalize_long(input_path, time_col, value_col, output_path, args.dry_run)
-    else:
-        if args.wide:
-            normalize_wide(input_path, time_col, output_path, args.dry_run)
-        else:
-            # Wide input -> convert to Long for consistency (pipeline accepts both)
-            # For simplicity we only support Long input -> Long or Wide output here.
-            # Wide input -> Long would require unpivot; pipeline already accepts Wide.
-            print("[INFO] Input is Wide; writing as-is (pipeline accepts Wide). Use --wide to keep Wide.")
-            normalize_wide(input_path, time_col, output_path, args.dry_run)
-
-    return 0
+    
+    return 0 if success else 1
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    sys.exit(main())

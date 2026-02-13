@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-02-12
 **Status:** ✅ Production Ready - 100% Operational (ETL + Power BI)
-**Version:** 1.14.0
+**Version:** 1.15.0
 
 ---
 
@@ -20,7 +20,7 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
 | **Status** | ✅ Production Ready |
-| **Version** | 1.14.0 |
+| **Version** | 1.15.0 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -41,6 +41,7 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 ✅ **Overtime/TimeOff hardening** - Pre-flight validation, strict file discovery, output schema check, test_pipeline.bat  
 ✅ **Visual export normalization** - Orchestrator normalizes "Monthly Accrual and Usage Summary" CSVs in _DropExports before organize_backfill  
 ✅ **Summons backfill prep** - `summons_backfill_merge.py` for gap months (03-25, 07-25, 10-25, 11-25); injection point documented  
+✅ **13-month rolling window** - 24 Power BI visuals enforced to exactly 13 months (end = previous month); `process_powerbi_exports.py` (match_pattern, enforce_13_month), `validate_13_month_window.py`; docs in `docs/13_MONTH_*.md`  
 
 ---
 
@@ -89,7 +90,9 @@ Master_Automation/
 │   ├── validate_outputs.py     # FIXED CSV schema validation
 │   ├── test_pipeline.bat       # Overtime/TimeOff test: validate → dry-run → validate outputs
 │   ├── summons_backfill_merge.py  # Merge gap months into summons df (injection in main_orchestrator)
-│   ├── normalize_visual_export_for_backfill.py  # Normalize visual exports for backfill
+│   ├── normalize_visual_export_for_backfill.py  # Normalize visual exports (13-month window, PeriodLabel for OT)
+│   ├── process_powerbi_exports.py               # Process _DropExports with mapping (match_pattern, 13-month)
+│   ├── validate_13_month_window.py              # Validate 13-month window in CSV(s)
 │   ├── (other helper Python scripts)
 │   └── _testing/               # Benchmark/debug scripts (4 files)
 ├── docs/                        # Documentation files

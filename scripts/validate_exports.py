@@ -43,10 +43,23 @@ def log(msg: str) -> None:
     print(f"[{date.today().isoformat()}] {msg}")
 
 
+def is_visual_export_path(path: Path) -> bool:
+    """True if path looks like a Power BI visual export (skip Excel column validation)."""
+    name = path.name
+    if (path.suffix or "").lower() == ".csv":
+        return True
+    if "Monthly Accrual" in name:
+        return True
+    return False
+
+
 def validate_excel_columns(path: Path, required: set[str]) -> None:
     """Ensure the Excel file is readable and contains required columns. Raises ValueError if not.
     Retries on PermissionError/OSError (e.g. OneDrive sync lock) up to 3 times with 2s delay.
+    Skips validation (returns without error) for known visual export filenames (e.g. Monthly Accrual, CSV).
     """
+    if is_visual_export_path(path):
+        return
     try:
         import pandas as pd
     except ImportError as e:

@@ -22,10 +22,18 @@ New to this project? Start with:
 ## Project Map
 
 ### Active Code
-- `scripts/run_all_etl.ps1` - Main PowerShell orchestrator (runs all enabled ETL scripts)
+- `scripts/run_all_etl.ps1` - Main PowerShell orchestrator (runs all enabled ETL scripts; uses $OneDriveBase for paths; Visual Export Normalization phase)
 - `scripts/run_all_etl.bat` - Batch file wrapper for easy execution
 - `scripts/run_etl_script.ps1` - Helper script to run individual scripts
-- `scripts/overtime_timeoff_with_backfill.py` - Overtime/TimeOff monthly wrapper with backfill
+- `scripts/path_config.py` - Centralized get_onedrive_root() (ONEDRIVE_BASE / ONEDRIVE_HACKENSACK)
+- `scripts/overtime_timeoff_with_backfill.py` - Overtime/TimeOff monthly wrapper (strict file discovery, validate_fixed_schema)
+- `scripts/validate_exports.py` - Pre-flight check for OT/TimeOff Excel exports
+- `scripts/validate_outputs.py` - FIXED CSV schema validation
+- `scripts/test_pipeline.bat` - Overtime/TimeOff test suite (validate → dry-run → validate outputs)
+- `scripts/summons_backfill_merge.py` - Merge gap months (03-25, 07-25, 10-25, 11-25) into summons df
+- `scripts/normalize_visual_export_for_backfill.py` - Normalize visual exports for backfill (13-month window, PeriodLabel for OT; uses path_config)
+- `scripts/process_powerbi_exports.py` - Process Power BI exports from _DropExports using mapping (match_pattern, enforce_13_month)
+- `scripts/validate_13_month_window.py` - Validate CSV has exactly 13-month rolling window (single file or folder scan)
 - `verify_migration.ps1` - Automated verification script for paths and configuration
 
 ### Data Directories
@@ -51,10 +59,16 @@ New to this project? Start with:
 
 ### Configuration & Docs
 - `config/scripts.json` - ETL script configuration (paths, settings, enabled/disabled status)
+- `requirements.txt` - Python deps (pandas, openpyxl) for validate_exports and summons_backfill_merge
 - `README.md` - Main project documentation
 - `SUMMARY.md` - Project summary and quick reference
 - `CHANGELOG.md` - Version history and updates
 - `docs/` - Detailed documentation (guides, reports, troubleshooting)
+- `docs/VISUAL_EXPORT_NORMALIZATION_AND_SUMMONS_BACKFILL.md` - Normalization phase + Summons follow-up
+- `docs/SUMMONS_BACKFILL_INJECTION_POINT.md` - Where to call merge_missing_summons_months, dependencies, caveats
+- `docs/13_MONTH_WINDOW_IMPLEMENTATION_GUIDE.md` - 13-month rolling window deployment, flow, validation
+- `docs/13_MONTH_WINDOW_CORRECTIONS.md` - Selective enforcement (24 vs 8 visuals), NIBRS pattern matching
+- `docs/13_MONTH_QUICK_REFERENCE.md` - Which visuals have 13-month enforcement, quick test
 
 ## How to Work on This Project
 
@@ -122,11 +136,29 @@ Avoid loading all files at once - use targeted searches.
 5. **Summons** - `main_orchestrator.py`
 
 ## Key Paths
-- **Workspace**: `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`
+Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override the default. Python uses `path_config.get_onedrive_root()`; PowerShell uses `$OneDriveBase`.
+- **Workspace**: `Master_Automation` (default under OneDrive)
 - **Config**: `config\scripts.json`
 - **Logs**: `logs\`
-- **PowerBI Drop**: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports`
-- **ETL Scripts**: `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\*`
+- **PowerBI Drop**: `<OneDrive>\PowerBI_Date\_DropExports`
+- **ETL Scripts**: `<OneDrive>\02_ETL_Scripts\*`
+
+## Recent Updates (2026-02-12)
+
+### v1.15.0 - 13-Month Rolling Window for Visual Exports ✅
+- **13-month enforcement** – Exports for 24 specified visuals contain exactly 13 full months ending with the previous month (never current month). Window recalculates from today each run.
+- **Normalizer** – `scripts/normalize_visual_export_for_backfill.py`: `--enforce-13-month` flag; `calculate_13_month_window()`, `enforce_13_month_window()`; keeps **PeriodLabel** for Overtime/TimeOff backfill.
+- **Process script** – `scripts/process_powerbi_exports.py`: **match_pattern** (regex) for dynamic visual names (e.g. NIBRS date range); **enforce_13_month_window** from mapping passed to normalizer; dry-run and production pass `--enforce-13-month` when mapping says so.
+- **Mapping** – `Standards/config/powerbi_visuals/visual_export_mapping.json`: 32 visuals; 24 with `enforce_13_month_window: true`, 8 with `false` (Arrests, Top 5 Summons, All Bureaus Summons, In-Person Training, Incident Distribution). NIBRS uses `match_pattern: "^13-Month NIBRS Clearance Rate Trend"`.
+- **Validation** – `scripts/validate_13_month_window.py`: validate single file or scan folder for 13-month window.
+- **Docs** – `docs/13_MONTH_WINDOW_IMPLEMENTATION_GUIDE.md`, `docs/13_MONTH_WINDOW_CORRECTIONS.md`, `docs/13_MONTH_QUICK_REFERENCE.md`.
+
+### v1.14.0 - Path Centralization, Overtime/TimeOff Hardening, Summons Backfill Prep
+- **Path portability** – `scripts/path_config.py` and `$OneDriveBase` in run_all_etl.ps1; all path-using scripts respect ONEDRIVE_BASE/ONEDRIVE_HACKENSACK
+- **Overtime/TimeOff hardening** – Strict YYYY_MM file discovery; validate_exports.py (pre-flight), validate_outputs.py (FIXED schema), validate_fixed_schema in wrapper; test_pipeline.bat
+- **Visual Export Normalization** – run_all_etl.ps1 normalizes *Monthly Accrual and Usage Summary*.csv in _DropExports before summary
+- **Summons backfill** – summons_backfill_merge.py (full merge for gap months 03-25, 07-25, 10-25, 11-25); injection point and caveats in docs/SUMMONS_BACKFILL_INJECTION_POINT.md
+- **requirements.txt** – pandas, openpyxl; README and docs note Python env requirement
 
 ## Recent Updates (2026-02-09)
 
@@ -194,12 +226,11 @@ Avoid loading all files at once - use targeted searches.
 - **January 2026 Report** - Successfully generated and ready for publication
 
 ### Current System Status
-- **Version**: 1.11.0
+- **Version**: 1.15.0
 - **Status**: ✅ 100% Operational (6/6 ETL workflows + Power BI queries)
-- **Last Successful Run**: 2026-02-09 12:55:22 (2.04 minutes)
-- **Enabled Scripts**: 6 (All operational with execution times)
+- **Enabled Scripts**: 6 (All operational)
 - **Power BI Queries**: Response Time M code fixed (v2.8.0, 0% errors)
-- **Recent Major Fixes**: Personnel file dependency, timereport hybrid strategy, Benchmark consolidation, Power BI type conversion
+- **Recent Major Updates**: 13-month rolling window (24 visuals enforced), process_powerbi_exports (match_pattern + enforce_13_month), path centralization, Overtime/TimeOff hardening, Visual Export Normalization, Summons backfill prep
 
 ---
 
@@ -232,15 +263,6 @@ Avoid loading all files at once - use targeted searches.
 - **Temporary File Cleanup** - Deleted 50 Claude Code marker files + 6 unnecessary temp files
 - **All Data Preserved** - 100% of files preserved, just better organized
 
-### Current System Status
-- **Version**: 1.12.0
-- **Status**: ✅ 100% Operational (6/6 workflows)
-- **Last Successful Run**: 2026-02-09 12:55:22 (2.04 minutes)
-- **Enabled Scripts**: 6 (All operational)
-- **Root Directory**: Clean and professional (7 essential files only)
-- **Backfill Baseline**: Response Time data (13 months: Jan 2025 - Jan 2026)
-- **Recent Major Fixes**: Personnel file dependency, timereport hybrid strategy, Benchmark consolidation, Response Time Backfill baseline
-
 ---
 
-*Last updated: 2026-02-09 | Format version: 3.4*
+*Last updated: 2026-02-12 | Format version: 3.6*

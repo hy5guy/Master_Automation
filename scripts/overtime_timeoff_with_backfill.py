@@ -78,25 +78,26 @@ def expected_fixed_filename(start_month: date, end_month: date) -> str:
 
 
 def find_backfill_csv(backfill_root: Path, month: date) -> Path:
-    """Find the prior-month backfill visual export for vcs_time_report."""
-    folder = backfill_root / month_key_yyyy_mm(month) / "vcs_time_report"
-    if not folder.exists():
-        raise FileNotFoundError(f"Backfill folder not found: {folder}")
+    """Find the prior-month backfill visual export. Checks Time_Off (process_powerbi_exports) then vcs_time_report (legacy)."""
+    month_key = month_key_yyyy_mm(month)
+    preferred_name = f"{month_key}_monthly_accrual_and_usage_summary.csv"
+    alt_name = "Monthly Accrual and Usage Summary.csv"
 
-    preferred = [
-        folder / f"{month_key_yyyy_mm(month)}_Monthly Accrual and Usage Summary.csv",
-        folder / "Monthly Accrual and Usage Summary.csv",
-    ]
-    for p in preferred:
-        if p.exists():
-            return p
+    for folder_name in ("Time_Off", "vcs_time_report"):
+        folder = backfill_root / month_key / folder_name
+        if not folder.exists():
+            continue
+        for name in (preferred_name, alt_name):
+            p = folder / name
+            if p.exists():
+                return p
+        candidates = sorted(folder.glob("*onthly*ccrual*.csv"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if candidates:
+            return candidates[0]
 
-    # Fallback: any similarly named file in the folder
-    candidates = sorted(folder.glob("*Monthly Accrual and Usage Summary*.csv"), key=lambda p: p.stat().st_mtime, reverse=True)
-    if candidates:
-        return candidates[0]
-
-    raise FileNotFoundError(f"No 'Monthly Accrual and Usage Summary' CSV found in {folder}")
+    raise FileNotFoundError(
+        f"No Monthly Accrual CSV found in {backfill_root / month_key} (checked Time_Off, vcs_time_report)"
+    )
 
 
 def ensure_month_exports_are_xlsx(paths: Paths, run_month: date, dry_run: bool) -> None:

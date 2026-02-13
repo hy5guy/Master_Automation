@@ -32,7 +32,9 @@ Master_Automation/
 │   ├── validate_outputs.py                   # FIXED CSV schema validation
 │   ├── test_pipeline.bat                     # Overtime/TimeOff test suite
 │   ├── summons_backfill_merge.py             # Summons gap-month merge (03-25, 07-25, 10-25, 11-25)
-│   ├── normalize_visual_export_for_backfill.py  # Normalize visual exports for backfill
+│   ├── normalize_visual_export_for_backfill.py  # Normalize visual exports (13-month window, backfill)
+│   ├── process_powerbi_exports.py               # Process _DropExports with mapping (match_pattern, 13-month)
+│   ├── validate_13_month_window.py              # Validate 13-month rolling window in CSV(s)
 │   ├── restore_fixed_from_backfill.py        # Restores history into FIXED_monthly_breakdown
 │   ├── compare_vcs_time_report_exports.py    # Diff tool for visual exports/backfill validation
 │   ├── compare_policy_training_delivery.py   # Policy Training: visual vs ETL/backfill diff

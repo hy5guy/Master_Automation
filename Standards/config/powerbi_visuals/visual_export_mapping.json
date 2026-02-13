@@ -1,0 +1,332 @@
+{
+  "mappings": [
+    {
+      "visual_name": "Department-Wide Summons",
+      "match_aliases": [
+        "Department-Wide Summons Moving and Parking",
+        "Department-Wide Summons  Moving and Parking"
+      ],
+      "standardized_filename": "department_wide_summons",
+      "requires_normalization": true,
+      "normalizer_format": "summons",
+      "is_backfill_required": true,
+      "enforce_13_month_window": true,
+      "target_folder": "Summons"
+    },
+    {
+      "visual_name": "Summons  Moving & Parking  All Bureaus",
+      "match_aliases": [
+        "Summons Moving & Parking All Bureaus",
+        "Summons Moving and Parking All Bureaus"
+      ],
+      "standardized_filename": "summons_moving_parking_all_bureaus",
+      "requires_normalization": true,
+      "normalizer_format": "summons",
+      "is_backfill_required": true,
+      "enforce_13_month_window": false,
+      "target_folder": "Summons"
+    },
+    {
+      "visual_name": "Top 5 Parking Violations - Department Wide",
+      "match_aliases": [
+        "Top 5 Parking Violations Department Wide"
+      ],
+      "standardized_filename": "top_5_parking_violations",
+      "requires_normalization": true,
+      "normalizer_format": "summons",
+      "is_backfill_required": true,
+      "enforce_13_month_window": false,
+      "target_folder": "Summons"
+    },
+    {
+      "visual_name": "Top 5 Moving Violations - Department Wide",
+      "match_aliases": [
+        "Top 5 Moving Violations Department Wide"
+      ],
+      "standardized_filename": "top_5_moving_violations",
+      "requires_normalization": true,
+      "normalizer_format": "summons",
+      "is_backfill_required": true,
+      "enforce_13_month_window": false,
+      "target_folder": "Summons"
+    },
+    {
+      "visual_name": "Training Cost by Delivery Method",
+      "standardized_filename": "training_cost_by_delivery_method",
+      "requires_normalization": true,
+      "normalizer_format": "training_cost",
+      "is_backfill_required": true,
+      "enforce_13_month_window": true,
+      "target_folder": "Training"
+    },
+    {
+      "visual_name": "In-Person Training",
+      "standardized_filename": "in_person_training",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": false,
+      "target_folder": "Training"
+    },
+    {
+      "visual_name": "Monthly Accrual and Usage Summary",
+      "standardized_filename": "monthly_accrual_and_usage_summary",
+      "requires_normalization": true,
+      "is_backfill_required": true,
+      "enforce_13_month_window": true,
+      "target_folder": "Time_Off"
+    },
+    {
+      "visual_name": "Arrest Categories by Type and Gender",
+      "standardized_filename": "arrest_categories_by_type_gender",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": false,
+      "target_folder": "Arrests"
+    },
+    {
+      "visual_name": "Arrest Distribution by Local, State & Out of State",
+      "match_aliases": [
+        "Arrest Distribution by Local State & Out of State"
+      ],
+      "standardized_filename": "arrest_distribution_by_location",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": false,
+      "target_folder": "Arrests"
+    },
+    {
+      "visual_name": "TOP 5 ARREST LEADERS",
+      "match_aliases": [
+        "Top 5 Arrest Leaders"
+      ],
+      "standardized_filename": "top_5_arrest_leaders",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": false,
+      "target_folder": "Arrests"
+    },
+    {
+      "visual_name": "13-Month NIBRS Clearance Rate Trend",
+      "match_pattern": "^13-Month NIBRS Clearance Rate Trend",
+      "match_aliases": [
+        "13-Month NIBRS Clearance Rate Trend January 2025 - January 2026",
+        "13-Month NIBRS Clearance Rate Trend February 2025 - February 2026"
+      ],
+      "standardized_filename": "nibrs_clearance_rate_13_month",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "NIBRS",
+      "notes": "Visual name changes monthly due to DAX subtitle. Use match_pattern to handle dynamic date range."
+    },
+    {
+      "visual_name": "Average Response Times  Values are in mmss",
+      "match_aliases": [
+        "Average Response Times Values are in mmss",
+        "Average Response Times  Values"
+      ],
+      "standardized_filename": "average_response_times",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "Response_Times"
+    },
+    {
+      "visual_name": "Response Times by Priority",
+      "standardized_filename": "response_times_by_priority",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "Response_Times"
+    },
+    {
+      "visual_name": "Incident Count by Date and Event Type",
+      "standardized_filename": "benchmark_incident_count",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "Benchmark"
+    },
+    {
+      "visual_name": "Incident Distribution by Event Type",
+      "standardized_filename": "benchmark_incident_distribution",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": false,
+      "target_folder": "Benchmark"
+    },
+    {
+      "visual_name": "Use of Force Incident Matrix",
+      "standardized_filename": "benchmark_use_of_force_matrix",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "Benchmark"
+    },
+    {
+      "visual_name": "DFR Activity Performance Metrics",
+      "standardized_filename": "dfr_activity_performance_metrics",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "Drone"
+    },
+    {
+      "visual_name": "Non-DFR Performance Metrics",
+      "standardized_filename": "non_dfr_performance_metrics",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "Drone"
+    },
+    {
+      "visual_name": "Patrol Division",
+      "standardized_filename": "patrol_division_activity",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "Patrol"
+    },
+    {
+      "visual_name": "Traffic Bureau",
+      "standardized_filename": "traffic_bureau_activity",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "Traffic"
+    },
+    {
+      "visual_name": "Motor Vehicle Accidents - Summary",
+      "match_aliases": [
+        "Motor Vehicle Accidents Summary"
+      ],
+      "standardized_filename": "motor_vehicle_accidents_summary",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "Traffic"
+    },
+    {
+      "visual_name": "Detective Division  Part 1",
+      "match_aliases": [
+        "Detective Division Part 1"
+      ],
+      "standardized_filename": "detective_division_part_1",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "Detectives"
+    },
+    {
+      "visual_name": "Detective Division  Part 2",
+      "match_aliases": [
+        "Detective Division Part 2"
+      ],
+      "standardized_filename": "detective_division_part_2",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "Detectives"
+    },
+    {
+      "visual_name": "Detective Clearance Rate Performance",
+      "standardized_filename": "detective_clearance_rate_performance",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "Detectives"
+    },
+    {
+      "visual_name": "Detective Case Dispositions - Performance Review",
+      "match_aliases": [
+        "Detective Case Dispositions Performance Review"
+      ],
+      "standardized_filename": "detective_case_dispositions",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "Detectives"
+    },
+    {
+      "visual_name": "Crime Suppressions Bureau Monthly Activity Analysis",
+      "match_aliases": [
+        "Crime Suppressions Bureau Activity Analysis",
+        "CSB Monthly Activity Analysis"
+      ],
+      "standardized_filename": "csb_monthly_activity",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "CSB"
+    },
+    {
+      "visual_name": "School Threat Assessment & Crime Prevention  Part 1",
+      "match_aliases": [
+        "School Threat Assessment & Crime Prevention Part 1",
+        "School Threat Assessment and Crime Prevention Part 1",
+        "STACP Part 1"
+      ],
+      "standardized_filename": "stacp_part_1",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "STACP"
+    },
+    {
+      "visual_name": "School Threat Assessment & Crime Prevention  Part 2",
+      "match_aliases": [
+        "School Threat Assessment & Crime Prevention Part 2",
+        "School Threat Assessment and Crime Prevention Part 2",
+        "STACP Part 2"
+      ],
+      "standardized_filename": "stacp_part_2",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "STACP"
+    },
+    {
+      "visual_name": "Social Media Posts",
+      "standardized_filename": "social_media_posts",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "Community_Engagement"
+    },
+    {
+      "visual_name": "Chief Law Enforcement Executive Duties",
+      "standardized_filename": "chief_executive_duties",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "Executive"
+    },
+    {
+      "visual_name": "Records & Evidence Unit",
+      "match_aliases": [
+        "Records and Evidence Unit"
+      ],
+      "standardized_filename": "records_evidence_unit",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "Support_Services"
+    },
+    {
+      "visual_name": "Safe Streets Operations Control Center - Service Breakdown",
+      "match_aliases": [
+        "Safe Streets Operations Control Center Service Breakdown",
+        "SSOCC Service Breakdown"
+      ],
+      "standardized_filename": "ssocc_service_breakdown",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "SSOCC"
+    }
+  ],
+  "skip_patterns": [
+    "Text Box",
+    "Administrative Commander"
+  ]
+}
