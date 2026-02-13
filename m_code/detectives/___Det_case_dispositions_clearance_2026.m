@@ -201,14 +201,18 @@ let
     ),
 
     // =================================================================
-    // ROLLING 13-MONTH WINDOW FILTER
+    // DATE RANGE FILTER (ADAPTED FOR 2026-ONLY DATA)
     // =================================================================
-    // Exclude current month (incomplete data)
+    // Since workbook only contains 2026 data (01-26 through 12-26),
+    // show all available 2026 months up to the previous complete month
+    
     CurrentDate     = Date.From(DateTime.LocalNow()),
     EndFilterDate   = Date.AddMonths(Date.StartOfMonth(CurrentDate), -1),
-    StartFilterDate = Date.AddMonths(EndFilterDate, -12),
+    
+    // Start date = January 2026 (start of 2026 data)
+    StartFilterDate = #date(2026, 1, 1),
 
-    // Filter to only rows within the 13-month window
+    // Filter to only rows within the date range
     FilteredMonths = Table.SelectRows(
         WithDispCat,
         each [Date] <> null and 

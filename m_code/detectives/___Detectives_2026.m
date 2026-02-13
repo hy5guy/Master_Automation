@@ -69,22 +69,25 @@ let
         Int64.Type),
     
     // =================================================================
-    // ROLLING 13-MONTH WINDOW LOGIC
+    // ROLLING 13-MONTH WINDOW LOGIC (ADAPTED FOR 2026-ONLY DATA)
     // =================================================================
-    // Current date and month calculations
+    // Since workbook only contains 2026 data (01-26 through 12-26),
+    // we'll show all available 2026 months up to the previous complete month
+    
     CurrentDate = DateTime.LocalNow(),
     CurrentMonthStart = Date.StartOfMonth(Date.From(CurrentDate)),
     
     // End date = previous month (complete data only)
     EndFilterDate = Date.AddMonths(CurrentMonthStart, -1),
     
-    // Start date = 12 months before end date (13 total months)
-    StartFilterDate = Date.AddMonths(EndFilterDate, -12),
+    // Start date = January 2026 (start of 2026 data)
+    // This will show all 2026 data up to the previous complete month
+    StartFilterDate = #date(2026, 1, 1),
     
     // Format reporting period for display
     ReportingPeriod = Date.ToText(StartFilterDate, "MM/yy") & " - " & Date.ToText(EndFilterDate, "MM/yy"),
     
-    // Apply 13-month rolling window filter
+    // Apply date range filter (show all 2026 data up to previous month)
     FilteredMonths = Table.SelectRows(AddedSortOrder, each 
         [Date] <> null and 
         [Date] >= StartFilterDate and 
