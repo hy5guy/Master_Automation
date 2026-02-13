@@ -162,6 +162,43 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 
 ## Recent Updates (2026-02-13)
 
+### v1.15.2 - STACP Visual 13-Month Rolling Window Fixed ✅ **DEPLOYED**
+
+**STACP Power BI Visual** - Fixed three critical issues preventing 13-month data display
+
+#### Three Critical Fixes:
+1. **Year Detection Bug** - Hardcoded for "24"/"25" → now works for any 2-digit year
+   - Dynamic year validation (future-proof for 2024-2099+)
+   - Enhanced month validation (1-12 range check)
+   - Handles both M-YY and MM-YY column formats
+   
+2. **Month Format Handling** - Enhanced to accept single-digit (3-25) and padded (03-25)
+   - Excel analysis confirmed all columns properly formatted (MM-YY)
+   - Added robust validation for future compatibility
+   
+3. **Window Calculation Bug** - Fixed rolling 13-month window logic ⭐ **Main Issue**
+   - **Before**: `StartMonth = EndMonth - 1` → only 2 months (12-25, 01-26)
+   - **After**: `StartMonth = EndMonth` → 13 months (01-25 through 01-26)
+   - Window now correctly: same month, one year earlier
+
+#### Diagnostic Tools Created:
+- `m_code/stacp/STACP_DIAGNOSTIC.m` - Column detection & window verification
+- `m_code/stacp/STACP_pt_1_2_FIXED.m` - Fixed query (deployed)
+- `scripts/analyze_stacp_workbook.py` - Excel structure analyzer
+- `docs/STACP_TROUBLESHOOTING_GUIDE.md` - Comprehensive troubleshooting
+
+#### Documentation:
+- `docs/STACP_YEAR_DETECTION_FIX_2026_02_13.md` - Year detection details
+- `docs/STACP_INCONSISTENT_DATE_FORMAT_FIX.md` - Format handling
+- `docs/STACP_WINDOW_CALCULATION_FIX.md` - Window logic fix
+- `docs/STACP_FIX_QUICK_REF.md` - Quick reference
+
+**Status**: Deployed and verified - all 13 months displaying correctly ✅
+
+---
+
+## Recent Updates (2026-02-12)
+
 ### v1.15.1 - Smart Date Inference Deployed ✅ **PRODUCTION READY**
 
 **Data-Driven Date Inference** - Power BI visual export processing now reads CSV data to infer dates! **95% accuracy vs 70% filename-only method**

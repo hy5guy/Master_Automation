@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-02-12
+**Last Updated:** 2026-02-13
 **Status:** ✅ Production Ready - 100% Operational (ETL + Power BI)
-**Version:** 1.15.0
+**Version:** 1.15.2
 
 ---
 
@@ -387,6 +387,36 @@ Documentation:
 
 ---
 
+## Recent Updates (2026-02-13)
+
+### v1.15.2 - STACP Visual 13-Month Rolling Window Fixed ✅ **DEPLOYED**
+
+- **Complete Success** - STACP Power BI visual now displays all 13 months of data correctly
+- **Three Critical Issues Fixed**:
+  1. **Year Detection Bug** - Hardcoded year check ("24" or "25") now replaced with dynamic validation
+     - Works for any 2-digit year (24, 25, 26, 27... future-proof)
+     - Enhanced month validation (1-12 range check)
+     - Handles both M-YY and MM-YY column formats
+  2. **Month Format Handling** - Enhanced to accept both single-digit (3-25) and padded (03-25) formats
+     - Excel file analysis confirmed all columns properly formatted (MM-YY)
+     - Added robust validation anyway for future compatibility
+  3. **Window Calculation Bug** - Fixed rolling 13-month window logic
+     - **Root Cause**: `StartMonth = EndMonth - 1` only gave 2 months (12-25, 01-26)
+     - **Solution**: `StartMonth = EndMonth` (same month, one year earlier)
+     - **Result**: Window now correctly spans 13 months (01-25 through 01-26)
+- **Diagnostic Tools Created**:
+  - `m_code/stacp/STACP_DIAGNOSTIC.m` - Diagnostic query showing column detection and window filtering
+  - `scripts/analyze_stacp_workbook.py` - Python script to analyze Excel structure
+  - `docs/STACP_TROUBLESHOOTING_GUIDE.md` - Comprehensive troubleshooting guide
+- **Documentation Created**:
+  - `docs/STACP_YEAR_DETECTION_FIX_2026_02_13.md` - Year detection fix details
+  - `docs/STACP_INCONSISTENT_DATE_FORMAT_FIX.md` - Date format handling
+  - `docs/STACP_WINDOW_CALCULATION_FIX.md` - Window calculation fix (primary issue)
+  - `docs/STACP_FIX_QUICK_REF.md` - Quick reference for all fixes
+- **Status**: Deployed and verified - all 13 months displaying correctly ✅
+
+---
+
 ## Recent Updates (2026-02-09)
 
 ### v1.11.0 - Response Time Power BI M Code Fixed (31% Error Rate → 0%) ✅ **DEPLOYED**
@@ -569,6 +599,7 @@ The manifest provides a machine-readable reference for the entire Master Automat
 ---
 
 **Maintained by:** R. A. Carucci  
-**Last Updated:** 2026-02-09  
-**Version:** 1.13.0
+**Last Updated:** 2026-02-13  
+**Version:** 1.15.2
+
 

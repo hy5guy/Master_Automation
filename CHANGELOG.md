@@ -15,6 +15,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.15.2] - 2026-02-13
+
+### Fixed
+- **STACP Visual - 13-Month Rolling Window** - Fixed three critical issues preventing proper data display
+  - **Issue #1**: Year detection hardcoded for "24" or "25" - now works for any 2-digit year (future-proof)
+  - **Issue #2**: Enhanced month validation to handle both M-YY and MM-YY formats (1-12 validation)
+  - **Issue #3**: Fixed rolling window calculation - `StartMonth = EndMonth` (was `EndMonth - 1`)
+  - **Result**: Visuals now correctly show all 13 months (01-25 through 01-26) instead of only 2 months
+
+### Added
+- **STACP Diagnostic Tools**
+  - `m_code/stacp/STACP_DIAGNOSTIC.m` - Diagnostic query to verify column detection and window filtering
+  - `scripts/analyze_stacp_workbook.py` - Python script to analyze Excel workbook structure
+  - `docs/STACP_TROUBLESHOOTING_GUIDE.md` - Comprehensive troubleshooting guide
+
+### Documentation
+- **New STACP Documentation**:
+  - `docs/STACP_YEAR_DETECTION_FIX_2026_02_13.md` - Year detection fix details
+  - `docs/STACP_INCONSISTENT_DATE_FORMAT_FIX.md` - Date format handling
+  - `docs/STACP_WINDOW_CALCULATION_FIX.md` - Window calculation fix (main issue)
+  - `docs/STACP_FIX_QUICK_REF.md` - Quick reference for all fixes
+
+### Changed
+- **M Code Standards** - Added standard headers to STACP M code files per project conventions
+
+---
+
 ## [1.15.1] - 2026-02-13
 
 ### Added
