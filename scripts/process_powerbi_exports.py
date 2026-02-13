@@ -64,7 +64,10 @@ def _safe_filename_from_stem(stem: str) -> str:
 
 
 def _parse_period_to_yyyymm(period: str) -> str | None:
-    """Parse MM-YY period to YYYY_MM format."""
+    """
+    Parse period to YYYY_MM format.
+    Supports: MM-YY (12-25), YY-MMM (25-Dec), YY-MMM format variations.
+    """
     if not isinstance(period, str):
         return None
     
@@ -72,21 +75,35 @@ def _parse_period_to_yyyymm(period: str) -> str | None:
     if clean.lower().startswith("sum of "):
         clean = clean[7:].strip()
     
+    # Try MM-YY format first (12-25 → 2025_12)
     m = re.match(r"^(\d{2})-(\d{2})$", clean)
-    if not m:
-        return None
+    if m:
+        mm, yy = m.groups()
+        month = int(mm)
+        year = int(yy)
+        
+        if 1 <= month <= 12:
+            if year < 100:
+                year = 2000 + year
+            return f"{year:04d}_{month:02d}"
     
-    mm, yy = m.groups()
-    month = int(mm)
-    year = int(yy)
+    # Try YY-MMM format (25-Dec → 2025_12)
+    month_abbrev = {
+        'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
+        'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12
+    }
     
-    if not (1 <= month <= 12):
-        return None
+    m = re.match(r"^(\d{2})-([a-zA-Z]{3})$", clean)
+    if m:
+        yy, mmm = m.groups()
+        year = int(yy)
+        month = month_abbrev.get(mmm.lower())
+        
+        if month and year < 100:
+            year = 2000 + year
+            return f"{year:04d}_{month:02d}"
     
-    if year < 100:
-        year = 2000 + year
-    
-    return f"{year:04d}_{month:02d}"
+    return None
 
 
 @dataclass
@@ -147,13 +164,18 @@ def infer_yyyymm_from_data(file_path: Path, enforce_13_month: bool = False) -> s
                 if values.empty:
                     continue
                 
-                most_common = values.mode()
-                if not most_common.empty:
-                    period = most_common.iloc[0]
-                    yyyymm = _parse_period_to_yyyymm(period)
+                # Parse all values and get the maximum (latest) date
+                parsed_dates = []
+                for val in values.unique():
+                    yyyymm = _parse_period_to_yyyymm(val)
                     if yyyymm:
-                        _safe_print(f"[DATA] Inferred {yyyymm} from '{col_name}' column in {file_path.name}")
-                        return yyyymm
+                        parsed_dates.append(yyyymm)
+                
+                if parsed_dates:
+                    # Use the latest date (max YYYY_MM)
+                    latest = max(parsed_dates)
+                    _safe_print(f"[DATA] Inferred {latest} from '{col_name}' column (latest of {len(parsed_dates)} periods) in {file_path.name}")
+                    return latest
         
         return None
         
