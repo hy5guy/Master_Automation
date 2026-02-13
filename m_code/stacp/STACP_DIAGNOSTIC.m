@@ -21,8 +21,9 @@ let
     EndMonth = if CurrentMonth = 1 then 12 else CurrentMonth - 1,
     EndYear = if CurrentMonth = 1 then CurrentYear - 1 else CurrentYear,
     
-    // Calculate start month (13 months back from end month)
-    StartMonth = if EndMonth = 1 then 12 else EndMonth - 1,
+    // Calculate start month (13 months back = same month, one year earlier)
+    // For 13-month window: if end is Jan 2026, start is Jan 2025
+    StartMonth = EndMonth,
     StartYear = EndYear - 1,
     
     // Generate report date range
