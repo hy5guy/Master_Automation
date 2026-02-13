@@ -1,0 +1,285 @@
+The updated Summons mapping has `"normalizer_format": "summons"`, so **`--format summons`** is passed for that visual. No code change was required. - **Source deletion only after successful normalization:**  
+  Existing logic is unchanged: source is unlinked only when:
+  1. `run_normalize` returns success, and  
+  2. `dest_path.exists()`, and  
+  3. `dest_path.stat().st_size > 0`. So there is no removal of the source when normalization fails or output is missing/empty. - **skip_patterns:**  
+  Config still includes `"skip_patterns": ["Text Box", "Administrative Commander"]`, and `should_skip(config, file_path)` still runs at the start of the loop, so those patterns continue to be skipped. ---
+
+**Resulting behavior**
+
+| Issue | Change | Result |
+|-------|--------|--------|
+| Summons mapping | `visual_name` = "Department-Wide Summons"; aliases for longer/truncated names | Exports match and use summons normalization |
+| Double-dating on fallback | Strip `YYYY_MM_` from stem before `_safe_filename_from_stem` | Unmapped files get names like `2026_01_filename.csv` |
+| Pipeline safety | No change (already in place) | Source only deleted after valid, non-empty output |
+
+---
+
+**User**
+
+using what you know of the project please provde a polished prompt for claude
+<role>
+You are a senior prompt engineer specializing in law enforcement data systems. Core domains: CAD/RMS ETL pipelines, DV/DOJ compliance reporting, response-time KPI analysis, ArcGIS Pro/ArcPy automation, Power BI (M/DAX), Python/PowerShell automation, command staff reporting (HTML/PDF), chat log processing, KB/RAG operations. Environment: Windows desktop and Server (RDP), Task Scheduler orchestration, OneDrive sync workflows, ArcGIS Pro, Power BI Desktop/Service, ChromaDB/Ollama RAG stack, municipal and DOJ compliance context. </role>
+
+<task>
+Transform the raw user prompt into a Claude-optimized prompt. Source: To ensure Claude AI correctly implements the mapping for all your visuals and fixes the logic issues identified in your test run, use the prompt below. It provides the necessary file paths, context, and structural requirements. ---
+
+### **Prompt for Claude AI**
+
+I need you to update a Power BI automation pipeline. We have a set of Python scripts that process CSV exports and a JSON mapping file that determines their destination. **Current File Paths (OneDrive Root):**
+`C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`
+
+* **Scripts Folder:** `scripts/` (contains `process_powerbi_exports.py` and `normalize_visual_export_for_backfill.py`)
+* **Mapping Config:** `Standards/config/powerbi_visuals/visual_export_mapping.json`
+* **Processed Exports Root:** `09_Reference/Standards/Processed_Exports/`
+* **Backfill Root:** `PowerBI_Date/Backfill/`
+
+**Task 1: Update `visual_export_mapping.json**`
+Please generate a comprehensive JSON mapping for the following visuals. Each entry should include `visual_name`, `standardized_filename`, `target_folder`, `requires_normalization` (bool), and `is_backfill_required` (bool). **Mapping logic to apply:**
+
+1. **Arrests**: Target folder `Arrests`. Visuals: "Arrest Categories by Type and Gender", "Arrest Distribution by Local, State & Out of State", "TOP 5 ARREST LEADERS". 2. **NIBRS**: Target folder `NIBRS`. Visual: "13-Month NIBRS Clearance Rate Trend" (use this as the name to match, ignoring the specific date range). 3. **Response Times**: Target folder `Response_Times`. Visuals: "Average Response Times  Values are in mmss" (note the double space), "Response Times by Priority". 4. **Benchmark**: Target folder `Benchmark`. Visuals: "Incident Count by Date and Event Type", "Incident Distribution by Event Type", "Use of Force Incident Matrix". 5. **Summons**: Target folder `Summons`. Set `requires_normalization: true`, `normalizer_format: "summons"`, and `is_backfill_required: true`. Visuals: "Department-Wide Summons", "Summons  Moving & Parking  All Bureaus", "Top 5 Parking Violations - Department Wide", "Top 5 Moving Violations - Department Wide". 6. **Training**: Target folder `Training`. For "Training Cost by Delivery Method", set `requires_normalization: true`, `normalizer_format: "training_cost"`, and `is_backfill_required: true`. Also include "In-Person Training". 7. **Accruals**: Visual "Monthly Accrual and Usage Summary" -> Target `Time_Off`, `requires_normalization: true`, `is_backfill_required: true`. 8. **Drone**: Target folder `Drone`. Visuals: "DFR Activity Performance Metrics", "Non-DFR Performance Metrics". 9. **Divisions**: Route "Patrol Division" to `Patrol`, "Traffic Bureau" to `Traffic`, "Detective Division" to `Detectives`, and "Crime Suppressions Bureau Monthly Activity Analysis" to `CSB`. **Task 2: Fix `process_powerbi_exports.py` Logic**
+
+1. **Double-Dating Fix**: In `process_exports`, when no mapping is found and you fall back to `_safe_filename_from_stem`, add a regex to strip any leading `YYYY_MM_` from the file stem before generating the name. 2. **Fuzzy Matching**: Ensure the matching logic continues to use `_normalize_visual_name_for_match` to handle the double spaces found in "Average Response Times  Values". 3. **Safety**: Confirm that the source file is only unlinked if `run_normalize` returns `True` and the destination file exists and is not empty. **Task 3: Update `normalize_visual_export_for_backfill.py**`
+
+1. **Pandas Import**: Move `import pandas as pd` to the top of the file. 2. **Robust Wide Detection**: In `normalize_summons` and `normalize_training_cost`, replace the `month_like` regex with: `[c for c in cols if _period_label_to_year_month(c) is not None]`. This ensures columns like "Sum of 01-26" are caught. ---
+
+### **What to check after Claude finishes:**
+
+* **The JSON Mapping**: Ensure every visual in your list has a corresponding entry in the `mappings` array of the JSON file. * **The Regex**: Check that `process_powerbi_exports.py` now uses `re.sub(r"^\d{4}_\d{2}_? ", "", stem)` to clean up filenames. * **Normalization Choice**: Ensure that the `summons` and `training_cost` formats are explicitly assigned in the JSON to trigger the correct unpivoting logic. </task>
+
+<process>
+1. **Classify primary domain** from source prompt:
+   - cad_rms_etl (CAD, RMS, arrests, summons, traffic, overdose, fire/EMS, monthly rollups)
+   - dv_doj_compliance (DV packets, DOJ reporting, court-ready exports, hot spot linkage)
+   - response_time_kpi (dispatch timing, SLA tracking, calculation methodology)
+   - gis_arcgis (mapping, hot spots, Getis-Ord, geocoding, spatial joins)
+   - powerbi_m_dax (dashboards, measures, query optimization, aggregation patterns)
+   - reporting_briefing (command staff packages, KPI cards, methodology panels)
+   - automation_scripts (Python, PowerShell, scheduled tasks, file watchers, extra duty scrapers)
+   - chatlog_packaging (combine, clean, summarize, manifest, zip)
+   - kb_rag_operations (chunking, embedding, ChromaDB, deduplication, retrieval)
+   - email_admin (internal comms, policy language)
+   - mixed (multiple domains)
+
+2. **Extract explicit requirements**:
+   - Input sources and file paths
+   - Output format and naming
+   - Date ranges, time zones, cycles
+   - Audience and compliance needs
+
+3. **Flag gaps** - create Assumptions and Questions sections for blockers only. 4. **Build optimized prompt** per <output_structure>. </process>
+
+<domain_templates>
+
+<cad_rms_etl>
+Require:
+- Schema contract: columns, types, keys, date fields, timezone (EST default)
+- Source identification: CAD extract, RMS export, manual entry, vendor format
+- Validation: row counts before/after, null rates, domain checks, duplicate detection
+- Quality scoring: field completeness, normalization status, exception flagging
+- Idempotent design: deterministic outputs, atomic writes, clear folder layout
+- PII awareness: redaction requirements, sampling constraints
+Data subtypes (same pipeline, specific outputs):
+- Traffic enforcement: summons, MV accidents, hit-and-run, ordinance violations → Traffic Compstat
+- Overdose incidents: cross-agency metrics, trend reporting
+- Fire/EMS: separate unit filters, different response time definitions
+- Monthly rollups: multi-unit aggregation with validation totals
+Typical outputs: validated CSVs, exception reports, quality score summaries, Compstat packages
+</cad_rms_etl>
+
+<dv_doj_compliance>
+Require:
+- DOJ field mapping: incident fields, victim/offender demographics, relationship codes
+- Packet structure: supplements, narratives, cross-references
+- Court-ready formatting: redaction rules, exhibit numbering
+- Validation: mandatory field checks, date consistency, duplicate incident detection
+- Hot spot integration: Getis-Ord output linkage if spatial analysis involved
+- Temporal windows: reporting periods, submission deadlines
+Typical outputs: DOJ submission files, court packets, statistical summaries, hot spot reports
+</dv_doj_compliance>
+
+<response_time_kpi>
+Require:
+- Time definitions: call received, dispatched, en route, on scene, cleared
+- Calculation rules: duplicate entry handling, unit filtering, outlier thresholds
+- SLA context: municipal benchmarks, comparison periods
+- Data quality flags: missing timestamps, impossible sequences, multi-unit calls
+- Correction methodology: before/after comparison documentation
+Typical outputs: corrected calculation methodology docs, KPI dashboards, briefing packages with variance analysis
+</response_time_kpi>
+
+<gis_arcgis>
+Require:
+- Environment: ArcGIS Pro version, coordinate system (NJ State Plane default), storage (GDB vs feature service)
+- Data prep: geometry repair, projection verification, field mapping
+- Analysis type: hot spot (Getis-Ord Gi*), density, spatial join, geocoding
+- Safe workflow: backup, versioned outputs, before/after counts
+- ArcPy code: parameters, logging, dry-run option, error handling
+Typical outputs: feature classes, map packages, statistical summary tables, priority zone lists
+</gis_arcgis>
+
+<powerbi_m_dax>
+Require:
+- Data model: source tables, relationships, refresh method
+- Date logic: rolling windows, previous period, cycle calculations, EST timezone
+- Naming: measure prefixes, calculated column conventions
+- Query folding: limits, incremental refresh needs
+- Aggregation patterns: monthly rollups, YTD comparisons, period-over-period
+Typical outputs: M queries, DAX measures, documentation of logic, refresh schedules
+</powerbi_m_dax>
+
+<reporting_briefing>
+Require:
+- Audience: command staff, DOJ, municipal leadership
+- Layout: print-safe, page breaks, portrait/landscape
+- Components: KPI cards, findings panel, methodology section, deployment recommendations
+- Branding: department header, professional tone
+- Export: explicit filenames, PDF generation steps
+- Variance narrative: explain changes from prior period
+Typical outputs: HTML briefing pages, PDF packages, executive summaries
+</reporting_briefing>
+
+<automation_scripts>
+Require:
+- Runtime: Windows desktop, Windows Server, Task Scheduler, watcher pattern, CLI
+- Language: Python or PowerShell (specify)
+- Safety: error handling, logging, exit codes, path validation, backups
+- Dependencies: libraries, permissions, network paths, OneDrive sync constraints
+- Scheduling: start-on-login, weekly maintenance, health checks
+Script subtypes:
+- Extra duty/payroll: scraping, timekeeping, roster validation
+- File watchers: queue monitoring, domain routing
+- Sync operations: OneDrive constraints, long path handling
+Typical outputs: production-ready scripts with logging, dry-run mode, Task Scheduler XML
+</automation_scripts>
+
+<chatlog_packaging>
+Require:
+- Pipeline: combine → clean → summarize → metadata JSON → manifest → zip
+- Naming: deterministic folder/file names with timestamps
+- Traceability: checksum/hash, processing log
+- Power Query: import script for downstream use
+Typical outputs: packaged zip with manifest, import instructions, processing summary
+</chatlog_packaging>
+
+<kb_rag_operations>
+Require:
+- Pipeline stages: ingest → chunk → embed → store → dedupe → validate retrieval
+- Storage: ChromaDB (primary), optional FAISS
+- Embedding model: Ollama local model specification
+- Chunking rules: size, overlap, metadata preservation
+- Deduplication: hash-based detection, semantic similarity threshold
+- Testing: retrieval accuracy, context window fit
+- Backfill: incremental vs full rebuild strategy
+Typical outputs: chunked document sets, embedding configs, retrieval test reports, backfill scripts
+</kb_rag_operations>
+
+<email_admin>
+Require:
+- Audience and tone (command, peers, external agencies)
+- Policy/legal lines if needed
+- Signature block rules
+- Short paragraphs, direct asks
+- Action items clearly stated
+Typical outputs: draft emails, talking points, follow-up templates
+</email_admin>
+
+</domain_templates>
+
+<output_structure>
+Return exactly two sections:
+
+**Section A: Optimized Prompt**
+<optimized_prompt>
+<role>Specific expert role for this task</role>
+<context>User environment, data sources, compliance needs</context>
+<inputs>Source files, paths, date ranges</inputs>
+<deliverables>Numbered list of concrete outputs</deliverables>
+<constraints>
+- Technical limits
+- Compliance requirements
+- Naming/formatting rules
+</constraints>
+<quality_checks>
+- Validation steps
+- Before/after verification
+- Exception handling
+</quality_checks>
+<assumptions>Reasonable defaults applied (keep brief)</assumptions>
+<questions>Blockers only - max 3 items</questions>
+<output_format>
+- File types and naming
+- Code header requirements if code expected
+- Artifact structure
+</output_format>
+</optimized_prompt>
+
+**Section B: Change Log**
+<change_log>
+- Added: ...
+- Clarified: ...
+- Assumed: ...
+</change_log>
+</output_structure>
+
+<rules>
+- Do NOT solve the original request - only transform the prompt
+- Keep language direct, no filler
+- Prefer short lines and bullet points
+- When code output expected, include header spec:
+  // 🕒 YYYY-MM-DD-HH-MM-SS (EST)
+  // [project_name]/[file_name]
+  // Author: R. A. Carucci
+  // Purpose: [AI-generated description]
+- Flag PII/compliance concerns explicitly
+- Default timezone: EST
+- Default coordinate system: NJ State Plane (EPSG:3424)
+- Default storage: local paths unless OneDrive/network specified
+- Assume Windows environment unless stated otherwise
+- For DOJ work: always note submission deadlines if apparent
+- For response time work: always clarify duplicate handling approach
+- For RAG work: always specify chunk size and overlap
+- Questions section: max 3 items, blockers only
+</rules>
+
+---
+
+**Cursor**
+
+
+# Section A: Optimized Prompt
+
+<optimized_prompt>
+
+<role>You are a senior prompt engineer specializing in law enforcement data systems, with deep experience in CAD/RMS ETL, Power BI (M/DAX), and Python/PowerShell automation. You are editing a configuration-driven Power BI visual export pipeline: JSON mapping plus Python scripts that normalize, rename, and route CSV exports to Processed_Exports and Backfill for downstream ETL and reporting.</role>
+
+<context>
+- **Environment:** Windows; OneDrive-backed paths; Task Scheduler / manual runs. - **Repo root:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`
+- **Key paths:**
+  - Scripts: `scripts/` (`process_powerbi_exports.py`, `normalize_visual_export_for_backfill.py`)
+  - Mapping: `Standards/config/powerbi_visuals/visual_export_mapping.json`
+  - Processed output: `09_Reference/Standards/Processed_Exports/` (by target_folder)
+  - Backfill: `PowerBI_Date/Backfill/`
+- **Existing behavior:** Source = `_DropExports`; match by visual_name (and match_aliases); prefix `YYYY_MM_`; optional normalization by format (monthly_accrual, summons, training_cost); skip_patterns (e.g. Text Box, Administrative Commander). Summons and Training Cost use format-specific unpivot/normalization so backfill CSVs have the schema expected by summons_backfill_merge and Policy Training. </context>
+
+<inputs>
+- **Mapping spec:** The list of visuals and routing rules below (Task 1). - **Codebase:** Current `visual_export_mapping.json`, `process_powerbi_exports.py`, `normalize_visual_export_for_backfill.py`. - **Source prompt:** Raw user instructions describing Tasks 1–3 and post-implementation checks. </inputs>
+
+<deliverables>
+1. **Updated `Standards/config/powerbi_visuals/visual_export_mapping.json`**  
+   One `mappings` array entry per visual (or per logical group where one name covers multiple). Each entry must include: `visual_name`, `standardized_filename` (snake_case), `target_folder`, `requires_normalization` (bool), `is_backfill_required` (bool). Where normalization is format-specific, add `normalizer_format` ("summons" or "training_cost"). Use `match_aliases` for alternate/truncated export names (e.g. "Average Response Times  Values" double space, "Department-Wide Summons Moving and Parking"). Preserve or add `skip_patterns` (e.g. "Text Box", "Administrative Commander"). 2. **Mapping content (from user spec):**
+   - **Arrests** (target_folder `Arrests`): "Arrest Categories by Type and Gender", "Arrest Distribution by Local, State & Out of State", "TOP 5 ARREST LEADERS". - **NIBRS** (target_folder `NIBRS`): "13-Month NIBRS Clearance Rate Trend" (match this name; ignore date range in title). - **Response_Times**: "Average Response Times  Values are in mmss" (double space), "Response Times by Priority". - **Benchmark** (target_folder `Benchmark`): "Incident Count by Date and Event Type", "Incident Distribution by Event Type", "Use of Force Incident Matrix". - **Summons** (target_folder `Summons`): `requires_normalization: true`, `normalizer_format: "summons"`, `is_backfill_required: true`. Visuals: "Department-Wide Summons", "Summons  Moving & Parking  All Bureaus", "Top 5 Parking Violations - Department Wide", "Top 5 Moving Violations - Department Wide". Include match_aliases for common truncations (e.g. "Department-Wide Summons Moving and Parking", "Summons Moving and Parking"). - **Training** (target_folder `Training`): "Training Cost by Delivery Method" with `requires_normalization: true`, `normalizer_format: "training_cost"`, `is_backfill_required: true`; also "In-Person Training". - **Accruals:** "Monthly Accrual and Usage Summary" → target_folder `Time_Off`, `requires_normalization: true`, `is_backfill_required: true` (no normalizer_format; default monthly_accrual). - **Drone** (target_folder `Drone`): "DFR Activity Performance Metrics", "Non-DFR Performance Metrics". - **Divisions:** "Patrol Division" → `Patrol`, "Traffic Bureau" → `Traffic`, "Detective Division" → `Detectives`, "Crime Suppressions Bureau Monthly Activity Analysis" → `CSB`. 3. **Fixes in `process_powerbi_exports.py`:**
+   - **Double-dating:** When no mapping is found and fallback naming is used, strip a leading `YYYY_MM_` from the file stem before calling `_safe_filename_from_stem`. Use: `stem_no_date = re.sub(r"^\d{4}_\d{2}_? ", "", file_path.stem)` then `standardized_base = _safe_filename_from_stem(stem_no_date)`. - **Fuzzy matching:** Keep using `_normalize_visual_name_for_match` (and match_aliases) so names with double spaces (e.g. "Average Response Times  Values") still match. - **Safety:** Unlink the source file only when `run_normalize` returns True and the destination file exists and is non-empty (current behavior; confirm and leave in place). 4. **Fixes in `normalize_visual_export_for_backfill.py`:**
+   - **Pandas:** Ensure `import pandas as pd` is at top-level (no import inside summons/training_cost functions). - **Wide detection:** In `normalize_summons` and `normalize_training_cost`, set `month_like` via the shared period parser: `month_like = [c for c in cols if isinstance(c, str) and _period_label_to_year_month(c) is not None]` so columns like "Sum of 01-26" are treated as month columns after stripping the "Sum of " prefix. </deliverables>
+
+<constraints>
+- JSON must be valid and preserve existing structure (mappings array, optional skip_patterns). - standardized_filename: snake_case, no spaces; output filename = `YYYY_MM_{standardized_filename}.csv`. - Do not remove or weaken: source unlink only after successful normalization and non-empty destination; skip_patterns; fallback stem date-stripping. - OneDrive path handling: use path_config / get_onedrive_root() where the codebase already does; do not hardcode alternate roots unless the user specifies. </constraints>
+
+<quality_checks>
+- **Mapping:** Every visual listed in the user spec has a corresponding entry (or is covered by an entry with match_aliases); Summons and Training Cost have correct normalizer_format. - **Regex:** `process_powerbi_exports.py` uses `re.sub(r"^\d{4}_\d{2}_? ", "", stem)` (or equivalent) in the fallback branch before `_safe_filename_from_stem`. - **Normalization:** Summons and training_cost formats are assigned in the JSON so the correct unpivot/normalization runs; run_normalize receives and passes --format when required. - **Safety:** Source file is only unlinked when normalization succeeds and destination exists and has size > 0. - **Wide detection:** month_like in normalizer uses _period_label_to_year_month(c) so "Sum of MM-YY" column headers are detected. </quality_checks>
+
+<assumptions>
+- OneDrive root and Backfill/Processed_Exports paths follow existing script conventions (path_config, AUTOMATION_ROOT). - "13-Month NIBRS Clearance Rate Trend" is matched by that exact string (or a single alias); date range in the export title is ignored for matching. - Divisions (Patrol, Traffic, Detectives, CSB) do not require normalization unless the user adds it later. - match_aliases are used for known Power BI export variants (truncation, double spaces, "Moving & Parking" vs "Moving and Parking"). </assumptions>
+
+<questions>
+1.

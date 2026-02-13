@@ -1,0 +1,116 @@
+{
+  "source_file": "Gemini-Data QA and Script Review.json",
+  "source_path": "C:\\_chunker\\02_data\\Gemini-Data QA and Script Review.json",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Gemini-Data_QA_and_Script_Review\\2026_02_12_21_46_32_Gemini-Data_QA_and_Script_Review.origin.json",
+  "created_at": "2026_02_12_21_46_32",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "dataset",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "data",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "time",
+      "hours",
+      "csv",
+      "12-25",
+      "comp",
+      "sum"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "{\n  \"metadata\": {\n    \"title\": \"Data QA and Script Review\",\n    \"user\": {\n      \"name\": \"RAC\"\n    },\n    \"dates\": {\n      \"exported\": \"2/12/2026 21:40:31\"\n    },\n    \"link\": \"https://gemini.google.com/app/4befd3bab3bce8a9\",\n    \"powered_...",
+    "first_line": "{"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-12T21:46:32+00:00_Gemini-Data_QA_and_Script_Review_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "12-25",
+        "ai",
+        "code",
+        "data",
+        "dataset",
+        "excel",
+        "hours",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "powershell",
+        "python",
+        "sql",
+        "time",
+        "training"
+      ],
+      "key_terms": [
+        "time",
+        "hours",
+        "csv",
+        "12-25",
+        "data",
+        "sum"
+      ],
+      "summary": "{\n  \"metadata\": {\n    \"title\": \"Data QA and Script Review\",\n    \"user\": {\n      \"name\": \"RAC\"\n    },\n    \"dates\": {\n      \"exported\": \"2/12/2026 21:40:31\"\n    },\n    \"link\": \"https://gemini.google.com/app/4befd3bab3bce8a9\",\n    \"powered_...",
+      "char_length": 29563,
+      "byte_length": 29616
+    },
+    {
+      "chunk_id": "2026-02-12T21:46:32+00:00_Gemini-Data_QA_and_Script_Review_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "12-24",
+        "ai",
+        "code",
+        "comp",
+        "data",
+        "dataset",
+        "excel",
+        "hours",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "naccrued",
+        "police",
+        "powershell",
+        "python",
+        "sql",
+        "time",
+        "training"
+      ],
+      "key_terms": [
+        "time",
+        "hours",
+        "naccrued",
+        "comp",
+        "csv",
+        "12-24"
+      ],
+      "summary": "As per standard handling for missing future/current data in this context, they have been set to 0.\\n\\nValues Verification: The values for 12-24 through 11-25 match the source file exactly.\\n\\n\\nCSV Output (12-24 to 12-25)\\n\\n\\nStructure:...",
+      "char_length": 22162,
+      "byte_length": 22181
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

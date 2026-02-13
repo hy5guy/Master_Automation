@@ -1,0 +1,458 @@
+Should "Monthly Accrual and Usage Summary" be copied to Backfill (`is_backfill_required: true`) so Overtime/TimeOff can consume it from `Backfill/YYYY_MM/vcs_time_report/`, or remain Processed_Exports-only? 2. For Drone ("DFR Activity Performance Metrics", "Non-DFR Performance Metrics"), should either have normalization or backfill, or are they copy-only? 3. Should Benchmark visuals share one standardized_filename pattern (e.g. benchmark_incident_count, benchmark_distribution, benchmark_use_of_force_matrix) or follow a different naming convention? </questions>
+
+<output_format>
+- **JSON:** Pretty-printed, UTF-8; keys in consistent order (visual_name, match_aliases if present, standardized_filename, requires_normalization, normalizer_format if present, is_backfill_required, target_folder). - **Python:** Existing style and indentation; no unnecessary refactors. Add brief inline comments only where logic changes. - **Artifacts:** (1) Updated `visual_export_mapping.json`; (2) edited sections of `process_powerbi_exports.py` and `normalize_visual_export_for_backfill.py` with clear before/after or patch-style description so the user can verify. </output_format>
+
+</optimized_prompt>
+
+---
+
+# Section B: Change Log
+
+<change_log>
+- **Added:** Explicit path and role context (OneDrive, Master_Automation, scripts, Backfill) so the implementer has full environment context. - **Added:** Deliverables broken into (1) full mapping spec with all categories and visuals, (2) exact code fixes for double-dating, fuzzy match, safety, pandas, and month_like. - **Added:** Quality_checks as a verification checklist (mapping coverage, regex, normalizer_format, unlink safety, wide detection). - **Clarified:** Summons and Training must have normalizer_format and requires_normalization/is_backfill_required; Accruals explicitly Time_Off with is_backfill_required and no normalizer_format (default monthly_accrual). - **Clarified:** match_aliases usage for double-space and truncated names (Response Times, Department-Wide Summons). - **Assumed:** Divisions are copy-only unless specified; NIBRS matched by fixed name; path_config/AUTOMATION_ROOT unchanged. - **Added:** Three optional Questions (Accruals backfill, Drone normalization/backfill, Benchmark naming) to resolve ambiguity before implementation. - **Structured:** Constraints and output_format so JSON shape and Python change scope are explicit and minimal. </change_log>
+
+---
+
+**User**
+
+what files are need to provide to claude? ---
+
+**Cursor**
+
+
+To run the optimized prompt (or any similar Power BI export pipeline task), provide Claude with these files:
+
+---
+
+### **Required (Claude will read and/or edit)**
+
+| File | Purpose |
+|------|--------|
+| **`Standards/config/powerbi_visuals/visual_export_mapping.json`** | Current mapping; Claude will extend/rewrite it per the spec. |
+| **`scripts/process_powerbi_exports.py`** | Matching, renaming, normalization calls, safety checks; Claude will apply the double-dating and safety fixes. |
+| **`scripts/normalize_visual_export_for_backfill.py`** | Summons/training_cost and monthly_accrual logic; Claude will fix pandas import and `month_like` detection. |
+
+---
+
+### **Helpful (context only)**
+
+| File | Why |
+|------|-----|
+| **`scripts/summons_backfill_merge.py`** | Defines expected Summons backfill schema (e.g. `Month_Year`, `WG2`, `TICKET_COUNT`, `TYPE`) so mapping and normalizer stay aligned. |
+| **`scripts/path_config.py`** or **`config/scripts.json`** | Shows how `get_onedrive_root()` and paths are used so edits don’t break path resolution. |
+| **`Standards/config/powerbi_visuals/README.md`** | Documents mapping schema and `normalizer_format`; useful to keep docs in sync. |
+
+---
+
+### **Optional (only if relevant)**
+
+- **`docs/POWERBI_VISUAL_EXPORT_PIPELINE_FAQ.md`** – If you want Claude to update docs. - **`docs/VISUAL_EXPORT_NORMALIZATION_AND_SUMMONS_BACKFILL.md`** – Extra context on backfill flow. ---
+
+**Minimum set to paste or attach:** the three **Required** files. Adding **summons_backfill_merge.py** (at least the schema/constants) reduces the chance of schema drift. ---
+
+**User**
+
+I'll implement the configuration updates and code fixes as specified in the prompt. Let me start by addressing the three questions, then provide the updated files. ## Answers to Questions
+
+1. **Monthly Accrual and Usage Summary backfill**: Based on your Overtime/TimeOff pipeline architecture, this should have `is_backfill_required: true` so the data flows to `Backfill/YYYY_MM/time_off/` for consumption by your existing ETL. 2. **Drone visuals**: These should be **copy-only** (no normalization/backfill) unless you specify otherwise. They're simple metric exports. 3. **Benchmark naming**: Using consistent pattern `benchmark_{metric_type}` for clarity. Now let me create the updated files:Now let me create the updated `normalize_visual_export_for_backfill.py` with the required fixes:Now let me create a comprehensive implementation summary document:## Implementation Complete ✅
+
+I've updated your Power BI visual export pipeline based on the optimized prompt. Here's what was delivered:
+
+### Key Deliverables
+
+**1. Updated Mapping JSON** (`visual_export_mapping_updated.json`)
+- **22 total visual mappings** (up from 3)
+- Organized by functional area: Arrests, NIBRS, Response_Times, Benchmark, Summons, Training, Time_Off, Drone, Divisions
+- Format-specific tags for Summons (`normalizer_format: "summons"`) and Training Cost (`normalizer_format: "training_cost"`)
+- Backfill integration enabled for Summons, Training Cost, and Monthly Accrual
+
+**2. Updated Normalizer** (`normalize_visual_export_for_backfill.py`)
+- ✅ **Pandas import at top-level** (no longer inside functions)
+- ✅ **Wide detection using `_period_label_to_year_month()`** helper (correctly identifies "Sum of 01-26" as month columns)
+- ✅ **Three format handlers**: monthly_accrual (default), summons (unpivot + Bureau→WG2), training_cost (unpivot + Delivery_Type/Cost)
+
+**3. Code Verification** (`process_powerbi_exports.py`)
+- ✅ **Already correct** - No changes needed
+- Double-dating prevention: Strips `YYYY_MM_` before fallback naming
+- Fuzzy matching: Handles double spaces, truncations via `match_aliases`
+- Safety checks: Source deleted only after successful normalization + non-empty output
+
+### Answers to Questions
+
+1. **Monthly Accrual backfill**: ✅ Yes - Set `is_backfill_required: true` (flows to `Backfill/YYYY_MM/time_off/`)
+2. **Drone normalization/backfill**: ✅ Copy-only (no normalization needed)
+3. **Benchmark naming**: ✅ Consistent pattern: `benchmark_incident_count`, `benchmark_incident_distribution`, `benchmark_use_of_force_matrix`
+
+### Deployment Steps
+
+```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+
+# Backup current config
+Copy-Item "Standards\config\powerbi_visuals\visual_export_mapping.json" `
+          "Standards\config\powerbi_visuals\visual_export_mapping_BACKUP_$(Get-Date -Format 'yyyyMMdd_HHmmss').json"
+
+# Deploy updated files
+Copy-Item "path\to\visual_export_mapping_updated.json" `
+          "Standards\config\powerbi_visuals\visual_export_mapping.json" -Force
+          
+Copy-Item "path\to\normalize_visual_export_for_backfill.py" `
+          "scripts\normalize_visual_export_for_backfill.py" -Force
+
+# Test with dry run
+python scripts\process_powerbi_exports.py --dry-run
+
+# Production run
+python scripts\process_powerbi_exports.py
+```
+
+### What's Different
+
+**Before**: 3 visuals mapped (Summons, Training Cost, Monthly Accrual)  
+**After**: 22 visuals across 10 target folders with comprehensive routing
+
+**Quality improvements**:
+- Match aliases handle Power BI export variants (double spaces, punctuation differences)
+- Format-specific normalization ensures correct schema for downstream ETL
+- Backfill auto-copy eliminates manual file management
+- Robust error handling prevents data loss
+
+See `IMPLEMENTATION_SUMMARY.md` for complete verification checklist, troubleshooting guide, and testing procedures. C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\IMPLEMENTATION_SUMMARY.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\normalize_visual_export_for_backfill.py
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\visual_export_mapping_updated.json
+
+---
+
+**Cursor**
+
+
+Checking the repo and applying the implementation: verifying referenced files and fixing paths. Deploying the updated mapping to the config folder, moving the implementation summary to docs, and adding a note about Overtime/TimeOff backfill path (vcs_time_report vs Time_Off). Deploying the mapping and updating the Overtime/TimeOff script to check Backfill/YYYY_MM/Time_Off so Monthly Accrual backfill is found. Checking the OT script's expected filename: it expects "Monthly Accrual and Usage Summary" but the pipeline outputs standardized_filename. Checking whether the normalizer's monthly_accrual output matches what the OT script expects:
+
+
+
+Preserving the `PeriodLabel` column in the monthly_accrual normalizer so the Overtime/TimeOff script finds it. Moving the implementation summary to docs and adding a deployment note. Summary of what was applied:
+
+---
+
+## Deployment summary
+
+### 1. **Mapping deployed**
+- **`Standards/config/powerbi_visuals/visual_export_mapping.json`** now has **22 visuals** (pretty-printed), including:
+  - Arrests (3), NIBRS (1), Response_Times (2), Benchmark (3), Summons (4), Training (2), Time_Off (1), Drone (2), Patrol, Traffic, Detectives, CSB (1 each). - **Monthly Accrual**: `is_backfill_required: true`, `target_folder: "Time_Off"`. - **Summons**: `normalizer_format: "summons"`, `is_backfill_required: true`; **Training Cost**: `normalizer_format: "training_cost"`, `is_backfill_required: true`. - **skip_patterns**: "Text Box", "Administrative Commander" kept. ### 2. **Overtime/TimeOff backfill path**
+- **`scripts/overtime_timeoff_with_backfill.py`** – `find_backfill_csv()` now:
+  - Looks in **Time_Off** first, then **vcs_time_report** (legacy). - Accepts **`YYYY_MM_monthly_accrual_and_usage_summary.csv`** (pipeline output) and the previous **Monthly Accrual and Usage Summary.csv**-style name. ### 3. **Monthly accrual schema for OT**
+- **`scripts/normalize_visual_export_for_backfill.py`** – **monthly_accrual** no longer renames `PeriodLabel` → `Period`. Output columns stay **Time_Category**, **PeriodLabel**, **Value** so `overtime_timeoff_with_backfill.py`’s backfill parser works as-is. ### 4. **Docs**
+- **`docs/POWERBI_VISUAL_EXPORT_IMPLEMENTATION_SUMMARY.md`** – Short deployment/verification summary (replaces the long version in `scripts/`). - **`scripts/IMPLEMENTATION_SUMMARY.md`** – Removed (content moved into the doc above). ### 5. **Optional cleanup**
+- **`scripts/visual_export_mapping_updated.json`** – Left in place as a reference; you can delete it if you no longer need it. ---
+
+**Next steps for you**
+1. Run: `python scripts\process_powerbi_exports.py --dry-run` with a few exports in `_DropExports`. 2. Run without `--dry-run` and confirm files under **Processed_Exports** and **Backfill/YYYY_MM/** (including **Time_Off** and **Summons**). 3. Run the Overtime/TimeOff ETL and confirm it picks up Monthly Accrual from **Backfill/YYYY_MM/Time_Off/** (or **vcs_time_report** if you still use that). ---
+
+**User**
+
+I'll add 13-month rolling window enforcement to your pipeline. This ensures exports always contain exactly 13 months ending with the previous complete month.## 13-Month Rolling Window Enforcement - Complete ✅
+
+I've added comprehensive 13-month rolling window enforcement to your visual export pipeline. Here's what was implemented:
+
+---
+
+## What You Get
+
+### 🎯 Operational Rule (Today: Feb 12, 2026)
+- **End Date**: January 2026 (previous month - never include current incomplete month)
+- **Start Date**: January 2025 (12 months before end)
+- **Window**: 13 full months (01-25, 02-25, ..., 12-25, 01-26)
+
+**Automatic**: Window recalculates each month with no config changes needed. ---
+
+## Key Files
+
+### 1. **Enhanced Normalizer** (`normalize_visual_export_for_backfill_v2.py`)
+
+**New Features**:
+- `calculate_13_month_window()` - Auto-calculates correct window based on today's date
+- `enforce_13_month_window()` - Filters dataframe to valid periods, logs removed/missing periods
+- `--enforce-13-month` CLI flag
+
+**Example**:
+```bash
+python normalize_visual_export_for_backfill.py \
+  --input export.csv \
+  --output normalized.csv \
+  --format summons \
+  --enforce-13-month  # ← Ensures only 01-25 to 01-26 data
+```
+
+**Logs**:
+```
+INFO: Enforcing 13-month window: 01-25 through 01-26 (13 periods)
+INFO: Filtered out 45 rows from 2 periods outside window: ['11-24', '12-24']
+WARNING: 13-month window incomplete: 1 missing periods: ['03-25']
+INFO: 13-month window validated: 12 periods present, 1,234 rows
+```
+
+---
+
+### 2. **Updated Mapping** (`visual_export_mapping_with_13month.json`)
+
+**Coverage**: **32 total visuals** (up from 22), **24 with 13-month enforcement**
+
+**New Field**: `enforce_13_month_window: true`
+
+**Visuals with Enforcement**:
+- ✅ **All 4 Summons** (Department-Wide, All Bureaus, Top 5 Parking/Moving)
+- ✅ **Training** (Cost by Delivery Method, In-Person)
+- ✅ **Time Off** (Monthly Accrual)
+- ✅ **NIBRS** (13-Month Clearance Rate)
+- ✅ **Response Times** (Average, By Priority)
+- ✅ **Benchmark** (Incident Count, Use of Force)
+- ✅ **Drone** (DFR, Non-DFR)
+- ✅ **Divisions** (Patrol, Traffic, Detectives Parts 1 & 2, Clearance, Dispositions, CSB)
+- ✅ **New**: Motor Vehicle Accidents, STACP Parts 1 & 2, Social Media Posts, Chief Executive Duties, Records & Evidence, SSOCC
+
+**New Target Folders**:
+- `STACP`, `Community_Engagement`, `Executive`, `Support_Services`, `SSOCC`
+
+---
+
+### 3. **Process Script Patch** (`process_powerbi_exports_PATCH.txt`)
+
+**3 Code Changes Required**:
+
+1. **Update `run_normalize()` function** - Add `enforce_13_month` parameter
+2. **Update dry-run section** - Pass `--enforce-13-month` flag when mapping specifies it
+3. **Update production run** - Pass `enforce_13_month` from mapping to normalizer
+
+**Result**: Pipeline automatically enforces 13-month window based on mapping configuration. ---
+
+### 4. **Validation Tool** (`validate_13_month_window.py`)
+
+**Usage**:
+```bash
+# Validate single file
+python validate_13_month_window.py --input export.csv
+
+# Scan folder
+python validate_13_month_window.py --scan-folder Processed_Exports/Summons --verbose
+
+# Output:
+# Expected 13-month window (as of 2026-02-12): 01-25 to 01-26
+# [PASS] 2025_12_department_wide_summons.csv
+#   ✓ 13 months: 01-25 to 01-26
+```
+
+---
+
+## Deployment Quick Start
+
+```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+
+# 1. Backup
+Copy-Item "Standards\config\powerbi_visuals\visual_export_mapping.json" `
+          "Standards\config\powerbi_visuals\visual_export_mapping_BACKUP.json"
+
+# 2. Deploy mapping (32 visuals, 24 with 13-month enforcement)
+Copy-Item "visual_export_mapping_with_13month.json" `
+          "Standards\config\powerbi_visuals\visual_export_mapping.json" -Force
+
+# 3. Deploy normalizer (13-month window logic)
+Copy-Item "normalize_visual_export_for_backfill_v2.py" `
+          "scripts\normalize_visual_export_for_backfill.py" -Force
+
+# 4. Apply patch to process_powerbi_exports.py (see PATCH.txt)
+# Edit process_powerbi_exports.py using the 3 code changes in the patch file
+
+# 5. Test
+python scripts\process_powerbi_exports.py --dry-run
+```
+
+---
+
+## Benefits
+
+| Before | After |
+|--------|-------|
+| Could include incomplete current month | ✅ Always excludes current month |
+| Inconsistent windows month-to-month | ✅ Consistent 13-month rolling window |
+| Manual verification required | ✅ Automated enforcement + validation |
+| No visibility into data gaps | ✅ Logs missing/removed periods |
+
+---
+
+## Verification
+
+```powershell
+# Test normalizer standalone
+python scripts\normalize_visual_export_for_backfill.py `
+  --input "test.csv" --output "test_out.csv" `
+  --enforce-13-month --dry-run
+
+# Validate output
+python validate_13_month_window.py --input "test_out.csv" --verbose
+
+# Expected: [PASS] ✓ 13 months: 01-25 to 01-26
+```
+
+---
+
+## What's Different
+
+**Previous Implementation**: 22 visuals, basic normalization
+**New Implementation**: 32 visuals, 13-month enforcement, comprehensive coverage
+
+**Files**:
+1. ✅ `normalize_visual_export_for_backfill_v2.py` - Drop-in replacement with window logic
+2. ✅ `visual_export_mapping_with_13month.json` - Complete mapping with enforcement flags
+3. ✅ `process_powerbi_exports_PATCH.txt` - 3 code changes to apply
+4. ✅ `13_MONTH_WINDOW_IMPLEMENTATION_GUIDE.md` - Full documentation
+5. ✅ `validate_13_month_window.py` - Validation/testing tool
+
+See the Implementation Guide for complete deployment steps, troubleshooting, and monthly execution notes. You're absolutely right on both points. Let me fix this:
+
+## Issue 1: 13-Month Enforcement Should Be Selective
+
+I'll update the mapping to ONLY enforce 13-month window on the visuals you listed. ## Issue 2: NIBRS Dynamic Date Range
+
+The NIBRS visual name changes monthly due to the DAX subtitle. We need a **pattern-based matching** approach.## Corrected Implementation - Ready to Deploy ✅
+
+Both issues fixed. Here's what changed:
+
+---
+
+## Issue 1: Selective 13-Month Enforcement ✅
+
+**Problem**: Applied to all 32 visuals
+**Fix**: Now applies to ONLY your 24 specified visuals
+
+**NOT Enforced** (8 visuals - will use all available data):
+- ❌ **Arrests** (all 3 visuals)
+- ❌ **Top 5 Summons** (Parking & Moving)
+- ❌ **Summons All Bureaus**
+- ❌ **In-Person Training**
+- ❌ **Incident Distribution by Event Type**
+
+**Enforced** (24 visuals - rolling 13-month window):
+- ✅ Department-Wide Summons, Training Cost, Monthly Accrual
+- ✅ NIBRS, Response Times (2), Benchmark Incident Count, Use of Force
+- ✅ Drone (2), Divisions (7), Support/Ops (7)
+
+---
+
+## Issue 2: NIBRS Dynamic Date Range ✅
+
+**Problem**: Visual name changes monthly (DAX subtitle)
+- Feb: "13-Month NIBRS Clearance Rate Trend **January 2025 - January 2026**"
+- Mar: "13-Month NIBRS Clearance Rate Trend **February 2025 - February 2026**"
+
+**Fix**: Pattern-based matching using regex
+
+**New Mapping**:
+```json
+{
+  "visual_name": "13-Month NIBRS Clearance Rate Trend",
+  "match_pattern": "^13-Month NIBRS Clearance Rate Trend",  // ← Matches ANY date range
+  "enforce_13_month_window": true
+}
+```
+
+**How It Works**:
+- Pattern `^13-Month NIBRS Clearance Rate Trend` matches the fixed prefix
+- Ignores the dynamic date range suffix
+- Works indefinitely as DAX updates monthly
+
+---
+
+## Files to Deploy
+
+### 1. **Corrected Mapping** (`visual_export_mapping_CORRECTED.json`)
+- 24 visuals with `enforce_13_month_window: true`
+- 8 visuals with `enforce_13_month_window: false`
+- NIBRS has `match_pattern` for dynamic name
+
+### 2. **Enhanced Process Script** (`process_powerbi_exports_CORRECTED.py`)
+- New pattern matching logic in `find_mapping_for_file()`
+- Tries: exact name → regex pattern → aliases
+- Supports `enforce_13_month` parameter
+
+### 3. **Normalizer** (use `normalize_visual_export_for_backfill_v2.py` from earlier)
+- Already has `--enforce-13-month` flag
+- No changes needed
+
+---
+
+## Quick Deployment
+
+```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+
+# Backup
+Copy-Item "Standards\config\powerbi_visuals\visual_export_mapping.json" `
+          "Standards\config\powerbi_visuals\visual_export_mapping_BACKUP.json"
+
+# Deploy corrected files
+Copy-Item "visual_export_mapping_CORRECTED.json" `
+          "Standards\config\powerbi_visuals\visual_export_mapping.json" -Force
+
+Copy-Item "process_powerbi_exports_CORRECTED.py" `
+          "scripts\process_powerbi_exports.py" -Force
+
+Copy-Item "normalize_visual_export_for_backfill_v2.py" `
+          "scripts\normalize_visual_export_for_backfill.py" -Force
+
+# Test
+python scripts\process_powerbi_exports.py --dry-run
+```
+
+---
+
+## Verification
+
+```powershell
+# Confirm 24/32 enforcement
+python -c "
+import json
+with open('Standards/config/powerbi_visuals/visual_export_mapping.json') as f:
+    enforced = sum(1 for m in json.load(f)['mappings'] if m.get('enforce_13_month_window'))
+    print(f'{enforced}/32 visuals have 13-month enforcement')
+    print('Expected: 24/32')
+"
+
+# Test NIBRS pattern match with a sample filename
+# Should match regardless of date range in filename
+```
+
+---
+
+## What You Get
+
+✅ **Precise enforcement**: Only your 24 specified visuals filtered to 13 months  
+✅ **Pattern matching**: NIBRS works every month automatically  
+✅ **Clear separation**: Arrest/Top 5 visuals use full history  
+✅ **Future-proof**: No manual updates needed as DAX subtitle changes
+
+See **13_MONTH_QUICK_REFERENCE.md** for the complete list of which visuals have enforcement. @visual_export_mapping_CORRECTED.json @13_MONTH_WINDOW_CORRECTIONS.md @13_MONTH_QUICK_REFERENCE.md @scripts/validate_13_month_window.py @scripts/13_MONTH_WINDOW_IMPLEMENTATION_GUIDE.md @scripts/process_powerbi_exports_PATCH.txt @scripts/visual_export_mapping_with_13month.json @scripts/normalize_visual_export_for_backfill_v2.py @scripts/process_powerbi_exports_CORRECTED.py 
+
+---
+
+**Cursor**
+
+
+Checking which referenced files exist, then integrating 13-month enforcement into the pipeline. Reading the corrected files and integrating them into the pipeline. Checking the v2 normalizer's enforce logic and main entry point:
+
+
+
+Deploying the corrected mapping, replacing the normalizer with v2 (keeping PeriodLabel for monthly_accrual), and applying process script updates. Replacing the normalizer with v2 and keeping PeriodLabel for monthly_accrual so the OT script works. Applying process script updates: add match_pattern support and pass enforce_13_month. Moving 13-month docs into `docs/` and updating todos. Verifying the production normalizer has the PeriodLabel period-column logic:
+
+
+
+Summary of what’s done:
+
+---
+
+## 13-month pipeline – completed
+
+### 1. **Normalizer (v2 → production)**  
+- **Replaced** `scripts/normalize_visual_export_for_backfill.py` with the v2 version. - **PeriodLabel**: Monthly accrual keeps **PeriodLabel** (no rename to `Period`) so `overtime_timeoff_with_backfill.py` still works. - **13-month dry-run**: Period column is chosen in this order: **PeriodLabel** → **Period** → **Month_Year**. ### 2. **Process script** (`scripts/process_powerbi_exports.py`)  
+- **`find_mapping_for_file()`**: After `visual_name`, tries **`match_pattern`** (regex) on normalized stem and stem-without-date; catches `re.error` and logs a warning; then tries `match_aliases`. - **`run_normalize()`**: New parameter **`enforce_13_month: bool = False`**; when True, adds **`"--enforce-13-month"`** to the subprocess command (before `--dry-run` if present). - **Call sites**: Dry-run and production both set **`enforce_window = mapping.get("enforce_13_month_window", False)`** and call **`run_normalize(..., enforce_13_month=enforce_window)`**. Dry-run preview command includes `--enforce-13-month` when `enforce_window` is True.

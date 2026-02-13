@@ -1,0 +1,36 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "dataset",
+    "json",
+    "markdown",
+    "police",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "data",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "text",
+        "table",
+        "number",
+        "then",
+        "type",
+        "response_time_mmss"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "{\n  \"metadata\": {\n    \"title\": \"Power BI M Code for Time Format Errors\",\n    \"user\": {\n      \"name\": \"RAC\"\n    },\n    \"dates\": {\n      \"exported\": \"2/12/2026 21:41:52\"\n    },\n    \"link\": \"https://gemini.google.com/gem/coding-partner/8a71...",
+      "first_line": "{"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-12T21:46:32.263666",
+  "department": "admin"
+}

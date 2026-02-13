@@ -1,0 +1,161 @@
+# Visual export normalization and summons backfill
+_Exported on 2/12/2026 at 21:59:23 EST from Cursor (2.4.31)_
+
+---
+
+**User**
+
+I think the issues with the backfill data not working has to do with the .csv structure of the export. see  the following:
+
+To implement the normalization of visual exports within your _DropExports workflow, use the following prompt in Cursor AI. This prompt instructs the AI to modify your PowerShell orchestrator to act as the "bridge" between the raw export and the organized backfill. Cursor AI Prompt: Integrate Visual Export Normalization
+Role: Act as a PowerShell and Python automation expert. Context: I have a Master ETL Automation workspace that orchestrates data for Power BI. I need to automate the normalization of raw Power BI visual exports as soon as they are placed in the _DropExports folder, before they are organized into historical backfill directories. Task:
+Modify scripts/run_all_etl.ps1 to include a new "Visual Export Normalization" phase. Requirements:
+
+- Detection: Before the summary phase, the script should scan the powerbi_drop_path (defined in config/scripts.json) for any CSV files matching the pattern *Monthly Accrual and Usage Summary*.csv. - Execution: For each matching file found in the drop folder, execute the following command:
+python scripts/normalize_visual_export_for_backfill.py --input "<FullPathToFoundFile>"
+- Logging: Use the existing Write-Step, Write-Success, and Write-Log functions to document the normalization process. - Error Handling: If the normalization script fails for a file, log the error but allow the orchestrator to continue to the next file or script. - Dry Run Support: Ensure this new logic respects the -DryRun switch by showing what files would be normalized without actually running the Python script. Files to Reference:
+- scripts/run_all_etl.ps1 (to be modified)
+- scripts/normalize_visual_export_for_backfill.py (the tool to be called)
+- config/scripts.json (to retrieve the powerbi_drop_path)
+Goal: Ensure that visual exports are normalized (stripping "Sum of" headers and formatting dates) while they sit in _DropExports, so they are ready for the organize_backfill_exports.ps1 tool to move them into the Backfill/ tree. What this achieves for your workflow:
+- Automation: You no longer need to remember to run the normalization script manually after an export. - Consistency: Every file that reaches your Backfill\ directory will have the exact same structure (Long format, cleaned headers), preventing Power BI refresh errors. - Traceability: Normalization events will now appear in your central ETL logs (logs/YYYY-MM-DD_ETL_Run.log). Would you like me to also provide a modified version of the normalize_visual_export_for_backfill.py script that automatically deletes the original raw file after a successful normalization? This Cursor AI prompt is designed to help you implement the 2025_12 backfill and resolve the 4-month data gap identified in your Department-Wide Summons report (Missing March, July, October, and November 2025). Cursor AI Prompt: Implement Summons Backfill & Fix Data Gaps
+Role: Act as a Senior Data Engineer specializing in Power BI (Power Query M) and Python ETL. Context:
+The current Department-Wide Summons | Moving and Parking report is missing four months of data from 2025: March, July, October, and November. We have a comprehensive visual export from December 2025 (2025_12_Monthly Accrual and Usage Summary.csv) that contains the necessary historical backfill. Goal:
+Update the ETL pipeline and Power Query M code to merge the 2025_12 backfill data into the Summons workflow to fill these gaps. Task Requirements:
+
+- Normalization Logic:
+    - Apply scripts/normalize_visual_export_for_backfill.py to the 2025_12 visual export. - Ensure "Sum of Value" or "Sum of [Month]" headers are normalized to standard column names like "Value" or "PeriodLabel" as per the pipeline standard. - Summons Data Merging:
+    - Modify the Summons ETL logic (likely in main_orchestrator.py or the M code summons_all_bureaus.m) to prioritize backfill data for the missing months (03-25, 07-25, 10-25, 11-25). - The pipeline must merge the existing e-ticket exports with these specific backfill months from the Backfill\2025_12\summons\ directory. - Power Query M Code Update:
+    - Update the ___Summons query to dynamically detect and load these missing months from the Backfill folder if they are not present in the primary staging workbook. - Ensure the WG2 (Bureau) column is correctly populated for these backfilled rows to avoid "Blank Bureau" issues in the visuals. - Verification:
+    - Reference scripts/compare_summons_deptwide.py to validate that the gap months now have data counts that match the 2025_12 visual export totals. - Use scripts/diagnose_summons_missing_months.py to confirm all 13 months of the 2025 rolling window are now accounted for. Files to Reference:
+- config/scripts.json
+- m_code/summons_all_bureaus.m
+- scripts/normalize_visual_export_for_backfill.py
+- docs/VISUAL_BACKFILL_AND_EXPORTS_FINDINGS_2026_02_10.md
+Expected Outcome
+- Gap Closure: The Department-Wide Summons report should no longer show gaps for March, July, Oct, or Nov 2025. - Uniformity: All Summons data (new and backfilled) will follow the normalized structure, preventing "Sum of Value" errors in the visuals. - Automation: The run_all_etl.ps1 orchestrator will now automatically include this backfill data during the next refresh. Would you like me to create a secondary prompt specifically for updating the summons_all_bureaus.m file to handle these conditional file loads? ---
+
+**Cursor**
+
+
+Implementing visual export normalization in the orchestrator and reviewing the Summons backfill. Gathering the relevant files and structure. Reading the normalization script and related docs to confirm the interface and expected CSV structure:
+
+
+
+Adding the Visual Export Normalization phase to the orchestrator: inserting it after the ETL script loop and before the Summary block. Fixing the unused-variable lint by not capturing stdout (still reading it so the process doesn’t block). Verifying the normalization script overwrites the file when `--output` equals `--input`:
+
+
+
+Confirming the script reads the file into memory then writes, so in-place overwrite is safe. Adding a short doc that outlines next steps for the Summons backfill and M-code updates. Summary of what’s in place:
+
+---
+
+## 1. Visual Export Normalization in `run_all_etl.ps1`
+
+**Location:** After the ETL script loop, before the Execution Summary. **Behavior:**
+
+- **Detection:** Uses `powerbi_drop_path` from `config/scripts.json` and looks for `*Monthly Accrual and Usage Summary*.csv` in that folder. - **Run:** For each file found, runs:
+  ```powershell
+  python scripts/normalize_visual_export_for_backfill.py --input "<FullPath>" --output "<FullPath>"
+  ```
+  Same path for input and output = in-place normalization in `_DropExports`, so files are ready for `organize_backfill_exports.ps1` to move into the Backfill tree. - **Logging:** Uses `Write-Step`, `Write-Success`, and `Write-Log`; normalization is recorded in the same ETL log (`logs/YYYY-MM-DD_HH-mm-ss_ETL_Run.log`). - **Errors:** If normalization fails for one file, the error is logged and the script continues with the next file (aligned with `continue_on_error`). - **Dry run:** With `-DryRun`, it only lists which files would be normalized and does not run the Python script. So: every time you run the full ETL, any matching “Monthly Accrual and Usage Summary” CSVs in the Power BI drop folder are normalized before you run the backfill organization script. ---
+
+## 2. Summons backfill and M code (documented, not implemented)
+
+The **Summons backfill / data gap** work (merge 2025_12 backfill for 03-25, 07-25, 10-25, 11-25 and update M code) is documented as follow-up in:
+
+**`docs/VISUAL_EXPORT_NORMALIZATION_AND_SUMMONS_BACKFILL.md`**
+
+That doc covers:
+
+- What’s already done (normalization in the orchestrator). - What’s left: Summons ETL merge logic, `summons_all_bureaus.m` (or ___Summons) updates, and verification scripts. - File references and expected outcomes. So the **CSV structure / normalization** side is handled by the new phase; closing the Department-Wide Summons gaps still needs the Summons ETL and M code changes described in that doc (and in your second prompt). If you want, I can implement the Summons ETL merge and/or the M code updates next, or draft a focused prompt for updating `summons_all_bureaus.m` only. ---
+
+**User**
+
+@scripts/overtime_timeoff_with_backfill.py @scripts/run_all_etl.ps1 @config/scripts.json
+
+**Role:** Senior Python/DevOps Engineer
+**Objective:** Implement the "Immediate Stabilization Plan" for the Overtime/TimeOff pipeline to prevent silent failures and harden file discovery. Then, prepare the logic for filling the known Summons data gaps. ---
+
+### Phase 1: Overtime/TimeOff Hardening (Priority)
+
+We need to replace fragile file discovery logic with strict validation. Please implement the following 4 components:
+
+**1. Create `scripts/validate_exports.py`**
+   - Create a pre-flight check script that runs *before* the main ETL. - **Logic:**
+     - Accept a target month (default to current run window). - Check for the exact existence of:
+       - `05_EXPORTS\_Overtime\export\month\YYYY\YYYY_MM_otactivity.xlsx`
+       - `05_EXPORTS\_Time_Off\export\month\YYYY\YYYY_MM_timeoffactivity.xlsx`
+     - Verify they are readable (valid Excel) and contain required columns: `{"Date", "Hours", "Employee", "Group"}`. - Fail fast with a clear exit code if missing or invalid. **2. Refactor `scripts/overtime_timeoff_with_backfill.py`**
+   - **Remove Fallbacks:** Locate `ensure_month_exports_are_xlsx` (or equivalent file finding logic). Remove the complex try/except blocks that search for 12+ filename variations. - **Enforce Strictness:** It must look *only* for the specific `YYYY_MM_otactivity.xlsx` pattern constructed from the run date. - **Conversion:** Keep the `.xls -> .xlsx` conversion logic only as a distinct pre-step, not a fallback search loop. **3. Add Output Schema Validation**
+   - In `overtime_timeoff_with_backfill.py`, add a `validate_fixed_schema(file_path)` function to run before the script exits. - **Checks:**
+     - CSV has columns: `{"YearMonth", "Class", "Metric", "Hours"}`. - `YearMonth` column contains exactly 13 unique months. - `Hours` are numeric/float. - Raise a `ValueError` if validation fails to prevent bad data from reaching Power BI. **4. Create Test Suite `scripts/test_pipeline.bat`**
+   - Create a batch file that runs these steps in order:
+     1. `python scripts/validate_exports.py`
+     2. `python scripts/overtime_timeoff_with_backfill.py --dry-run`
+     3. `python scripts/validate_outputs.py` (or the inline validation check)
+
+---
+
+### Phase 2: Summons Backfill Prep (Secondary)
+
+We have identified data gaps for **Department-Wide Summons** in months: `03-25, 07-25, 10-25, 11-25`. **Task:**
+- Review the Summons ETL entry point (likely `SummonsMaster.py` or `main_orchestrator.py` referenced in config). - **Propose a specific code injection point** where we can merge data from the organized backfill folder (e.g., `Backfill\2025_12\summons\`) for specifically those 4 missing months. - Do not implement the full merge yet; just create a `TODO` comment or a skeleton function `merge_missing_summons_months(df)` in the correct script. **Constraints:**
+- Use the standard logging format defined in existing scripts. - Ensure all paths use the `OneDrive` base path from the environment or config, do not hardcode absolute user paths where possible. ---
+
+**Cursor**
+
+
+Implementing the Immediate Stabilization Plan: reading the Overtime/TimeOff script and config to understand the current structure. Checking for a Summons script in the workspace and how paths are resolved:
+
+
+
+Checking the v10 script's expected columns and the FIXED file schema:
+
+
+
+Implementing Phase 1 and Phase 2. Using pandas for Excel reading (common in this project) and fixing the year/month check:
+
+
+
+Refactoring `ensure_month_exports_are_xlsx` into a strict version and adding `validate_fixed_schema`. Adding the Summons backfill skeleton and injection-point doc. Summary of what was implemented:
+
+---
+
+## Phase 1: Overtime/TimeOff hardening
+
+### 1. **`scripts/validate_exports.py`**
+- **Pre-flight** for the Overtime/TimeOff pipeline. - **Target month:** `--year-month YYYY_MM` or previous month. - **Paths:** `05_EXPORTS\_Overtime\export\month\YYYY\YYYY_MM_otactivity.xlsx` and `05_EXPORTS\_Time_Off\export\month\YYYY\YYYY_MM_timeoffactivity.xlsx` (base from `ONEDRIVE_BASE` or `ONEDRIVE_HACKENSACK` env, or built-in default). - **Checks:** Both files exist, are readable Excel, and have columns `Date`, `Hours`, `Employee`, `Group`. - **Exit codes:** 0 = OK, 1 = missing file, 2 = invalid/read error. ### 2. **`scripts/overtime_timeoff_with_backfill.py`** refactor
+- **Strict file discovery:** `ensure_month_exports_are_xlsx` now looks only for:
+  - `export/month/{year}/{YYYY_MM}_otactivity.xlsx`
+  - `export/month/{year}/{YYYY_MM}_timeoffactivity.xlsx`
+- No more multiple patterns or root fallbacks. If `.xlsx` is missing, it looks for the same base name with `.xls` and runs the existing XLS→XLSX conversion once, then re-checks the `.xlsx` paths. - **Output validation:** `validate_fixed_schema(file_path)`:
+  - Required columns: `YearMonth`, `Class`, `Metric`, `Hours`
+  - Exactly **13** unique values in `YearMonth`
+  - `Hours` numeric (float)
+  - Raises `ValueError` on failure so bad data doesn’t reach Power BI. - Validation runs at the end of `main()` when not `--dry-run` and the FIXED file exists. ### 3. **`scripts/validate_outputs.py`**
+- Standalone check for the FIXED CSV schema (same rules as above). - **Usage:** `python scripts/validate_outputs.py [--fixed path]`. Without `--fixed`, path is inferred from the previous month and default output dir. - Uses `ONEDRIVE_BASE` / `ONEDRIVE_HACKENSACK` for the Overtime_TimeOff dir when set. ### 4. **`scripts/test_pipeline.bat`**
+- **Step 1:** `python scripts\validate_exports.py`
+- **Step 2:** `python scripts\overtime_timeoff_with_backfill.py --dry-run`
+- **Step 3:** `python scripts\validate_outputs.py`
+- Run from **Master_Automation** (batch `cd`s to repo root). Exits on first failure; step 3 reminds you to run the full pipeline if the FIXED file doesn’t exist yet. ---
+
+## Phase 2: Summons backfill prep
+
+### **`scripts/summons_backfill_merge.py`**
+- **Skeleton:** `merge_missing_summons_months(df, backfill_root=None, backfill_month_label="2025_12")` returns `df` unchanged with a TODO to load from `Backfill\2025_12\summons\` for **03-25, 07-25, 10-25, 11-25**, normalize schema, set WG2, and concatenate. - Uses `_get_backfill_root()` (env `ONEDRIVE_BASE` / `ONEDRIVE_HACKENSACK` or default path) and a small logger. ### **`docs/SUMMONS_BACKFILL_INJECTION_POINT.md`**
+- **Injection point:** In **`02_ETL_Scripts/Summons/main_orchestrator.py`** (path from config), after the main summons dataframe is loaded and before writing the staging output, add:
+  - `from summons_backfill_merge import merge_missing_summons_months`
+  - `df = merge_missing_summons_months(df)`
+- Options: copy `summons_backfill_merge.py` into the Summons project, or put `Master_Automation/scripts` on `PYTHONPATH` when running the orchestrator. - Documents gap months, backfill folder layout, and path/logging conventions. ---
+
+**Paths:** All new scripts use `ONEDRIVE_BASE` or `ONEDRIVE_HACKENSACK` when set; otherwise they use the same OneDrive base as in the existing scripts. No hardcoded absolute user paths beyond that default. ---
+
+**User**
+
+Gemini review:
+✅ **Summary of Findings**
+
+The provided scripts represent a significant step toward hardening the ETL pipeline but rely heavily on hardcoded paths (`carucci_r`) and loose file discovery logic ("try 12 variations") that is prone to silent failures. The logic is functional but fragile. The new `summons_backfill_merge.py` is an empty skeleton requiring full implementation. The validation scripts (`validate_exports.py`, `validate_outputs.py`) duplicate path-finding logic and lack environmental flexibility. **Key Issues to Fix:**
+
+1. **Hardcoded Paths:** All scripts default to a specific user's OneDrive path, breaking portability. 2. **Fragile File Discovery:** `overtime_timeoff_with_backfill.py` uses complex fallback logic rather than strict enforcement. 3.

@@ -1,0 +1,435 @@
+---
+
+**Cursor**
+
+
+Splitting into staging queries that load data and a main query that only references them. Creating the full M code for all queries. Creating the staging-query structure: adding a single file that defines all four queries with clear section headers. Creating a helper file that contains only the three staging-query code blocks for easy copy-paste:
+
+
+
+Simplifying the main file: remove the commented staging blocks (they're in the other file) and keep only the main query plus brief instructions. Summary of what’s in place:
+
+---
+
+## 1. **Staging queries (Formula.Firewall fix)**
+
+There are **3 staging queries** that only read from the file system. The **main query** only references these and does no `Folder.Files` or `Csv.Document`. | Query name | Role |
+|------------|------|
+| **Staged_OT_FIXED** | Loads latest `FIXED_monthly_breakdown_*.csv` from the output folder. |
+| **Staged_OT_MonthlyBreakdown** | Loads `monthly_breakdown.csv` from analytics_output. |
+| **Staged_OT_PriorAnchor** | Loads the prior-published summary CSV (for anchoring) from analytics_output, or returns an empty table. |
+
+---
+
+## 2. **Files**
+
+- **`2026_02_10_Overtime_Timeoff_v3.m`** – Header, short setup instructions, and the **main query** only (the `let` that references the 3 staging queries). - **`2026_02_10_Overtime_Timeoff_v3_STAGING_ONLY.m`** – The **3 staging query** `let...in` blocks for copy-paste. Each block is labeled with the query name to use. ---
+
+## 3. **What to do in Power BI**
+
+1. **Create the 3 staging queries** (order doesn’t matter):
+   - New query → **Get Data → Blank Query**. - Name it **`Staged_OT_FIXED`**, open **Advanced Editor**, paste the **first** `let...in` block from `2026_02_10_Overtime_Timeoff_v3_STAGING_ONLY.m` (from `let` through `FixedTypes` and the closing `in`), then **Done**. - Repeat for **`Staged_OT_MonthlyBreakdown`** (second block) and **`Staged_OT_PriorAnchor`** (third block). 2. **Create or replace the main query**:
+   - Create a new blank query (or open the existing one) and name it **`___Overtime_Timeoff_v3`**. - Open **Advanced Editor** and paste the full contents of **`2026_02_10_Overtime_Timeoff_v3.m`** (from the first `let` through the final `Sorted` and `in Sorted`). 3. **Refresh** – the main query will use the three staging queries and should run without the Formula.Firewall error. Query names must match exactly: **Staged_OT_FIXED**, **Staged_OT_MonthlyBreakdown**, **Staged_OT_PriorAnchor**, and **___Overtime_Timeoff_v3**. ---
+
+**User**
+
+step FixedTypes 
+
+kas an error:
+
+Expression.Error: The import Staged_OT_FIXED matches no exports. Did you miss a module reference? ---
+
+**Cursor**
+
+
+Treating the staging query name as a module import. Renaming the staging queries and updating the main query to reference the new names. Referencing the other query explicitly: the "matches no exports" error usually means Power BI isn't resolving the name as a query. Using the standard pattern of assigning the other query to a `Source` step:
+
+
+
+Summary of what was wrong and what was changed:
+
+---
+
+## Cause of the error
+
+**"The import Staged_OT_FIXED matches no exports"** usually means either:
+
+1. There is no query with that exact name in the report, or  
+2. Power Query is treating the name like a module/import instead of a query. So the main query was looking for a query that either didn’t exist or wasn’t recognized. ---
+
+## What was changed
+
+Staging query names were updated so they’re clearly query names and the main query was updated to match. **Use these exact query names in Power BI:**
+
+| Old name (caused error) | New name to use |
+|-------------------------|------------------|
+| Staged_OT_FIXED         | **OT_FIXED_Staged** |
+| Staged_OT_MonthlyBreakdown | **OT_MonthlyBreakdown_Staged** |
+| Staged_OT_PriorAnchor  | **OT_PriorAnchor_Staged** |
+
+- **Main query** (`2026_02_10_Overtime_Timeoff_v3.m`) now references:  
+  `OT_FIXED_Staged`, `OT_MonthlyBreakdown_Staged`, `OT_PriorAnchor_Staged`. - **Staging file** (`2026_02_10_Overtime_Timeoff_v3_STAGING_ONLY.m`) comments were updated to use these same names. ---
+
+## What to do in Power BI
+
+1. **Rename the 3 staging queries** (if you already created them) to:
+   - **OT_FIXED_Staged**
+   - **OT_MonthlyBreakdown_Staged**
+   - **OT_PriorAnchor_Staged**  
+   (Right‑click query → Rename.) 2. **If you haven’t created them yet:** create 3 new Blank queries and name them exactly as above, then paste the corresponding code from `2026_02_10_Overtime_Timeoff_v3_STAGING_ONLY.m` into each. 3. **Refresh the main query** `___Overtime_Timeoff_v3` (or paste in the updated M from `2026_02_10_Overtime_Timeoff_v3.m` and then refresh). The main query only works if those three queries exist and use these exact names. ---
+
+**User**
+
+error around line 27 Expression.SyntaxError: Token Eof expected. ---
+
+**Cursor**
+
+
+Pasting the whole file into one query causes the error: the first `let...in` ends at line 17, then the parser hits the next `let` and reports "Token Eof expected." Splitting the staging code into three separate files so each query has exactly one pasteable block:
+
+
+
+Here’s what was going on and what was changed. ---
+
+## Why you saw "Token Eof expected"
+
+That error appears when **more than one `let...in` block** is in a single Power Query. The file had three blocks in one script. After the first block ends with `in FixedTypes`, the parser expects the query to end. The next `let` (around line 20–27) is invalid in the same query, so you get **Token Eof expected**. So the mistake was pasting the **whole** staging file into **one** query. ---
+
+## What was changed
+
+Staging is now split into **one file per query** so each query gets exactly one `let...in`:
+
+| Query name | File to paste from |
+|------------|--------------------|
+| **OT_FIXED_Staged** | `m_code/OT_FIXED_Staged.m` |
+| **OT_MonthlyBreakdown_Staged** | `m_code/OT_MonthlyBreakdown_Staged.m` |
+| **OT_PriorAnchor_Staged** | `m_code/OT_PriorAnchor_Staged.m` |
+
+`2026_02_10_Overtime_Timeoff_v3_STAGING_ONLY.m` is now only an index with instructions: do **not** paste that file into Power Query; use the three files above instead. ---
+
+## What to do in Power BI
+
+1. **Query 1**  
+   - New Blank Query → Open **OT_FIXED_Staged.m** → Copy **all** → Advanced Editor → Paste → Done. - Rename the query to **OT_FIXED_Staged**. 2. **Query 2**  
+   - New Blank Query → Open **OT_MonthlyBreakdown_Staged.m** → Copy all → Paste into Advanced Editor → Done. - Rename to **OT_MonthlyBreakdown_Staged**. 3. **Query 3**  
+   - New Blank Query → Open **OT_PriorAnchor_Staged.m** → Copy all → Paste into Advanced Editor → Done. - Rename to **OT_PriorAnchor_Staged**. 4. **Main query**  
+   - Use **2026_02_10_Overtime_Timeoff_v3.m** for **___Overtime_Timeoff_v3** as before. Use **one file per query**; that avoids the Eof error. ---
+
+**User**
+
+2026_02_10_Overtime_Timeoff_v3 if i uses that new name the dax measures will break can I use ___Overtime_Timeoff_v3
+
+---
+
+**Cursor**
+
+
+Using ___Overtime_Timeoff_v3 for the main query. The .m filename doesn't set the Power BI query name. Updating the main M file instructions to name the query ___Overtime_Timeoff_v3. Yes. Use **___Overtime_Timeoff_v3** as the main query name. The M code doesn’t depend on the query name; only your DAX and visuals do. So:
+
+- **In Power BI:** Create the main query, paste the M from `2026_02_10_Overtime_Timeoff_v3.m`, and **name the query ___Overtime_Timeoff_v3** (three underscores). Your existing DAX measures will keep working. - **File name:** `2026_02_10_Overtime_Timeoff_v3.m` is just the script file; it doesn’t set the query name. Instructions in the M file and in the staging index are updated to say: name the main query **___Overtime_Timeoff_v3** so DAX measures don’t break. ---
+
+**User**
+
+the visual broke see attached
+
+---
+
+**Cursor**
+
+
+Checking the main query's output column names. Power BI reports "Time_Category" and "Value" as broken — the visual likely expects "Time Category" (space) instead of "Time_Category" (underscore). Renaming the output column to "Time Category" (space) so the visual's field references match. Two more things that often cause “Fields that need to be fixed”:
+
+1. **Re‑bind the fields on the visual**  
+   Even after fixing the query, Power BI may have cleared the field wells. In the visual that uses `___Overtime_Timeoff_v3`:
+   - Put **Time Category** back on the right axis (e.g. Legend or Axis). - Put **Value** back on the values area (e.g. Values), and set its aggregation to **Sum** (or whatever you use). 2. **Refresh the model**  
+   After updating the query and applying the rename:
+   - **Home → Refresh** (or refresh that query). - Then check the visual again. Summary of the change in the M code:
+
+- The query still outputs the same table, but the column is now named **"Time Category"** (with a space) instead of **"Time_Category"** (underscore), so it matches what the visual and DAX expect. Update the main query in Power BI with this M code, refresh, then re-add **Time Category** and **Value** to the visual if they were removed. If the error persists, say what the visual is (e.g. “stacked bar by category and period”) and we can align the field names exactly. ---
+
+**User**
+
+m code returns an error
+Expression.Error: The import OT_PriorAnchor_Staged matches no exports. Did you miss a module reference? ---
+
+**Cursor**
+
+
+Renaming the staging queries to simpler names so Power BI won't treat them as module imports:
+
+
+
+Renaming the staging queries to short names that are less likely to be treated as module imports:
+
+
+
+Creating staging files with the new names and updating the index:
+
+
+
+Summary of what was changed:
+
+---
+
+## 1. **Main query** (`2026_02_10_Overtime_Timeoff_v3.m`)
+
+It now references these three staging query names:
+
+- **OT_FIXED**
+- **OT_MB**
+- **OT_Prior**
+
+(No `_Staged`; shorter names to reduce “matches no exports” / module-style resolution.) ---
+
+## 2. **Staging query names in Power BI**
+
+Rename your three staging queries in Power BI to match exactly:
+
+| Old name (if you had it)   | New name to use |
+|----------------------------|------------------|
+| OT_FIXED_Staged            | **OT_FIXED**     |
+| OT_MonthlyBreakdown_Staged | **OT_MB**        |
+| OT_PriorAnchor_Staged      | **OT_Prior**     |
+
+- Right‑click each query → **Rename**. - Use the new names exactly as above (case and spelling). ---
+
+## 3. **Staging .m files**
+
+- File names are unchanged:  
+  `OT_FIXED_Staged.m`, `OT_MonthlyBreakdown_Staged.m`, `OT_PriorAnchor_Staged.m`
+- The comments inside each file now say to name the query **OT_FIXED**, **OT_MB**, or **OT_Prior**. - The index file `2026_02_10_Overtime_Timeoff_v3_STAGING_ONLY.m` is updated to list these three names. ---
+
+## 4. **What you should do**
+
+1. In Power BI, rename the three staging queries to **OT_FIXED**, **OT_MB**, and **OT_Prior**. 2. Paste the updated main query from `2026_02_10_Overtime_Timeoff_v3.m` into **___Overtime_Timeoff_v3** (or create that query and paste). 3. Refresh the main query. Using these short, exact names should resolve the “import … matches no exports” error. ---
+
+**User**
+
+step FixedTypes has error:
+Expression.Error: The import OT_FIXED matches no exports. Did you miss a module reference? ---
+
+**Cursor**
+
+
+Power BI is treating `OT_FIXED` as a module import instead of a query. Try using the quoted form so it’s clearly a query reference:
+
+**Change:**
+```powerquery
+FixedTypes = OT_FIXED,
+```
+
+**To:**
+```powerquery
+FixedTypes = #"OT_FIXED",
+```
+
+Do the same for the other two:
+
+- `MBTypes = #"OT_MB"`
+- `PriorAccrualsNorm = #"OT_Prior"`
+
+`#"..."` tells Power Query to treat the name as an identifier (e.g. a query name) instead of a module import. ---
+
+**User**
+
+@m_code/2026_02_10____Overtime_Timeoff_v3.m @m_code/2026_02_10_Overtime_Timeoff_v3_STAGING_ONLY.m @m_code/2026_02_10_Overtime_Timeoff_v3.m which version do i use? ---
+
+**Cursor**
+
+
+Checking what each file contains:
+
+
+
+Here’s how to use each file:
+
+---
+
+| File | Use it for |
+|------|------------|
+| **2026_02_10_Overtime_Timeoff_v3.m** (73 lines) | **Main query** – paste this into the **___Overtime_Timeoff_v3** query in Power BI. This is the one to use. |
+| **2026_02_10_Overtime_Timeoff_v3_STAGING_ONLY.m** (18 lines) | **Instructions only** – read it to see which staging files to use and how to name the 3 staging queries. Do **not** paste this file into Power Query. |
+| **2026_02_10____Overtime_Timeoff_v3.m** (167 lines) | **Don’t use** – same logic as the 73-line file but reformatted and with a typo (`() = >` instead of `() =>`). Use the 73-line file instead. |
+
+---
+
+**Summary**
+
+- **Main query in Power BI:** use **2026_02_10_Overtime_Timeoff_v3.m** (the 73-line file). - **Staging:** follow **2026_02_10_Overtime_Timeoff_v3_STAGING_ONLY.m** and paste from **OT_FIXED_Staged.m**, **OT_MonthlyBreakdown_Staged.m**, and **OT_PriorAnchor_Staged.m** into three separate queries named **OT_FIXED**, **OT_MB**, and **OT_Prior**. - Ignore **2026_02_10____Overtime_Timeoff_v3.m** (the 167-line file with four underscores). ---
+
+**User**
+
+@m_code/2026_02_10_Overtime_Timeoff_v3.m was used and returned Expression.Error: The import OT_FIXED matches no exports. Did you miss a module reference? at step FixedTypes
+
+---
+
+**Cursor**
+
+
+Adding the quoted-identifier form (#"OT_FIXED", #"OT_MB", #"OT_Prior") so Power Query resolves them as query references. Updates are in place: the main query now references the staging queries with the quoted form so they’re treated as query names, not module imports:
+
+- `FixedTypes = #"OT_FIXED"`
+- `MBTypes = #"OT_MB"`
+- `PriorAccrualsNorm = #"OT_Prior"`
+
+**What to do:** Copy the updated M from `2026_02_10_Overtime_Timeoff_v3.m` into your **___Overtime_Timeoff_v3** query in Power BI and refresh. **Check:** In Power BI, the three staging queries are named exactly **OT_FIXED**, **OT_MB**, and **OT_Prior** (no extra spaces). If the error continues, say whether you’re in Power BI Desktop or the Power BI service, and we can try another approach. ---
+
+**User**
+
+gemini provided the following because the error remains
+
+The error `The name 'OT_FIXED' wasn't recognized` occurs because of a mismatch between the **Query Names** in your Power BI/Excel workbook and the **Variable Names** used in your M code. Your main query expects to find three queries named exactly `OT_FIXED`, `OT_MB`, and `OT_Prior`. However, your XML/Mashup data shows you named them `OT_FIXED_Staged`, `OT_MonthlyBreakdown_Staged`, and `OT_PriorAnchor_Staged`. ### The Solution: Rename the Staging Queries
+
+To fix this without rewriting all your logic, rename your helper queries in the **Queries** pane (left side of the Power Query editor) to match the names the main script is looking for:
+
+1. **Rename** `OT_FIXED_Staged` to **`OT_FIXED`**
+2. **Rename** `OT_MonthlyBreakdown_Staged` to **`OT_MB`**
+3. **Rename** `OT_PriorAnchor_Staged` to **`OT_Prior`**
+
+---
+
+### Alternative: Update the Main Script
+
+If you prefer to keep the long names for your staging queries, you must update the `let` block in your **`___Overtime_Timeoff_v3`** query to reference the existing names:
+
+```powerquery
+// Update these lines at the beginning of your main let block:
+let
+    // ... existing setup variables ...
+
+    FixedTypes = #"OT_FIXED_Staged",                     // Changed from #"OT_FIXED"
+    // ...
+    MBTypes    = #"OT_MonthlyBreakdown_Staged",          // Changed from #"OT_MB"
+    // ...
+    PriorAccrualsNorm = #"OT_PriorAnchor_Staged",        // Changed from #"OT_Prior"
+    
+    // ... rest of the script remains the same
+
+```
+
+### Why this happens
+
+In Power Query, when you use the syntax `#"Query Name"`, it is a direct reference to another query in the same workbook. If the query name in the side panel does not match that string exactly (case-sensitive), the engine cannot "recognize" it and throws the expression error. ### Formula.Firewall Note
+
+The comments in your script mention a firewall fix. By ensuring these staging queries are separate and only referenced by name in your main query, you satisfy the firewall's requirement that "Data Privacy" levels remain segregated during combinations. **Would you like me to generate a fully consolidated M script that includes all four queries in one block, or do you prefer keeping them as separate helper queries? **
+
+---
+
+**Cursor**
+
+
+Updating the main query to reference the staging query names you're using: OT_FIXED_Staged, OT_MonthlyBreakdown_Staged, OT_PriorAnchor_Staged. The main query is updated to use the staging query names you have in Power BI:
+
+- `#"OT_FIXED_Staged"`
+- `#"OT_MonthlyBreakdown_Staged"`
+- `#"OT_PriorAnchor_Staged"`
+
+The setup comment in the file now says the staging queries must be named exactly **OT_FIXED_Staged**, **OT_MonthlyBreakdown_Staged**, and **OT_PriorAnchor_Staged**. **What to do:** Paste the updated M from `2026_02_10_Overtime_Timeoff_v3.m` into your **___Overtime_Timeoff_v3** query and refresh. No need to rename the staging queries. ---
+
+**User**
+
+the visual is still broken
+
+
+would the consolidated m code gemini provided work to fix the visual
+
+let
+    /* =========================================================================
+       SECTION 1: STAGING QUERIES (Internal Data Loading)
+       ========================================================================= */
+    
+    // 1. Load FIXED Monthly Breakdown Data
+    OT_FIXED = let
+        BasePath     = "C:\Users\carucci_r\OneDrive - City of Hackensack",
+        OutputFolder = BasePath & "\02_ETL_Scripts\Overtime_TimeOff\output",
+        OutFiles     = Folder.Files(OutputFolder),
+        FixedFiltered = Table.SelectRows(OutFiles, each Text.Contains([Name], "FIXED_monthly_breakdown") and Text.EndsWith([Name], ".csv")),
+        FixedSorted   = Table.Sort(FixedFiltered, {{"Date modified", Order.Descending}}),
+        FixedContent  = if Table.RowCount(FixedSorted) > 0 then FixedSorted{0}[Content] else null,
+        FixedCsv      = if FixedContent <> null then Csv.Document(FixedContent, [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]) else #table({}, {}),
+        FixedHeaders  = Table.PromoteHeaders(FixedCsv, [PromoteAllScalars=true]),
+        FixedReordered = Table.ReorderColumns(FixedHeaders, {"Year","Month","Month_Name","Period","Date", "Accrued_Comp_Time","Accrued_Overtime_Paid", "Employee_Sick_Time_Hours","Used_SAT_Time_Hours","Vacation_Hours", "Used_Comp_Time","Military_Leave_Hours","Injured_on_Duty_Hours"}),
+        FixedTypes    = Table.TransformColumnTypes(FixedReordered, {{"Year", Int64.Type}, {"Month", Int64.Type}, {"Month_Name", type text}, {"Period", type text}, {"Date", type date}, {"Accrued_Comp_Time", type number}, {"Accrued_Overtime_Paid", type number}, {"Employee_Sick_Time_Hours", type number}, {"Used_SAT_Time_Hours", type number}, {"Vacation_Hours", type number}, {"Used_Comp_Time", type number}, {"Military_Leave_Hours", type number}, {"Injured_on_Duty_Hours", type number}})
+    in
+        FixedTypes,
+
+    // 2. Load Current Monthly Breakdown Data
+    OT_MB = let
+        BasePath        = "C:\Users\carucci_r\OneDrive - City of Hackensack",
+        AnalyticsFolder = BasePath & "\02_ETL_Scripts\Overtime_TimeOff\analytics_output",
+        AFiles          = Folder.Files(AnalyticsFolder),
+        MBFile          = Table.SelectRows(AFiles, each [Name] = "monthly_breakdown.csv"),
+        MBCont          = if Table.RowCount(MBFile) > 0 then MBFile{0}[Content] else null,
+        MBCsv           = if MBCont <> null then Csv.Document(MBCont, [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]) else #table({}, {}),
+        MBHeaders       = Table.PromoteHeaders(MBCsv, [PromoteAllScalars=true]),
+        MBTypes         = Table.TransformColumnTypes(MBHeaders, {{"YearMonth", type text}, {"Class", type text}, {"Metric", type text}, {"Hours", type number}})
+    in
+        MBTypes,
+
+    // 3. Load Prior Anchor Data for Scaling
+    OT_Prior = let
+        BasePath        = "C:\Users\carucci_r\OneDrive - City of Hackensack",
+        AnalyticsFolder = BasePath & "\02_ETL_Scripts\Overtime_TimeOff\analytics_output",
+        AFiles          = Folder.Files(AnalyticsFolder),
+        Candidates      = Table.SelectRows(AFiles, each Text.Contains([Name], "Monthly_Accrual_and_Usage_Summary") and Text.EndsWith([Name], ".csv")),
+        IsPriorFile     = (content as binary) as logical =>
+            let
+                Raw  = Csv.Document(content, [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+                T    = Table.PromoteHeaders(Raw, [PromoteAllScalars=true]),
+                Cols = List.RemoveItems(Table.ColumnNames(T), {"Time Category"})
+            in
+                List.Contains(Cols, "08-25") and not List.Contains(Cols, "09-25"),
+        WithFlag     = Table.AddColumn(Candidates, "IsPrior", each IsPriorFile([Content]), type logical),
+        Filtered    = Table.SelectRows(WithFlag, each [IsPrior] = true),
+        PriorSorted = Table.Sort(Filtered, {{"Date modified", Order.Descending}}),
+        PriorCont   = if Table.RowCount(PriorSorted) > 0 then PriorSorted{0}[Content] else null,
+        PriorCsvRaw = if PriorCont <> null then Csv.Document(PriorCont, [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]) else #table({}, {}),
+        PriorCsv    = Table.PromoteHeaders(PriorCsvRaw, [PromoteAllScalars=true]),
+        HasTimeCategory = List.Contains(Table.ColumnNames(PriorCsv), "Time Category"),
+        PriorAccruals   = if HasTimeCategory then
+            let
+                Keep = Table.SelectRows(PriorCsv, each [#"Time Category"] = "Accrued Comp. Time" or [#"Time Category"] = "Accrued Overtime"),
+                Unp  = Table.UnpivotOtherColumns(Keep, {"Time Category"}, "Period", "Total"),
+                Ren  = Table.RenameColumns(Unp, {{"Time Category", "Metric"}}),
+                Typ  = Table.TransformColumnTypes(Ren, {{"Total", type number}})
+            in Typ
+            else #table({"Metric", "Period", "Total"}, {}),
+        Trimmed     = Table.TransformColumns(PriorAccruals, {{"Metric", Text.Trim, type text}, {"Period", Text.Trim, type text}}),
+        WithLabel   = Table.AddColumn(Trimmed, "PeriodLabel", each let mm = Text.Start([Period], 2), yy = Text.End([Period], 2), y = Number.FromText("20" & yy), m = Number.FromText(mm), d = #date(y, m, 1) in Date.ToText(d, "MM-yy"), type text),
+        PriorAccrualsNorm = Table.SelectColumns(WithLabel, {"Metric", "PeriodLabel", "Total"})
+    in
+        PriorAccrualsNorm,
+
+    /* =========================================================================
+       SECTION 2: MAIN TRANSFORMATION LOGIC
+       ========================================================================= */
+    UseAnchoring = true,
+    CutoverLabel = "09-25",
+    CutoverDate  = #date(Number.FromText("20" & Text.End(CutoverLabel, 2)), Number.FromText(Text.Start(CutoverLabel, 2)), 1),
+
+    NowDT     = DateTime.LocalNow(),
+    CurrY     = Date.Year(NowDT),
+    CurrM     = Date.Month(NowDT),
+    EndY      = if CurrM = 1 then CurrY - 1 else CurrY,
+    EndM      = if CurrM = 1 then 12 else CurrM - 1,
+    StartY    = EndY - 1,
+    StartM    = EndM,
+    StartDate = #date(StartY, StartM, 1),
+    EndDate   = #date(EndY, EndM, 1),
+    MonthList = List.Generate(() => StartDate, each _ <= EndDate, each Date.AddMonths(_, 1)),
+    PeriodKeysYYYYMM = List.Transform(MonthList, each Text.From(Date.Year(_)) & "-" & Text.PadStart(Text.From(Date.Month(_)), 2, "0")),
+    PeriodLabelsMMYY = List.Transform(MonthList, each Text.PadStart(Text.From(Date.Month(_)), 2, "0") & "-" & Text.End(Text.From(Date.Year(_)), 2)),
+
+    // Processing Fixed Legacy Data
+    Fixed13      = Table.SelectRows(OT_FIXED, each List.Contains(PeriodKeysYYYYMM, [Period])),
+    LegacySelect = Table.SelectColumns(Fixed13, {"Period", "Employee_Sick_Time_Hours", "Used_SAT_Time_Hours", "Vacation_Hours", "Used_Comp_Time", "Military_Leave_Hours", "Injured_on_Duty_Hours"}),
+    LegacyUnpivot = Table.Unpivot(LegacySelect, {"Employee_Sick_Time_Hours", "Used_SAT_Time_Hours", "Vacation_Hours", "Used_Comp_Time", "Military_Leave_Hours", "Injured_on_Duty_Hours"}, "Orig", "Value"),
+    NameMap = #table({"Orig", "Time_Category"}, {{"Employee_Sick_Time_Hours","Employee Sick Time (Hours)"}, {"Used_SAT_Time_Hours","Used SAT Time (Hours)"}, {"Vacation_Hours","Vacation (Hours)"}, {"Used_Comp_Time","Comp (Hours)"}, {"Military_Leave_Hours","Military Leave (Hours)"}, {"Injured_on_Duty_Hours","Injured on Duty (Hours)"}}),
+    LegacyJoin   = Table.NestedJoin(LegacyUnpivot, {"Orig"}, NameMap, {"Orig"}, "Lk", JoinKind.LeftOuter),
+    LegacyNamed  = Table.TransformColumns(LegacyJoin, {{"Lk", each if _ <> null and Table.RowCount(_) > 0 then _{0}[Time_Category] else null}}),
+    LegacyPrep   = Table.TransformColumns(Table.RenameColumns(LegacyNamed, {{"Lk", "Time_Category"}}), {{"Value", each if _ = null then 0 else _, type number}}),
+    LegacyWithLabel = Table.AddColumn(LegacyPrep, "PeriodLabel", each Date.ToText(Date.FromText([Period] & "-01"), "MM-yy"), type text),
+
+    // Processing Monthly Breakdown Data
+    MBWindow    = Table.SelectRows(OT_MB, each List.Contains(PeriodKeysYYYYMM, [YearMonth])),
+    MBAccrual   = Table.SelectRows(MBWindow, each [Metric] = "Accrued Comp.

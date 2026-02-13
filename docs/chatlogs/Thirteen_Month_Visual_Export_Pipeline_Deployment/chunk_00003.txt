@@ -1,0 +1,229 @@
+---
+
+### 🛠️ Corrections (with Explanations)
+
+No corrections are required. The code provided applies all previous fixes correctly. * **PowerShell:** `run_all_etl.ps1` correctly implements the `$OneDriveBase` logic and uses `Join-Path` for safety. * **Python:** `summons_backfill_merge.py` includes the specific `reindex` safety check (`if len(df.columns) > 0`) and the "Wide format" detection warning requested in the review. ---
+
+### 🚀 Enhancements & Optimizations
+
+1. **Orchestrator Visual Normalization:**
+* In `run_all_etl.ps1`, the Visual Export Normalization block (Lines 523+) iterates over files in `_DropExports`. * **Optimization:** Ensure the `normalize_visual_export_for_backfill.py` script (called via `$normalizeScript`) is also using the centralized path config if it handles paths internally. (Based on context, it likely takes absolute paths from CLI args, which `run_all_etl.ps1` provides correctly). 2. **Backfill Month Logic:**
+* In `overtime_timeoff_with_backfill.py`, the backfill month logic (Lines 289-296) tries the current `end_month` first, then falls back to `prev_month`. * **Enhancement:** Ensure this aligns with the manual workflow. If a user runs this on Feb 1st (End Month = Jan), they might not have exported the Jan visual yet. The fallback correctly handles using the Dec backfill. This logic is sound but relies on the user understanding that "Current Month" data (Jan) comes from the *calculation*, not the backfill. ---
+
+### ⚠️ Blind Spots & Potential Issues
+
+1. **Python Environment Consistency:**
+* **Risk:** `run_all_etl.ps1` calls `$settings.python_executable`. If this executable points to a venv that doesn't have `pandas` or `openpyxl` installed, `validate_exports.py` and `summons_backfill_merge.py` will fail immediately. * **Mitigation:** Ensure the `requirements.txt` for the environment pointed to by `python_executable` in `config/scripts.json` includes `pandas` and `openpyxl`. 2. **Visual Export Date Formats:**
+* **Risk:** `summons_backfill_merge.py` strictly expects `MM-YY` (e.g., `03-25`) for gap months. If the visual export format settings in Power BI change to `Month YYYY` (e.g., `March 2025`), the split logic will fail. * **Mitigation:** The script currently logs a warning and skips the file. This is safe (no crash), but requires monitoring logs if data seems missing. ---
+
+### 📘 Best Practices
+
+* **Defensive Coding:** `summons_backfill_merge.py` checks `if len(parts) != 2` and `if not (mm.isdigit()...)` before processing, preventing hard crashes on malformed filenames. * **Portability:** The PowerShell script's use of `$env:ONEDRIVE_BASE` mirrors the Python `path_config.py` logic, maintaining a "single source of truth" concept even across languages. * **User Feedback:** The PowerShell script uses ANSI colors (when supported) to clearly distinguish Steps, Successes, and Failures, improving the operator experience. ---
+
+**Cursor**
+
+
+Checking the normalize script for path usage and adding dependency documentation. Applying the enhancement (normalize script path config) and adding dependency documentation. Adding a brief Python environment note to the README:
+
+
+
+Summary of what was implemented from the review:
+
+---
+
+## 1. **`normalize_visual_export_for_backfill.py` – Centralized path**
+
+- **Path config:** Uses the same pattern as the other scripts:
+  - `try: from path_config import get_onedrive_root` with an inline fallback that reads `ONEDRIVE_BASE` / `ONEDRIVE_HACKENSACK`. - **Default backfill root:** Replaced the hardcoded `BACKFILL_ROOT_DEFAULT` with `_default_backfill_root()` so the default is `get_onedrive_root() / "PowerBI_Date" / "Backfill"`. - **`--backfill-root`:** Default is now `None`; when omitted, `backfill_root` is set from `_default_backfill_root()` before computing the output path. Standalone runs (without `--output`) now follow the same OneDrive base as the rest of the pipeline. ---
+
+## 2. **`requirements.txt`**
+
+- **New file** at repo root with:
+  - `pandas>=1.3.0`
+  - `openpyxl>=3.0.0`
+  - Short comments that these are for `validate_exports.py` and `summons_backfill_merge.py`, and that the env used by `config/scripts.json`’s `python_executable` should have them installed. ---
+
+## 3. **Docs**
+
+- **`README.md`:** New **“Python environment”** subsection under Quick Start telling users to run `pip install -r requirements.txt` so the orchestrator’s Python has `pandas` and `openpyxl`. - **`docs/SUMMONS_BACKFILL_INJECTION_POINT.md`:**  
+  - Dependencies section updated to say the env pointed to by `python_executable` must have these packages and to install via `pip install -r requirements.txt`. - New caveat: **“Visual export date format”** – backfill merge expects `MM-YY`; if Power BI uses something else (e.g. “March 2025”), the script logs and skips, so logs should be checked if backfill looks missing. ---
+
+**Review notes covered:**  
+- Normalize script now uses the shared path strategy. - Python env/deps are documented and pinned in `requirements.txt`. - Visual export date format risk is documented as a caveat. - No code changes were requested for backfill-month logic or PowerShell beyond what was already in place. ---
+
+**User**
+
+update local git and all docs (example changelog, summary, readme, claude.md, etc)
+
+---
+
+**Cursor**
+
+
+Updating documentation and git: reading CHANGELOG, SUMMARY, Claude.md, and the README to determine the correct format and entries. Updating the CHANGELOG, SUMMARY, and CLAUDE.md, then staging and committing changes. Staging and committing documentation and code changes. Summary of what was updated and committed:
+
+---
+
+## Documentation updates
+
+### **CHANGELOG.md**
+- **\[1.14.0] - 2026-02-12**: New section for:
+  - Path centralization (path_config.py, $OneDriveBase)
+  - Overtime/TimeOff hardening (validate_exports, validate_outputs, strict discovery, validate_fixed_schema, test_pipeline.bat)
+  - Visual Export Normalization phase in run_all_etl.ps1
+  - Summons backfill (summons_backfill_merge.py, injection-point docs)
+  - normalize_visual_export path config, requirements.txt, doc updates
+  - Fix: no hardcoded user paths when env is set
+
+### **SUMMARY.md**
+- Version set to **1.14.0**, Last Updated **2026-02-12**
+- New bullets: path portability, Overtime/TimeOff hardening, Visual export normalization, Summons backfill prep
+- Directory structure: `requirements.txt`; scripts list now includes path_config, validate_exports, validate_outputs, test_pipeline.bat, summons_backfill_merge, normalize_visual_export
+- Quick Start: “Python environment” and `pip install -r requirements.txt`
+
+### **CLAUDE.md**
+- **Active Code**: run_all_etl (OneDriveBase, normalization), path_config, validate_exports, validate_outputs, test_pipeline.bat, summons_backfill_merge, normalize_visual_export
+- **Configuration & Docs**: requirements.txt, VISUAL_EXPORT_NORMALIZATION_AND_SUMMONS_BACKFILL.md, SUMMONS_BACKFILL_INJECTION_POINT.md
+- **Key Paths**: Note on portability (ONEDRIVE_BASE / $OneDriveBase), paths shown as `<OneDrive>\...`
+- **Recent Updates (2026-02-12)**: New v1.14.0 subsection
+- **Current System Status**: Version 1.14.0, recent updates line updated
+- Footer: *Last updated: 2026-02-12 | Format version: 3.5*
+
+### **README.md**
+- Directory structure: `requirements.txt`; scripts list includes path_config, validate_exports, validate_outputs, test_pipeline.bat, summons_backfill_merge, normalize_visual_export (Python environment and `pip install -r requirements.txt` were already there)
+
+---
+
+## Git commit
+
+- **Branch**: `docs/update-20260114-1447`
+- **Commit**: `b435a20` — **v1.14.0: Path centralization, Overtime/TimeOff hardening, Summons backfill prep**
+- **14 files changed**, 896 insertions, 148 deletions  
+- New files: requirements.txt, path_config.py, validate_exports.py, validate_outputs.py, test_pipeline.bat, summons_backfill_merge.py, VISUAL_EXPORT_NORMALIZATION_AND_SUMMONS_BACKFILL.md, SUMMONS_BACKFILL_INJECTION_POINT.md  
+- Modified: CHANGELOG, SUMMARY, CLAUDE, README, run_all_etl.ps1, overtime_timeoff_with_backfill.py, normalize_visual_export_for_backfill.py  
+
+Untracked items (data/visual_export CSVs, docs/chatlogs, docs/image, etc.) were not added; you can add and commit them separately if you want. ---
+
+**User**
+
+@Standards directory tree @normalize_visual_export_for_backfill.py @run_all_etl.ps1
+
+I need to build a robust system for processing Power BI visual exports. Please execute the following three-part plan:
+
+### Part 1: Create Standardized Configuration
+Create a new directory `Standards/config/powerbi_visuals` and generate a JSON file named `visual_export_mapping.json` inside it. This JSON must map the "Page Name" and "Visual Name" to a standardized filename and configuration. Use the following schema for the JSON entries:
+```json
+{
+  "page_name": "String",
+  "visual_name": "String",
+  "standardized_filename": "String (snake_case)",
+  "requires_normalization": Boolean,
+  "is_backfill_required": Boolean, // Set to true only for the specific list below
+  "target_folder": "String" // e.g., "Arrests", "Summons", "ResponseTime"
+}
+
+```
+
+**Data to Populate:**
+Use the list below to populate the JSON. * **Note:** For "13-Month NIBRS Clearance Rate Trend", treat it as a constant name (ignore date ranges in the export title). * **Note:** For "Average Response Times  Values", handle the double space/pipe issue in the matching logic. * **Backfill Requirements:** Set `is_backfill_required: true` ONLY for:
+* "Department-Wide Summons  Moving and Parking"
+* "DFR Activity Performance Metrics"
+* "Non-DFR Performance Metrics"
+* "Training Cost by Delivery Method"
+
+
+
+**(Insert the full list of Page/Visual names provided in the prompt here into the JSON)**
+
+### Part 2: Create Processing Script
+
+Create a new Python script `scripts/process_powerbi_exports.py` that performs the following logic:
+
+1. **Load Configuration:** Read the `visual_export_mapping.json`. 2. **Scan Directory:** Look for CSV files in `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\_DropExports`. 3. **Match & Rename:** * Match the raw exported filename (which usually contains the Visual Name) against the JSON `visual_name`. Implement fuzzy matching or robust string cleaning to handle the "Average Response Times" spacing issue. * Rename the file to: `YYYY_MM_{standardized_filename}.csv` (infer Date from filename or file metadata, default to previous month if unknown). 4. **Normalize:** * If `requires_normalization` is true, import and use the logic from `@normalize_visual_export_for_backfill.py` to clean the data. 5. **Move/Archive:**
+* Move processed files to the correct destination: `C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Standards\Processed_Exports\{target_folder}`. * If `is_backfill_required` is true, also copy the file to the pipeline's Backfill folder (`.../PowerBI_Date/Backfill`). ### Part 3: Verification
+
+Add a `verify_processing()` function to the script that:
+
+* Checks that the source folder `_DropExports` is empty. * Verifies that the destination files exist and are not empty. * Prints a summary report of actions taken (Files Renamed, Files Normalized, Files Moved). **Context Constraints:**
+
+* Use `pathlib` for all path handling. * Ensure the script handles the "Text Box" visual case (Administrative Commander) by ignoring it or logging a "Skipped" message if found. ```
+
+```
+
+---
+
+**Cursor**
+
+
+Building the three-part system. Searching the codebase for Power BI visual names and export patterns to populate the mapping. Checking the normalize script's interface and the Standards directory:
+
+
+
+Implementing all three parts: creating the Standards directory and mapping file, then the processing script. Creating the processing script. Adding a short README for the mapping config and fixing the duplicate `dest_dir.mkdir` in the else branch. Summary of what’s in place:
+
+---
+
+### Part 1: Standardized configuration
+
+- **`Standards/config/powerbi_visuals/visual_export_mapping.json`**  
+  - Schema: `page_name`, `visual_name`, `standardized_filename`, `requires_normalization`, `is_backfill_required`, `target_folder`. - **Backfill required** (`is_backfill_required: true`) only for: Department-Wide Summons Moving and Parking, DFR Activity Performance Metrics, Non-DFR Performance Metrics, Training Cost by Delivery Method. - NIBRS: constant name “13-Month NIBRS Clearance Rate Trend” (no date in title). - Average Response Times: `match_aliases` for double space / “Values are in mmss”. - `skip_patterns`: “Text Box”, “Administrative Commander”. - **`Standards/config/powerbi_visuals/README.md`**  
+  - Describes the JSON schema and how to run the processing script. ---
+
+### Part 2: Processing script
+
+- **`scripts/process_powerbi_exports.py`**  
+  - Loads the mapping JSON from `Standards/config/powerbi_visuals/visual_export_mapping.json`. - Scans source (default: `Master_Automation/_DropExports`) for CSVs. - Matches by normalizing the filename stem and optional `match_aliases`; skips `skip_patterns`. - Infers `YYYY_MM` from filename or file mtime (fallback: previous month). - Renames to `YYYY_MM_{standardized_filename}.csv`. - If `requires_normalization`: runs `normalize_visual_export_for_backfill.py --input <path> --output <path>` (subprocess). - Moves/copies to `09_Reference/Standards/Processed_Exports/{target_folder}` (via `path_config.get_onedrive_root()`). - If `is_backfill_required`: copies to `PowerBI_Date/Backfill/YYYY_MM/{target_folder}`. - Uses `pathlib` and `path_config` for all paths. ---
+
+### Part 3: Verification
+
+- **`verify_processing()`**  
+  - Ensures source has no remaining CSVs. - Checks that expected destination files exist and are non-empty. - Prints a summary: Files Renamed, Files Normalized, Files Moved, and any errors. **Usage**
+
+```powershell
+python scripts/process_powerbi_exports.py              # Run
+python scripts/process_powerbi_exports.py --dry-run    # Preview
+python scripts/process_powerbi_exports.py --verify-only  # Report only
+```
+
+**Note:** The prompt said “(Insert the full list of Page/Visual names provided in the prompt here into the JSON)” but no list was included. The JSON is populated with a representative set (Monthly Accrual, Response Times, NIBRS, Summons, DFR/Non-DFR, Training, Engagement, Chief’s Projects, Arrests, Use of Force, etc.). You can extend `visual_export_mapping.json` with any additional page/visual names you use. If you want, we can wire `process_powerbi_exports.py` into `run_all_etl.ps1` (e.g. after the existing Visual Export Normalization step) or add more entries to the mapping from your actual export list. ---
+
+**User**
+
+@Standards @scripts/normalize_visual_export_for_backfill.py @scripts/validate_exports.py @scripts/overtime_timeoff_with_backfill.py
+
+I need to formalize the ETL pipeline for Power BI exports. We are moving from ad-hoc processing to a configuration-driven approach. Please perform the following 4 steps. ### Step 1: Create Configuration File
+Create a new file `Standards/config/powerbi_visuals/visual_export_mapping.json`. Populate it with the schema below. I have explicitly defined the mappings for the files we are working on today. ```json
+{
+  "mappings": [
+    {
+      "visual_name": "Department-Wide Summons  Moving and Parking",
+      "standardized_filename": "department_wide_summons_moving_and_parking",
+      "requires_normalization": true,
+      "is_backfill_required": true,
+      "target_folder": "Summons"
+    },
+    {
+      "visual_name": "Training Cost by Delivery Method",
+      "standardized_filename": "training_cost_by_delivery_method",
+      "requires_normalization": true,
+      "is_backfill_required": true,
+      "target_folder": "Training"
+    },
+    {
+      "visual_name": "Monthly Accrual and Usage Summary",
+      "standardized_filename": "monthly_accrual_and_usage_summary",
+      "requires_normalization": true,
+      "is_backfill_required": false,
+      "target_folder": "Time_Off"
+    }
+  ]
+}
+
+```
+
+### Step 2: Create Processing Script
+
+Create `scripts/process_powerbi_exports.py`. **Requirements:**
+
+1. **Paths:** Use `pathlib`. * Source: `Master_Automation/_DropExports` (Assume relative path from repo root or use environment variables). * Config: Read the JSON created in Step 1. 2. **Logic:**
+* Iterate through files in Source. * Match filename to `visual_name` in JSON (Implement robust string matching to handle extra spaces). * **Rename:** Rename to `YYYY_MM_{standardized_filename}.csv`. Infer date from filename; default to previous month if not found. * **Normalize:** If `requires_normalization` is true, import `normalize_visual_export_for_backfill` and run it. * **Move:** Move to `09_Reference/Standards/Processed_Exports/{target_folder}`. * **Backfill:** If `is_backfill_required` is true, copy to `PowerBI_Date/Backfill`.

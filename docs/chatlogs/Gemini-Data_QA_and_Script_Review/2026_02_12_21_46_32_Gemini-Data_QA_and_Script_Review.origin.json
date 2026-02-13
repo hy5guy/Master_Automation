@@ -1,0 +1,42 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "dataset",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "data",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "time",
+        "hours",
+        "csv",
+        "12-25",
+        "comp",
+        "sum"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "{\n  \"metadata\": {\n    \"title\": \"Data QA and Script Review\",\n    \"user\": {\n      \"name\": \"RAC\"\n    },\n    \"dates\": {\n      \"exported\": \"2/12/2026 21:40:31\"\n    },\n    \"link\": \"https://gemini.google.com/app/4befd3bab3bce8a9\",\n    \"powered_...",
+      "first_line": "{"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-12T21:46:32.261855",
+  "department": "admin"
+}

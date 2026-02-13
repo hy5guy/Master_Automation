@@ -40,15 +40,6 @@ AUTOMATION_ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = AUTOMATION_ROOT / "Standards" / "config" / "powerbi_visuals" / "visual_export_mapping.json"
 
 
-def _safe_print(msg: str) -> None:
-    """Print with ASCII fallback for Unicode errors."""
-    try:
-        print(msg)
-    except UnicodeEncodeError:
-        safe_msg = msg.encode('ascii', errors='replace').decode('ascii')
-        print(safe_msg)
-
-
 def _normalize_visual_name_for_match(s: str) -> str:
     """Collapse multiple spaces/underscores to one space, strip, for matching."""
     if not s:
@@ -136,7 +127,7 @@ def infer_yyyymm_from_data(file_path: Path, enforce_13_month: bool = False) -> s
                 last_period = period_cols[-1]
                 yyyymm = _parse_period_to_yyyymm(last_period)
                 if yyyymm:
-                    _safe_print(f"[DATA] Inferred {yyyymm} from last period column '{last_period}' in {file_path.name}")
+                    print(f"[DATA] Inferred {yyyymm} from last period column '{last_period}' in {file_path.name}")
                     return yyyymm
         
         # For single-month: look for Period/Month_Year column
@@ -152,13 +143,13 @@ def infer_yyyymm_from_data(file_path: Path, enforce_13_month: bool = False) -> s
                     period = most_common.iloc[0]
                     yyyymm = _parse_period_to_yyyymm(period)
                     if yyyymm:
-                        _safe_print(f"[DATA] Inferred {yyyymm} from '{col_name}' column in {file_path.name}")
+                        print(f"[DATA] Inferred {yyyymm} from '{col_name}' column in {file_path.name}")
                         return yyyymm
         
         return None
         
     except Exception as e:
-        _safe_print(f"[WARN] Could not read data for date inference: {e}")
+        print(f"[WARN] Could not read data for date inference: {e}")
         return None
 
 
@@ -181,7 +172,7 @@ def infer_yyyymm_from_path(file_path: Path) -> str:
         prev = now.replace(month=now.month - 1)
     
     yyyy_mm = f"{prev.year:04d}_{prev.month:02d}"
-    _safe_print(f"[FALLBACK] Using {yyyy_mm} (previous month) for {file_path.name}")
+    print(f"[FALLBACK] Using {yyyy_mm} (previous month) for {file_path.name}")
     return yyyy_mm
 
 
@@ -223,7 +214,7 @@ def find_mapping_for_file(config: dict, file_stem: str) -> tuple[dict | None, st
                 if re.search(pattern, normalized_stem) or re.search(pattern, stem_no_date):
                     return entry, entry.get("standardized_filename", "")
             except re.error as e:
-                _safe_print(f"[WARN] Invalid regex pattern '{pattern}': {e}")
+                print(f"[WARN] Invalid regex pattern '{pattern}': {e}")
         
         # 3. Try match_aliases
         for alias in entry.get("match_aliases", []):
@@ -272,9 +263,9 @@ def run_normalize(
     except subprocess.CalledProcessError as e:
         print(f"[ERROR] Normalization failed (exit {e.returncode})")
         if e.stderr:
-            _safe_print(f"[ERROR] stderr: {e.stderr.strip()}")
+            print(f"[ERROR] stderr: {e.stderr.strip()}")
         if e.stdout:
-            _safe_print(f"[ERROR] stdout: {e.stdout.strip()}")
+            print(f"[ERROR] stdout: {e.stdout.strip()}")
         return False
     except Exception as e:
         print(f"[ERROR] Normalization failed: {e}")
@@ -309,7 +300,7 @@ def process_exports(
     for file_path in csv_files:
         if should_skip(config, file_path):
             stats.files_skipped.append(file_path.name)
-            _safe_print(f"[SKIP] {file_path.name} (matches skip pattern)")
+            print(f"[SKIP] {file_path.name} (matches skip pattern)")
             continue
 
         mapping, standardized_base = find_mapping_for_file(config, file_path.stem)
@@ -319,7 +310,7 @@ def process_exports(
             standardized_base = _safe_filename_from_stem(stem_no_date)
             target_folder = "Other"
             enforce_13_month = False
-            _safe_print(f"[WARN] No mapping for: {file_path.name} -> using {target_folder}/")
+            print(f"[WARN] No mapping for: {file_path.name} -> using {target_folder}/")
             mapping = {
                 "standardized_filename": standardized_base,
                 "requires_normalization": False,
@@ -342,7 +333,7 @@ def process_exports(
         dest_path = dest_dir / new_name
 
         if dry_run:
-            _safe_print(f"[DRY RUN] Would process: {file_path.name} -> {dest_path}")
+            print(f"[DRY RUN] Would process: {file_path.name} -> {dest_path}")
             if mapping.get("requires_normalization"):
                 fmt = mapping.get("normalizer_format", "monthly_accrual")
                 enforce_window = mapping.get("enforce_13_month_window", False)
@@ -354,9 +345,9 @@ def process_exports(
                     _dry_cmd.append("--enforce-13-month")
                 _dry_cmd.append("--dry-run")
                 _cmd_str = " ".join(f'"{x}"' if " " in str(x) else str(x) for x in _dry_cmd)
-                _safe_print(f"[DRY RUN] Would run: {_cmd_str}")
+                print(f"[DRY RUN] Would run: {_cmd_str}")
             if mapping.get("is_backfill_required"):
-                _safe_print(f"[DRY RUN] Would copy to Backfill: {backfill_root / yyyy_mm / target_folder / new_name}")
+                print(f"[DRY RUN] Would copy to Backfill: {backfill_root / yyyy_mm / target_folder / new_name}")
             stats.files_moved += 1
             continue
 
@@ -423,18 +414,18 @@ def verify_processing(
         print(f"Files Normalized: {stats.files_normalized}")
         print(f"Files Moved:     {stats.files_moved}")
         if stats.files_skipped:
-            _safe_print(f"Skipped:         {len(stats.files_skipped)} ({', '.join(stats.files_skipped[:5])}{'...' if len(stats.files_skipped) > 5 else ''})")
+            print(f"Skipped:         {len(stats.files_skipped)} ({', '.join(stats.files_skipped[:5])}{'...' if len(stats.files_skipped) > 5 else ''})")
         if stats.errors:
-            _safe_print("Errors:")
+            print("Errors:")
             for e in stats.errors:
-                _safe_print(f"  - {e}")
+                print(f"  - {e}")
 
     if source_dir.exists():
         remaining = list(source_dir.glob("*.csv"))
         if remaining:
-            _safe_print(f"Source folder not empty: {len(remaining)} CSV(s) remaining: {[f.name for f in remaining[:5]]}")
+            print(f"Source folder not empty: {len(remaining)} CSV(s) remaining: {[f.name for f in remaining[:5]]}")
         else:
-            _safe_print("Source folder: no CSVs remaining (OK).")
+            print("Source folder: no CSVs remaining (OK).")
     else:
         print("Source folder: does not exist.")
 

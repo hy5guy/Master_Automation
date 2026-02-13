@@ -1,0 +1,115 @@
+{
+  "source_file": "Claude-Attached prompt and context files.json",
+  "source_path": "C:\\_chunker\\02_data\\Claude-Attached prompt and context files.json",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Claude-Attached_prompt_and_context_files\\2026_02_12_21_40_00_Claude-Attached_prompt_and_context_files.origin.json",
+  "created_at": "2026_02_12_21_40_00",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "dataset",
+    "docs",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "data",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "13-month",
+      "visuals",
+      "json",
+      "window",
+      "nibrs",
+      "date"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "{\n  \"metadata\": {\n    \"title\": \"Attached prompt and context files\",\n    \"dates\": {\n      \"created\": \"2/12/2026 20:57:24\",\n      \"updated\": \"2/12/2026 21:31:52\",\n      \"exported\": \"2/12/2026 21:39:39\"\n    },\n    \"link\": \"https://claude.ai...",
+    "first_line": "{"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-12T21:40:00+00:00_Claude-Attached_prompt_and_context_files_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "13-month",
+        "ai",
+        "code",
+        "data",
+        "dataset",
+        "date",
+        "docs",
+        "file",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sql",
+        "training",
+        "visuals",
+        "window"
+      ],
+      "key_terms": [
+        "13-month",
+        "window",
+        "visuals",
+        "date",
+        "file",
+        "json"
+      ],
+      "summary": "{\n  \"metadata\": {\n    \"title\": \"Attached prompt and context files\",\n    \"dates\": {\n      \"created\": \"2/12/2026 20:57:24\",\n      \"updated\": \"2/12/2026 21:31:52\",\n      \"exported\": \"2/12/2026 21:39:39\"\n    },\n    \"link\": \"https://claude.ai...",
+      "char_length": 30035,
+      "byte_length": 30220
+    },
+    {
+      "chunk_id": "2026-02-12T21:40:00+00:00_Claude-Attached_prompt_and_context_files_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "13-month",
+        "ai",
+        "claude",
+        "code",
+        "data",
+        "dataset",
+        "docs",
+        "home",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "nibrs",
+        "police",
+        "python",
+        "sql",
+        "training",
+        "visuals"
+      ],
+      "key_terms": [
+        "visuals",
+        "json",
+        "13-month",
+        "nibrs",
+        "home",
+        "claude"
+      ],
+      "summary": "Now let me present all the corrected files to the user.\\n\\n\\nPresent File: /home/claude/visual_export_mapping_CORRECTED.json, /home/claude/process_powerbi_exports_CORRECTED.py, /home/claude/13_MONTH_WINDOW_CORRECTIONS.md\\n\\n\\nThought pro...",
+      "char_length": 4654,
+      "byte_length": 4693
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

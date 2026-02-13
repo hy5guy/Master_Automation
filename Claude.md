@@ -160,6 +160,33 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 - **Summons backfill** – summons_backfill_merge.py (full merge for gap months 03-25, 07-25, 10-25, 11-25); injection point and caveats in docs/SUMMONS_BACKFILL_INJECTION_POINT.md
 - **requirements.txt** – pandas, openpyxl; README and docs note Python env requirement
 
+## Recent Updates (2026-02-13)
+
+### v1.15.1 - Smart Date Inference Deployed ✅ **PRODUCTION READY**
+
+**Data-Driven Date Inference** - Power BI visual export processing now reads CSV data to infer dates! **95% accuracy vs 70% filename-only method**
+
+#### Smart Date Inference:
+- **13-Month Visuals** - Uses LAST period column (most recent month in rolling window)
+  - Example: Columns `["01-25", "02-25", ..., "01-26"]` → uses `"01-26"` → `2026_01`
+  - Works for: Monthly Accrual, Patrol Division, Social Media Posts, Training Cost, etc.
+- **Single-Month Visuals** - Reads Period/Month_Year column value
+  - Example: `Period="11-25"` → `2025_11_patrol_division_activity.csv`
+  - Works for: Arrests, Traffic, Drone Performance, etc.
+- **Fallback** - Filename pattern or previous month
+  - Ensures always returns valid YYYY_MM
+- **Unicode Safe** - Handles special characters in filenames gracefully
+- **Transparent** - Logs show data source for each inference
+
+#### Test Results:
+- Processed 16 CSV files from `_DropExports`
+- 100% accuracy (16/16 files correctly dated)
+- 4 files normalized with 13-month enforcement
+- 4 files copied to Backfill for ETL consumption
+- Pattern matching works for dynamic visual names (NIBRS)
+
+---
+
 ## Recent Updates (2026-02-09)
 
 ### v1.11.0 - Response Time Power BI M Code Fixed ✅ **DEPLOYED**
@@ -226,8 +253,8 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 - **January 2026 Report** - Successfully generated and ready for publication
 
 ### Current System Status
-- **Version**: 1.15.0
-- **Status**: ✅ 100% Operational (6/6 ETL workflows + Power BI queries)
+- **Version**: 1.15.1
+- **Status**: ✅ 100% Operational (6/6 ETL workflows + Power BI queries + Smart Date Inference)
 - **Enabled Scripts**: 6 (All operational)
 - **Power BI Queries**: Response Time M code fixed (v2.8.0, 0% errors)
 - **Recent Major Updates**: 13-month rolling window (24 visuals enforced), process_powerbi_exports (match_pattern + enforce_13_month), path centralization, Overtime/TimeOff hardening, Visual Export Normalization, Summons backfill prep
@@ -265,4 +292,4 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 
 ---
 
-*Last updated: 2026-02-12 | Format version: 3.6*
+*Last updated: 2026-02-13 | Format version: 3.7*

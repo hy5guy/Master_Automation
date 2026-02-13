@@ -1,0 +1,43 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "summons",
+        "backfill",
+        "scripts",
+        "path",
+        "script",
+        "file"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Visual export normalization and summons backfill\n_Exported on 2/12/2026 at 21:59:23 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\nI think the issues with the backfill data not working has to do with the .csv structure of the export. see  t...",
+      "first_line": "# Visual export normalization and summons backfill"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-12T21:59:41.095054",
+  "department": "admin"
+}

@@ -1,0 +1,125 @@
+{
+  "source_file": "Gemini-Temporary Chat.json",
+  "source_path": "C:\\_chunker\\02_data\\Gemini-Temporary Chat.json",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Gemini-Temporary_Chat\\2026_02_12_17_01_39_Gemini-Temporary_Chat.origin.json",
+  "created_at": "2026_02_12_17_01_39",
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "dataset",
+    "it-ops",
+    "json",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "data",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "you",
+      "boot",
+      "your",
+      "say",
+      "windows",
+      "role"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "{\n  \"metadata\": {\n    \"title\": \"Temporary Chat\",\n    \"user\": {\n      \"name\": \"RAC\"\n    },\n    \"dates\": {\n      \"exported\": \"2/12/2026 17:01:26\"\n    },\n    \"link\": \"https://gemini.google.com/app/9aeb368a23666891\",\n    \"powered_by\": \"Gemin...",
+    "first_line": "{"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-12T17:01:39+00:00_Gemini-Temporary_Chat_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "boot",
+        "code",
+        "conversation",
+        "dataset",
+        "it-ops",
+        "json",
+        "recovery",
+        "repair",
+        "sql",
+        "windows",
+        "your"
+      ],
+      "key_terms": [
+        "boot",
+        "recovery",
+        "you",
+        "repair",
+        "windows",
+        "your"
+      ],
+      "summary": "{\n  \"metadata\": {\n    \"title\": \"Temporary Chat\",\n    \"user\": {\n      \"name\": \"RAC\"\n    },\n    \"dates\": {\n      \"exported\": \"2/12/2026 17:01:26\"\n    },\n    \"link\": \"https://gemini.google.com/app/9aeb368a23666891\",\n    \"powered_by\": \"Gemin...",
+      "char_length": 29884,
+      "byte_length": 30146
+    },
+    {
+      "chunk_id": "2026-02-12T17:01:39+00:00_Gemini-Temporary_Chat_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "ai",
+        "boot",
+        "cable",
+        "code",
+        "conversation",
+        "dataset",
+        "ethernet",
+        "it-ops",
+        "json",
+        "role",
+        "sql"
+      ],
+      "key_terms": [
+        "you",
+        "boot",
+        "role",
+        "say",
+        "ethernet",
+        "cable"
+      ],
+      "summary": "},\n    {\n      \"role\": \"Response\",\n      \"say\": \"Gemini said\\n\\n\\nThis is a standard error when HTTPS Boot fails to connect to the internet.\\n\\n\\nBecause we switched the storage mode to \\\"AHCI\\\" (to fix the Red X) and the Cloud Boot fail...",
+      "char_length": 28930,
+      "byte_length": 29076
+    },
+    {
+      "chunk_id": "2026-02-12T17:01:39+00:00_Gemini-Temporary_Chat_chunk3",
+      "chunk_index": 3,
+      "file": "chunk_00002.txt",
+      "tags": [
+        "ai",
+        "code",
+        "conversation",
+        "dataset",
+        "drive",
+        "it-ops",
+        "json",
+        "sql",
+        "stick",
+        "will",
+        "your"
+      ],
+      "key_terms": [
+        "you",
+        "usb",
+        "drive",
+        "will",
+        "your",
+        "stick"
+      ],
+      "summary": "Since the MediaCreationTool.exe is currently on that drive, you must copy it to the computer first.\\n\\n\\nStep 1: Preparation\\n\\n\\nPlug the thumb drive into your son's PC.\\n\\nDrag the MediaCreationTool.exe file from the thumb drive onto t...",
+      "char_length": 29142,
+      "byte_length": 29308
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

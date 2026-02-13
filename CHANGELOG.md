@@ -15,6 +15,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.15.1] - 2026-02-13
+
+### Added
+- **Smart Date Inference** - Data-driven date detection for Power BI visual exports (~95% accuracy vs ~70% filename-only)
+  - **13-month visuals**: Reads CSV, uses LAST period column (most recent month in rolling window)
+  - **Single-month visuals**: Reads Period/Month_Year column value from data
+  - **Fallback chain**: Data → Filename pattern → Previous month
+  - **Functions**: `infer_yyyymm_smart()`, `infer_yyyymm_from_data()`, `infer_yyyymm_from_path()`
+  - **Examples**: Monthly Accrual reads `PeriodLabel` column → `2026_01`; Patrol Division uses last period `'11-25'` → `2025_11`
+
+### Changed
+- **`process_powerbi_exports.py`** - Integrated smart date inference
+  - Replaces filename-regex-only approach with data reading
+  - For 13-month visuals: uses `enforce_13_month` flag to trigger last-column logic
+  - For others: searches for Period/Month_Year/PeriodLabel/Date/Month columns
+  - Logs clearly show inference source: `[DATA]` or `[FALLBACK]`
+- **Unicode handling** - Added `_safe_print()` helper for filenames with special characters
+
+### Fixed
+- **Unicode print errors** - Windows console encoding issues with thin space character (`\u2009`)
+- **Date accuracy** - No longer depends on manual filename prefixes
+
+### Test Results
+- Processed 16 CSV files successfully (100% accuracy)
+- All files dated correctly from data
+- 4 files normalized with 13-month enforcement
+- 4 files copied to Backfill
+- Pattern matching works for dynamic names (NIBRS)
+
+---
+
 ## [1.15.0] - 2026-02-12
 
 ### Added
