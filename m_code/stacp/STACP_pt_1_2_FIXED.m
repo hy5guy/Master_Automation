@@ -1,3 +1,8 @@
+// 🕒 2026-02-13-16-30-00
+// # Master_Automation/STACP/STACP_pt_1_2_FIXED.m
+// # Author: R. A. Carucci
+// # Purpose: Future-proof STACP high activity query with dynamic year detection for 13-month rolling window (works 2024-2099+).
+
 /* =================================================================
    STACP HIGH ACTIVITY - FUTURE-PROOF VERSION
    Updated: 2026-02-13
