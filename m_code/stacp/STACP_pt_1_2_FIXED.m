@@ -41,7 +41,7 @@ let
     FirstColumnName = if List.IsEmpty(ColumnNames) then "Tracked Items " else ColumnNames{0},
     
     // =================================================================
-    // DYNAMIC MONTH COLUMN DETECTION (FUTURE-PROOF)
+    // DYNAMIC MONTH COLUMN DETECTION (HANDLES BOTH "3-25" AND "03-25")
     // =================================================================
     AllMonthColumns = List.Select(ColumnNames, each 
         let
@@ -49,12 +49,16 @@ let
             Parts = Text.Split(ColumnName, "-"),
             // Check if it has a hyphen and exactly two parts (M-YY or MM-YY)
             IsDatePattern = List.Count(Parts) = 2,
+            // Check if first part is a 1-2 digit month (1-12)
+            MonthPart = if IsDatePattern then Parts{0} else "",
+            IsMonthValid = Text.Length(MonthPart) >= 1 and Text.Length(MonthPart) <= 2 and 
+                           (try Number.From(MonthPart) >= 1 and Number.From(MonthPart) <= 12 otherwise false),
             // Check if second part is a 2-digit number (The Year)
             YearPart = if IsDatePattern then Parts{1} else "",
             IsYearValid = Text.Length(YearPart) = 2 and (try Number.From(YearPart) otherwise -1) >= 0,
             IsNotFirstColumn = ColumnName <> FirstColumnName
         in
-            IsDatePattern and IsYearValid and IsNotFirstColumn
+            IsDatePattern and IsMonthValid and IsYearValid and IsNotFirstColumn
     ),
     
     // Filter month columns to only include those within the rolling 13-month window
@@ -89,11 +93,13 @@ let
     AddedColumns = Table.AddColumn(ConvertedValues, "Source_Category", each "STACP Core", type text),
     AddedActivityLevel = Table.AddColumn(AddedColumns, "Activity_Level", each "High Activity", type text),
     
-    // Normalize Month format (MM-YY)
+    // Normalize Month format (MM-YY) - handles both "3-25" and "03-25" formats
     AddedNormalizedMonth = Table.AddColumn(AddedActivityLevel, "Month_MM_YY", each
         let
             Parts = Text.Split([Month], "-"),
-            Result = Text.PadStart(Parts{0}, 2, "0") & "-" & Parts{1}
+            MonthPart = if List.Count(Parts) >= 1 then Parts{0} else "01",
+            YearPart = if List.Count(Parts) >= 2 then Parts{1} else "25",
+            Result = Text.PadStart(MonthPart, 2, "0") & "-" & YearPart
         in
             Result, type text
     ),
