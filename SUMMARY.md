@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-02-13
 **Status:** ✅ Production Ready - 100% Operational (ETL + Power BI)
-**Version:** 1.15.3
+**Version:** 1.15.4
 
 ---
 
@@ -388,6 +388,20 @@ Documentation:
 ---
 
 ## Recent Updates (2026-02-13)
+
+### v1.15.4 - CSB Workbook 2026 Setup Complete ✅
+- **Complete Success** - CSB (Crime Suppression Bureau) workbook fully prepared for 2026 data entry
+- **Work by Claude in Excel**:
+  - Renamed all 2025/2026 sheets to YY_MM format (25_01, 26_01, etc.)
+  - Created XLOOKUP formulas on MoM sheet for all 2026 months (columns Q-AH)
+  - Restored 2025 data (25_01 through 25_12) and Jan 2026 (26_01)
+  - Created empty template sheets for Feb-Dec 2026 (26_02 through 26_12)
+- **Structure**: Each monthly sheet has "Tracked Items" (column A) and "Total" (column B) with 26 crime categories
+- **XLOOKUP Formulas**: Reference sheet columns directly (e.g., `'26_02'!$A:$A`) - fully working
+- **Ready for Data Entry**: All 11 remaining 2026 months have templates, MoM auto-updates when data entered
+- **Integration Note**: Structure compatible with Power BI M code queries (similar to Detective workbook)
+- **Documentation**: `docs/CSB_WORKBOOK_2026_SETUP_COMPLETE.md`
+- **Status**: Complete - workbook ready for monthly data entry, no Power BI queries needed yet
 
 ### v1.15.3 - Detective Queries Excel Structure Fix ✅ **DEPLOYED**
 - **Complete Success** - Detective Division Power BI queries now import data correctly from restructured workbook

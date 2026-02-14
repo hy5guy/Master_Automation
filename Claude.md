@@ -290,15 +290,25 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 - **January 2026 Report** - Successfully generated and ready for publication
 
 ### Current System Status
-- **Version**: 1.15.3
-- **Status**: ✅ 100% Operational (6/6 ETL workflows + Power BI queries + Detective Queries Fixed)
+- **Version**: 1.15.4
+- **Status**: ✅ 100% Operational (6/6 ETL workflows + Power BI queries + Detective Queries Fixed + CSB Workbook Ready)
 - **Enabled Scripts**: 6 (All operational)
 - **Power BI Queries**: Response Time M code fixed (v2.8.0), STACP 13-month window fixed, Detective queries restructured and working
-- **Recent Major Updates**: Detective queries Excel structure fix (YY-MMM parsing + rolling window), STACP 13-month rolling window (3 fixes), Smart date inference (95% accuracy), 13-month rolling window enforcement (24 visuals), process_powerbi_exports (match_pattern + enforce_13_month), path centralization, Overtime/TimeOff hardening, Visual Export Normalization, Summons backfill prep
+- **Excel Workbooks**: CSB workbook 2026 setup complete (templates + XLOOKUP formulas ready)
+- **Recent Major Updates**: CSB workbook 2026 preparation (templates + XLOOKUP), Detective queries Excel structure fix (YY-MMM parsing + rolling window), STACP 13-month rolling window (3 fixes), Smart date inference (95% accuracy), 13-month rolling window enforcement (24 visuals), process_powerbi_exports (match_pattern + enforce_13_month), path centralization, Overtime/TimeOff hardening, Visual Export Normalization, Summons backfill prep
 
 ---
 
 ## Recent Updates (2026-02-13)
+
+### v1.15.4 - CSB Workbook 2026 Setup Complete ✅
+- **Complete Success** - CSB workbook fully prepared for 2026 monthly data entry
+- **Work by Claude in Excel**: Sheet renaming (YY_MM format), XLOOKUP formulas for all 2026 months, data restoration for 2025 + Jan 2026, template creation for Feb-Dec 2026
+- **Structure**: Monthly sheets with "Tracked Items" + "Total" columns (26 crime categories per sheet)
+- **XLOOKUP on MoM Sheet**: Columns Q-AH reference individual month sheets directly (e.g., `'26_02'!$A:$A`)
+- **Status**: All 11 remaining 2026 month templates created, formulas auto-update when data entered
+- **Integration**: Structure compatible with future Power BI M code queries (similar to Detective workbook)
+- **Documentation**: `docs/CSB_WORKBOOK_2026_SETUP_COMPLETE.md`, chatlog in `docs/chatlogs/claude_excel_csb_update/`
 
 ### v1.15.3 - Detective Queries Excel Structure Fix ✅
 - **Complete Success** - Detective Division Power BI queries now import data correctly

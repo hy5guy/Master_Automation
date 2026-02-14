@@ -15,6 +15,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.15.4] - 2026-02-13
+
+### Added
+- **CSB Workbook 2026 Setup** - Completed preparation of CSB (Crime Suppression Bureau) Excel workbook for 2026
+  - Created empty template sheets for Feb-Dec 2026 (26_02 through 26_12)
+  - Each template has proper structure: "Tracked Items" (Column A) and "Total" (Column B) with 26 crime categories
+  - Consistent formatting matching existing 2025 sheets
+  - Ready for monthly data entry
+
+### Changed
+- **CSB Workbook Structure** (work done by Claude in Excel in previous sessions):
+  - Sheet naming: All 2025/2026 sheets renamed to YY_MM format (e.g., 25_01, 26_01)
+  - XLOOKUP formulas: Added to MoM sheet columns Q-AH for all 2026 months
+  - Formula format: References sheet columns directly (e.g., `'26_02'!$A:$A, '26_02'!$B:$B`)
+  
+### Documentation
+- **New CSB Documentation**:
+  - `docs/CSB_WORKBOOK_2026_SETUP_COMPLETE.md` - Complete workbook setup guide
+  - `docs/chatlogs/claude_excel_csb_update/` - Claude in Excel session chatlog
+  
+### Notes
+- **Data Status**: 2025 fully backfilled (25_01 through 25_12), Jan 2026 complete (26_01), Feb-Dec 2026 awaiting data
+- **Integration Ready**: Workbook structure compatible with future Power BI M code queries (similar to Detective workbook pattern)
+- **Auto-Update**: MoM sheet XLOOKUP formulas automatically pull data when entered in monthly sheets
+
+---
+
 ## [1.15.3] - 2026-02-13
 
 ### Fixed

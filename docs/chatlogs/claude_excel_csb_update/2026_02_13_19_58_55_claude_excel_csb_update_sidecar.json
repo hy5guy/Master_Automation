@@ -1,0 +1,65 @@
+{
+  "source_file": "claude_excel_csb_update.md",
+  "source_path": "C:\\_chunker\\02_data\\claude_excel_csb_update.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\claude_excel_csb_update\\2026_02_13_19_58_55_claude_excel_csb_update.origin.json",
+  "created_at": "2026_02_13_19_58_55",
+  "tags": [
+    "code",
+    "data",
+    "docs",
+    "json",
+    "markdown",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "sheet",
+      "formulas",
+      "data",
+      "table",
+      "let",
+      "mom"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "Sonnet 4.5\nBETA\nPlease update the sheet names for all sheets for 2025 and 2026 data to be YY_MM \nAlso rename all the tables on the sheets to have the same name as the sheet. you will have to update the xlook up formulas on the \"MoM\" shee...",
+    "first_line": "Sonnet 4.5"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-13T19:58:55+00:00_claude_excel_csb_update_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "code",
+        "data",
+        "docs",
+        "formulas",
+        "json",
+        "markdown",
+        "python",
+        "sheet",
+        "sql",
+        "table"
+      ],
+      "key_terms": [
+        "sheet",
+        "formulas",
+        "data",
+        "table",
+        "let",
+        "mom"
+      ],
+      "summary": "Sonnet 4.5\nBETA\nPlease update the sheet names for all sheets for 2025 and 2026 data to be YY_MM \nAlso rename all the tables on the sheets to have the same name as the sheet.",
+      "char_length": 13514,
+      "byte_length": 13904
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}
