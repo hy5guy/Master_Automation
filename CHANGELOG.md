@@ -11,6 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 - [ ] Monitor February 2026 execution for hybrid strategy validation
+- [ ] Resolve Benchmark Power BI visuals (matrix, donut, line chart showing zeros; handoff doc created)
+
+---
+
+## [1.15.6] - 2026-02-14
+
+### Added
+- **Benchmark Power BI diagnostics and handoff**
+  - `docs/BENCHMARK_VISUALS_HANDOFF_PROMPT.md` – Handoff doc for AI-assisted troubleshooting (context, fixes attempted, diagnostic steps, prompt)
+  - `02_ETL_Scripts/Benchmark/` – README merge, CHANGELOG, SUMMARY, ___Benchmark_FIXED.m, ___DimMonth_dynamic.m, Benchmark_DAX_Measures.dax, IncidentCount_Matrix
+
+### Changed
+- **Benchmark DAX** – BM_YoY_Change fixed (DATEADD → EDATE for scalar dates)
+- **Benchmark consolidation** – Moved 02_06 CSVs from _Benchmark_ARCHIVE_2026_02_09 to 05_EXPORTS\Benchmark; removed old 01_07 files
+
+### Documentation
+- Benchmark README, CHANGELOG, SUMMARY in 02_ETL_Scripts/Benchmark; handoff prompt for broken visuals
 
 ---
 
