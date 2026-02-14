@@ -290,16 +290,23 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 - **January 2026 Report** - Successfully generated and ready for publication
 
 ### Current System Status
-- **Version**: 1.15.4
+- **Version**: 1.15.5
 - **Status**: ✅ 100% Operational (6/6 ETL workflows + Power BI queries + Detective Queries Fixed + CSB Workbook Ready)
 - **Enabled Scripts**: 6 (All operational)
 - **Power BI Queries**: Response Time M code fixed (v2.8.0), STACP 13-month window fixed, Detective queries restructured and working
 - **Excel Workbooks**: CSB workbook 2026 setup complete (templates + XLOOKUP formulas ready)
-- **Recent Major Updates**: CSB workbook 2026 preparation (templates + XLOOKUP), Detective queries Excel structure fix (YY-MMM parsing + rolling window), STACP 13-month rolling window (3 fixes), Smart date inference (95% accuracy), 13-month rolling window enforcement (24 visuals), process_powerbi_exports (match_pattern + enforce_13_month), path centralization, Overtime/TimeOff hardening, Visual Export Normalization, Summons backfill prep
+- **Recent Major Updates**: Visual export config Gemini enhancement (backfill_folder, Monthly Accrual → vcs_time_report), CSB workbook 2026 preparation, Detective queries fix, STACP 13-month window, Smart date inference, process_powerbi_exports, path centralization, Overtime/TimeOff hardening, Summons backfill prep
 
 ---
 
 ## Recent Updates (2026-02-13)
+
+### v1.15.5 - Visual Export Config Gemini Enhancement ✅
+- **Gemini config merge** - Merged metadata from `gemini_visual_export_config logic.json` into `visual_export_mapping.json`
+- **backfill_folder override** - Mappings can specify `backfill_folder` for Backfill path (overrides `target_folder` for copy only)
+- **Monthly Accrual fix** - `backfill_folder: "vcs_time_report"` so Overtime/TimeOff finds file in `Backfill/YYYY_MM/vcs_time_report/`
+- **New visuals** - Officer Summons Activity, SSOCC TAS Alerts; Chief's Projects alias
+- **Docs**: `docs/VISUAL_EXPORT_CONFIG_GEMINI_ENHANCEMENT.md`, FAQ updated
 
 ### v1.15.4 - CSB Workbook 2026 Setup Complete ✅
 - **Complete Success** - CSB workbook fully prepared for 2026 monthly data entry
