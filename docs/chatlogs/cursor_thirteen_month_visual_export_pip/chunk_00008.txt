@@ -1,0 +1,396 @@
+},
+  {
+    "visual_name": "Motor Vehicle Accidents - Summary",
+    "page_name": "Traffic",
+    "normalized_folder": "traffic",
+    "standardized_filename": "motor_vehicle_accidents_trend",
+    "data_format": "Long",
+    "date_column": "Period",
+    "date_format": "MM-YY",
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": true,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Trend data. Normalization needed for 'First Value'." },
+  {
+    "visual_name": "School Threat Assessment & Crime Prevention Part 1",
+    "page_name": "School",
+    "normalized_folder": "school",
+    "standardized_filename": "school_threat_assessment_part_1",
+    "data_format": "Long",
+    "date_column": "Month_MM_YY",
+    "date_format": "MM-YY",
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": true,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Trend data. Normalization needed to remove 'Sum of Value' prefix." },
+  {
+    "visual_name": "School Threat Assessment & Crime Prevention Part 2",
+    "page_name": "School",
+    "normalized_folder": "school",
+    "standardized_filename": "school_threat_assessment_part_2",
+    "data_format": "Long",
+    "date_column": "Month_MM_YY",
+    "date_format": "MM-YY",
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": true,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Trend data. Normalization needed to remove 'Sum of Value' prefix." },
+  {
+    "visual_name": "Detective Division Part 1",
+    "page_name": "Detective",
+    "normalized_folder": "detective",
+    "standardized_filename": "detective_division_activity_part_1",
+    "data_format": "Long",
+    "date_column": "Month_MM_YY",
+    "date_format": "MM-YY",
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": true,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Trend data. Normalization needed to remove 'Sum of Value' prefix." },
+  {
+    "visual_name": "Detective Division Part 2",
+    "page_name": "Detective",
+    "normalized_folder": "detective",
+    "standardized_filename": "detective_division_activity_part_2",
+    "data_format": "Long",
+    "date_column": "Month_MM_YY",
+    "date_format": "MM-YY",
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": true,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Trend data. Normalization needed to remove 'Sum of Value' prefix." },
+  {
+    "visual_name": "Detective Clearance Rate Performance",
+    "page_name": "Detective",
+    "normalized_folder": "detective",
+    "standardized_filename": "detective_clearance_rate",
+    "data_format": "Long",
+    "date_column": "Month_Period",
+    "date_format": "MM-YY",
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": true,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Trend data. Normalization needed to clean '%' from value column." },
+  {
+    "visual_name": "Detective Case Dispositions - Performance Review",
+    "page_name": "Detective",
+    "normalized_folder": "detective",
+    "standardized_filename": "detective_case_dispositions",
+    "data_format": "Long",
+    "date_column": "Month_MM_YY",
+    "date_format": "MM-YY",
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": true,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Trend data. Normalization needed to clean '%' from 'Display Value'." },
+  {
+    "visual_name": "Crime Suppressions Bureau Monthly Activity Analysis",
+    "page_name": "CSB",
+    "normalized_folder": "csb",
+    "standardized_filename": "csb_monthly_activity_trend",
+    "data_format": "Long",
+    "date_column": "Month_MM_YY",
+    "date_format": "MM-YY",
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": true,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Trend data. Normalization needed to remove '$' currency symbols from count values." },
+  {
+    "visual_name": "Response Times by Priority",
+    "page_name": "Response Time",
+    "normalized_folder": "response_time",
+    "standardized_filename": "response_times_by_priority_trend",
+    "data_format": "Long",
+    "date_column": "Month-Year",
+    "date_format": "MM-YY",
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": false,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Trend data. Already in Long format with multiple value columns." },
+  {
+    "visual_name": "Average Response Times Values are in mmss",
+    "page_name": "Response Time",
+    "normalized_folder": "response_time",
+    "standardized_filename": "average_response_times_trend",
+    "data_format": "Long",
+    "date_column": "MM-YY",
+    "date_format": "MM-YY",
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": true,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Trend data. Normalization needed for 'First Response_Time_MMSS'." },
+  {
+    "visual_name": "Incident Count by Date and Event Type",
+    "page_name": "NIBRS",
+    "normalized_folder": "nibrs",
+    "standardized_filename": "incident_count_by_date_trend",
+    "data_format": "Long",
+    "date_column": "Date",
+    "date_format": "MM-YY",
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": false,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Trend data. Standard Long format." },
+  {
+    "visual_name": "Incident Distribution by Event Type",
+    "page_name": "NIBRS",
+    "normalized_folder": "nibrs",
+    "standardized_filename": "incident_distribution_summary",
+    "data_format": "Long",
+    "date_column": "None",
+    "date_format": null,
+    "time_period": "13-month Summary Snapshot",
+    "enforce_13_month_window": false,
+    "requires_normalization": false,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Snapshot summary of 13 months. No date column in rows." },
+  {
+    "visual_name": "Use of Force Incident Matrix",
+    "page_name": "NIBRS",
+    "normalized_folder": "nibrs",
+    "standardized_filename": "use_of_force_matrix_trend",
+    "data_format": "Long",
+    "date_column": "MonthLabel",
+    "date_format": "MM-YY",
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": false,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Trend data. Standard Long format." },
+  {
+    "visual_name": "Social Media Posts",
+    "page_name": "Social Media",
+    "normalized_folder": "social_media",
+    "standardized_filename": "social_media_posts_trend",
+    "data_format": "Wide",
+    "date_column": "None",
+    "date_format": null,
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": true,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Wide format (months as columns). Pipeline must unpivot." },
+  {
+    "visual_name": "Monthly Accrual and Usage Summary",
+    "page_name": "Personnel",
+    "normalized_folder": "personnel",
+    "standardized_filename": "monthly_accrual_usage_trend",
+    "data_format": "Long",
+    "date_column": "PeriodLabel",
+    "date_format": "MM-YY",
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": true,
+    "normalizer_format": null,
+    "is_backfill_required": true,
+    "notes": "Trend data. Backfill enabled for tracking accruals over time." },
+  {
+    "visual_name": "Chief Law Enforcement Executive Duties",
+    "page_name": "Chief",
+    "normalized_folder": "chief",
+    "standardized_filename": "chief_executive_duties_trend",
+    "data_format": "Long",
+    "date_column": "Month",
+    "date_format": "MM-YY",
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": true,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Trend data. Normalization needed for 'Sum of Total'." },
+  {
+    "visual_name": "Patrol Division",
+    "page_name": "Patrol",
+    "normalized_folder": "patrol",
+    "standardized_filename": "patrol_division_activity_trend",
+    "data_format": "Wide",
+    "date_column": "None",
+    "date_format": null,
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": true,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Wide format (months as columns). Pipeline must unpivot." },
+  {
+    "visual_name": "Non-DFR Performance Metrics",
+    "page_name": "DFR",
+    "normalized_folder": "dfr",
+    "standardized_filename": "non_dfr_performance_trend",
+    "data_format": "Long",
+    "date_column": "Period",
+    "date_format": "MM-YY",
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": true,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Trend data. Normalization needed for 'First Value' (likely time format)." },
+  {
+    "visual_name": "13-Month NIBRS Clearance Rate Trend",
+    "page_name": "NIBRS",
+    "normalized_folder": "nibrs",
+    "standardized_filename": "nibrs_clearance_rate_trend",
+    "data_format": "Long",
+    "date_column": "MonthYear_Display",
+    "date_format": "MM-YY",
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": false,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Trend data. Contains clearance rate decimal values." },
+  {
+    "visual_name": "13-Month NIBRS Clearance Rate Trend January 2025 - January 2026",
+    "page_name": "NIBRS",
+    "normalized_folder": "nibrs",
+    "standardized_filename": "nibrs_metrics_breakdown_trend",
+    "data_format": "Long",
+    "date_column": "MonthYear_Display",
+    "date_format": "MM-YY",
+    "time_period": "Rolling 13 months",
+    "enforce_13_month_window": true,
+    "requires_normalization": true,
+    "normalizer_format": null,
+    "is_backfill_required": false,
+    "notes": "Trend data breakdown by crime category. Normalization needed for 'First DisplayValue'." }
+]
+
+```
+
+---
+
+**Cursor**
+
+You're very welcome! Happy to stick with you to get this working! 🎉
+
+Now let me review Gemini's comprehensive JSON configuration and compare it to our current setup. Perfect! I can see we have **32 visuals in our current mapping** vs Gemini's **35+** with more detailed metadata. Gemini's configuration adds valuable fields like:
+- `page_name` (which page it appears on)
+- `data_format` (Long/Wide)
+- `date_column` (which column has dates)
+- `date_format` (MM-YY, MM/DD/YY, etc.) - `time_period` (Rolling 13 months, Single month, etc.) This is excellent metadata! However, **our current system is working** and we've already successfully:
+- ✅ Fixed all summons visuals
+- ✅ Processed January 2026 data
+- ✅ Created proper M code
+- ✅ Updated the template
+
+## 🎯 My Recommendation
+
+**For now:** Keep our current mapping since it's working perfectly. **For future enhancement:** We can integrate Gemini's enhanced metadata when we need to add:
+- Visual export automation improvements
+- Better diagnostics
+- More detailed validation
+
+---
+
+## 📋 Would you like me to:
+
+1. ✅ **Create final summary document** of everything we accomplished today
+2. ✅ **Update git** with all the changes (scripts, M code, docs)
+3. ❓ **Merge Gemini's enhanced JSON** into our mapping (adds metadata but doesn't change functionality)
+
+**I recommend doing #1 and #2 now, and saving #3 for a future enhancement session. **
+
+What would you like me to do? 🎯
+
+---
+
+**User**
+
+I provided that because there was issues with the script taking the exported visual data and adding the date prefix. you provided @gemini_prompt_extract_visual_export_config.md  for me to get the info for you review our eariler conversation
+
+---
+
+**Cursor**
+
+Ah yes! Now I remember the context! 🎯
+
+## 📝 The Full Picture
+
+You're right - let me review:
+
+### The Original Issue
+1. **Date prefix problems** - Files getting `2026_01` when they should be `2025_12`
+2. **YY-MMM format issues** - Data had formats like `25-Dec` that weren't being parsed
+3. I asked: "Do we need to set logic for each visual export?" 4. I provided you with the **Gemini prompt** to extract detailed configuration
+5. You went to Gemini and got that comprehensive 35-visual JSON with all the metadata
+
+### What We've Done Since
+- ✅ Fixed the date parser to handle `YY-MMM` format
+- ✅ Fixed the smart date inference to use latest (max) date for single-month visuals
+- ✅ Updated folder structure to match page names
+
+### What Gemini's JSON Adds
+The extra metadata fields would help the processing script:
+- `date_column` - Which column to look for dates in
+- `date_format` - What format to expect (MM-YY, YY-MMM, MM/DD/YY)
+- `time_period` - Whether it's rolling or single month
+- `page_name` - More accurate folder mapping
+
+---
+
+## 🤔 The Question
+
+**Should we integrate Gemini's enhanced JSON into `visual_export_mapping.json` to improve the `process_powerbi_exports.py` script? **
+
+The enhanced fields would help the script:
+1. Know exactly which date column to check (instead of guessing)
+2. Know what date format to expect
+3. Better handle edge cases
+
+**Do you want me to merge Gemini's configuration with our current mapping? ** 📊
+
+---
+
+**User**
+
+merge please
+
+---
+
+**Cursor**
+
+Perfect! Let me merge Gemini's enhanced metadata with our current working configuration:
+
+---
+
+**User**
+
+you got an error
+
+Request ID: 861e9d62-1b9e-42a5-922a-6fb3743f1873
+{"error":57,"details":{"title":"Provider Error","detail":"We're having trouble connecting to the model provider. This might be temporary - please try again in a moment. ","isRetryable":false,"additionalInfo":{},"buttons":[],"planChoices":[]},"isExpected":true}
+Provider Error We're having trouble connecting to the model provider. This might be temporary - please try again in a moment. H4t: Provider Error We're having trouble connecting to the model provider. This might be temporary - please try again in a moment. at lpf (vscode-file://vscode-app/c:/Users/carucci_r/AppData/Local/Programs/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:9097:38263)
+    at apf (vscode-file://vscode-app/c:/Users/carucci_r/AppData/Local/Programs/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:9097:37251)
+    at Cpf (vscode-file://vscode-app/c:/Users/carucci_r/AppData/Local/Programs/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:9098:5088)
+    at Tva.run (vscode-file://vscode-app/c:/Users/carucci_r/AppData/Local/Programs/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:9098:9098)
+    at async Vyt.runAgentLoop (vscode-file://vscode-app/c:/Users/carucci_r/AppData/Local/Programs/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:34206:57104)
+    at async mgc.streamFromAgentBackend (vscode-file://vscode-app/c:/Users/carucci_r/AppData/Local/Programs/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:34255:7835)
+    at async mgc.getAgentStreamResponse (vscode-file://vscode-app/c:/Users/carucci_r/AppData/Local/Programs/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:34255:8576)
+    at async qTe.submitChatMaybeAbortCurrent (vscode-file://vscode-app/c:/Users/carucci_r/AppData/Local/Programs/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:9180:14965)
+    at async Xi (vscode-file://vscode-app/c:/Users/carucci_r/AppData/Local/Programs/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:33004:3808)

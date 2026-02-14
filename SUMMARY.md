@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-02-13
 **Status:** ✅ Production Ready - 100% Operational (ETL + Power BI)
-**Version:** 1.15.2
+**Version:** 1.15.3
 
 ---
 
@@ -388,6 +388,43 @@ Documentation:
 ---
 
 ## Recent Updates (2026-02-13)
+
+### v1.15.3 - Detective Queries Excel Structure Fix ✅ **DEPLOYED**
+- **Complete Success** - Detective Division Power BI queries now import data correctly from restructured workbook
+- **Root Cause**: Excel workbook structure differed from Claude Excel add-on's planned restructuring
+  - Expected: 2026-only data with MM-YY headers (e.g., `01-26`, `02-26`)
+  - Actual: Historical data (Jun 2023 - Dec 2026) with YY-MMM headers (e.g., `26-Jan`, `25-Dec`)
+- **Three Critical Fixes**:
+  1. **Date Parsing** - Changed from MM-YY to YY-MMM format parsing
+     - Added month abbreviation lookup (`"Jan"` → 1, `"Feb"` → 2, etc.)
+     - Handles 2-digit year conversion (26 → 2026, 25 → 2025)
+  2. **Rolling Window Logic** - Fixed from hardcoded 2026-only to proper 13-month rolling
+     - Old: `StartFilterDate = #date(2026, 1, 1)` (excluded all historical data)
+     - New: `StartFilterDate = Date.AddMonths(EndFilterDate, -12)` (dynamic 13-month window)
+  3. **Month Display Format** - Normalized YY-MMM to MM-YY for consistent visual display
+     - Excel headers: `26-Jan`, `25-Dec` → Power BI columns: `01-26`, `12-25`
+     - Added column transformation to convert parsed dates back to MM-YY format
+- **Additional Fixes**:
+  - Row label exact matching for CCD query (handles double spaces in Excel)
+  - `"Monthly Bureau Case  Clearance % "` (double space + trailing space)
+  - `"YTD Bureau Case Clearance % "` (trailing space)
+- **Queries Updated**:
+  - `___Detectives` - Detective case tracking (40 categories × 13 months)
+  - `___Det_case_dispositions_clearance` - Case dispositions and clearance rates (10 rows × 13 months)
+- **Current Data Window**: Jan 2025 - Dec 2025 (13 months)
+  - Will automatically show Jan 2026 once data is entered in Excel
+- **Diagnostic Tools Created**:
+  - `scripts/analyze_detective_workbook.py` - Full workbook structure analysis
+  - `scripts/check_detective_tables.py` - Quick table name verification
+  - `scripts/check_detective_table_data.py` - Detailed table data inspection
+  - `scripts/check_jan_26_data.py` - Verify 26-Jan column status
+- **Documentation Created**:
+  - `docs/DETECTIVES_EXCEL_STRUCTURE_MISMATCH_FIX.md` - Root cause analysis and fixes
+  - `docs/DETECTIVES_2026_UPDATE_GUIDE.md` - Original deployment guide (now superseded)
+  - `docs/DETECTIVES_2026_QUICK_REF.md` - Quick reference
+  - `docs/DETECTIVES_CRITICAL_FIXES_2026_02_13.md` - Fix summary
+  - `docs/DETECTIVES_VERIFICATION_CHECKLIST.md` - Manual verification steps
+- **Status**: Deployed and verified - data loading correctly with proper MM-YY format ✅
 
 ### v1.15.2 - STACP Visual 13-Month Rolling Window Fixed ✅ **DEPLOYED**
 

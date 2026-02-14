@@ -43,36 +43,64 @@ let
     // =================================================================
     // DATE PARSING AND SORT ORDER
     // =================================================================
-    // Parse MM-YY format to proper date
+    // Parse YY-MMM format (e.g., "26-Jan") to proper date
     AddedDateInfo = Table.AddColumn(UnpivotedData, "Date", each 
         let 
             MonthText = [Month_MM_YY],
             Parts = Text.Split(MonthText, "-"),
-            MonthPart = if List.Count(Parts) >= 1 then Parts{0} else "01",
-            YearPart = if List.Count(Parts) >= 2 then Parts{1} else "26",
-            // Try to convert year to number, skip if fails
+            // Parts{0} = YY (year), Parts{1} = MMM (month abbrev)
+            YearPart = if List.Count(Parts) >= 1 then Parts{0} else "26",
+            MonthPart = if List.Count(Parts) >= 2 then Parts{1} else "Jan",
+            
+            // Convert 2-digit year to full year
             YearNum = try Number.From(YearPart) otherwise null,
-            // Assume 50+ = 19xx, else 20xx
             FullYear = if YearNum = null then null
                        else if YearNum >= 50 then 1900 + YearNum 
                        else 2000 + YearNum,
-            MonthNum = try Number.From(MonthPart) otherwise null,
+            
+            // Convert month abbreviation to number (Jan=1, Feb=2, etc.)
+            MonthNum = if MonthPart = "Jan" then 1
+                       else if MonthPart = "Feb" then 2
+                       else if MonthPart = "Mar" then 3
+                       else if MonthPart = "Apr" then 4
+                       else if MonthPart = "May" then 5
+                       else if MonthPart = "Jun" then 6
+                       else if MonthPart = "Jul" then 7
+                       else if MonthPart = "Aug" then 8
+                       else if MonthPart = "Sep" then 9
+                       else if MonthPart = "Oct" then 10
+                       else if MonthPart = "Nov" then 11
+                       else if MonthPart = "Dec" then 12
+                       else null,
+            
             DateValue = if MonthNum = null or FullYear = null 
                         then null 
                         else try #date(FullYear, MonthNum, 1) otherwise null
         in DateValue, 
         type date),
     
+    // Add normalized Month_Normalized column in MM-YY format
+    AddedNormalizedMonth = Table.AddColumn(AddedDateInfo, "Month_Normalized", each 
+        if [Date] <> null then 
+            Text.PadStart(Text.From(Date.Month([Date])), 2, "0") & "-" & 
+            Text.End(Text.From(Date.Year([Date])), 2)
+        else [Month_MM_YY], 
+        type text),
+    
+    // Remove old Month_MM_YY and rename Month_Normalized to Month_MM_YY
+    RemovedOldMonth = Table.RemoveColumns(AddedNormalizedMonth, {"Month_MM_YY"}),
+    RenamedMonth = Table.RenameColumns(RemovedOldMonth, {{"Month_Normalized", "Month_MM_YY"}}),
+    
     // Create numeric sort order (YYYYMM format)
-    AddedSortOrder = Table.AddColumn(AddedDateInfo, "Month_Sort_Order", each 
+    AddedSortOrder = Table.AddColumn(RenamedMonth, "Month_Sort_Order", each 
         if [Date] <> null then Date.Year([Date]) * 100 + Date.Month([Date]) else null, 
         Int64.Type),
     
     // =================================================================
-    // ROLLING 13-MONTH WINDOW LOGIC (ADAPTED FOR 2026-ONLY DATA)
+    // ROLLING 13-MONTH WINDOW LOGIC (WORKS WITH HISTORICAL DATA)
     // =================================================================
-    // Since workbook only contains 2026 data (01-26 through 12-26),
-    // we'll show all available 2026 months up to the previous complete month
+    // Table contains historical data from Jun 2023 onwards
+    // Show rolling 13 months ending with the previous complete month
     
     CurrentDate = DateTime.LocalNow(),
     CurrentMonthStart = Date.StartOfMonth(Date.From(CurrentDate)),
@@ -80,9 +108,8 @@ let
     // End date = previous month (complete data only)
     EndFilterDate = Date.AddMonths(CurrentMonthStart, -1),
     
-    // Start date = January 2026 (start of 2026 data)
-    // This will show all 2026 data up to the previous complete month
-    StartFilterDate = #date(2026, 1, 1),
+    // Start date = 13 months before end date (rolling 13-month window)
+    StartFilterDate = Date.AddMonths(EndFilterDate, -12),
     
     // Format reporting period for display
     ReportingPeriod = Date.ToText(StartFilterDate, "MM/yy") & " - " & Date.ToText(EndFilterDate, "MM/yy"),

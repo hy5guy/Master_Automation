@@ -62,8 +62,8 @@ function Save-MonthlyReport {
     $monthName = $prevMonth.ToString("MMMM")
     $monthNameLower = $monthName.ToLower()
     
-    # Format: YYYY_MM_Monthly_FINAL_LAP.pbix (e.g., 2025_12_Monthly_FINAL_LAP.pbix for December 2025)
-    $reportFileName = "${year}_${monthNum}_Monthly_FINAL_LAP.pbix"
+    # Format: YYYY_MM_Monthly_Report.pbix (e.g., 2025_12_Monthly_Report.pbix for December 2025)
+    $reportFileName = "${year}_${monthNum}_Monthly_Report.pbix"
     
     # Base paths (use OneDrive base for portability)
     $templatesDir = Join-Path $OneDriveBase "15_Templates"

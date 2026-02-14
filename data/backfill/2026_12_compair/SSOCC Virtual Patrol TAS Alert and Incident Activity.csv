@@ -1,0 +1,66 @@
+﻿Incident,Month,Sum of Count
+TAS Alert - Missing Person,12-24,0
+TAS Alert - Missing Person,01-25,0
+TAS Alert - Missing Person,02-25,0
+TAS Alert - Missing Person,03-25,0
+TAS Alert - Missing Person,04-25,0
+TAS Alert - Missing Person,05-25,0
+TAS Alert - Missing Person,06-25,0
+TAS Alert - Missing Person,07-25,0
+TAS Alert - Missing Person,08-25,0
+TAS Alert - Missing Person,09-25,1
+TAS Alert - Missing Person,10-25,1
+TAS Alert - Missing Person,11-25,1
+TAS Alert - Missing Person,12-25,0
+TAS Alert - Stolen License Plate,12-24,0
+TAS Alert - Stolen License Plate,01-25,1
+TAS Alert - Stolen License Plate,02-25,0
+TAS Alert - Stolen License Plate,03-25,0
+TAS Alert - Stolen License Plate,04-25,0
+TAS Alert - Stolen License Plate,05-25,0
+TAS Alert - Stolen License Plate,06-25,0
+TAS Alert - Stolen License Plate,07-25,0
+TAS Alert - Stolen License Plate,08-25,0
+TAS Alert - Stolen License Plate,09-25,0
+TAS Alert - Stolen License Plate,10-25,1
+TAS Alert - Stolen License Plate,11-25,1
+TAS Alert - Stolen License Plate,12-25,2
+TAS Alert - Stolen Vehicle,12-24,0
+TAS Alert - Stolen Vehicle,01-25,0
+TAS Alert - Stolen Vehicle,02-25,0
+TAS Alert - Stolen Vehicle,03-25,0
+TAS Alert - Stolen Vehicle,04-25,0
+TAS Alert - Stolen Vehicle,05-25,0
+TAS Alert - Stolen Vehicle,06-25,0
+TAS Alert - Stolen Vehicle,07-25,0
+TAS Alert - Stolen Vehicle,08-25,0
+TAS Alert - Stolen Vehicle,09-25,0
+TAS Alert - Stolen Vehicle,10-25,3
+TAS Alert - Stolen Vehicle,11-25,1
+TAS Alert - Stolen Vehicle,12-25,1
+TAS Alert - Wanted Person,12-24,0
+TAS Alert - Wanted Person,01-25,0
+TAS Alert - Wanted Person,02-25,0
+TAS Alert - Wanted Person,03-25,0
+TAS Alert - Wanted Person,04-25,0
+TAS Alert - Wanted Person,05-25,0
+TAS Alert - Wanted Person,06-25,0
+TAS Alert - Wanted Person,07-25,0
+TAS Alert - Wanted Person,08-25,0
+TAS Alert - Wanted Person,09-25,0
+TAS Alert - Wanted Person,10-25,2
+TAS Alert - Wanted Person,11-25,0
+TAS Alert - Wanted Person,12-25,0
+Virtual - Patrol,12-24,0
+Virtual - Patrol,01-25,0
+Virtual - Patrol,02-25,0
+Virtual - Patrol,03-25,2
+Virtual - Patrol,04-25,1
+Virtual - Patrol,05-25,8
+Virtual - Patrol,06-25,0
+Virtual - Patrol,07-25,0
+Virtual - Patrol,08-25,0
+Virtual - Patrol,09-25,1
+Virtual - Patrol,10-25,0
+Virtual - Patrol,11-25,0
+Virtual - Patrol,12-25,2

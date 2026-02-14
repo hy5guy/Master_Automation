@@ -1,0 +1,43 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "type",
+        "text",
+        "data",
+        "null",
+        "summons",
+        "table"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Thirteen month visual export pipeline documentation\n_Exported on 2/13/2026 at 01:02:44 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\nplease read the following for context@c:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output...",
+      "first_line": "# Thirteen month visual export pipeline documentation"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-13T01:03:21.414891",
+  "department": "admin"
+}

@@ -1,0 +1,131 @@
+﻿Metric,Period,First Value
+DFR - Assisted Arrests,01-25,0
+DFR - Assisted Arrests,02-25,0
+DFR - Assisted Arrests,03-25,0
+DFR - Assisted Arrests,04-25,0
+DFR - Assisted Arrests,05-25,0
+DFR - Assisted Arrests,06-25,0
+DFR - Assisted Arrests,07-25,1
+DFR - Assisted Arrests,08-25,0
+DFR - Assisted Arrests,09-25,2
+DFR - Assisted Arrests,10-25,0
+DFR - Assisted Arrests,11-25,0
+DFR - Assisted Arrests,12-25,0
+DFR - Assisted Arrests,Total,3
+DFR - AVG Response Times - All Calls (Mins:Secs),01-25,2:30
+DFR - AVG Response Times - All Calls (Mins:Secs),02-25,3:19
+DFR - AVG Response Times - All Calls (Mins:Secs),03-25,3:18
+DFR - AVG Response Times - All Calls (Mins:Secs),04-25,2:49
+DFR - AVG Response Times - All Calls (Mins:Secs),05-25,2:18
+DFR - AVG Response Times - All Calls (Mins:Secs),06-25,5:33
+DFR - AVG Response Times - All Calls (Mins:Secs),07-25,1:54
+DFR - AVG Response Times - All Calls (Mins:Secs),08-25,1:52
+DFR - AVG Response Times - All Calls (Mins:Secs),09-25,1:34
+DFR - AVG Response Times - All Calls (Mins:Secs),10-25,2:35
+DFR - AVG Response Times - All Calls (Mins:Secs),11-25,1:32
+DFR - AVG Response Times - All Calls (Mins:Secs),12-25,2:15
+DFR - AVG Response Times - All Calls (Mins:Secs),Total,2:37
+DFR - AVG Response Times - First on Scene (Mins:Secs),01-25,5:00
+DFR - AVG Response Times - First on Scene (Mins:Secs),02-25,6:00
+DFR - AVG Response Times - First on Scene (Mins:Secs),03-25,5:00
+DFR - AVG Response Times - First on Scene (Mins:Secs),04-25,6:00
+DFR - AVG Response Times - First on Scene (Mins:Secs),05-25,6:00
+DFR - AVG Response Times - First on Scene (Mins:Secs),06-25,4:00
+DFR - AVG Response Times - First on Scene (Mins:Secs),07-25,1:45
+DFR - AVG Response Times - First on Scene (Mins:Secs),08-25,1:59
+DFR - AVG Response Times - First on Scene (Mins:Secs),09-25,1:40
+DFR - AVG Response Times - First on Scene (Mins:Secs),10-25,2:01
+DFR - AVG Response Times - First on Scene (Mins:Secs),11-25,1:26
+DFR - AVG Response Times - First on Scene (Mins:Secs),12-25,2:09
+DFR - AVG Response Times - First on Scene (Mins:Secs),Total,3:35
+DFR - Deployments that Avoided Dispatching a Patrol Unit,01-25,0
+DFR - Deployments that Avoided Dispatching a Patrol Unit,02-25,0
+DFR - Deployments that Avoided Dispatching a Patrol Unit,03-25,0
+DFR - Deployments that Avoided Dispatching a Patrol Unit,04-25,0
+DFR - Deployments that Avoided Dispatching a Patrol Unit,05-25,0
+DFR - Deployments that Avoided Dispatching a Patrol Unit,06-25,3
+DFR - Deployments that Avoided Dispatching a Patrol Unit,07-25,3
+DFR - Deployments that Avoided Dispatching a Patrol Unit,08-25,0
+DFR - Deployments that Avoided Dispatching a Patrol Unit,09-25,0
+DFR - Deployments that Avoided Dispatching a Patrol Unit,10-25,2
+DFR - Deployments that Avoided Dispatching a Patrol Unit,11-25,0
+DFR - Deployments that Avoided Dispatching a Patrol Unit,12-25,0
+DFR - Deployments that Avoided Dispatching a Patrol Unit,Total,8
+DFR - First on Scene Count,01-25,19
+DFR - First on Scene Count,02-25,28
+DFR - First on Scene Count,03-25,38
+DFR - First on Scene Count,04-25,40
+DFR - First on Scene Count,05-25,19
+DFR - First on Scene Count,06-25,23
+DFR - First on Scene Count,07-25,53
+DFR - First on Scene Count,08-25,58
+DFR - First on Scene Count,09-25,101
+DFR - First on Scene Count,10-25,73
+DFR - First on Scene Count,11-25,96
+DFR - First on Scene Count,12-25,81
+DFR - First on Scene Count,Total,629
+DFR - Flight Time - Calls Responded To (Hours:Mins),01-25,12:45
+DFR - Flight Time - Calls Responded To (Hours:Mins),02-25,10:19
+DFR - Flight Time - Calls Responded To (Hours:Mins),03-25,17:43
+DFR - Flight Time - Calls Responded To (Hours:Mins),04-25,10:42
+DFR - Flight Time - Calls Responded To (Hours:Mins),05-25,08:00
+DFR - Flight Time - Calls Responded To (Hours:Mins),06-25,09:44
+DFR - Flight Time - Calls Responded To (Hours:Mins),07-25,20:54
+DFR - Flight Time - Calls Responded To (Hours:Mins),08-25,23:34
+DFR - Flight Time - Calls Responded To (Hours:Mins),09-25,32:56
+DFR - Flight Time - Calls Responded To (Hours:Mins),10-25,34:02
+DFR - Flight Time - Calls Responded To (Hours:Mins),11-25,27:50
+DFR - Flight Time - Calls Responded To (Hours:Mins),12-25,30:04
+DFR - Flight Time - Calls Responded To (Hours:Mins),Total,238:33
+DFR - Flight Time - Training Flights (Hours:Mins),01-25,00:00
+DFR - Flight Time - Training Flights (Hours:Mins),02-25,00:11
+DFR - Flight Time - Training Flights (Hours:Mins),03-25,00:00
+DFR - Flight Time - Training Flights (Hours:Mins),04-25,00:03
+DFR - Flight Time - Training Flights (Hours:Mins),05-25,01:01
+DFR - Flight Time - Training Flights (Hours:Mins),06-25,00:45
+DFR - Flight Time - Training Flights (Hours:Mins),07-25,00:00
+DFR - Flight Time - Training Flights (Hours:Mins),08-25,00:00
+DFR - Flight Time - Training Flights (Hours:Mins),09-25,00:00
+DFR - Flight Time - Training Flights (Hours:Mins),10-25,00:00
+DFR - Flight Time - Training Flights (Hours:Mins),11-25,00:00
+DFR - Flight Time - Training Flights (Hours:Mins),12-25,00:00
+DFR - Flight Time - Training Flights (Hours:Mins),Total,02:00
+DFR - Shift (Hours:Mins),01-25,112:00
+DFR - Shift (Hours:Mins),02-25,105:50
+DFR - Shift (Hours:Mins),03-25,125:00
+DFR - Shift (Hours:Mins),04-25,116:50
+DFR - Shift (Hours:Mins),05-25,66:00
+DFR - Shift (Hours:Mins),06-25,85:00
+DFR - Shift (Hours:Mins),07-25,114:30
+DFR - Shift (Hours:Mins),08-25,120:30
+DFR - Shift (Hours:Mins),09-25,176:00
+DFR - Shift (Hours:Mins),10-25,248:00
+DFR - Shift (Hours:Mins),11-25,172:00
+DFR - Shift (Hours:Mins),12-25,218:00
+DFR - Shift (Hours:Mins),Total,1659:40
+DFR - Total Calls Responded To,01-25,67
+DFR - Total Calls Responded To,02-25,66
+DFR - Total Calls Responded To,03-25,103
+DFR - Total Calls Responded To,04-25,88
+DFR - Total Calls Responded To,05-25,42
+DFR - Total Calls Responded To,06-25,45
+DFR - Total Calls Responded To,07-25,101
+DFR - Total Calls Responded To,08-25,99
+DFR - Total Calls Responded To,09-25,166
+DFR - Total Calls Responded To,10-25,179
+DFR - Total Calls Responded To,11-25,158
+DFR - Total Calls Responded To,12-25,149
+DFR - Total Calls Responded To,Total,1263
+DFR - Total Flight Time (Hours:Mins),01-25,12:45
+DFR - Total Flight Time (Hours:Mins),02-25,12:45
+DFR - Total Flight Time (Hours:Mins),03-25,17:43
+DFR - Total Flight Time (Hours:Mins),04-25,10:45
+DFR - Total Flight Time (Hours:Mins),05-25,09:01
+DFR - Total Flight Time (Hours:Mins),06-25,10:29
+DFR - Total Flight Time (Hours:Mins),07-25,20:54
+DFR - Total Flight Time (Hours:Mins),08-25,23:34
+DFR - Total Flight Time (Hours:Mins),09-25,32:56
+DFR - Total Flight Time (Hours:Mins),10-25,34:02
+DFR - Total Flight Time (Hours:Mins),11-25,27:50
+DFR - Total Flight Time (Hours:Mins),12-25,30:04
+DFR - Total Flight Time (Hours:Mins),Total,242:48

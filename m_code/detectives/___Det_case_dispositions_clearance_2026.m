@@ -18,7 +18,8 @@ let
     // =================================================================
     // REQUIRED ROW ORDER (EXACT LABELS)
     // =================================================================
-    // These labels must match Excel exactly (including spaces)
+    // These labels must match Excel exactly (including extra spaces)
+    // Note: "Monthly Bureau Case  Clearance % " has DOUBLE space before "Clearance" and trailing space
     RequiredOrder = {
         "Active / Administratively Closed",
         "Arrest",
@@ -28,8 +29,8 @@ let
         "Stationhouse Adjustment",
         "TOT DCP&P",
         "Unfounded / Closed",
-        "Monthly Bureau Case Clearance %",
-        "YTD Bureau Case Clearance %"  // Added per Claude recommendation
+        "Monthly Bureau Case  Clearance % ",  // Double space + trailing space (as in Excel)
+        "YTD Bureau Case Clearance % "  // Trailing space (as in Excel)
     },
 
     // =================================================================
@@ -43,19 +44,20 @@ let
     // FILTER TO REQUIRED ROWS ONLY
     // =================================================================
     // Keep only rows that match the required order list
-    // Note: Handles trailing/double spaces in Excel labels
+    // Note: Now uses exact match (not Text.Trim) to preserve Excel labels
     KeptRows = Table.SelectRows(
         CCD_Table,
-        (r) => List.Contains(RequiredOrder, Text.Trim(Record.Field(r, FirstColumnName)))
+        (r) => List.Contains(RequiredOrder, Record.Field(r, FirstColumnName))
     ),
 
     // =================================================================
     // ADD ROW SORT ORDER
     // =================================================================
     // Add Row_Sort column to maintain display order
+    // Note: Now uses exact match (not Text.Trim) to preserve Excel labels
     WithRowSort = Table.AddColumn(
         KeptRows, "Row_Sort",
-        each List.PositionOf(RequiredOrder, Text.Trim(Record.Field(_, FirstColumnName))),
+        each List.PositionOf(RequiredOrder, Record.Field(_, FirstColumnName)),
         Int64.Type
     ),
     
@@ -136,22 +138,37 @@ let
     Cleaned = Table.RemoveColumns(Normalized, {"ValueRaw"}),
 
     // =================================================================
-    // DATE PARSING FROM MM-YY FORMAT
+    // DATE PARSING FROM YY-MMM FORMAT
     // =================================================================
-    // Parse "01-26" → #date(2026, 1, 1)
+    // Parse "26-Jan" → #date(2026, 1, 1)
     WithDate = Table.AddColumn(Cleaned, "Date", each
         let
             mTxt = [Month],
-            // Extract first 2 characters for month
-            mStr = Text.Start(mTxt, 2),
-            mNum = try Number.From(mStr) otherwise null,
-            // Extract last 2 characters for year
-            yStr = Text.End(mTxt, 2),
-            y2   = try Number.From(yStr) otherwise null,
-            // Assume 50+ = 19xx, else 20xx (only if y2 is valid number)
-            y4   = if y2 = null then null 
-                   else if y2 >= 50 then 1900 + y2 
-                   else 2000 + y2
+            Parts = Text.Split(mTxt, "-"),
+            // Parts{0} = YY (year), Parts{1} = MMM (month abbrev)
+            YearPart = if List.Count(Parts) >= 1 then Parts{0} else "26",
+            MonthPart = if List.Count(Parts) >= 2 then Parts{1} else "Jan",
+            
+            // Convert 2-digit year to full year
+            y2 = try Number.From(YearPart) otherwise null,
+            y4 = if y2 = null then null 
+                 else if y2 >= 50 then 1900 + y2 
+                 else 2000 + y2,
+            
+            // Convert month abbreviation to number (Jan=1, Feb=2, etc.)
+            mNum = if MonthPart = "Jan" then 1
+                   else if MonthPart = "Feb" then 2
+                   else if MonthPart = "Mar" then 3
+                   else if MonthPart = "Apr" then 4
+                   else if MonthPart = "May" then 5
+                   else if MonthPart = "Jun" then 6
+                   else if MonthPart = "Jul" then 7
+                   else if MonthPart = "Aug" then 8
+                   else if MonthPart = "Sep" then 9
+                   else if MonthPart = "Oct" then 10
+                   else if MonthPart = "Nov" then 11
+                   else if MonthPart = "Dec" then 12
+                   else null
         in
             if mNum = null or y4 = null then null 
             else try #date(y4, mNum, 1) otherwise null,
@@ -161,8 +178,20 @@ let
     // =================================================================
     // ADDITIONAL DATE HELPER COLUMNS
     // =================================================================
+    // Add normalized Month_Normalized column in MM-YY format
+    WithNormalizedMonth = Table.AddColumn(WithDate, "Month_Normalized", each 
+        if [Date] <> null then 
+            Text.PadStart(Text.From(Date.Month([Date])), 2, "0") & "-" & 
+            Text.End(Text.From(Date.Year([Date])), 2)
+        else [Month], 
+        type text),
+    
+    // Remove old Month and rename Month_Normalized to Month
+    RemovedOldMonth = Table.RemoveColumns(WithNormalizedMonth, {"Month"}),
+    RenamedMonth = Table.RenameColumns(RemovedOldMonth, {{"Month_Normalized", "Month"}}),
+    
     // Month_Year: "January 2026"
-    WithMonthYear = Table.AddColumn(WithDate, "Month_Year", each 
+    WithMonthYear = Table.AddColumn(RenamedMonth, "Month_Year", each 
         if [Date] = null then null 
         else Date.MonthName([Date]) & " " & Text.From(Date.Year([Date])), 
         type text),
@@ -201,16 +230,16 @@ let
     ),
 
     // =================================================================
-    // DATE RANGE FILTER (ADAPTED FOR 2026-ONLY DATA)
+    // DATE RANGE FILTER (ROLLING 13-MONTH WINDOW)
     // =================================================================
-    // Since workbook only contains 2026 data (01-26 through 12-26),
-    // show all available 2026 months up to the previous complete month
+    // Table contains historical data from Jun 2023 onwards
+    // Show rolling 13 months ending with the previous complete month
     
     CurrentDate     = Date.From(DateTime.LocalNow()),
     EndFilterDate   = Date.AddMonths(Date.StartOfMonth(CurrentDate), -1),
     
-    // Start date = January 2026 (start of 2026 data)
-    StartFilterDate = #date(2026, 1, 1),
+    // Start date = 13 months before end date (rolling 13-month window)
+    StartFilterDate = Date.AddMonths(EndFilterDate, -12),
 
     // Filter to only rows within the date range
     FilteredMonths = Table.SelectRows(

@@ -15,6 +15,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.15.3] - 2026-02-13
+
+### Fixed
+- **Detective Queries - Excel Structure Mismatch** - Fixed both Detective M code queries returning empty tables
+  - **Root Cause**: Excel workbook structure differed from Claude Excel add-on's planned restructuring
+    - Expected: 2026-only data with MM-YY headers (e.g., `01-26`, `02-26`)
+    - Actual: Historical data (Jun 2023 - Dec 2026) with YY-MMM headers (e.g., `26-Jan`, `25-Dec`)
+  - **Fix #1**: Date parsing logic - Changed from MM-YY to YY-MMM format with month abbreviation lookup
+  - **Fix #2**: Rolling window calculation - Changed from hardcoded 2026-only to dynamic 13-month rolling window
+  - **Fix #3**: Month display normalization - Convert YY-MMM to MM-YY format for consistent Power BI visuals
+  - **Fix #4**: Row label exact matching - Handle double spaces in Excel labels for CCD query
+  - **Result**: Queries now load data correctly, showing Jan 2025 - Dec 2025 (13 months)
+
+### Changed
+- **M Code Updates**:
+  - `m_code/detectives/___Detectives_2026.m` - Date parsing, rolling window, month normalization
+  - `m_code/detectives/___Det_case_dispositions_clearance_2026.m` - Date parsing, rolling window, month normalization, label matching
+  
+### Added
+- **Detective Diagnostic Tools**:
+  - `scripts/analyze_detective_workbook.py` - Full workbook structure analysis (sheets, tables, headers)
+  - `scripts/check_detective_tables.py` - Quick table name verification
+  - `scripts/check_detective_table_data.py` - Detailed table data inspection
+  - `scripts/check_jan_26_data.py` - Verify 26-Jan column data status
+
+### Documentation
+- **New Detective Documentation**:
+  - `docs/DETECTIVES_EXCEL_STRUCTURE_MISMATCH_FIX.md` - Root cause analysis and detailed fix explanation
+  - `docs/DETECTIVES_2026_UPDATE_GUIDE.md` - Original deployment guide (now superseded by mismatch fix)
+  - `docs/DETECTIVES_2026_QUICK_REF.md` - Quick reference for fixes
+  - `docs/DETECTIVES_CRITICAL_FIXES_2026_02_13.md` - Summary of critical fixes
+  - `docs/DETECTIVES_VERIFICATION_CHECKLIST.md` - Manual verification steps for Power BI Desktop
+
+---
+
 ## [1.15.2] - 2026-02-13
 
 ### Fixed

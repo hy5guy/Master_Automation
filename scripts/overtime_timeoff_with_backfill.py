@@ -146,7 +146,7 @@ def ensure_month_exports_are_xlsx(paths: Paths, run_month: date, dry_run: bool) 
     )
 
 
-REQUIRED_FIXED_COLUMNS = {"YearMonth", "Class", "Metric", "Hours"}
+REQUIRED_FIXED_COLUMNS = {"Date", "Period", "Month", "Year", "Month_Name"}
 EXPECTED_MONTH_COUNT = 13
 
 
@@ -154,30 +154,36 @@ def validate_fixed_schema(file_path: Path) -> None:
     """Validate FIXED CSV schema before exit. Raises ValueError if invalid (prevents bad data reaching Power BI)."""
     if not file_path.exists():
         raise FileNotFoundError(f"FIXED file not found: {file_path}")
+    
     with file_path.open("r", newline="", encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         headers = set(reader.fieldnames or [])
+    
+    # Check for required columns (wide format with Date, Period, Month, etc.)
     missing = REQUIRED_FIXED_COLUMNS - headers
     if missing:
         raise ValueError(f"FIXED CSV missing required columns: {sorted(missing)}. Found: {sorted(headers)}")
-
-    months: set[str] = set()
+    
+    # Validate row count (should be exactly 13 months)
+    row_count = 0
     with file_path.open("r", newline="", encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            ym = (row.get("YearMonth") or "").strip()
-            if ym:
-                months.add(ym)
-            hrs = (row.get("Hours") or "").strip()
-            if hrs != "":
-                try:
-                    float(hrs)
-                except ValueError:
-                    raise ValueError(f"FIXED CSV has non-numeric Hours value: {hrs!r}")
-
-    if len(months) != EXPECTED_MONTH_COUNT:
+            row_count += 1
+            # Validate numeric columns (optional - check if any hours columns have valid numbers)
+            for col in headers:
+                if col in REQUIRED_FIXED_COLUMNS:
+                    continue  # Skip date/period columns
+                val = (row.get(col) or "").strip()
+                if val != "" and val != "0":
+                    try:
+                        float(val)
+                    except ValueError:
+                        raise ValueError(f"FIXED CSV has non-numeric value in column {col}: {val!r}")
+    
+    if row_count != EXPECTED_MONTH_COUNT:
         raise ValueError(
-            f"FIXED CSV must contain exactly {EXPECTED_MONTH_COUNT} unique YearMonth values; found {len(months)}: {sorted(months)}"
+            f"FIXED CSV must contain exactly {EXPECTED_MONTH_COUNT} rows (months); found {row_count}"
         )
 
 

@@ -290,15 +290,30 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 - **January 2026 Report** - Successfully generated and ready for publication
 
 ### Current System Status
-- **Version**: 1.15.1
-- **Status**: ✅ 100% Operational (6/6 ETL workflows + Power BI queries + Smart Date Inference)
+- **Version**: 1.15.3
+- **Status**: ✅ 100% Operational (6/6 ETL workflows + Power BI queries + Detective Queries Fixed)
 - **Enabled Scripts**: 6 (All operational)
-- **Power BI Queries**: Response Time M code fixed (v2.8.0, 0% errors)
-- **Recent Major Updates**: 13-month rolling window (24 visuals enforced), process_powerbi_exports (match_pattern + enforce_13_month), path centralization, Overtime/TimeOff hardening, Visual Export Normalization, Summons backfill prep
+- **Power BI Queries**: Response Time M code fixed (v2.8.0), STACP 13-month window fixed, Detective queries restructured and working
+- **Recent Major Updates**: Detective queries Excel structure fix (YY-MMM parsing + rolling window), STACP 13-month rolling window (3 fixes), Smart date inference (95% accuracy), 13-month rolling window enforcement (24 visuals), process_powerbi_exports (match_pattern + enforce_13_month), path centralization, Overtime/TimeOff hardening, Visual Export Normalization, Summons backfill prep
 
 ---
 
-## Recent Updates (2026-02-05)
+## Recent Updates (2026-02-13)
+
+### v1.15.3 - Detective Queries Excel Structure Fix ✅
+- **Complete Success** - Detective Division Power BI queries now import data correctly
+- **Root Cause**: Excel structure differed from Claude Excel add-on's plan (historical YY-MMM data vs expected 2026-only MM-YY)
+- **Three Critical Fixes**:
+  1. **Date Parsing** - YY-MMM format parsing with month abbreviation lookup (`"Jan"` → 1, `"Feb"` → 2)
+  2. **Rolling Window** - Dynamic 13-month calculation (was hardcoded to 2026-only, excluded all data)
+  3. **Month Display** - Normalized YY-MMM to MM-YY format (`26-Jan` → `01-26` for visuals)
+- **Additional Fix**: Row label exact matching for CCD query (double spaces in Excel)
+- **Queries Updated**: `___Detectives` (40 categories), `___Det_case_dispositions_clearance` (10 dispositions)
+- **Current Window**: Jan 2025 - Dec 2025 (will auto-show Jan 2026 when data entered)
+- **Diagnostic Tools**: 4 Python scripts for workbook analysis and verification
+- **Documentation**: 5 detailed guides including root cause analysis and deployment steps
+
+### v1.15.2 - STACP Visual 13-Month Rolling Window Fixed ✅
 
 ### v1.8.1 - December 2025 Power BI Visual Export Processing & Diagnostics
 - **December 2025 Exports Organized** - Processed and organized 36 CSV exports into 16 categories
