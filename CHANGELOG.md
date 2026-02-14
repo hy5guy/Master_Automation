@@ -11,7 +11,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 - [ ] Monitor February 2026 execution for hybrid strategy validation
-- [ ] Optional: watchdog/organize rule for "Monthly Accrual and Usage Summary" → backfill folder
+
+---
+
+## [1.15.5] - 2026-02-13
+
+### Added
+- **Visual Export Config – Gemini Enhancement** – Merged Gemini metadata and fixed Monthly Accrual backfill path
+  - **backfill_folder override** – Mappings can now specify `backfill_folder` to override `target_folder` when copying to Backfill (e.g. Monthly Accrual → `vcs_time_report`)
+  - **Monthly Accrual fix** – `backfill_folder: "vcs_time_report"` so Overtime/TimeOff automation finds the file in `Backfill/YYYY_MM/vcs_time_report/`
+  - **Gemini metadata** – `page_name`, `date_column`, `data_format`, `time_period` added to mappings for documentation and future smart inference
+  - **New visuals** – Officer Summons Activity, SSOCC Virtual Patrol TAS Alert and Incident Activity; Chief's Projects alias added
+
+### Changed
+- **process_powerbi_exports.py** – Uses `backfill_folder` when set for Backfill copy path; otherwise uses `target_folder`
+- **visual_export_mapping.json** – Enhanced with Gemini config merge; Monthly Accrual now has `normalizer_format: "monthly_accrual"` and `backfill_folder: "vcs_time_report"`
+
+### Documentation
+- **POWERBI_VISUAL_EXPORT_PIPELINE_FAQ.md** – Updated "Where files are moved" to document backfill_folder; Monthly Accrual now copies to vcs_time_report
+- **docs/VISUAL_EXPORT_CONFIG_GEMINI_ENHANCEMENT.md** – New doc describing Gemini config merge and backfill_folder behavior
 
 ---
 

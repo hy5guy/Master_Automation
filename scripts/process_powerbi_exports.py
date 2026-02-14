@@ -357,6 +357,7 @@ def process_exports(
         yyyy_mm = infer_yyyymm_smart(file_path, enforce_13_month)
         
         target_folder = mapping.get("target_folder", "Other")
+        backfill_folder = mapping.get("backfill_folder") or target_folder
         new_name = f"{yyyy_mm}_{standardized_base}.csv"
         stats.files_renamed += 1
 
@@ -366,7 +367,7 @@ def process_exports(
         if dry_run:
             _safe_print(f"[DRY RUN] Would process: {file_path.name} -> {dest_path}")
             if mapping.get("requires_normalization"):
-                fmt = mapping.get("normalizer_format", "monthly_accrual")
+                fmt = mapping.get("normalizer_format") or "monthly_accrual"
                 enforce_window = mapping.get("enforce_13_month_window", False)
                 _norm_script = Path(__file__).resolve().parent / "normalize_visual_export_for_backfill.py"
                 _dry_cmd = [sys.executable, str(_norm_script), "--input", str(file_path), "--output", str(dest_path)]
@@ -378,7 +379,7 @@ def process_exports(
                 _cmd_str = " ".join(f'"{x}"' if " " in str(x) else str(x) for x in _dry_cmd)
                 _safe_print(f"[DRY RUN] Would run: {_cmd_str}")
             if mapping.get("is_backfill_required"):
-                _safe_print(f"[DRY RUN] Would copy to Backfill: {backfill_root / yyyy_mm / target_folder / new_name}")
+                _safe_print(f"[DRY RUN] Would copy to Backfill: {backfill_root / yyyy_mm / backfill_folder / new_name}")
             stats.files_moved += 1
             continue
 
@@ -419,7 +420,7 @@ def process_exports(
         stats.files_moved += 1
 
         if mapping.get("is_backfill_required"):
-            backfill_dir = backfill_root / yyyy_mm / target_folder
+            backfill_dir = backfill_root / yyyy_mm / backfill_folder
             backfill_dir.mkdir(parents=True, exist_ok=True)
             backfill_file = backfill_dir / new_name
             try:

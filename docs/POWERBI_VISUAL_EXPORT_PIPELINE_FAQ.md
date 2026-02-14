@@ -18,14 +18,16 @@ The output filename is always: **`YYYY_MM_{standardized_filename}.csv`**
 
 | Step | Location |
 |------|----------|
-| **1. Processed (archive)** | `C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Standards\Processed_Exports\{target_folder}\` |
-| **2. Backfill (if `is_backfill_required`)** | `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\YYYY_MM\{target_folder}\` |
+| **1. Processed (archive)** | `09_Reference\Standards\Processed_Exports\{target_folder}\` |
+| **2. Backfill (if `is_backfill_required`)** | `PowerBI_Date\Backfill\YYYY_MM\{backfill_folder or target_folder}\` |
 
-- **Summons** → `Processed_Exports\Summons\` and `Backfill\YYYY_MM\Summons\`
-- **Training** → `Processed_Exports\Training\` and `Backfill\YYYY_MM\Training\`
-- **Time_Off (Monthly Accrual)** → `Processed_Exports\Time_Off\` only (no backfill copy in current mapping)
+**backfill_folder override:** When a mapping has `backfill_folder`, that folder is used for Backfill instead of `target_folder` (so Processed_Exports and Backfill can differ).
 
-Source files are **removed** from `Master_Automation\_DropExports` after a successful move/copy.
+- **Summons** → `Processed_Exports\summons\` and `Backfill\YYYY_MM\summons\`
+- **Training** → `Processed_Exports\policy_and_training_qual\` and `Backfill\YYYY_MM\policy_and_training_qual\`
+- **Monthly Accrual** → `Processed_Exports\social_media_and_time_report\` and `Backfill\YYYY_MM\vcs_time_report\` (backfill_folder override; Overtime/TimeOff reads from vcs_time_report)
+
+Source files are **removed** from `_DropExports` after a successful move/copy.
 
 ---
 
@@ -86,10 +88,7 @@ If you want these three files to be **processed, named, moved, normalized, and u
    - Move to `09_Reference\Standards\Processed_Exports\{target_folder}`
    - Copy to `PowerBI_Date\Backfill\YYYY_MM\{target_folder}` for Summons and Training (because `is_backfill_required` is true)
 
-   **Note:** In the current mapping, **Monthly Accrual** has `is_backfill_required: false` and `target_folder: "Time_Off"`. The **Overtime/TimeOff** script, however, looks for Monthly Accrual in **`Backfill\YYYY_MM\vcs_time_report\`**. So for Overtime/TimeOff to use a processed Monthly Accrual file, you would either:
-
-   - Manually copy the normalized file from `Processed_Exports\Time_Off\` into `Backfill\YYYY_MM\vcs_time_report\`, or  
-   - Change the mapping to use `target_folder: "vcs_time_report"` and `is_backfill_required: true` for Monthly Accrual, then re-run the processor.
+   **Note:** **Monthly Accrual** has `is_backfill_required: true` and `backfill_folder: "vcs_time_report"`. The processor copies it to `Backfill\YYYY_MM\vcs_time_report\` where Overtime/TimeOff expects it. Processed copies go to `social_media_and_time_report\`.
 
 2. **Run the ETL** so downstream scripts use the new backfill:
 
