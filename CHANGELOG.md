@@ -11,7 +11,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 - [ ] Monitor February 2026 execution for hybrid strategy validation
-- [ ] Resolve Benchmark Power BI visuals (matrix, donut, line chart showing zeros; handoff doc created)
+- [ ] Resolve Benchmark Power BI visuals (matrix, donut, line chart showing zeros; fix in Power BI per Scenario B)
+
+---
+
+## [1.15.7] - 2026-02-13
+
+### Added
+- **Benchmark source data diagnostic** – `scripts/diagnose_benchmark_data.py` analyzes source CSVs in `05_EXPORTS\Benchmark` (or override path) and reports date coverage and scenario (A/B/C).
+- **README** – Listed `diagnose_benchmark_data.py` in scripts directory structure.
+
+### Changed
+- **SUMMARY** – Documented Benchmark diagnostic run result (Scenario B): source data confirmed good (multi-month coverage); issue is in Power BI (MonthStart, relationships, date types). Pointers to `docs/BENCHMARK_VISUAL_DIAGNOSTIC.md` steps 3, 5, 7.
+
+### Documentation
+- Benchmark diagnostic outcome recorded in SUMMARY and CLAUDE.md; next steps remain in Power BI (handoff doc and diagnostic guide).
 
 ---
 

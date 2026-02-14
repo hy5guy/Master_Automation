@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-02-14
+**Last Updated:** 2026-02-13
 **Status:** ✅ Production Ready - 100% Operational (ETL + Power BI)
-**Version:** 1.15.6
+**Version:** 1.15.7
 
 ---
 
@@ -20,7 +20,7 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
 | **Status** | ✅ Production Ready |
-| **Version** | 1.15.6 |
+| **Version** | 1.15.7 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -259,6 +259,7 @@ History/backfill source:
 Validation helpers:
 - `scripts/compare_summons_deptwide.py` (Dept-Wide visual export vs backfill history + ETL current month)
 - `scripts/compare_summons_all_bureaus.py` (All Bureaus visual vs ETL output)
+- `scripts/diagnose_benchmark_data.py` (analyze Benchmark source CSVs; date coverage, scenario A/B/C for Power BI visuals)
 - `scripts/diagnose_summons_blank_bureau.py` (find blank `WG2` rows → blank Bureau in visuals)
 - `scripts/diagnose_summons_assignment_mapping.py` (diagnose WG2 assignment mapping issues)
 - `scripts/diagnose_summons_missing_months.py` (identify missing months in staging workbook)
@@ -357,6 +358,7 @@ Documentation:
 
 **Detailed Documentation (in `docs\`):**
 - `BENCHMARK_VISUALS_HANDOFF_PROMPT.md` - AI handoff for Benchmark Power BI visuals troubleshooting
+- **Benchmark diagnostic (2026-02-13):** `diagnose_benchmark_data.py` run confirmed **Scenario B** — source CSVs in `05_EXPORTS\Benchmark` have good multi-month coverage (use_force 61, show_force 22, vehicle_pursuit 11 months); issue is in Power BI (MonthStart, relationships, or date types). See `docs/BENCHMARK_VISUAL_DIAGNOSTIC.md` steps 3, 5, 7.
 - `QUICK_START.md` - Quick reference guide
 - `VERIFICATION_REPORT.md` - Migration verification details
 - `MIGRATION_VERIFICATION.md` - Migration verification guide

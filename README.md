@@ -40,6 +40,7 @@ Master_Automation/
 │   ├── compare_policy_training_delivery.py   # Policy Training: visual vs ETL/backfill diff
 │   ├── compare_summons_deptwide.py           # Summons Dept-Wide: visual vs ETL/backfill diff
 │   ├── diagnose_summons_blank_bureau.py      # Summons: find blank WG2 (Bureau) rows
+│   ├── diagnose_benchmark_data.py            # Benchmark: analyze source CSVs (date coverage, scenario A/B/C)
 │   ├── run_summons_with_overrides.py         # Summons: run with injected badge overrides
 │   └── _testing/                             # Benchmark and debug scripts
 ├── docs/                        # Project documentation (migration, verification, guides)
