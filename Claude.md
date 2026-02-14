@@ -290,12 +290,29 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 - **January 2026 Report** - Successfully generated and ready for publication
 
 ### Current System Status
-- **Version**: 1.15.5
+- **Version**: 1.15.7
 - **Status**: ✅ 100% Operational (6/6 ETL workflows + Power BI queries + Detective Queries Fixed + CSB Workbook Ready)
 - **Enabled Scripts**: 6 (All operational)
 - **Power BI Queries**: Response Time M code fixed (v2.8.0), STACP 13-month window fixed, Detective queries restructured and working
 - **Excel Workbooks**: CSB workbook 2026 setup complete (templates + XLOOKUP formulas ready)
-- **Recent Major Updates**: Visual export config Gemini enhancement (backfill_folder, Monthly Accrual → vcs_time_report), CSB workbook 2026 preparation, Detective queries fix, STACP 13-month window, Smart date inference, process_powerbi_exports, path centralization, Overtime/TimeOff hardening, Summons backfill prep
+- **Recent Major Updates**: Benchmark diagnostic run (Scenario B – source data OK, fix in Power BI), Benchmark handoff, Visual export config Gemini enhancement, CSB workbook 2026, Detective queries fix, STACP 13-month window, process_powerbi_exports, Overtime/TimeOff hardening, Summons backfill prep
+
+---
+
+## Recent Updates (2026-02-14)
+
+### v1.15.6 - Benchmark Power BI Diagnostics & Handoff
+- **Handoff doc** – `docs/BENCHMARK_VISUALS_HANDOFF_PROMPT.md` for AI-assisted troubleshooting (matrix/donut/line chart broken)
+- **Benchmark consolidation** – Moved 02_06 CSVs from archive to 05_EXPORTS\Benchmark; removed old 01_07
+- **DAX fix** – BM_YoY_Change (DATEADD → EDATE for scalar dates)
+- **Benchmark docs** – README merge, CHANGELOG, SUMMARY, ___Benchmark_FIXED.m, ___DimMonth_dynamic.m, Benchmark_DAX_Measures.dax in 02_ETL_Scripts\Benchmark
+- **Status**: Visuals still showing zeros for most months; handoff enables continuation
+
+### v1.15.7 - Benchmark Source Data Diagnostic (Scenario B Confirmed)
+- **Diagnostic run** – `scripts/diagnose_benchmark_data.py` run against `05_EXPORTS\Benchmark` (default path).
+- **Result**: **Scenario B** — source CSVs have good multi-month coverage (use_force 61, show_force 22, vehicle_pursuit 11 months); dates beyond Jan 2025 present; no over-concentration in one month.
+- **Conclusion**: Issue is in **Power BI** (MonthStart, model relationships, or date types), not in source data.
+- **Next steps**: See `docs/BENCHMARK_VISUAL_DIAGNOSTIC.md` steps 3, 5, 7; handoff prompt `docs/BENCHMARK_VISUALS_HANDOFF_PROMPT.md`.
 
 ---
 
