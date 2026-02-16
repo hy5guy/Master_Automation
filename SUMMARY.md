@@ -216,11 +216,15 @@ Policy Training is managed in its own project folder:
 - `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Policy_Training_Monthly`
 
 Key output:
-- `...\output\policy_training_outputs.xlsx` (sheet `Delivery_Cost_By_Month`)
+- `...\output\policy_training_outputs.xlsx` (sheets: `Delivery_Cost_By_Month`, `InPerson_Prior_Month_List`, etc.)
 
 Expected behavior:
 - Backfill months match the prior-month backfill export (e.g., `PowerBI_Date\Backfill\2025_10\policy_training\...`)
-- ETL computes **only the new month** (e.g., 11-25) from the source workbook
+- ETL computes rolling 13-month window; **01-26** (and later months) appear in Cost by Delivery Method visual after ETL run when source workbook has that period.
+- In-Person Training visual shows prior-month In-Person courses; zeros when source has no cost (or fill **Cost Per Attendee** in source and re-run ETL for imputation).
+
+Doc:
+- `docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md` – Run location, Cost of Training 13-month fix, why 01-26 missing, In-Person visual and source column alias (**Cost Per Attendee** in ETL).
 
 Validation helper:
 - `scripts/compare_policy_training_delivery.py` (visual export vs ETL output; history vs backfill)

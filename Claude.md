@@ -316,6 +316,14 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 
 ---
 
+## Recent Updates (2026-02-16)
+
+### v1.15.8 - Policy Training: Cost of Training 13-month window & In-Person doc
+- **Cost of Training M code** – `m_code/___Cost_of_Training.m`: 13-month rolling window (01-25 through 01-26); filter to previous month / same month one year earlier.
+- **Policy Training doc** – `docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md`: where ETL runs, how to run, why 01-26 missing, In-Person Training visual and source cost (zeros when source has no cost; ETL **Cost Per Attendee** alias in Policy_Training_Monthly ETL for imputation).
+
+---
+
 ## Recent Updates (2026-02-13)
 
 ### v1.15.5 - Visual Export Config Gemini Enhancement ✅

@@ -15,6 +15,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.15.8] - 2026-02-16
+
+### Added
+- **Policy Training: Cost of Training visual 13-month window** – `m_code/___Cost_of_Training.m` now filters to rolling 13-month window (same month one year earlier through previous month, e.g. 01-25 through 01-26). Fixes visual showing 12-24–12-25 instead of 01-25–01-26.
+- **Policy Training docs** – `docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md`: where the ETL runs, how to run it, why 01-26 can be missing (source workbook must include that column), and In-Person Training visual / source cost columns (zeros when source has no cost; ETL imputation and **Cost Per Attendee** alias in ETL project).
+
+### Changed
+- **SUMMARY** – Policy Training section: reference to Policy Training doc; note that 01-26 appears after ETL run and source has cost/alias for imputation.
+
+### Documentation
+- Cost of Training M code: 13-month window logic and deploy steps in POLICY_TRAINING doc. In-Person Training visual correctness and ETL alias for "Cost Per Attendee" (in `02_ETL_Scripts\Policy_Training_Monthly\src\policy_training_etl.py`) documented.
+
+---
+
 ## [1.15.7] - 2026-02-13
 
 ### Added
