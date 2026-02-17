@@ -2,14 +2,16 @@
 """
 Merge Department-Wide Summons backfill for gap months (03-25, 07-25, 10-25, 11-25).
 
-INJECTION POINT (in 02_ETL_Scripts/Summons/main_orchestrator.py):
-  After the main summons dataframe is loaded (the one that feeds Department-Wide Summons):
-    df = merge_missing_summons_months(df)
+Backfill is only needed for the **Department-Wide Summons | Moving and Parking** visual,
+which shows a rolling 13-month total. Other summons visuals use monthly data only and
+do not need backfill rows.
+
+INJECTION POINT (in run_summons_etl.py): after normalize_personnel_data(), merge then
+overwrite Excel so the 13-month trend query sees backfill + current month.
 
 Loads from Backfill\\{backfill_month_label}\\summons\\, normalizes visual-export column names
-to ETL schema, and concatenates rows. Uses low_memory=False and explicit dtypes to avoid
-Pandas DtypeWarnings. Schema drift: if Power BI export renames columns (e.g. "Sum of Value"
--> "Total"), update RENAME_MAP below.
+to ETL schema, and concatenates rows. Schema drift: if Power BI export renames columns
+(e.g. "Sum of Value" -> "Total"), update RENAME_MAP below.
 """
 
 from __future__ import annotations
@@ -44,6 +46,7 @@ RENAME_MAP = {
     "Sum of TICKET_COUNT": "TICKET_COUNT",
     "Moving/Parking": "TYPE",
     "Type": "TYPE",
+    "Time Category": "TYPE",
 }
 
 # Minimum columns we need for merged rows (main ETL may have more)
@@ -157,6 +160,45 @@ def merge_missing_summons_months(
 
                 except Exception as e:
                     logger.error("Failed to process backfill file %s: %s", file_path, e)
+
+        # Fallback: load from a single "department wide" CSV that has all months (e.g. 2025_12_department_wide_summons.csv)
+        if not backfill_dfs:
+            # Prefer file with "department_wide_summons" (Long format: PeriodLabel, Time Category, Sum of Value)
+            consolidated = [f for f in all_files if "department_wide_summons" in f.name.lower()]
+            if not consolidated:
+                consolidated = [
+                    f for f in all_files
+                    if "department_wide" in f.name.lower()
+                    or ("Department-Wide" in f.name and ("Summons" in f.name or "Moving" in f.name))
+                ]
+            for file_path in consolidated:
+                try:
+                    bf_data = pd.read_csv(file_path, low_memory=False)
+                    if bf_data.empty:
+                        continue
+                    if "PeriodLabel" not in bf_data.columns and "Month_Year" not in bf_data.columns:
+                        continue
+                    bf_data = bf_data.rename(columns=RENAME_MAP)
+                    if "Month_Year" not in bf_data.columns:
+                        continue
+                    bf_data = bf_data[bf_data["Month_Year"].isin(SUMMONS_GAP_MONTHS)].copy()
+                    if bf_data.empty:
+                        continue
+                    if "TICKET_COUNT" not in bf_data.columns:
+                        bf_data["TICKET_COUNT"] = 1
+                    bf_data["TICKET_COUNT"] = pd.to_numeric(bf_data["TICKET_COUNT"], errors="coerce").fillna(0)
+                    if "WG2" not in bf_data.columns:
+                        bf_data["WG2"] = "Department-Wide"
+                    bf_data["WG2"] = bf_data["WG2"].fillna("Department-Wide").astype(str)
+                    if "TYPE" not in bf_data.columns:
+                        bf_data["TYPE"] = "Unknown"
+                    cols_to_keep = [c for c in TARGET_COLUMNS if c in bf_data.columns]
+                    bf_data = bf_data[cols_to_keep].copy()
+                    backfill_dfs.append(bf_data)
+                    logger.info("Loaded gap months from consolidated file %s: %s rows", file_path.name, len(bf_data))
+                    break
+                except Exception as e:
+                    logger.error("Failed to process consolidated backfill file %s: %s", file_path, e)
 
         if not backfill_dfs:
             return df

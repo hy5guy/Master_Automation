@@ -59,18 +59,27 @@ let
         {"PROCESSING_TIMESTAMP", type datetime}
     }),
     
-    // Get the most recent month from e-ticket data
+    // Get the most recent month from e-ticket data (use YearMonthKey for chronological order)
     #"Filtered E-Ticket Data" = Table.SelectRows(
         #"Changed Type",
         each [ETL_VERSION] = "ETICKET_CURRENT" and [IS_AGGREGATE] = false
     ),
     
-    #"Latest Month" = List.Max(#"Filtered E-Ticket Data"[Month_Year]),
+    #"YearMonthKeyList" = List.RemoveNulls(#"Filtered E-Ticket Data"[YearMonthKey]),
+    #"Latest YearMonthKey" = if List.IsEmpty(#"YearMonthKeyList") then 0 else List.Max(#"YearMonthKeyList"),
+    #"Latest Month Row" = Table.FirstN(Table.SelectRows(#"Filtered E-Ticket Data", each [YearMonthKey] = #"Latest YearMonthKey"), 1),
+    #"Latest Month Raw" = if Table.RowCount(#"Latest Month Row") > 0 then Table.Column(#"Latest Month Row", "Month_Year"){0} else "",
+    // Display: "01-26" -> "January 2026" for subtitle
+    #"Latest Month" = if Text.Length(#"Latest Month Raw") = 5 and Text.Contains(#"Latest Month Raw", "-") then
+        let parts = Text.Split(#"Latest Month Raw", "-"), m = Number.From(parts{0}), y = 2000 + Number.From(parts{1}),
+            monthNames = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"}
+        in monthNames{m-1} & " " & Text.From(y)
+    else #"Latest Month Raw",
     
     // Filter to most recent month - e-ticket data only
     #"Filtered Recent Month" = Table.SelectRows(
         #"Filtered E-Ticket Data",
-        each [Month_Year] = #"Latest Month"
+        each [YearMonthKey] = #"Latest YearMonthKey"
     ),
     
     // Filter out records with blank/null WG2 (bureau) and UNKNOWN values
@@ -98,22 +107,23 @@ let
         {"WG2"}
     ),
     
-    // Group by WG2 (Bureau) and TYPE, then sum TICKET_COUNT
+    // Group by WG2 (Bureau) and TYPE; sum TICKET_COUNT for Moving (TYPE=M) and Parking (TYPE=P)
+    // Use column names "Moving" and "Parking" (not "M"/"P") to avoid Power BI "Fields that need to be fixed" / reserved M
     #"Grouped by Bureau and Type" = Table.Group(
         #"Replaced PATROL BUREAU",
         {"WG2"},
         {
-            {"M", each List.Sum(Table.SelectRows(_, each [TYPE] = "M")[TICKET_COUNT]), Int64.Type},
-            {"P", each List.Sum(Table.SelectRows(_, each [TYPE] = "P")[TICKET_COUNT]), Int64.Type}
+            {"Moving", each List.Sum(List.RemoveNulls(Table.SelectRows(_, each [TYPE] = "M")[TICKET_COUNT])), Int64.Type},
+            {"Parking", each List.Sum(List.RemoveNulls(Table.SelectRows(_, each [TYPE] = "P")[TICKET_COUNT])), Int64.Type}
         }
     ),
     
-    // Replace null values with 0 for M and P columns
-    #"Replaced Value M" = Table.ReplaceValue(#"Grouped by Bureau and Type", null, 0, Replacer.ReplaceValue, {"M"}),
-    #"Replaced Value P" = Table.ReplaceValue(#"Replaced Value M", null, 0, Replacer.ReplaceValue, {"P"}),
+    // Replace null with 0 so visuals show 0 instead of blank
+    #"Replaced Value Moving" = Table.ReplaceValue(#"Grouped by Bureau and Type", null, 0, Replacer.ReplaceValue, {"Moving"}),
+    #"Replaced Value Parking" = Table.ReplaceValue(#"Replaced Value Moving", null, 0, Replacer.ReplaceValue, {"Parking"}),
     
     // Rename WG2 to Bureau/Division for clarity
-    #"Renamed Columns" = Table.RenameColumns(#"Replaced Value P", {{"WG2", "Bureau/Division"}}),
+    #"Renamed Columns" = Table.RenameColumns(#"Replaced Value Parking", {{"WG2", "Bureau/Division"}}),
     
     // Sort by Bureau/Division name
     #"Sorted Rows" = Table.Sort(#"Renamed Columns", {{"Bureau/Division", Order.Ascending}}),

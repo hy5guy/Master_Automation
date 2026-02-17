@@ -19,7 +19,7 @@ let
     // Promote headers
     #"Promoted Headers" = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
     
-    // Set data types
+    // Set data types (YearMonthKey = 202601 for Jan 2026; use for chronological "latest month")
     #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
         {"TICKET_COUNT", Int64.Type}, 
         {"IS_AGGREGATE", type logical}, 
@@ -28,6 +28,7 @@ let
         {"OFFICER_NAME_RAW", type text}, 
         {"TYPE", type text}, 
         {"ETL_VERSION", type text}, 
+        {"YearMonthKey", Int64.Type},
         {"Month_Year", type text}
     }),
     
@@ -43,13 +44,22 @@ let
         each [OFFICER_DISPLAY_NAME] <> null and [OFFICER_DISPLAY_NAME] <> "MULTIPLE OFFICERS (Historical)"
     ),
     
-    // Get the most recent month dynamically
-    #"Latest Month" = List.Max(#"Exclude Multiple Officers"[Month_Year]),
+    // Latest month by chronological order (YearMonthKey), not text - avoids "12-25" > "01-26" lexicographic error
+    #"YearMonthKeyList" = List.RemoveNulls(#"Exclude Multiple Officers"[YearMonthKey]),
+    #"Latest YearMonthKey" = if List.IsEmpty(#"YearMonthKeyList") then 0 else List.Max(#"YearMonthKeyList"),
+    #"Latest Month Row" = Table.FirstN(Table.SelectRows(#"Exclude Multiple Officers", each [YearMonthKey] = #"Latest YearMonthKey"), 1),
+    #"Latest Month Raw" = if Table.RowCount(#"Latest Month Row") > 0 then Table.Column(#"Latest Month Row", "Month_Year"){0} else "",
+    // Display: "01-26" -> "January 2026" for subtitle
+    #"Latest Month" = if Text.Length(#"Latest Month Raw") = 5 and Text.Contains(#"Latest Month Raw", "-") then
+        let parts = Text.Split(#"Latest Month Raw", "-"), m = Number.From(parts{0}), y = 2000 + Number.From(parts{1}),
+            monthNames = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"}
+        in monthNames{m-1} & " " & Text.From(y)
+    else #"Latest Month Raw",
     
     // Filter to most recent month and moving violations only
     #"Filtered Recent Month Moving" = Table.SelectRows(
         #"Exclude Multiple Officers",
-        each [Month_Year] <> null and [Month_Year] = #"Latest Month" and [TYPE] <> null and [TYPE] = "M"
+        each [YearMonthKey] = #"Latest YearMonthKey" and [TYPE] <> null and [TYPE] = "M"
     ),
     
     // Extract non-padded badge number from PADDED_BADGE_NUMBER

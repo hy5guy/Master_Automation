@@ -19,7 +19,7 @@ let
     // Promote headers
     #"Promoted Headers" = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
     
-    // Set data types
+    // Set data types (YearMonthKey for chronological "latest month")
     #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
         {"TICKET_COUNT", Int64.Type}, 
         {"PADDED_BADGE_NUMBER", type text}, 
@@ -27,6 +27,7 @@ let
         {"OFFICER_NAME_RAW", type text}, 
         {"TYPE", type text}, 
         {"ETL_VERSION", type text}, 
+        {"YearMonthKey", Int64.Type},
         {"Month_Year", type text},
         {"IS_AGGREGATE", type logical}
     }),
@@ -37,13 +38,21 @@ let
         each [ETL_VERSION] = "ETICKET_CURRENT" and [IS_AGGREGATE] = false
     ),
     
-    // Get the most recent month dynamically
-    #"Latest Month" = List.Max(#"Filtered E-Ticket Data"[Month_Year]),
+    // Latest month by YearMonthKey (avoids "12-25" > "01-26" text sort)
+    #"YearMonthKeyList" = List.RemoveNulls(#"Filtered E-Ticket Data"[YearMonthKey]),
+    #"Latest YearMonthKey" = if List.IsEmpty(#"YearMonthKeyList") then 0 else List.Max(#"YearMonthKeyList"),
+    #"Latest Month Row" = Table.FirstN(Table.SelectRows(#"Filtered E-Ticket Data", each [YearMonthKey] = #"Latest YearMonthKey"), 1),
+    #"Latest Month Raw" = if Table.RowCount(#"Latest Month Row") > 0 then Table.Column(#"Latest Month Row", "Month_Year"){0} else "",
+    #"Latest Month" = if Text.Length(#"Latest Month Raw") = 5 and Text.Contains(#"Latest Month Raw", "-") then
+        let parts = Text.Split(#"Latest Month Raw", "-"), m = Number.From(parts{0}), y = 2000 + Number.From(parts{1}),
+            monthNames = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"}
+        in monthNames{m-1} & " " & Text.From(y)
+    else #"Latest Month Raw",
     
     // Filter to most recent month and parking violations only
     #"Filtered Recent Month Parking" = Table.SelectRows(
         #"Filtered E-Ticket Data",
-        each [Month_Year] <> null and [Month_Year] = #"Latest Month" and [TYPE] <> null and [TYPE] = "P"
+        each [YearMonthKey] = #"Latest YearMonthKey" and [TYPE] <> null and [TYPE] = "P"
     ),
     
     // Extract non-padded badge number from PADDED_BADGE_NUMBER
