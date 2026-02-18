@@ -497,3 +497,8 @@ The manifest provides a machine-readable reference for the entire Master Automat
 **Version:** 1.12.0  
 **Status:** ✅ Production Ready - 100% Operational (ETL + Power BI)
 
+
+## 2026-02-17
+- Consolidated Power BI visual export mapping into one file.
+- Primary path: Standards\config\powerbi_visuals\visual_export_mapping.json
+- Archived prior mapping files under scripts\_archive\visual_export_mapping\2026_02_17_173019\

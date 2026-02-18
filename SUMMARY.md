@@ -101,7 +101,8 @@ Master_Automation/
 │   └── (migration guides, reports, troubleshooting)
 ├── m_code/                      # Power BI M code queries
 │   ├── archive/                # Archived M code (16 files)
-│   └── (13 active .m files)
+│   ├── esu/                    # ESU 13-month: ESU_13Month.m (single query); optional fnCleanText, fnMonthKeyFromTableName, TrackedItems, MonthlyActivity
+│   └── (other active .m files)
 ├── outputs/                     # Organized output files
 │   ├── arrests/                # Arrest exports (3 files)
 │   ├── visual_exports/         # Power BI exports (23 files)
@@ -361,6 +362,7 @@ Documentation:
 - `CHANGELOG.md` - Version history
 
 **Detailed Documentation (in `docs\`):**
+- `ESU_POWER_BI_LOAD_AND_PUBLISH.md` - ESU 13-month: single query (ESU_13Month.m), output columns (Status, ItemKey, Month_Year), workbook requirements, optional 4-query approach
 - `BENCHMARK_VISUALS_HANDOFF_PROMPT.md` - AI handoff for Benchmark Power BI visuals troubleshooting
 - **Benchmark diagnostic (2026-02-13):** `diagnose_benchmark_data.py` run confirmed **Scenario B** — source CSVs in `05_EXPORTS\Benchmark` have good multi-month coverage (use_force 61, show_force 22, vehicle_pursuit 11 months); issue is in Power BI (MonthStart, relationships, or date types). See `docs/BENCHMARK_VISUAL_DIAGNOSTIC.md` steps 3, 5, 7.
 - `QUICK_START.md` - Quick reference guide
@@ -661,3 +663,8 @@ The manifest provides a machine-readable reference for the entire Master Automat
 **Version:** 1.15.2
 
 
+
+## 2026-02-17
+- Consolidated Power BI visual export mapping into one file.
+- Primary path: Standards\config\powerbi_visuals\visual_export_mapping.json
+- Archived prior mapping files under scripts\_archive\visual_export_mapping\2026_02_17_173019\

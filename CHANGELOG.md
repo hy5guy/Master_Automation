@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+- **ESU** – Updated all ESU docs: `docs/ESU_POWER_BI_LOAD_AND_PUBLISH.md` and `m_code/esu/README.md` for single-query ESU_13Month (MonthKey, TrackedItem, Total, Status, ItemKey, Month_Year); Tables-only and _mom_hacsoc lookup; workbook requirements and optional 4-query approach. SUMMARY, CLAUDE.md, and directory structure updated to reference ESU and ESU docs.
+
 ### Planned
 - [ ] Monitor February 2026 execution for hybrid strategy validation
 - [ ] Resolve Benchmark Power BI visuals (matrix, donut, line chart showing zeros; fix in Power BI per Scenario B)
@@ -919,3 +922,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Maintained by:** R. A. Carucci  
 **Last Updated:** 2026-02-09  
 **Version:** 1.12.0
+
+## 2026-02-17
+- Consolidated Power BI visual export mapping into one file.
+- Primary path: Standards\config\powerbi_visuals\visual_export_mapping.json
+- Archived prior mapping files under scripts\_archive\visual_export_mapping\2026_02_17_173019\

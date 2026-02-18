@@ -45,6 +45,7 @@ New to this project? Start with:
   - `response_time/` - Response Time documentation and reports
   - `archived_workflows/` - Archived workflow files
 - `m_code/` - Power BI M code queries (13 active + 16 archived)
+  - `esu/` - ESU 13-month: ESU_13Month.m (single query); optional fnCleanText, fnMonthKeyFromTableName, TrackedItems, MonthlyActivity
   - `archive/` - Archived M code versions
 - `outputs/` - Organized output files
   - `arrests/` - Arrest-related exports
@@ -111,6 +112,7 @@ Avoid loading all files at once - use targeted searches.
 - **Version history**: `CHANGELOG.md`
 - **Migration/verification**: `docs/VERIFICATION_REPORT.md`, `docs/MIGRATION_VERIFICATION.md`
 - **Project structure**: `docs/PROJECT_STRUCTURE.md`
+- **ESU 13-month**: `docs/ESU_POWER_BI_LOAD_AND_PUBLISH.md`, `m_code/esu/README.md` (single query ESU_13Month.m; Status, ItemKey, Month_Year; workbook requirements)
 - **Troubleshooting**: `docs/` folder for script-specific guides
 
 ## Protected Resources
@@ -387,3 +389,7 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 ---
 
 *Last updated: 2026-02-13 | Format version: 3.7*
+## 2026-02-17
+- Consolidated Power BI visual export mapping into one file.
+- Primary path: Standards\config\powerbi_visuals\visual_export_mapping.json
+- Archived prior mapping files under scripts\_archive\visual_export_mapping\2026_02_17_173019\
