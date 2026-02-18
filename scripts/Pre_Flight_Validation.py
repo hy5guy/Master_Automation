@@ -24,8 +24,8 @@ def validate_system():
         (master_path / "Assignment_Master_V2.csv", "Critical Personnel File"),
         (master_path / "config" / "scripts.json", "ETL Orchestrator Config"),
         
-        # Monthly Source Data (Feb 2026 Cycle / Jan Data)
-        (root / "05_EXPORTS" / "_Summons" / "E_Ticket" / "2026" / "2026_01_eticket_export.csv", "Jan 2026 Summons Source"),
+        # Monthly Source Data (Feb 2026 Cycle / Jan Data) - Check both locations
+        (root / "05_EXPORTS" / "_Summons" / "E_Ticket" / "2026" / "month" / "2026_01_eticket_export.csv", "Jan 2026 Summons Source"),
         (root / "05_EXPORTS" / "_CAD" / "timereport" / "monthly" / "2026_01_timereport.xlsx", "Jan 2026 Response Time Source"),
         
         # Integration Points
@@ -42,10 +42,10 @@ def validate_system():
 
     print(f"\n--- Audit Summary ---")
     if failed_checks == 0:
-        print("✅ READY: All dependencies found. Proceeding to run_all_etl.ps1.")
+        print("[READY] All dependencies found. Proceeding to run_all_etl.ps1.")
         return True
     else:
-        print(f"❌ STOP: {failed_checks} critical issues found. Fix these before running ETL.")
+        print(f"[STOP] {failed_checks} critical issues found. Fix these before running ETL.")
         return False
 
 if __name__ == "__main__":
