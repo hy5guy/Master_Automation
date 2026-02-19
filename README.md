@@ -4,7 +4,9 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 ## Overview
 
-This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository.
+This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
+
+**Latest Update (2026-02-19)**: Successfully completed February 2026 ETL cycle with critical infrastructure improvements including Response Times ETL restoration, Summons Derived Outputs rewrite, and cross-machine path portability implementation.
 
 ## Directory Structure
 
@@ -23,10 +25,11 @@ Master_Automation/
 │   ├── response_time_filters.json  # Response Time filter configuration
 │   └── scripts.json.bak        # Backup of previous config
 ├── scripts/
-│   ├── run_all_etl.ps1         # PowerShell orchestrator (recommended)
+│   ├── run_all_etl.ps1         # PowerShell orchestrator (supports dynamic arguments)
 │   ├── run_all_etl.bat         # Batch file orchestrator
 │   ├── run_etl_script.ps1      # Helper script to run individual scripts
-│   ├── path_config.py                       # Centralized get_onedrive_root() for portability
+│   ├── path_config.py          # Centralized get_onedrive_root() for portability (env var support)
+│   ├── summons_derived_outputs.py  # Rewritten for Power BI compatibility (2026-02-19)
 │   ├── overtime_timeoff_with_backfill.py     # Overtime/TimeOff monthly wrapper (v10 + backfill)
 │   ├── validate_exports.py                  # Pre-flight OT/TimeOff export validation
 │   ├── validate_outputs.py                   # FIXED CSV schema validation
@@ -46,6 +49,9 @@ Master_Automation/
 ├── docs/                        # Project documentation (migration, verification, guides)
 │   ├── response_time/          # Response Time documentation and reports
 │   ├── archived_workflows/     # Archived workflow files
+│   ├── DESKTOP_CONFIGURATION_TROUBLESHOOTING.md  # Desktop setup and troubleshooting guide
+│   ├── FEBRUARY_2026_ETL_CYCLE_SUMMARY.md  # Complete ETL cycle execution results
+│   ├── chatlogs/               # Session transcripts and troubleshooting logs
 │   └── (migration guides, verification reports, troubleshooting docs)
 ├── m_code/                      # Power BI M code queries
 │   ├── archive/                # Archived/old M code versions
@@ -497,6 +503,39 @@ The manifest provides a machine-readable reference for the entire Master Automat
 **Version:** 1.12.0  
 **Status:** ✅ Production Ready - 100% Operational (ETL + Power BI)
 
+
+## 2026-02-18
+
+### February 2026 ETL Cycle - Response Times Fix Complete ✅
+
+**Major Achievement**: Fixed critical Response Time calculation methodology
+
+#### Response Time Deduplication Fix:
+- **Problem**: Multi-unit incidents were deduplicated by file order, not arrival time
+- **Solution**: Sort by `['ReportNumberNew', 'Time Out']` before deduplication
+- **Impact**: Ensures first-arriving unit defines response time (industry standard)
+- **File**: `02_ETL_Scripts/Response_Times/process_cad_data_13month_rolling.py`
+
+#### Response Time Metrics Clarified:
+1. **Response Time (Primary)**: Call received to first unit arrival
+2. **Travel Time**: Dispatch to first unit arrival  
+3. **Processing Time**: Call received to dispatch
+
+#### January 2026 Results (Validated):
+- Emergency: 3:11 min (347 incidents)
+- Urgent: 2:54 min (843 incidents)
+- Routine: 2:48 min (853 incidents)
+- Multi-unit rate: 28.2% (realistic for police operations)
+
+#### ETL Cycle Infrastructure:
+- **Pre-flight Validation**: Comprehensive dependency and source data checks
+- **Visual Export Processing**: 25/36 visuals enforce 13-month windows
+- **Quality Assurance**: Multi-unit rate monitoring and CAD validation
+- **Documentation**: Executive analysis of multi-unit impact on response times
+
+**Status**: Response Times workflow operational with corrected methodology
+
+---
 
 ## 2026-02-17
 - Consolidated Power BI visual export mapping into one file.

@@ -9,12 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned
+- [ ] Monitor March 2026 execution for continued validation
+- [ ] Implement schema validation framework for all ETL scripts
+- [ ] Add automated success/failure notifications
+
+---
+
+## [1.16.0] - 2026-02-19
+
+### Added
+- **Desktop Configuration Support** – Full validation and troubleshooting guide for cross-machine ETL execution
+- **Dynamic Argument Passing** – Enhanced `run_all_etl.ps1` orchestrator with token replacement system for script arguments
+- **Environment Variable Path Resolution** – Improved `path_config.py` with `ONEDRIVE_BASE` environment variable support for portability
+- **Comprehensive Documentation** – `docs/DESKTOP_CONFIGURATION_TROUBLESHOOTING.md` and `docs/FEBRUARY_2026_ETL_CYCLE_SUMMARY.md`
+
+### Changed
+- **Response Times ETL** – Restored to operational status with proper `--report-month` argument passing via `config/scripts.json`
+- **Summons Derived Outputs** – Complete rewrite using Power BI exports as authoritative source for improved reliability and performance
+- **Path Resolution** – All scripts now support environment variable-based path resolution for cross-machine compatibility
+
+### Fixed
+- **Response Times Script Failure** – Fixed exit code 2 error by implementing dynamic argument passing in orchestrator
+- **Summons Schema Mismatch** – Resolved `IS_AGGREGATE` and `TICKET_COUNT` column issues with new processing approach
+- **Cross-Machine Path Issues** – Eliminated hardcoded path dependencies through environment variable implementation
+
 ### Documentation
 - **ESU** – Updated all ESU docs: `docs/ESU_POWER_BI_LOAD_AND_PUBLISH.md` and `m_code/esu/README.md` for single-query ESU_13Month (MonthKey, TrackedItem, Total, Status, ItemKey, Month_Year); Tables-only and _mom_hacsoc lookup; workbook requirements and optional 4-query approach. SUMMARY, CLAUDE.md, and directory structure updated to reference ESU and ESU docs.
-
-### Planned
-- [ ] Monitor February 2026 execution for hybrid strategy validation
-- [ ] Resolve Benchmark Power BI visuals (matrix, donut, line chart showing zeros; fix in Power BI per Scenario B)
+- **Desktop Configuration** – Complete troubleshooting guide with machine-specific setup instructions
+- **ETL Cycle Documentation** – Comprehensive execution summary with lessons learned and recommendations
 
 ---
 
@@ -922,6 +945,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Maintained by:** R. A. Carucci  
 **Last Updated:** 2026-02-09  
 **Version:** 1.12.0
+
+## [1.15.9] - 2026-02-18
+
+### Fixed
+- **Response Time Multi-Unit Deduplication** - Critical fix to use first-arriving unit instead of file order
+  - Modified `step1_deduplicate()` in `process_cad_data_13month_rolling.py`
+  - Added sort by `['ReportNumberNew', 'Time Out']` before deduplication
+  - Ensures accurate response times for multi-unit incidents (28.2% of calls)
+  - Aligns with industry standard (NFPA 1710, CALEA) for emergency response metrics
+
+### Added
+- **Response Time Metric Definitions** - Clarified three distinct time measurements
+  - Response Time (Primary): `Time Out - Time of Call` (total response time)
+  - Travel Time: `Time Out - Time Dispatched` (unit travel time)
+  - Processing Time: `Time Dispatched - Time of Call` (call processing time)
+- **CAD Call Type Mapping File** - Created `CAD_CALL_TYPE.xlsx` from CSV source
+  - Converted `CallType_Categories.csv` to Excel format with proper schema
+  - Columns: `Call Type`, `Response` (649 incident type mappings)
+  - Enables Response_Type classification for filtering
+
+### Changed
+- **February 2026 ETL Cycle Validation** - Implemented comprehensive pre-flight framework
+  - Infrastructure validation (Python 3.14.2, dependencies, paths)
+  - Source data validation (January 2026 CAD timereport available)
+  - Visual export mapping audit (25/36 visuals enforce 13-month windows)
+  - Quality assurance checks and multi-unit rate monitoring
+
+### Results
+- **January 2026 Response Times** (with corrected methodology):
+  - Emergency: 3:11 min (347 calls, median 2:49)
+  - Urgent: 2:54 min (843 calls, median 2:32)
+  - Routine: 2:48 min (853 calls, median 2:02)
+- **Processing Pipeline**: 10,440 → 7,501 → 2,851 → 2,043 valid records
+- **Multi-unit Rate**: 28.2% (2,939 duplicate units removed)
+
+### Documentation
+- **Response Time Analysis** - Executive summaries showing multi-unit impact
+- **ETL Cycle Framework** - Validation and audit procedures
+- **Methodology Standards** - First-arriving unit protocol documented
+- **Quality Safeguards** - Monthly multi-unit rate audits and CAD validation
+
+---
 
 ## 2026-02-17
 - Consolidated Power BI visual export mapping into one file.

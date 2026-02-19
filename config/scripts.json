@@ -1,12 +1,59 @@
 {
+  "meta": {
+    "merged_utc": "2026-02-17T21:54:54Z",
+    "merged_from": [
+      "scripts.json",
+      "scripts-PD_BCI_LTP.json"
+    ],
+    "conflict_strategy": "base_first_with_PD_BCI_LTP_alt",
+    "profile_key_for_overrides": "PD_BCI_LTP"
+  },
   "settings": {
     "powerbi_drop_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\_DropExports",
     "log_directory": "logs",
     "python_executable": "python",
     "continue_on_error": true,
-    "cleanup_temp_files": true
+    "cleanup_temp_files": true,
+    "powerbi_drop_path_overrides": {
+      "PD_BCI_LTP": "C:\\Dev\\PowerBI_Date\\_DropExports"
+    }
   },
   "scripts": [
+    {
+      "name": "Arrest Data Source",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\01_DataSources\\ARREST_DATA",
+      "script": "main.py",
+      "enabled": false,
+      "output_to_powerbi": false,
+      "order": 7,
+      "timeout_minutes": 20,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "arrest"
+      ],
+      "notes": "main.py not found; using Analysis_Scripts\\arrest_python_processor.py",
+      "alt_PD_BCI_LTP": {
+        "script": "Analysis_Scripts\\arrest_python_processor.py",
+        "enabled": true
+      },
+      "alt_PD_BCI_LTP_full": {
+        "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\01_DataSources\\ARREST_DATA",
+        "script": "Analysis_Scripts\\arrest_python_processor.py",
+        "enabled": true,
+        "output_to_powerbi": false,
+        "order": 7,
+        "timeout_minutes": 20,
+        "output_patterns": [
+          "*.csv"
+        ],
+        "keywords": [
+          "arrest"
+        ],
+        "notes": "main.py not found; using Analysis_Scripts\\arrest_python_processor.py"
+      }
+    },
     {
       "name": "Arrests",
       "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Arrests",
@@ -21,7 +68,8 @@
       "keywords": [
         "arrest",
         "court"
-      ]
+      ],
+      "notes": "main.py not found; using arrest_python_processor.py"
     },
     {
       "name": "Community Engagement",
@@ -38,7 +86,24 @@
         "community",
         "outreach",
         "engagement"
-      ]
+      ],
+      "notes": "main.py not found; using src\\main_processor.py"
+    },
+    {
+      "name": "NIBRS",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\01_DataSources\\NIBRS",
+      "script": "main.py",
+      "enabled": false,
+      "output_to_powerbi": true,
+      "order": 8,
+      "timeout_minutes": 25,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "nibrs"
+      ],
+      "notes": "WARNING: No Python scripts found in this directory. Only contains .txt and .xlsx files. Script disabled."
     },
     {
       "name": "Overtime TimeOff",
@@ -51,14 +116,44 @@
       "output_patterns": [
         "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\output\\FIXED_monthly_breakdown_*.csv",
         "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\analytics_output\\monthly_breakdown.csv",
-        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\analytics_output\\executive_summary.csv"
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\analytics_output\\executive_summary.csv",
+        "output\\FIXED_monthly_breakdown_*.csv",
+        "analytics_output\\executive_summary.csv",
+        "analytics_output\\monthly_breakdown.csv"
       ],
       "keywords": [
         "vcs",
         "time",
         "overtime",
         "accrual"
-      ]
+      ],
+      "notes": "v11 is template; using production-ready v10 per SUMMARY.md. Outputs in output/ and analytics_output/ subdirectories.",
+      "alt_PD_BCI_LTP": {
+        "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff",
+        "script": "overtime_timeoff_13month_sworn_breakdown_v10.py",
+        "output_to_powerbi": true,
+        "timeout_minutes": 20
+      },
+      "alt_PD_BCI_LTP_full": {
+        "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff",
+        "script": "overtime_timeoff_13month_sworn_breakdown_v10.py",
+        "enabled": true,
+        "output_to_powerbi": true,
+        "order": 3,
+        "timeout_minutes": 20,
+        "output_patterns": [
+          "output\\FIXED_monthly_breakdown_*.csv",
+          "analytics_output\\executive_summary.csv",
+          "analytics_output\\monthly_breakdown.csv"
+        ],
+        "keywords": [
+          "vcs",
+          "time",
+          "overtime",
+          "accrual"
+        ],
+        "notes": "v11 is template; using production-ready v10 per SUMMARY.md. Outputs in output/ and analytics_output/ subdirectories."
+      }
     },
     {
       "name": "Policy Training Monthly",
@@ -74,7 +169,49 @@
       "keywords": [
         "policy",
         "training"
-      ]
+      ],
+      "notes": "main.py not found; using src\\policy_training_etl.py",
+      "alt_PD_BCI_LTP": {
+        "script": "src\\policy_training_etl.py",
+        "enabled": true
+      },
+      "alt_PD_BCI_LTP_full": {
+        "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Policy_Training_Monthly",
+        "script": "src\\policy_training_etl.py",
+        "enabled": true,
+        "output_to_powerbi": true,
+        "order": 4,
+        "timeout_minutes": 15,
+        "output_patterns": [
+          "*.csv"
+        ],
+        "keywords": [
+          "policy",
+          "training"
+        ],
+        "notes": "main.py not found; using src\\policy_training_etl.py"
+      }
+    },
+    {
+      "name": "Response Times",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Response_Times",
+      "script": "process_cad_data_13month_rolling.py",
+      "args": "--report-month {REPORT_MONTH}",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 5,
+      "timeout_minutes": 15,
+      "output_patterns": [
+        "output\\*Average_Response_Times*.csv",
+        "output\\*Response_Times_Detailed.csv"
+      ],
+      "keywords": [
+        "response",
+        "time",
+        "rolling",
+        "13-month"
+      ],
+      "notes": "13-month rolling calculation script. Processes monthly CAD exports with deduplication, 101 admin incident filters, and Self-Initiated filtering. Validated: Emergency 2:59 min (309 calls) for Nov 2025. Script location: root of Response_Times directory (not in scripts/ subdirectory)."
     },
     {
       "name": "Response Times Diagnostic",
@@ -97,25 +234,6 @@
       "notes": "Diagnostic script for comparing backfill vs recalculated data. Disabled by default."
     },
     {
-      "name": "Response Times Monthly Generator (Legacy)",
-      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Response_Times",
-      "script": "response_time_monthly_generator.py",
-      "enabled": false,
-      "output_to_powerbi": false,
-      "order": 5.5,
-      "timeout_minutes": 30,
-      "output_patterns": [
-        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\Backfill\\*\\response_time\\*_Average_Response_Times__Values_are_in_mmss.csv"
-      ],
-      "keywords": [
-        "response",
-        "time",
-        "monthly",
-        "average"
-      ],
-      "notes": "LEGACY: Old generator using pre-aggregated CAD exports. Replaced by Fresh Calculator v3.0.0."
-    },
-    {
       "name": "Response Times Fresh Calculator",
       "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\scripts",
       "script": "response_time_fresh_calculator.py",
@@ -136,9 +254,28 @@
       "notes": "v3.0.0 - DISABLED 2026-02-09: Missing January 14, 2026 deduplication/filtering logic. Using validated Backfill data instead. Can be re-enabled once enhanced with proper filtering."
     },
     {
+      "name": "Response Times Monthly Generator (Legacy)",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Response_Times",
+      "script": "response_time_monthly_generator.py",
+      "enabled": false,
+      "output_to_powerbi": false,
+      "order": 5.5,
+      "timeout_minutes": 30,
+      "output_patterns": [
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\Backfill\\*\\response_time\\*_Average_Response_Times__Values_are_in_mmss.csv"
+      ],
+      "keywords": [
+        "response",
+        "time",
+        "monthly",
+        "average"
+      ],
+      "notes": "LEGACY: Old generator using pre-aggregated CAD exports. Replaced by Fresh Calculator v3.0.0."
+    },
+    {
       "name": "Summons",
       "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Summons",
-      "script": "main_orchestrator.py",
+      "script": "summons_etl_enhanced.py",
       "enabled": true,
       "output_to_powerbi": true,
       "order": 6,
@@ -151,7 +288,30 @@
         "violation",
         "moving",
         "parking"
-      ]
+      ],
+      "notes": "main.py not found; using SummonsMaster.py",
+      "alt_PD_BCI_LTP": {
+        "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Summons",
+        "script": "SummonsMaster.py"
+      },
+      "alt_PD_BCI_LTP_full": {
+        "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Summons",
+        "script": "SummonsMaster.py",
+        "enabled": true,
+        "output_to_powerbi": true,
+        "order": 6,
+        "timeout_minutes": 15,
+        "output_patterns": [
+          "*.csv"
+        ],
+        "keywords": [
+          "summon",
+          "violation",
+          "moving",
+          "parking"
+        ],
+        "notes": "main.py not found; using SummonsMaster.py"
+      }
     },
     {
       "name": "Summons Derived Outputs (PowerBI_Date CSVs)",
@@ -174,37 +334,6 @@
         "top5",
         "backfill"
       ]
-    },
-    {
-      "name": "Arrest Data Source",
-      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\01_DataSources\\ARREST_DATA",
-      "script": "main.py",
-      "enabled": false,
-      "output_to_powerbi": false,
-      "order": 7,
-      "timeout_minutes": 20,
-      "output_patterns": [
-        "*.csv"
-      ],
-      "keywords": [
-        "arrest"
-      ]
-    },
-    {
-      "name": "NIBRS",
-      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\01_DataSources\\NIBRS",
-      "script": "main.py",
-      "enabled": false,
-      "output_to_powerbi": true,
-      "order": 8,
-      "timeout_minutes": 25,
-      "output_patterns": [
-        "*.csv"
-      ],
-      "keywords": [
-        "nibrs"
-      ]
     }
   ]
 }
-

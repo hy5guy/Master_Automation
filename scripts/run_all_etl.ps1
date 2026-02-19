@@ -501,7 +501,19 @@ foreach ($scriptConfig in $scripts) {
 
         $psi = New-Object System.Diagnostics.ProcessStartInfo
         $psi.FileName = $pythonCmd
-        $psi.Arguments = $scriptFile
+        
+        # Handle script arguments if specified
+        $scriptArgs = ""
+        if ($scriptConfig.args) {
+            $scriptArgs = $scriptConfig.args
+            # Replace {REPORT_MONTH} token with calculated month
+            $reportMonth = "$year-$monthNum"
+            $scriptArgs = $scriptArgs -replace '\{REPORT_MONTH\}', $reportMonth
+            $psi.Arguments = "`"$scriptFile`" $scriptArgs"
+        } else {
+            $psi.Arguments = $scriptFile
+        }
+        
         $psi.WorkingDirectory = $scriptPath
         $psi.UseShellExecute = $false
         $psi.RedirectStandardOutput = $true
