@@ -368,6 +368,8 @@ Documentation:
 | **PowerBI Drop** | `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports` |
 | **ETL Scripts** | `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\*` |
 | **Data Sources** | `C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\*` |
+| **Report Template** | `C:\Users\carucci_r\OneDrive - City of Hackensack\15_Templates\Monthly_Report_Template.pbix` |
+| **Monthly Reports** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports\YYYY\MM_monthname\` |
 
 ---
 
@@ -379,6 +381,7 @@ Documentation:
 - `CHANGELOG.md` - Version history
 
 **Detailed Documentation (in `docs\`):**
+- `MONTHLY_REPORT_TEMPLATE_WORKFLOW.md` - Template location, monthly cycle steps, M code deployment checklist (49 queries)
 - `ESU_POWER_BI_LOAD_AND_PUBLISH.md` - ESU 13-month: single query (ESU_13Month.m), output columns (Status, ItemKey, Month_Year), workbook requirements, optional 4-query approach
 - `BENCHMARK_VISUALS_HANDOFF_PROMPT.md` - AI handoff for Benchmark Power BI visuals troubleshooting
 - **Benchmark diagnostic (2026-02-13):** `diagnose_benchmark_data.py` run confirmed **Scenario B** — source CSVs in `05_EXPORTS\Benchmark` have good multi-month coverage (use_force 61, show_force 22, vehicle_pursuit 11 months); issue is in Power BI (MonthStart, relationships, or date types). See `docs/BENCHMARK_VISUAL_DIAGNOSTIC.md` steps 3, 5, 7.
