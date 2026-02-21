@@ -48,12 +48,12 @@ let
         each [ETL_VERSION] = "ETICKET_CURRENT" and [IS_AGGREGATE] = false
     ),
 
-#"Latest Month" = List.Max(#"Filtered E-Ticket Data"[Month_Year]),
+#"Latest YearMonthKey" = List.Max(#"Filtered E-Ticket Data"[YearMonthKey]),
 
-// Filter to most recent month - e-ticket data only
+// Filter to most recent month - e-ticket data only (uses integer key for correct chronological comparison)
 #"Filtered Recent Month" = Table.SelectRows(
 #"Filtered E-Ticket Data",
-        each [Month_Year] = #"Latest Month"
+        each [YearMonthKey] = #"Latest YearMonthKey"
     ),
 
 // Filter out records with blank/null WG2 (bureau) and UNKNOWN values

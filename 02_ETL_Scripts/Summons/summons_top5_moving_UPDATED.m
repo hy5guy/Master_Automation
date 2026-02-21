@@ -43,13 +43,13 @@ let
         each [OFFICER_DISPLAY_NAME] <> null and [OFFICER_DISPLAY_NAME] <> "MULTIPLE OFFICERS (Historical)"
     ),
     
-    // Get the most recent month dynamically
-    #"Latest Month" = List.Max(#"Exclude Multiple Officers"[Month_Year]),
+    // Get the most recent month dynamically (integer key for correct chronological comparison)
+    #"Latest YearMonthKey" = List.Max(#"Exclude Multiple Officers"[YearMonthKey]),
     
     // Filter to most recent month and moving violations only
     #"Filtered Recent Month Moving" = Table.SelectRows(
         #"Exclude Multiple Officers",
-        each [Month_Year] <> null and [Month_Year] = #"Latest Month" and [TYPE] <> null and [TYPE] = "M"
+        each [YearMonthKey] = #"Latest YearMonthKey" and [TYPE] <> null and [TYPE] = "M"
     ),
     
     // Extract non-padded badge number from PADDED_BADGE_NUMBER

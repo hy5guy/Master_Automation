@@ -36,13 +36,13 @@ let
         each [ETL_VERSION] = "ETICKET_CURRENT" and [IS_AGGREGATE] = false
     ),
     
-    // Get the most recent month dynamically
-    #"Latest Month" = List.Max(#"Filtered E-Ticket Data"[Month_Year]),
+    // Get the most recent month dynamically (integer key for correct chronological comparison)
+    #"Latest YearMonthKey" = List.Max(#"Filtered E-Ticket Data"[YearMonthKey]),
     
     // Filter to most recent month and parking violations only
     #"Filtered Recent Month Parking" = Table.SelectRows(
         #"Filtered E-Ticket Data",
-        each [Month_Year] <> null and [Month_Year] = #"Latest Month" and [TYPE] <> null and [TYPE] = "P"
+        each [YearMonthKey] = #"Latest YearMonthKey" and [TYPE] <> null and [TYPE] = "P"
     ),
     
     // Extract non-padded badge number from PADDED_BADGE_NUMBER
