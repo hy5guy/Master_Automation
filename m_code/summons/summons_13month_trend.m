@@ -1,10 +1,10 @@
-// 🕒 2026-02-20-23-48-50
+// 🕒 2026-02-21-01-00-00 (EST)
 // # summons/summons_13month_trend.m
 // # Author: R. A. Carucci
 // # Purpose: Load summons data from staging workbook for 13-month trend analysis.
 
 let
-    Source = Excel.Workbook(File.Contents("C:\Users\RobertCarucci\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"), null, true),
+    Source = Excel.Workbook(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"), null, true),
     Summons_Data_Sheet = Source{[Item="Summons_Data",Kind="Sheet"]}[Data],
     PromotedHeaders = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
     ChangedType = Table.TransformColumnTypes(PromotedHeaders,{

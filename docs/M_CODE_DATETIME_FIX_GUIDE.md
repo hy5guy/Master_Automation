@@ -100,7 +100,7 @@ Each reporting cycle, update **only one line** in each affected query:
 | 12 | `m_code/summons/summons_top5_moving.m` | `Date.From(DateTime.LocalNow())` | Previous-month calc |
 | 13 | `m_code/summons/summons_13month_trend.m` | `DateTime.LocalNow()` | Rolling window |
 
-**Total: 13 active files to fix (consolidated from 20 after archive cleanup)**
+**Total: 20 active files FIXED — all DateTime.LocalNow() occurrences replaced with pReportMonth (2026-02-21)**
 
 ---
 

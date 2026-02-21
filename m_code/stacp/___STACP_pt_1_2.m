@@ -1,4 +1,4 @@
-// 🕒 2026-02-20-23-48-50
+// 🕒 2026-02-21-01-00-00 (EST)
 // # stacp/___STACP_pt_1_2.m
 // # Author: R. A. Carucci
 // # Purpose: Load STACP monthly tracked items with rolling 13-month window and dynamic column detection.
@@ -10,10 +10,11 @@
    ================================================================= */
 
 let
+    ReportMonth = pReportMonth,
     // =================================================================
     // ROLLING 13-MONTH WINDOW CALCULATION
     // =================================================================
-    Today = DateTime.LocalNow(),
+    Today = DateTime.From(ReportMonth),
     CurrentMonth = Date.Month(Today),
     CurrentYear = Date.Year(Today),
     

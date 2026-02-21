@@ -313,13 +313,13 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 
 ### Current System Status
 - **Version**: 1.17.0
-- **Status**: ✅ ETL Operational — Phase 2 Remediation In Progress (March 10, 2026 target)
+- **Status**: ✅ ETL Operational — Phase 2 Remediation Complete
 - **Enabled Scripts**: 6 (All operational)
 - **Power BI Queries**: 45 queries organized in 17 page folders; Response Time (v2.8.0), STACP, Detective queries all working
 - **Critical Issue**: M Code `DateTime.LocalNow()` in 20 files breaks historical data integrity — fix documented in `docs/M_CODE_DATETIME_FIX_GUIDE.md`
 - **M Code Baseline**: All 45 PBIX queries exported, split, headered (Jan 2026 monthly report)
 - **Personnel Master**: Assignment_Master_V3_FINAL.xlsx (25 cols, 166 records) — schema updated, Standards mirror created
-- **Phase 2 Status**: Tasks B, D, E COMPLETED; Task A (M Code ReportMonth freeze — 13 files) PENDING; Task C (orchestrator manifest) PENDING
+- **Phase 2 Status**: ALL TASKS COMPLETE (A through F). No DateTime.LocalNow() or hardcoded user paths remain in active M code.
 
 ---
 
@@ -350,6 +350,13 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 - **summons_derived_outputs_simple.py**: argparse, path_config, dynamic YYYY_MM filenames, IS_AGGREGATE + TICKET_COUNT columns, optional input warnings
 - **process_cad_data_13month_rolling.py**: corrupted workspace copy replaced with redirect stub
 - **Phase 2 remaining**: Task A (M code ReportMonth freeze — 13 files), Task C (orchestrator manifest)
+
+#### Phase 2 Tasks A, C — Completed (Final)
+- **pReportMonth parameter** created at `m_code/parameters/pReportMonth.m` — `#date(2026, 1, 1)`, update once per monthly cycle
+- **20 M code files fixed** — 25 `DateTime.LocalNow()` occurrences replaced with `ReportMonth = pReportMonth` binding; covers overtime, training, esu, stacp, detectives, ssocc, traffic, drone, csb, shared, arrests, summons, community
+- **9 hardcoded paths fixed** — `C:\Users\RobertCarucci` (6 files) and `C:\Dev` (1 file) replaced with correct `C:\Users\carucci_r` OneDrive paths
+- **Orchestrator manifest** — `run_all_etl.ps1` accepts `-ReportMonth YYYY-MM`, writes `_manifest.json` + `_manifest.csv` to `_DropExports`
+- **Phase 2 Remediation COMPLETE** — All tasks A-F finished
 
 ---
 

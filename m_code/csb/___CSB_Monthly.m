@@ -1,9 +1,11 @@
-// 🕒 2026-02-20-23-48-50
+// 🕒 2026-02-21-01-00-00 (EST)
 // # csb/___CSB_Monthly.m
 // # Author: R. A. Carucci
 // # Purpose: Load Crime Suppression Bureau monthly tracked items with rolling 13-month window.
 
 let
+    ReportMonth = pReportMonth,
+
     //==== Source & initial cleanup ============================================================
     Source = Excel.Workbook(
         File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\CSB\csb_monthly.xlsm"),
@@ -20,7 +22,7 @@ let
 
     //==== Rolling 13-month window logic ======================================================
     // Today -> Current month start
-    Today = Date.From(DateTime.LocalNow()),
+    Today = ReportMonth,
     CurrentMonthStart = Date.StartOfMonth(Today),
 
     // EndMonth: last fully completed month (exclude current month)

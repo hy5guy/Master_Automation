@@ -1,9 +1,10 @@
-// 🕒 2026-02-20-23-48-50
+// 🕒 2026-02-21-01-00-00 (EST)
 // # traffic/___Traffic.m
 // # Author: R. A. Carucci
 // # Purpose: Load Traffic Bureau monthly activity metrics from contribution workbook.
 
 let
+    ReportMonth = pReportMonth,
     Source = Excel.Workbook(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Traffic\Traffic_Monthly.xlsx"), null, true),
     _mom_traffic_Table = Source{[Item="_mom_traffic",Kind="Table"]}[Data],
 #"Changed Type" = Table.TransformColumnTypes(                                  \
@@ -44,7 +45,7 @@ let
                                     each([Tracked Items]<> "Grand Total")),
     
     // Rolling 13-Month Logic Implementation
-    CurrentDate = DateTime.LocalNow(),
+    CurrentDate = DateTime.From(ReportMonth),
     EndDate = Date.AddMonths(Date.StartOfMonth(DateTime.Date(CurrentDate)), -1),
     StartDate = Date.AddMonths(EndDate, -12),
     

@@ -1,10 +1,12 @@
-// 🕒 2026-02-17-14-30-00
+// 🕒 2026-02-21-01-00-00 (EST)
 // # Master_Automation/m_code/esu/MonthlyActivity.m
 // # Author: R. A. Carucci
 // # Purpose: Load ESU monthly activity fact from ESU.xlsx; 13-month rolling window; MonthKey and TrackedItem for visuals.
 
 let
-    ESUPath = "C:\Users\RobertCarucci\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\ESU\ESU.xlsx",
+    ReportMonth = pReportMonth,
+
+    ESUPath = "C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\ESU\ESU.xlsx",
 
     Source = Excel.Workbook(
         File.Contents(ESUPath),
@@ -63,7 +65,7 @@ let
     ),
 
     // 13-month rolling: keep only last 13 complete months (same logic as project 13-month visuals)
-    EndMonth = Date.StartOfMonth(Date.AddMonths(DateTime.Date(DateTime.LocalNow()), -1)),
+    EndMonth = Date.StartOfMonth(Date.AddMonths(ReportMonth, -1)),
     StartMonth = Date.AddMonths(EndMonth, -12),
     Filter13Month = Table.SelectRows(
         Rename,

@@ -1,4 +1,4 @@
-// 🕒 2026-02-20-23-48-50
+// 🕒 2026-02-21-01-00-00 (EST)
 // # stacp/STACP_DIAGNOSTIC.m
 // # Author: R. A. Carucci
 // # Purpose: Diagnostic query to verify STACP column detection and 13-month window logic.
@@ -10,10 +10,11 @@
    ================================================================= */
 
 let
+    ReportMonth = pReportMonth,
     // =================================================================
     // ROLLING 13-MONTH WINDOW CALCULATION
     // =================================================================
-    Today = DateTime.LocalNow(),
+    Today = DateTime.From(ReportMonth),
     CurrentMonth = Date.Month(Today),
     CurrentYear = Date.Year(Today),
     

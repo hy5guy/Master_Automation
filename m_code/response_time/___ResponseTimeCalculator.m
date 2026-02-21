@@ -1,4 +1,4 @@
-// 🕒 2026-02-20-23-48-50
+// 🕒 2026-02-21-01-00-00 (EST)
 // # response_time/___ResponseTimeCalculator.m
 // # Author: R. A. Carucci
 // # Purpose: Calculate average response times from backfill CSVs with mm:ss conversion and 13-month window.
@@ -9,7 +9,7 @@ let
     // ========================================================================
     
     BackfillRaw = Csv.Document(
-        File.Contents("C:\Dev\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Average Response Times  Values are in mmss.csv"),
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Average Response Times  Values are in mmss.csv"),
         [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]
     ),
     BackfillHeaders = Table.PromoteHeaders(BackfillRaw, [PromoteAllScalars=true]),
@@ -101,7 +101,7 @@ let
     // ========================================================================
     
     Nov2025Raw = Csv.Document(
-        File.Contents("C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\2025_12_Average_Response_Times__Values_are_in_mmss.csv"),
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_12\response_time\2025_12_Average_Response_Times__Values_are_in_mmss.csv"),
         [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]
     ),
     Nov2025Headers = Table.PromoteHeaders(Nov2025Raw, [PromoteAllScalars=true]),

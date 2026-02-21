@@ -1,10 +1,11 @@
-// 🕒 2026-02-20-23-48-50
+// 🕒 2026-02-21-01-00-00 (EST)
 // # esu/ESU_13Month.m
 // # Author: R. A. Carucci
 // # Purpose: Load ESU monthly activity with tracked item lookup and rolling 13-month window.
 
 let
-    ESUPath = "C:\Users\RobertCarucci\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\ESU\ESU.xlsx",
+    ReportMonth = pReportMonth,
+    ESUPath = "C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\ESU\ESU.xlsx",
 
     Source = Excel.Workbook(File.Contents(ESUPath), null, true),
 
@@ -73,7 +74,7 @@ let
     AddSortKey = Table.AddColumn(AddMonthYear, "SortKey", each Date.ToText([MonthKey], "yyyy-MM-dd"), type text),
 
     // Rolling 13 complete months
-    EndMonth = Date.StartOfMonth(Date.AddMonths(DateTime.Date(DateTime.LocalNow()), -1)),
+    EndMonth = Date.StartOfMonth(Date.AddMonths(ReportMonth, -1)),
     StartMonth = Date.AddMonths(EndMonth, -12),
     Filter13 = Table.SelectRows(AddSortKey, each [MonthKey] >= StartMonth and [MonthKey] <= EndMonth),
 

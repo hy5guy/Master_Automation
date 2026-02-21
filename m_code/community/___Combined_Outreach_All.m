@@ -1,9 +1,11 @@
-// 🕒 2026-02-20-23-48-50
+// 🕒 2026-02-21-01-00-00 (EST)
 // # community/___Combined_Outreach_All.m
 // # Author: R. A. Carucci
 // # Purpose: Load community engagement data from Python ETL CSV output for Power BI.
 
 let
+    ReportMonth = pReportMonth,
+
     // === 1. Dynamic File Path Discovery ===
     // Look for the most recent Python ETL output file
     OutputFolder = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\output\",
@@ -23,7 +25,7 @@ let
             LatestFile
     otherwise
         // Fallback to a specific filename pattern if dynamic discovery fails
-        OutputFolder & "community_engagement_combined_" & Date.ToText(DateTime.Date(DateTime.LocalNow()), "yyyy-MM-dd") & ".csv",
+        OutputFolder & "community_engagement_combined_" & Date.ToText(ReportMonth, "yyyy-MM-dd") & ".csv",
 
     // === 2. Read Python ETL CSV Output ===
     CSVSource = Csv.Document(File.Contents(PythonETLFile), [Delimiter=",", Columns=null, Encoding=65001, QuoteStyle=QuoteStyle.None]),

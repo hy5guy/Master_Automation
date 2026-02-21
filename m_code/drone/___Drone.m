@@ -1,12 +1,14 @@
-// 🕒 2026-02-20-23-48-50
+// 🕒 2026-02-21-01-00-00 (EST)
 // # drone/___Drone.m
 // # Author: R. A. Carucci
 // # Purpose: Process DFR and Non-DFR drone metrics with duration-based value handling.
 
 let
+    ReportMonth = pReportMonth,
+
     // 1) Load the workbook
     Source = Excel.Workbook(
-        File.Contents("C:\Users\RobertCarucci\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Drone_Monthly.xlsx"),
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Drone_Monthly.xlsx"),
         null, true),
 
     // ─── DFR Activity sheet ────────────────────────────────────────────────────────
@@ -161,7 +163,7 @@ let
         Date.Year([PeriodDate]) * 100 + Date.Month([PeriodDate]), Int64.Type),
 
     // ─── Filter to Rolling 13 Months ───
-    Today = DateTime.Date(DateTime.LocalNow()),
+    Today = ReportMonth,
     PriorMonth = Date.AddMonths(#date(Date.Year(Today), Date.Month(Today), 1), -1),
     StartMonth = Date.AddMonths(PriorMonth, -12),
 

@@ -1,11 +1,13 @@
-// 🕒 2026-02-20-23-48-50
+// 🕒 2026-02-21-01-00-00 (EST)
 // # summons/summons_top5_moving.m
 // # Author: R. A. Carucci
 // # Purpose: Compute top 5 moving violation officers for the latest month.
 
 let
+    ReportMonth = pReportMonth,
+
     // Previous complete month (e.g. in Feb 2026 show Jan 2026 = 01-26)
-    PrevDate = Date.AddMonths(DateTime.Date(DateTime.LocalNow()), -1),
+    PrevDate = Date.AddMonths(ReportMonth, -1),
     PrevYear = Date.Year(PrevDate),
     PrevMonth = Date.Month(PrevDate),
     PreviousMonthKey = PrevYear * 100 + PrevMonth,
@@ -13,7 +15,7 @@ let
 
     // Load directly from Excel file
     Source = Excel.Workbook(
-        File.Contents("C:\Users\RobertCarucci\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
         null, 
         true
     ),

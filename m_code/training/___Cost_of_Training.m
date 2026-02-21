@@ -1,9 +1,11 @@
-// 🕒 2026-02-20-23-48-50
+// 🕒 2026-02-21-01-00-00 (EST)
 // # training/___Cost_of_Training.m
 // # Author: R. A. Carucci
 // # Purpose: Calculate training cost by delivery method with rolling 13-month window.
 
-let Source = Excel.Workbook(
+let
+    ReportMonth = pReportMonth,
+    Source = Excel.Workbook(
         File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Policy_Training_Monthly\output\policy_training_outputs.xlsx"),
         null, true),
     Tbl = Source{[Item = "Delivery_Cost_By_Month", Kind = "Sheet"]}[Data],
@@ -22,7 +24,7 @@ let Source = Excel.Workbook(
                          each{_, type number})})) else Promoted,
 
     // Rolling 13-month window: end = previous month, start = same month one year earlier
-    Today = DateTime.LocalNow(),
+    Today = DateTime.From(ReportMonth),
     CurrentMonth = Date.Month(Today),
     CurrentYear = Date.Year(Today),
     EndMonth = if CurrentMonth = 1 then 12 else CurrentMonth - 1,

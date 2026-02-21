@@ -1,9 +1,10 @@
-// 🕒 2026-02-20-23-48-50
+// 🕒 2026-02-21-01-00-00 (EST)
 // # ssocc/TAS_Dispatcher_Incident.m
 // # Author: R. A. Carucci
 // # Purpose: Load TAS dispatcher incident summary data from SSOCC workbook.
 
 let
+    ReportMonth = pReportMonth,
     // =========================
     // Configuration
     // =========================
@@ -142,7 +143,7 @@ let
     // =========================
     // Calculate rolling 13-month window
     // =========================
-    NowDT = DateTime.LocalNow(),
+    NowDT = DateTime.From(ReportMonth),
     CurrY = Date.Year(NowDT),
     CurrM = Date.Month(NowDT),
     EndY = if CurrM = 1 then CurrY - 1 else CurrY,

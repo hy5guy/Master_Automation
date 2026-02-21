@@ -1,16 +1,18 @@
-// 🕒 2026-02-20-23-48-50
+// 🕒 2026-02-21-01-00-00 (EST)
 // # summons/summons_all_bureaus.m
 // # Author: R. A. Carucci
 // # Purpose: Aggregate summons counts by bureau for moving and parking violations.
 
 let
+    ReportMonth = pReportMonth,
+
     // Previous complete month (e.g. in Feb 2026 show Jan 2026)
-    PrevDate = Date.AddMonths(DateTime.Date(DateTime.LocalNow()), -1),
+    PrevDate = Date.AddMonths(ReportMonth, -1),
     PreviousMonthKey = Date.Year(PrevDate) * 100 + Date.Month(PrevDate),
 
     // Load directly from Excel file
     Source = Excel.Workbook(
-        File.Contents("C:\Users\RobertCarucci\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
         null, 
         true
     ),

@@ -1,7 +1,7 @@
 # Master_Automation Project Summary
 
 **Last Updated:** 2026-02-21
-**Status:** ✅ Production Ready — Phase 2 Remediation In Progress
+**Status:** ✅ Production Ready — Phase 2 Remediation Complete
 **Version:** 1.17.0
 
 ---
@@ -19,7 +19,7 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ Production Ready — Phase 2 Remediation In Progress |
+| **Status** | ✅ Production Ready — Phase 2 Remediation Complete |
 | **Version** | 1.17.0 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
@@ -694,6 +694,9 @@ The manifest provides a machine-readable reference for the entire Master Automat
 - **Response Times stability** — `scripts/response_time_fresh_calculator.py` v3.1.0: argparse, path_config, first-arriving unit dedup fix (sort by Time Out before drop_duplicates)
 - **Summons derived outputs** — `scripts/summons_derived_outputs_simple.py`: argparse, path_config, dynamic YYYY_MM filenames, IS_AGGREGATE column, TICKET_COUNT normalization, optional input warnings
 - **Corrupted script fix** — `scripts/process_cad_data_13month_rolling.py` replaced with redirect stub (production at 02_ETL_Scripts/Response_Times/)
+- **ReportMonth freeze (Phase 2 Task A)** — Created `pReportMonth` parameter; fixed 20 M code files (25 `DateTime.LocalNow()` occurrences); fixed 9 hardcoded paths; historical reports now frozen to their reporting period
+- **Orchestrator manifest (Phase 2 Task C)** — `run_all_etl.ps1` accepts `-ReportMonth`, auto-calculates previous month, writes `_manifest.json` and `_manifest.csv` to `_DropExports`
+- **Phase 2 Remediation COMPLETE** — All 6 tasks (A through F) finished; no `DateTime.LocalNow()` or hardcoded user paths remain in active M code
 
 ---
 

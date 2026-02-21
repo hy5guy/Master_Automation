@@ -1,9 +1,10 @@
-// 🕒 2026-02-20-23-48-50
+// 🕒 2026-02-21-01-00-00 (EST)
 // # detectives/___Detectives.m
 // # Author: R. A. Carucci
 // # Purpose: Load Detective Division monthly activity from workbook with rolling 13-month window.
 
 let
+    ReportMonth = pReportMonth,
     // =================================================================
     // FILE PATH AND TABLE LOAD
     // =================================================================
@@ -94,7 +95,7 @@ let
     // Table contains historical data from Jun 2023 onwards
     // Show rolling 13 months ending with the previous complete month
 
-    CurrentDate = DateTime.LocalNow(),
+    CurrentDate = DateTime.From(ReportMonth),
     CurrentMonthStart = Date.StartOfMonth(Date.From(CurrentDate)),
 
     // End date = previous month (complete data only)
@@ -167,9 +168,9 @@ let
         each let StartMonth = Date.ToText(StartFilterDate, "MMMM yyyy"),
         EndMonth = Date.ToText(EndFilterDate, "MMMM yyyy"),
         RefreshDate =
-            DateTime.ToText(DateTime.LocalNow(), "MM/dd/yyyy hh:mm tt"),
+            DateTime.ToText(DateTime.From(ReportMonth), "MM/dd/yyyy hh:mm tt"),
         TodaysDate =
-            Date.ToText(Date.From(DateTime.LocalNow()), "MMMM dd, yyyy") in
+            Date.ToText(ReportMonth, "MMMM dd, yyyy") in
             "Rolling 13-Month Period: " &
             StartMonth & " - " & EndMonth & " | Today: " & TodaysDate &
             " | Updated: " & RefreshDate,
@@ -177,6 +178,6 @@ let
 
     // Add timestamp for data refresh tracking
     AddedRefreshTime = Table.AddColumn(AddedSubtitle, "DataRefreshTime",
-                                       each DateTime.LocalNow(), type datetime)
+                                       each DateTime.From(ReportMonth), type datetime)
 
                            in AddedRefreshTime

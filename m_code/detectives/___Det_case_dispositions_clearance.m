@@ -1,9 +1,10 @@
-// 🕒 2026-02-20-23-48-50
+// 🕒 2026-02-21-01-00-00 (EST)
 // # detectives/___Det_case_dispositions_clearance.m
 // # Author: R. A. Carucci
 // # Purpose: Load case disposition and clearance rates for Detective Division with 13-month window.
 
 let
+    ReportMonth = pReportMonth,
     // =================================================================
     // FILE PATH AND TABLE LOAD
     // =================================================================
@@ -223,7 +224,7 @@ let
     // Table contains historical data from Jun 2023 onwards
     // Show rolling 13 months ending with the previous complete month
     
-    CurrentDate     = Date.From(DateTime.LocalNow()),
+    CurrentDate     = ReportMonth,
     EndFilterDate   = Date.AddMonths(Date.StartOfMonth(CurrentDate), -1),
     
     // Start date = 13 months before end date (rolling 13-month window)

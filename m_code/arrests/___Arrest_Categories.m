@@ -1,10 +1,12 @@
-﻿// 🕒 2025-09-03-17-30-00
+// 🕒 2026-02-21-01-00-00 (EST)
 // Project: Arrest_Analysis/Arrest_Categories
 // Author: R. A. Carucci
 // Purpose: Simplified M Code that relies on Python preprocessing for geographic
 // data
 
 let
+    ReportMonth = pReportMonth,
+
     // ═══ A) Load latest Power BI ready file ═══════════════════════
     FolderFiles = Folder.Files(
         "C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"
@@ -27,7 +29,7 @@ let
     
     // Filter to previous month
     ToDate = (x) => try Date.From(x) otherwise null,
-    Prev = Date.AddMonths(Date.From(DateTime.LocalNow()), -1),
+    Prev = Date.AddMonths(ReportMonth, -1),
     PrevY = Date.Year(Prev),
     PrevM = Date.Month(Prev),
     

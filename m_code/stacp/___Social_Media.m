@@ -1,9 +1,10 @@
-// 🕒 2026-02-20-23-48-50
+// 🕒 2026-02-21-01-00-00 (EST)
 // # stacp/___Social_Media.m
 // # Author: R. A. Carucci
 // # Purpose: Load social media engagement metrics with rolling 13-month window.
 
 let
+    ReportMonth = pReportMonth,
     // === SOURCE ===
     Source = Excel.Workbook(
         File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\STACP\STACP.xlsm"),
@@ -24,7 +25,7 @@ let
 
     // === ROLLING 13-MONTH WINDOW (full months only) ===
     // Today
-    Today = Date.From(DateTime.LocalNow()),
+    Today = ReportMonth,
 
     // End of window = start of last complete month (exclude current month)
     // Example: if Today = 2025-10-02, EndMonth = 2025-09-01

@@ -1,9 +1,11 @@
-// 🕒 2026-02-20-23-48-50
+// 🕒 2026-02-21-01-00-00 (EST)
 // # arrests/___Top_5_Arrests.m
 // # Author: R. A. Carucci
 // # Purpose: Compute top 5 arresting officers for the previous month with dynamic file loading.
 
 let
+    ReportMonth = pReportMonth,
+
     // ═══ A) Dynamic file discovery (same as your working main query) ═══════
     FolderFiles = Folder.Files(
         "C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"
@@ -49,7 +51,7 @@ let
         error "Arrest Date column not found in data",
 
     // ═══ C) Calculate previous month with better date handling ═════════════
-    Current = Date.From(DateTime.LocalNow()),
+    Current = ReportMonth,
     PreviousMonth = Date.AddMonths(Current, -1),
     TargetYear = Date.Year(PreviousMonth),
     TargetMonth = Date.Month(PreviousMonth),

@@ -3,6 +3,7 @@
 
 param(
     [string[]]$ScriptNames = @(),  # Run only specified scripts (empty = all)
+    [string]$ReportMonth = "",
     [switch]$DryRun,  # Preview what would run
     [switch]$SkipPowerBI,  # Skip Power BI integration step
     [switch]$ValidateInputs  # Validate required input files exist
@@ -19,6 +20,13 @@ $configPath = Join-Path $automationDir "config\scripts.json"
 $OneDriveBase = $env:ONEDRIVE_BASE
 if (-not $OneDriveBase) { $OneDriveBase = $env:ONEDRIVE_HACKENSACK }
 if (-not $OneDriveBase) { $OneDriveBase = "C:\Users\carucci_r\OneDrive - City of Hackensack" }
+
+# Auto-calculate ReportMonth if not provided (previous complete month)
+if (-not $ReportMonth) {
+    $prevMonth = (Get-Date).AddMonths(-1)
+    $ReportMonth = $prevMonth.ToString("yyyy-MM")
+}
+Write-Host "Report Month: $ReportMonth" -ForegroundColor Cyan
 
 # Colors
 # PowerShell 7+ supports ANSI escape sequences; Windows PowerShell 5.1 typically does not.
@@ -621,6 +629,48 @@ foreach ($scriptConfig in $scripts) {
     finally {
         Pop-Location
     }
+}
+
+# === Manifest Generation ===
+# Write manifest of all files currently in _DropExports
+$dropPath = $settings.powerbi_drop_path
+if ((Test-Path $dropPath) -and -not $DryRun) {
+    Write-Log ""
+    Write-Log "=== Manifest Generation ==="
+    Write-Host ""
+    Write-Step "Generating _DropExports manifest"
+    
+    $manifestEntries = @()
+    $dropFiles = Get-ChildItem -Path $dropPath -File -ErrorAction SilentlyContinue
+    
+    foreach ($f in $dropFiles) {
+        $rowCount = $null
+        if ($f.Extension -eq ".csv") {
+            try {
+                $rowCount = (Import-Csv -Path $f.FullName | Measure-Object).Count
+            } catch {
+                $rowCount = -1
+            }
+        }
+        
+        $manifestEntries += [pscustomobject]@{
+            filename      = $f.Name
+            size_bytes    = $f.Length
+            modified_time = $f.LastWriteTime.ToString("yyyy-MM-ddTHH:mm:ss")
+            row_count     = $rowCount
+            full_path     = $f.FullName
+        }
+    }
+    
+    $manifestJson = Join-Path $dropPath "_manifest.json"
+    $manifestCsv  = Join-Path $dropPath "_manifest.csv"
+    
+    $manifestEntries | ConvertTo-Json -Depth 3 | Set-Content -Path $manifestJson -Encoding UTF8
+    $manifestEntries | Export-Csv -Path $manifestCsv -NoTypeInformation -Encoding UTF8
+    
+    Write-Success "  Manifest written: _manifest.json ($($manifestEntries.Count) files)"
+    Write-Success "  Manifest written: _manifest.csv"
+    Write-Log "  Manifest: $($manifestEntries.Count) files cataloged"
 }
 
 # Visual Export Normalization – normalize raw Power BI visual exports in _DropExports before organize_backfill_exports

@@ -1,10 +1,11 @@
-// 🕒 2026-02-20-23-48-50
+// 🕒 2026-02-21-01-00-00 (EST)
 // # shared/___DimMonth.m
 // # Author: R. A. Carucci
 // # Purpose: Generate month dimension lookup table for benchmark date relationships.
 
 let
-    Today = DateTime.Date(DateTime.LocalNow()),
+    ReportMonth = pReportMonth,
+    Today = ReportMonth,
     LastFullMonth = Date.EndOfMonth(Date.AddMonths(Today, -1)),
     FirstMonthStart = Date.StartOfMonth(Date.AddMonths(LastFullMonth, -12)),
     MonthStarts = List.Generate(() => FirstMonthStart, each _ <= LastFullMonth, each Date.AddMonths(_, 1)),
