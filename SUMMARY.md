@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-02-13
-**Status:** ✅ Production Ready - 100% Operational (ETL + Power BI)
-**Version:** 1.15.7
+**Last Updated:** 2026-02-20
+**Status:** ✅ Production Ready — Phase 2 Remediation In Progress
+**Version:** 1.16.0
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ Production Ready |
-| **Version** | 1.15.7 |
+| **Status** | ✅ Production Ready — Phase 2 Remediation In Progress |
+| **Version** | 1.16.0 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -620,19 +620,18 @@ Documentation:
 
 ---
 
-## Next Steps
+## Phase 2 Remediation Status (Target: March 10, 2026)
 
-### Immediate
-- [ ] Test ETL execution with actual scripts
-- [ ] Verify Power BI integration
-- [ ] Review logs after first run
+| Priority | Task | Status |
+|----------|------|--------|
+| 0 | M Code `DateTime.LocalNow()` → `ReportMonth` parameter (20 files, 35+ occurrences) | IDENTIFIED |
+| 1 | Community Engagement validation (2 files created, unvalidated) | PENDING |
+| 2 | Summons Derived Outputs schema fix (`IS_AGGREGATE`, `TICKET_COUNT` missing) | BLOCKED |
+| 3 | Hardcoded paths in M Code — `RobertCarucci` / `C:\Dev\` (8 files) | IDENTIFIED |
+| 4 | Hardcoded column lists — `___Patrol` & `___Traffic` missing `01-26` column | IDENTIFIED |
+| 5 | Response Times historical backfill (Nov 2024 – Dec 2025) | PENDING |
 
-### Future Enhancements
-- [ ] ETL script filename auto-detection
-- [ ] Enhanced error reporting
-- [ ] Performance monitoring
-- [ ] Automated testing suite
-- [ ] Power BI refresh scheduling integration
+See [`docs/Phase_2_Remediation_Roadmap.md`](docs/Phase_2_Remediation_Roadmap.md) and [`docs/M_CODE_DATETIME_FIX_GUIDE.md`](docs/M_CODE_DATETIME_FIX_GUIDE.md) for full detail.
 
 ---
 
@@ -659,12 +658,54 @@ The manifest provides a machine-readable reference for the entire Master Automat
 ---
 
 **Maintained by:** R. A. Carucci  
-**Last Updated:** 2026-02-13  
-**Version:** 1.15.2
+**Last Updated:** 2026-02-20  
+**Version:** 1.16.0
 
+---
 
+## Recent Updates (2026-02-20)
 
-## 2026-02-17
-- Consolidated Power BI visual export mapping into one file.
-- Primary path: Standards\config\powerbi_visuals\visual_export_mapping.json
-- Archived prior mapping files under scripts\_archive\visual_export_mapping\2026_02_17_173019\
+### v1.16.0 — Phase 2 Diagnostics, Assignment_Master V3, Schema Standards
+
+#### Assignment_Master_V2 — Major Cleanup (Claude-in-Excel, 12 turns)
+- **V3_FINAL.xlsx** created from `Assignment_Master_V2.csv` via 12-turn Claude-in-Excel session
+- **Schema reduced**: 42 columns → 25 columns; 6 duplicate PEO rows removed; 166 active records
+- **Renamed**: `POSS_CONTRACT_TYPE` → `CONTRACT_TYPE`, `Proposed 4-Digit Format` → `STANDARD_NAME`
+- **Deleted**: `WG5`, `DEP_CHIEF`, seniority cols (×10), workgroup cols (×2), `FullName`, `Badge`, `Notes`
+- **RANK**: 100% populated (28 blanks filled from TITLE; all values standardized)
+- **TEAM**: 138 updates from POSS_EMPLOYEE merge; TC/DESK distinction added for platoon officers
+- **Script fix**: `run_summons_with_overrides.py` updated — `WG5` removed, `POSS_CONTRACT_TYPE` → `CONTRACT_TYPE`
+- **Archived**: `add_traffic_officers.py` moved to `scripts/_archive/` (deprecated one-off)
+
+#### M Code DateTime.LocalNow() — Critical Architectural Issue Identified
+- **Problem**: 20 M code files (35+ occurrences) use `DateTime.LocalNow()` for rolling windows
+- **Impact**: Historical monthly reports show different data on each refresh — breaks data integrity
+- **Fix**: Replace with `ReportMonth = #date(YYYY, M, 1)` parameter locked per reporting cycle
+- **Guide**: `docs/M_CODE_DATETIME_FIX_GUIDE.md` — full audit table + Claude AI prompt ready
+- **Scope**: `___Overtime_Timeoff_v3`, `___Arrest_Categories_FIXED`, `___Cost_of_Training`, ESU, STACP, Detectives, Summons standalone files, and the consolidated `2026_02_19_jan_m_codes.m`
+
+#### Schema Standards Infrastructure
+- `09_Reference/Personnel/Assignment_Master_SCHEMA.md` — fully rewritten (V2)
+- `09_Reference/Standards/Personnel/` — new subdirectory created
+- `09_Reference/Standards/Personnel/Assignment_Master_SCHEMA.md` — canonical mirror
+- `09_Reference/Standards/Personnel/assignment_master.schema.json` — formal JSON Schema
+
+---
+
+## Recent Updates (2026-02-18)
+
+### v1.15.9 — February 2026 ETL Cycle Response Times Fix ✅ DEPLOYED
+
+- **Multi-Unit Deduplication**: Fixed `process_cad_data_13month_rolling.py` — sort by `['ReportNumberNew', 'Time Out']` before dedup (first-arriving unit, not file order)
+- **January 2026 Results**: Emergency 3:11 (347 calls), Urgent 2:54 (843 calls), Routine 2:48 (853 calls)
+- **Multi-unit Rate**: 28.2% — 2,939 duplicate units removed from 10,440 CAD records
+- **CAD Mapping**: Created `CAD_CALL_TYPE.xlsx` from `CallType_Categories.csv` (649 mappings)
+- **Visual Mapping**: 25/36 visuals enforce 13-month windows ✅
+
+---
+
+## Recent Updates (2026-02-17)
+
+- Consolidated Power BI visual export mapping into one canonical file
+- Primary path: `Standards\config\powerbi_visuals\visual_export_mapping.json`
+- Archived prior mapping files under `scripts\_archive\visual_export_mapping\2026_02_17_173019\`

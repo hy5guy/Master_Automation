@@ -49,8 +49,7 @@ def main() -> int:
         "WG2": "TRAFFIC BUREAU",
         "WG3": "CLASS I",
         "WG4": "",
-        "WG5": "",
-        "POSS_CONTRACT_TYPE": "PARKING ENFORCEMENT OFF",
+        "CONTRACT_TYPE": "PARKING ENFORCEMENT OFF",
     }
 
     ok = s.main()

@@ -113,6 +113,8 @@ Avoid loading all files at once - use targeted searches.
 - **Migration/verification**: `docs/VERIFICATION_REPORT.md`, `docs/MIGRATION_VERIFICATION.md`
 - **Project structure**: `docs/PROJECT_STRUCTURE.md`
 - **ESU 13-month**: `docs/ESU_POWER_BI_LOAD_AND_PUBLISH.md`, `m_code/esu/README.md` (single query ESU_13Month.m; Status, ItemKey, Month_Year; workbook requirements)
+- **M Code DateTime fix**: `docs/M_CODE_DATETIME_FIX_GUIDE.md` — audit table of all 20 affected files, ReportMonth parameter pattern, deployment checklist
+- **Personnel schema**: `09_Reference/Standards/Personnel/Assignment_Master_SCHEMA.md` and `assignment_master.schema.json`
 - **Troubleshooting**: `docs/` folder for script-specific guides
 
 ## Protected Resources
@@ -292,12 +294,37 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 - **January 2026 Report** - Successfully generated and ready for publication
 
 ### Current System Status
-- **Version**: 1.15.7
-- **Status**: ✅ 100% Operational (6/6 ETL workflows + Power BI queries + Detective Queries Fixed + CSB Workbook Ready)
+- **Version**: 1.16.0
+- **Status**: ✅ ETL Operational — Phase 2 Remediation In Progress (March 10, 2026 target)
 - **Enabled Scripts**: 6 (All operational)
 - **Power BI Queries**: Response Time M code fixed (v2.8.0), STACP 13-month window fixed, Detective queries restructured and working
-- **Excel Workbooks**: CSB workbook 2026 setup complete (templates + XLOOKUP formulas ready)
-- **Recent Major Updates**: Benchmark diagnostic run (Scenario B – source data OK, fix in Power BI), Benchmark handoff, Visual export config Gemini enhancement, CSB workbook 2026, Detective queries fix, STACP 13-month window, process_powerbi_exports, Overtime/TimeOff hardening, Summons backfill prep
+- **Critical Issue**: M Code `DateTime.LocalNow()` in 20 files breaks historical data integrity — fix documented in `docs/M_CODE_DATETIME_FIX_GUIDE.md`
+- **Personnel Master**: Assignment_Master_V3_FINAL.xlsx (25 cols, 166 records) — schema updated, Standards mirror created
+- **Phase 2 Status**: Priority 0 (M Code ReportMonth) IDENTIFIED; Priority 1 (Community Engagement) PENDING; Priority 2 (Summons Derived) BLOCKED
+
+---
+
+## Recent Updates (2026-02-20)
+
+### v1.16.0 — Phase 2 Diagnostics, Assignment_Master V3, Schema Standards
+
+#### M Code DateTime.LocalNow() — Critical Architectural Issue Identified
+- **Root Cause**: 20 M code files (35+ occurrences) use `DateTime.LocalNow()` to compute rolling windows; refreshing a January 2026 report in March shifts the window forward and loses Jan 2025 data
+- **Fix**: Add `ReportMonth = #date(YYYY, M, 1)` at top of each query; replace `DateTime.LocalNow()` with `DateTime.From(ReportMonth)`
+- **Affected files**: `___Overtime_Timeoff_v3`, `___Arrest_Categories_FIXED`, `___Top_5_Arrests_FIXED`, `___Cost_of_Training`, `esu/ESU_13Month`, `esu/MonthlyActivity`, `stacp/STACP_pt_1_2_FIXED`, `detectives/___Detectives_2026`, `detectives/___Det_case_dispositions_clearance_2026`, `___Summons_All_Bureaus_STANDALONE`, `___Summons_Top5_Moving_STANDALONE`, `2026_02_16_detectives`, `2026_02_19_jan_m_codes` (15+ occurrences)
+- **Guide**: `docs/M_CODE_DATETIME_FIX_GUIDE.md` — full audit table, Claude AI fix prompt, deployment checklist
+
+#### Assignment_Master V3 — Major Cleanup (Claude-in-Excel, 12 turns)
+- **V3_FINAL.xlsx**: 42 cols → 25 cols; 6 duplicate PEO rows deleted; 166 records; RANK 100% populated
+- **Renamed**: `POSS_CONTRACT_TYPE` → `CONTRACT_TYPE`, `Proposed 4-Digit Format` → `STANDARD_NAME`
+- **Script fix**: `run_summons_with_overrides.py` — removed `WG5` key, renamed `POSS_CONTRACT_TYPE` → `CONTRACT_TYPE` in badge 1711 override
+- **Archived**: `add_traffic_officers.py` → `scripts/_archive/` (deprecated; officers already added, referenced deleted columns)
+
+#### Schema Standards Infrastructure
+- `09_Reference/Personnel/Assignment_Master_SCHEMA.md` fully rewritten (V2 — all 16 sections)
+- `09_Reference/Standards/Personnel/` subdirectory created
+- `09_Reference/Standards/Personnel/Assignment_Master_SCHEMA.md` — human/AI-readable mirror
+- `09_Reference/Standards/Personnel/assignment_master.schema.json` — formal JSON Schema (type/enum/pattern for all 25 columns)
 
 ---
 
@@ -388,8 +415,64 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 
 ---
 
-*Last updated: 2026-02-13 | Format version: 3.7*
-## 2026-02-17
-- Consolidated Power BI visual export mapping into one file.
-- Primary path: Standards\config\powerbi_visuals\visual_export_mapping.json
-- Archived prior mapping files under scripts\_archive\visual_export_mapping\2026_02_17_173019\
+*Last updated: 2026-02-20 | Format version: 3.8*
+
+## Recent Updates (2026-02-18)
+
+### v1.15.9 - February 2026 ETL Cycle Response Times Fix ✅ **DEPLOYED**
+
+**Response Time Calculation Methodology Fixed** - Critical multi-unit deduplication logic corrected
+
+#### Critical Response Time Fixes:
+1. **Multi-Unit Deduplication Logic** - Fixed script to use first-arriving unit instead of first-in-file
+   - **Before**: `df.drop_duplicates(subset=['ReportNumberNew'], keep='first')` (file order)
+   - **After**: Sort by `['ReportNumberNew', 'Time Out']` then deduplicate (first arriving)
+   - **Impact**: Ensures accurate response times for multi-unit incidents
+   - **File**: `02_ETL_Scripts/Response_Times/process_cad_data_13month_rolling.py`
+
+2. **Response Time Metric Clarification** - Defined three distinct metrics
+   - **Response Time (Primary)**: `Time Out - Time of Call` (total time from call to arrival)
+   - **Travel Time**: `Time Out - Time Dispatched` (dispatch to arrival)
+   - **Processing Time**: `Time Dispatched - Time of Call` (call to dispatch)
+   - **Standard**: Use first-arriving unit for multi-unit incidents
+
+3. **CAD Call Type Mapping** - Fixed mapping file structure
+   - **Created**: `CAD_CALL_TYPE.xlsx` from `CallType_Categories.csv`
+   - **Schema**: Columns renamed to match script expectations (`Call Type`, `Response`)
+   - **Records**: 649 call type mappings for Response_Type classification
+
+#### January 2026 Response Time Results:
+- **Emergency**: 3:11 min (347 calls, median 2:49)
+- **Urgent**: 2:54 min (843 calls, median 2:32)
+- **Routine**: 2:48 min (853 calls, median 2:02)
+- **Processing Stats**: 10,440 → 7,501 → 2,851 → 2,043 valid records
+- **Multi-unit Rate**: 28.2% (2,939 duplicate units removed)
+
+#### February 2026 ETL Cycle Validation:
+- **Infrastructure Validation**: ✅ Python 3.14.2, dependencies verified
+- **Visual Export Mapping**: ✅ 25/36 visuals enforce 13-month windows (better than expected 24/32)
+- **Source Data**: ✅ January 2026 CAD timereport (10,440 records), E-Ticket missing (backfill available)
+- **Pre-Flight Checks**: ✅ All critical dependencies validated
+- **Output Generation**: ✅ Response time calculations successful with corrected methodology
+
+#### Documentation Created:
+- **Response Time Analysis PDFs**: Executive summaries showing multi-unit impact (+27% to +120% on Routine)
+- **ETL Cycle Validation**: Comprehensive pre-flight audit and validation framework
+- **Methodology Documentation**: First-arriving unit standard for multi-unit incidents
+- **Safeguards**: Monthly multi-unit rate audits and validation checks against raw CAD
+
+#### Tools and Scripts Enhanced:
+- `process_cad_data_13month_rolling.py` - Fixed deduplication logic
+- `CAD_CALL_TYPE.xlsx` - Created proper mapping file from CSV source
+- Pre-flight validation framework for monthly ETL cycles
+- Visual export processing with 13-month window enforcement
+
+**Status**: Response Times ETL workflow operational with corrected methodology ✅
+
+---
+
+## Recent Updates (2026-02-17)
+
+- Consolidated Power BI visual export mapping into one canonical file
+- Primary path: `Standards\config\powerbi_visuals\visual_export_mapping.json`
+- Archived prior mapping files under `scripts\_archive\visual_export_mapping\2026_02_17_173019\`
