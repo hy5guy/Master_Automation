@@ -1,7 +1,7 @@
-// 🕒 2026-02-13-17-15-00
-// # Master_Automation/STACP/STACP_DIAGNOSTIC.m
+// 🕒 2026-02-20-23-48-50
+// # stacp/STACP_DIAGNOSTIC.m
 // # Author: R. A. Carucci
-// # Purpose: Diagnostic query to troubleshoot STACP column detection - shows what columns Power BI sees and which are selected.
+// # Purpose: Diagnostic query to verify STACP column detection and 13-month window logic.
 
 /* =================================================================
    STACP DIAGNOSTIC QUERY

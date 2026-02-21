@@ -1,27 +1,13 @@
-// summons_13month_trend
-// 🕒 2026-01-11 01:28:55 EST
-// Project: SummonsMaster/summons_13month_trend
-// Author: R. A. Carucci (updated by Claude Code)
-// Purpose: Loads all summons data (historical backfill + current month) with all columns for 13-month trend and all bureaus visual
-// Updated: January 2026 - Includes all columns from preview table, combines backfill and current month data
-// Replaces: ___Summons (was ___Backfill for aggregated version)
+// 🕒 2026-02-20-23-48-50
+// # summons/summons_13month_trend.m
+// # Author: R. A. Carucci
+// # Purpose: Load summons data from staging workbook for 13-month trend analysis.
 
 let
-    // Load the main summons output file
-    Source = Excel.Workbook(
-        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
-        null,
-        true
-    ),
-    
-    // Get the Summons_Data sheet
+    Source = Excel.Workbook(File.Contents("C:\Users\RobertCarucci\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"), null, true),
     Summons_Data_Sheet = Source{[Item="Summons_Data",Kind="Sheet"]}[Data],
-    
-    // Promote headers
-    #"Promoted Headers" = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
-    
-    // Set data types based on your enhanced dataset structure
-    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+    PromotedHeaders = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
+    ChangedType = Table.TransformColumnTypes(PromotedHeaders,{
         {"TICKET_NUMBER", type text}, 
         {"TICKET_COUNT", Int64.Type}, 
         {"IS_AGGREGATE", type logical}, 
@@ -35,7 +21,6 @@ let
         {"TYPE", type text}, 
         {"STATUS", type text}, 
         {"LOCATION", type text}, 
-        {"WARNING_FLAG", type text}, 
         {"SOURCE_FILE", type text}, 
         {"ETL_VERSION", type text}, 
         {"Year", Int64.Type}, 
@@ -47,32 +32,15 @@ let
         {"WG2", type text}, 
         {"WG3", type text}, 
         {"WG4", type text}, 
-        {"WG5", type text}, 
         {"POSS_CONTRACT_TYPE", type text}, 
         {"ASSIGNMENT_FOUND", type logical}, 
-        {"DATA_QUALITY_SCORE", type number}, 
-        {"DATA_QUALITY_TIER", type text}, 
-        {"TOTAL_PAID_AMOUNT", type number}, 
-        {"FINE_AMOUNT", type number}, 
-        {"COST_AMOUNT", type number}, 
-        {"MISC_AMOUNT", type number}, 
+        {"DATA_QUALITY_SCORE", Int64.Type}, 
+        {"TOTAL_PAID_AMOUNT", type text}, 
+        {"COST_AMOUNT", Int64.Type}, 
+        {"MISC_AMOUNT", Int64.Type}, 
         {"PROCESSING_TIMESTAMP", type datetime}
     }),
-    
-    // Filter for 13-Month Data Window
-    // Include both historical backfill records (IS_AGGREGATE = true or ETL_VERSION = "HISTORICAL_SUMMARY")
-    // and current month individual records (ETICKET_CURRENT)
-    #"Filtered 13 Month Data" = Table.SelectRows(
-        #"Changed Type",
-        each ([IS_AGGREGATE] = true or [ETL_VERSION] = "HISTORICAL_SUMMARY" or [ETL_VERSION] = "ETICKET_CURRENT")
-    ),
-    
-    // Filter out UNKNOWN WG2 records to match All Bureaus visual totals
-    // Historical backfill records (IS_AGGREGATE = true) don't have WG2, so keep them
-    // Only filter UNKNOWN from current month e-ticket records
-    #"Filtered UNKNOWN" = Table.SelectRows(
-        #"Filtered 13 Month Data",
-        each [IS_AGGREGATE] = true or [ETL_VERSION] = "HISTORICAL_SUMMARY" or ([ETL_VERSION] = "ETICKET_CURRENT" and [WG2] <> null and [WG2] <> "" and [WG2] <> "UNKNOWN")
-    )
+    FilteredClean = Table.SelectRows(ChangedType, each [WG2] <> "UNKNOWN"),
+    AddConsolidatedBureau = Table.AddColumn(FilteredClean, "Bureau_Consolidated", each if [WG2] = "HOUSING" or [WG2] = "OFFICE OF SPECIAL OPERATIONS" then "PATROL DIVISION" else [WG2], type text)
 in
-    #"Filtered UNKNOWN"
+    AddConsolidatedBureau

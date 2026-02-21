@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-02-20
+**Last Updated:** 2026-02-21
 **Status:** ✅ Production Ready — Phase 2 Remediation In Progress
-**Version:** 1.16.0
+**Version:** 1.17.0
 
 ---
 
@@ -20,7 +20,7 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
 | **Status** | ✅ Production Ready — Phase 2 Remediation In Progress |
-| **Version** | 1.16.0 |
+| **Version** | 1.17.0 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -99,10 +99,27 @@ Master_Automation/
 │   ├── response_time/          # Response Time docs (13 files)
 │   ├── archived_workflows/     # Archived workflows
 │   └── (migration guides, reports, troubleshooting)
-├── m_code/                      # Power BI M code queries
-│   ├── archive/                # Archived M code (16 files)
-│   ├── esu/                    # ESU 13-month: ESU_13Month.m (single query); optional fnCleanText, fnMonthKeyFromTableName, TrackedItems, MonthlyActivity
-│   └── (other active .m files)
+├── m_code/                      # Power BI M code (45 queries, 17 page folders)
+│   ├── arrests/               # 3 queries (Categories, Distro, Top 5)
+│   ├── benchmark/             # 1 query
+│   ├── community/             # 2 queries (Outreach, Chief's Projects)
+│   ├── csb/                   # 1 query
+│   ├── detectives/            # 2 queries (Detectives, CCD)
+│   ├── drone/                 # 1 query
+│   ├── esu/                   # 5 queries (ESU_13Month, fnCleanText, etc.)
+│   ├── functions/             # 5 shared functions (fnGetFiles, fnReadCsv, etc.)
+│   ├── nibrs/                 # 1 query
+│   ├── overtime/              # 1 query (v3)
+│   ├── parameters/            # 5 parameters (RootExportPath, EtlRootPath, etc.)
+│   ├── patrol/                # 3 queries (Patrol, Chief2, REMU)
+│   ├── response_time/         # 1 query (ResponseTimeCalculator)
+│   ├── shared/                # 6 queries (DateTable, DimMonth, DimEventType, etc.)
+│   ├── ssocc/                 # 2 queries (SSOCC_Data, TAS_Dispatcher)
+│   ├── stacp/                 # 3 queries (STACP, Social Media, Diagnostic)
+│   ├── summons/               # 5 queries (13month, top5_parking, top5_moving, all_bureaus, dept_wide)
+│   ├── traffic/               # 1 query
+│   ├── training/              # 2 queries (Cost, In-Person)
+│   └── archive/               # Archived/superseded M code (53+ files)
 ├── outputs/                     # Organized output files
 │   ├── arrests/                # Arrest exports (3 files)
 │   ├── visual_exports/         # Power BI exports (23 files)
@@ -658,8 +675,21 @@ The manifest provides a machine-readable reference for the entire Master Automat
 ---
 
 **Maintained by:** R. A. Carucci  
-**Last Updated:** 2026-02-20  
-**Version:** 1.16.0
+**Last Updated:** 2026-02-21  
+**Version:** 1.17.0
+
+---
+
+## Recent Updates (2026-02-21)
+
+### v1.17.0 — M Code Reorganization and PBIX Baseline Export
+
+- **M code folder restructure** — Reorganized `m_code/` from flat 76-file directory into 17 page-based subfolders matching Power BI report pages (arrests, benchmark, community, csb, detectives, drone, esu, functions, nibrs, overtime, parameters, patrol, response_time, shared, ssocc, stacp, summons, traffic, training)
+- **PBIX baseline export** — Extracted all 45 Power Query M code queries from January 2026 monthly report PBIX into consolidated file (`all_m_code_26_january_monthly.m`, 4,197 lines), then split into individual `.m` files
+- **Standardized headers** — All 45 `.m` files now include: EST timestamp, file path, Author: R. A. Carucci, purpose line
+- **Archived stale files** — 53 superseded files (date-stamped snapshots, `_FIXED`/`_STANDALONE` variants, benchmark iterations) moved to `m_code/archive/2026_02_21_phase2_cleanup/`
+- **Phase 2 discovery** — PBIX already has `RootExportPath` and `EtlRootPath` parameters; 7 queries have hardcoded broken paths (`C:\Dev` or `C:\Users\RobertCarucci`); 6 queries show warning icons in Power Query
+- **Splitter script** — `scripts/split_mcode.py` automates consolidated M code parsing and distribution to page folders with headers
 
 ---
 

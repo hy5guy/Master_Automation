@@ -10,9 +10,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
+- [ ] Phase 2 Remediation: Replace DateTime.LocalNow() with pReportMonth parameter in all M code
+- [ ] Phase 2 Remediation: Fix Response Times double extension and dedup sort
+- [ ] Phase 2 Remediation: Add manifest generation to run_all_etl.ps1
+- [ ] Phase 2 Remediation: Rewrite Pre_Flight_Validation.py with argparse and evidence checks
 - [ ] Monitor March 2026 execution for continued validation
-- [ ] Implement schema validation framework for all ETL scripts
-- [ ] Add automated success/failure notifications
+
+---
+
+## [1.17.0] - 2026-02-21
+
+### Added
+- **M Code page-based folder structure** — Reorganized `m_code/` from flat directory into 17 page-based subfolders matching Power BI report pages: `arrests/`, `benchmark/`, `community/`, `csb/`, `detectives/`, `drone/`, `esu/`, `functions/`, `nibrs/`, `overtime/`, `parameters/`, `patrol/`, `response_time/`, `shared/`, `ssocc/`, `stacp/`, `summons/`, `traffic/`, `training/`
+- **PBIX baseline export** — Extracted all 45 Power Query M code queries from `2026_01_Monthly_Report.pbix` into `all_m_code_26_january_monthly.m` (4,197 lines), then split into individual `.m` files with standardized headers
+- **Standardized M code headers** — All 45 `.m` files now have: timestamp (EST), file path, Author: R. A. Carucci, AI-generated purpose line
+- **Splitter script** — `scripts/split_mcode.py` parses consolidated M code and distributes to page folders with headers
+- **PBIX export script** — `Downloads/PBIX_Exports/2026_02_21/Export-PbixData.ps1` for automated PBIX extraction (ADOMD.NET via DAX Studio)
+
+### Changed
+- **m_code/ structure** — From 76 files (11 in root + mixed archive) to 49 clean files across 17 subfolders, 1 file per PBIX query
+- **Query naming** — Removed `_FIXED`, `_2026`, `_STANDALONE` suffixes; files now match PBIX query names exactly (e.g., `___Arrest_Categories.m` not `___Arrest_Categories_FIXED.m`)
+
+### Fixed
+- **m_code clutter** — Archived 53 stale files (date-stamped snapshots, superseded versions, benchmark iterations, OT staging files) into `m_code/archive/2026_02_21_phase2_cleanup/`
+
+### Documentation
+- CHANGELOG, README, SUMMARY, CLAUDE.md updated to reflect new folder structure, query inventory (45 queries: 25 data, 5 parameters, 5 functions, 10 other), and Phase 2 roadmap
+
+### Discovered (Phase 2 inputs)
+- PBIX already has `RootExportPath` and `EtlRootPath` parameters (no need to create `pRootPath` from scratch)
+- PBIX has `RangeStart`/`RangeEnd` parameters that may complement `pReportMonth`
+- 7 queries have broken paths: 4 use `C:\Users\RobertCarucci\...`, 2 use `C:\Dev\...`, 1 uses wrong month
+- Warning icons on 6 queries: `___Drone`, `___ResponseTimeCalculator`, `summons_13month_trend`, `summons_top5_parking`, `summons_top5_moving`, `ESU_13Month`
 
 ---
 

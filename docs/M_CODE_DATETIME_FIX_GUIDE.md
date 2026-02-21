@@ -82,25 +82,25 @@ Each reporting cycle, update **only one line** in each affected query:
 
 ## Full Audit Table — All Affected Files
 
-| # | File | Line(s) | Pattern | Fix Type |
-|---|------|---------|---------|----------|
-| 1 | `m_code/___Overtime_Timeoff_v3.m` | 28 | `NowDT = DateTime.LocalNow()` | Rolling window |
-| 2 | `m_code/___Arrest_Categories_FIXED.m` | 44 | `Date.From(DateTime.LocalNow())` | Previous-month filter |
-| 3 | `m_code/___Top_5_Arrests_FIXED.m` | 53 | `Date.From(DateTime.LocalNow())` | Previous-month filter |
-| 4 | `m_code/___Top_5_Arrests_DIAGNOSTIC.m` | 59 | `Date.From(DateTime.LocalNow())` | Diagnostic — fix for consistency |
-| 5 | `m_code/___Cost_of_Training.m` | 27 | `DateTime.LocalNow()` | Rolling window |
-| 6 | `m_code/esu/ESU_13Month.m` | 76 | `DateTime.LocalNow()` | Rolling window |
-| 7 | `m_code/esu/MonthlyActivity.m` | 66 | `DateTime.LocalNow()` | Rolling window |
-| 8 | `m_code/stacp/STACP_pt_1_2_FIXED.m` | 16 | `DateTime.LocalNow()` | Rolling window |
-| 9 | `m_code/stacp/STACP_DIAGNOSTIC.m` | 16 | `DateTime.LocalNow()` | Diagnostic — fix for consistency |
-| 10 | `m_code/detectives/___Detectives_2026.m` | 105, 186, 187, 195 | `DateTime.LocalNow()` | Rolling window + refresh timestamp |
-| 11 | `m_code/detectives/___Det_case_dispositions_clearance_2026.m` | 238 | `DateTime.LocalNow()` | Rolling window |
-| 12 | `m_code/___Summons_All_Bureaus_STANDALONE.m` | 8 | `Date.From(DateTime.LocalNow())` | Previous-month calc |
-| 13 | `m_code/___Summons_Top5_Moving_STANDALONE.m` | 8 | `Date.From(DateTime.LocalNow())` | Previous-month calc |
-| 14 | `m_code/2026_02_16_detectives.m` | 98, 171, 173, 181 | `DateTime.LocalNow()` | Rolling window |
-| 15 | `m_code/2026_02_19_jan_m_codes.m` | 238, 744, 872, 984, 1189, 1262–1272, 1502, 1551, 1800, 1849, 2511, 2622, 3159, 3424, 3541, 3612, 3881, 4079 | Multiple patterns | Consolidated multi-query file |
+**NOTE (2026-02-21):** File paths updated to reflect the new page-based folder structure. Old filenames with `_FIXED`, `_STANDALONE`, `_2026` suffixes have been renamed to match PBIX query names. Superseded files (rows 14-15) archived to `m_code/archive/2026_02_21_phase2_cleanup/`.
 
-**Total: 20 files, 35+ occurrences**
+| # | File (new path) | Pattern | Fix Type |
+|---|------|---------|----------|
+| 1 | `m_code/overtime/___Overtime_Timeoff_v3.m` | `NowDT = DateTime.LocalNow()` | Rolling window |
+| 2 | `m_code/arrests/___Arrest_Categories.m` | `Date.From(DateTime.LocalNow())` | Previous-month filter |
+| 3 | `m_code/arrests/___Top_5_Arrests.m` | `Date.From(DateTime.LocalNow())` | Previous-month filter |
+| 4 | `m_code/training/___Cost_of_Training.m` | `DateTime.LocalNow()` | Rolling window |
+| 5 | `m_code/esu/ESU_13Month.m` | `DateTime.LocalNow()` | Rolling window |
+| 6 | `m_code/esu/MonthlyActivity.m` | `DateTime.LocalNow()` | Rolling window |
+| 7 | `m_code/stacp/___STACP_pt_1_2.m` | `DateTime.LocalNow()` | Rolling window |
+| 8 | `m_code/stacp/STACP_DIAGNOSTIC.m` | `DateTime.LocalNow()` | Diagnostic — fix for consistency |
+| 9 | `m_code/detectives/___Detectives.m` | `DateTime.LocalNow()` | Rolling window + refresh timestamp |
+| 10 | `m_code/detectives/___Det_case_dispositions_clearance.m` | `DateTime.LocalNow()` | Rolling window |
+| 11 | `m_code/summons/summons_all_bureaus.m` | `Date.From(DateTime.LocalNow())` | Previous-month calc |
+| 12 | `m_code/summons/summons_top5_moving.m` | `Date.From(DateTime.LocalNow())` | Previous-month calc |
+| 13 | `m_code/summons/summons_13month_trend.m` | `DateTime.LocalNow()` | Rolling window |
+
+**Total: 13 active files to fix (consolidated from 20 after archive cleanup)**
 
 ---
 
@@ -130,16 +130,17 @@ Each reporting cycle, update **only one line** in each affected query:
 
 ### A — Hardcoded Paths (8 instances)
 
-Replace `C:\Users\RobertCarucci\` or `C:\Dev\` with `C:\Users\carucci_r\OneDrive - City of Hackensack\` in:
+Replace hardcoded paths with the `RootExportPath` parameter (already in PBIX) so queries are machine-portable:
 
-| File | Lines | Old Path Fragment |
-|------|-------|-------------------|
-| `m_code/summons/summons_13month_trend.m` | ~3325 | `RobertCarucci` |
-| `m_code/summons/summons_top5_parking.m` | ~3374 | `RobertCarucci` |
-| `m_code/summons/summons_all_bureaus.m` | ~3429 | `RobertCarucci` |
-| `m_code/summons/summons_top5_moving.m` | ~3549 | `RobertCarucci` |
-| `m_code/esu/ESU_13Month.m` | ~4010 | `RobertCarucci` |
-| `m_code/___ResponseTimeCalculator.m` | 2211, 2303 | `C:\Dev\` |
+| File (new path) | Old Path Fragment |
+|------|-------------------|
+| `m_code/summons/summons_13month_trend.m` | `RobertCarucci` |
+| `m_code/summons/summons_top5_parking.m` | `RobertCarucci` |
+| `m_code/summons/summons_all_bureaus.m` | `RobertCarucci` |
+| `m_code/summons/summons_top5_moving.m` | `RobertCarucci` |
+| `m_code/esu/ESU_13Month.m` | `RobertCarucci` |
+| `m_code/response_time/___ResponseTimeCalculator.m` | `C:\Dev\` |
+| `m_code/drone/___Drone.m` | `RobertCarucci` |
 
 ### B — Missing Column in Hardcoded Lists (2 instances)
 
@@ -177,22 +178,20 @@ Prev = Date.AddMonths(ReportMonth, -1),    // was: Date.AddMonths(Date.From(Date
 
 // Step 3 — ALL downstream calculations remain UNCHANGED
 
-AFFECTED FILES (fix all):
-1.  m_code/___Overtime_Timeoff_v3.m              — Line 28
-2.  m_code/___Arrest_Categories_FIXED.m          — Line 44
-3.  m_code/___Top_5_Arrests_FIXED.m              — Line 53
-4.  m_code/___Top_5_Arrests_DIAGNOSTIC.m         — Line 59
-5.  m_code/___Cost_of_Training.m                 — Line 27
-6.  m_code/esu/ESU_13Month.m                     — Line 76
-7.  m_code/esu/MonthlyActivity.m                 — Line 66
-8.  m_code/stacp/STACP_pt_1_2_FIXED.m           — Line 16
-9.  m_code/stacp/STACP_DIAGNOSTIC.m              — Line 16
-10. m_code/detectives/___Detectives_2026.m        — Lines 105, 186, 187, 195
-11. m_code/detectives/___Det_case_dispositions_clearance_2026.m — Line 238
-12. m_code/___Summons_All_Bureaus_STANDALONE.m   — Line 8
-13. m_code/___Summons_Top5_Moving_STANDALONE.m   — Line 8
-14. m_code/2026_02_16_detectives.m               — Lines 98, 171, 173, 181
-15. m_code/2026_02_19_jan_m_codes.m              — 15+ occurrences
+AFFECTED FILES (fix all — paths updated 2026-02-21 for new page folder structure):
+1.  m_code/overtime/___Overtime_Timeoff_v3.m
+2.  m_code/arrests/___Arrest_Categories.m
+3.  m_code/arrests/___Top_5_Arrests.m
+4.  m_code/training/___Cost_of_Training.m
+5.  m_code/esu/ESU_13Month.m
+6.  m_code/esu/MonthlyActivity.m
+7.  m_code/stacp/___STACP_pt_1_2.m
+8.  m_code/stacp/STACP_DIAGNOSTIC.m
+9.  m_code/detectives/___Detectives.m
+10. m_code/detectives/___Det_case_dispositions_clearance.m
+11. m_code/summons/summons_all_bureaus.m
+12. m_code/summons/summons_top5_moving.m
+13. m_code/summons/summons_13month_trend.m
 
 HEADER REQUIREMENT — update timestamp on every modified file:
 // 2026-02-20-HH-MM-SS (EST)
@@ -202,11 +201,12 @@ HEADER REQUIREMENT — update timestamp on every modified file:
 // Purpose: [existing purpose line — do not change]
 
 SECONDARY FIXES (same pass):
-A. Hardcoded paths — replace RobertCarucci / C:\Dev\ with carucci_r OneDrive path in:
-   summons/summons_13month_trend.m, summons_top5_parking.m, summons_all_bureaus.m,
-   summons_top5_moving.m, esu/ESU_13Month.m, ___ResponseTimeCalculator.m
+A. Hardcoded paths — replace RobertCarucci / C:\Dev\ with RootExportPath parameter in:
+   m_code/summons/summons_13month_trend.m, m_code/summons/summons_top5_parking.m,
+   m_code/summons/summons_all_bureaus.m, m_code/summons/summons_top5_moving.m,
+   m_code/esu/ESU_13Month.m, m_code/response_time/___ResponseTimeCalculator.m
 
-B. Missing column — add "01-26" to hardcoded column lists in ___Patrol and ___Traffic queries
+B. Missing column — add "01-26" to hardcoded column lists in m_code/patrol/___Patrol.m and m_code/traffic/___Traffic.m
 
 DELIVERABLE: Complete updated M code for each file + one-line change summary.
 CURRENT REPORTING PERIOD: January 2026 → ReportMonth = #date(2026, 1, 1)
@@ -215,5 +215,5 @@ CURRENT REPORTING PERIOD: January 2026 → ReportMonth = #date(2026, 1, 1)
 ---
 
 **Reference:** `docs/Phase_2_Remediation_Roadmap.md` — Priority 0 task  
-**Last Updated:** 2026-02-20  
+**Last Updated:** 2026-02-21  
 **Author:** R. A. Carucci

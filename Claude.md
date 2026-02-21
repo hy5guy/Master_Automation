@@ -44,9 +44,27 @@ New to this project? Start with:
 - `docs/` - Project documentation
   - `response_time/` - Response Time documentation and reports
   - `archived_workflows/` - Archived workflow files
-- `m_code/` - Power BI M code queries (13 active + 16 archived)
-  - `esu/` - ESU 13-month: ESU_13Month.m (single query); optional fnCleanText, fnMonthKeyFromTableName, TrackedItems, MonthlyActivity
-  - `archive/` - Archived M code versions
+- `m_code/` - Power BI M code queries (45 queries across 17 page-based subfolders)
+  - `arrests/` - ___Arrest_Categories, ___Arrest_Distro, ___Top_5_Arrests
+  - `benchmark/` - ___Benchmark
+  - `community/` - ___Combined_Outreach_All, ___chief_projects
+  - `csb/` - ___CSB_Monthly
+  - `detectives/` - ___Detectives, ___Det_case_dispositions_clearance
+  - `drone/` - ___Drone
+  - `esu/` - ESU_13Month, fnCleanText, fnMonthKeyFromTableName, TrackedItems, MonthlyActivity
+  - `functions/` - fnGetFiles, fnReadCsv, fnEnsureColumns, fnApplyRenameMap, fnLoadRaw
+  - `nibrs/` - ___NIBRS_Monthly_Report
+  - `overtime/` - ___Overtime_Timeoff_v3
+  - `parameters/` - RootExportPath, EtlRootPath, SourceMode, RangeStart, RangeEnd
+  - `patrol/` - ___Patrol, ___Chief2, ___REMU
+  - `response_time/` - ___ResponseTimeCalculator
+  - `shared/` - ___ComprehensiveDateTable, ___DimMonth, ___DimEventType, ___Arrest_Raw_Data_Preview, ___Arrest_Date_Distribution, Parameters_Check
+  - `ssocc/` - ___SSOCC_Data, TAS_Dispatcher_Incident
+  - `stacp/` - ___STACP_pt_1_2, ___Social_Media, STACP_DIAGNOSTIC
+  - `summons/` - summons_13month_trend, summons_top5_parking, summons_top5_moving, summons_all_bureaus, ___Summons
+  - `traffic/` - ___Traffic
+  - `training/` - ___Cost_of_Training, ___In_Person_Training
+  - `archive/` - Archived M code versions (53+ superseded files)
 - `outputs/` - Organized output files
   - `arrests/` - Arrest-related exports
   - `visual_exports/` - Power BI visual exports
@@ -294,13 +312,37 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 - **January 2026 Report** - Successfully generated and ready for publication
 
 ### Current System Status
-- **Version**: 1.16.0
+- **Version**: 1.17.0
 - **Status**: ✅ ETL Operational — Phase 2 Remediation In Progress (March 10, 2026 target)
 - **Enabled Scripts**: 6 (All operational)
-- **Power BI Queries**: Response Time M code fixed (v2.8.0), STACP 13-month window fixed, Detective queries restructured and working
+- **Power BI Queries**: 45 queries organized in 17 page folders; Response Time (v2.8.0), STACP, Detective queries all working
 - **Critical Issue**: M Code `DateTime.LocalNow()` in 20 files breaks historical data integrity — fix documented in `docs/M_CODE_DATETIME_FIX_GUIDE.md`
+- **M Code Baseline**: All 45 PBIX queries exported, split, headered (Jan 2026 monthly report)
 - **Personnel Master**: Assignment_Master_V3_FINAL.xlsx (25 cols, 166 records) — schema updated, Standards mirror created
 - **Phase 2 Status**: Priority 0 (M Code ReportMonth) IDENTIFIED; Priority 1 (Community Engagement) PENDING; Priority 2 (Summons Derived) BLOCKED
+
+---
+
+## Recent Updates (2026-02-21)
+
+### v1.17.0 — M Code Reorganization and PBIX Baseline Export
+
+#### M Code Folder Restructure
+- **17 page-based subfolders** created under `m_code/`: arrests, benchmark, community, csb, detectives, drone, esu, functions, nibrs, overtime, parameters, patrol, response_time, shared, ssocc, stacp, summons, traffic, training
+- **45 queries** — 25 data queries, 5 parameters, 5 shared functions, 5 ESU helpers, 5 other
+- **53 stale files archived** to `m_code/archive/2026_02_21_phase2_cleanup/` (date-stamped snapshots, `_FIXED`/`_STANDALONE` variants, benchmark iterations)
+
+#### PBIX Baseline Export
+- All 45 Power Query M code queries extracted from `2026_01_Monthly_Report.pbix`
+- Consolidated into `all_m_code_26_january_monthly.m` (4,197 lines)
+- Split into individual `.m` files with standardized headers (timestamp, path, Author: R. A. Carucci, purpose)
+- Splitter script: `scripts/split_mcode.py`
+
+#### Phase 2 Discovery
+- PBIX already has `RootExportPath` and `EtlRootPath` parameters (reuse for Phase 2 path portability)
+- PBIX has `RangeStart`/`RangeEnd` parameters (may complement `pReportMonth`)
+- 7 queries have broken hardcoded paths: 4 use `C:\Users\RobertCarucci\...`, 2 use `C:\Dev\...`
+- 6 queries show warning icons: `___Drone`, `___ResponseTimeCalculator`, `summons_13month_trend`, `summons_top5_parking`, `summons_top5_moving`, `ESU_13Month`
 
 ---
 
@@ -415,7 +457,7 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 
 ---
 
-*Last updated: 2026-02-20 | Format version: 3.8*
+*Last updated: 2026-02-21 | Format version: 3.9*
 
 ## Recent Updates (2026-02-18)
 

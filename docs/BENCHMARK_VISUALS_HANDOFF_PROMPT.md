@@ -92,6 +92,9 @@
 | ___DimMonth_dynamic.m | 02_ETL_Scripts\Benchmark\ | Dynamic ___DimMonth Power Query |
 | Benchmark_DAX_Measures.dax | 02_ETL_Scripts\Benchmark\ | All DAX measures |
 | data dictionary | 02_ETL_Scripts\Benchmark\schemas\data_dictionary.md | Expected column schema |
+| **diagnose_benchmark_data.py** | scripts\ | Python script – analyzes source CSVs for date coverage, monthly distribution |
+| **BENCHMARK_VISUAL_DIAGNOSTIC.md** | docs\ | Step-by-step troubleshooting (7 steps) |
+| **BENCHMARK_QUICK_FIX_REFERENCE.md** | docs\ | Quick fixes for common root causes |
 | benchmark test data.csv | data\backfill\2026_12_compair\ben chmark test data.csv | Pre-aggregated monthly totals; NOT the source for ___Benchmark; use for validation only |
 
 ---
@@ -110,11 +113,16 @@ The matrix showing data only for January 2025 suggests one of:
 
 ## 8. Diagnostic Steps Requested
 
-1. **Verify ___Benchmark data:** In Power BI, create a Table visual with ___Benchmark[MonthStart] and COUNTROWS(___Benchmark). Confirm multiple distinct MonthStart values and that 2025–2026 months exist.
-2. **Verify ___DimMonth:** Table visual with ___DimMonth. Confirm 13 rows (Jan 2025–Jan 2026) with correct MonthStart dates.
-3. **Verify relationship:** Model view – check relationship is active, correct cardinality, and filter direction.
-4. **Trace M query:** Review ___Benchmark query step-by-step. Confirm Incident Date is type datetime, MonthStart = Date.StartOfMonth(Date.From([Incident Date])), and EventType matches ___DimEventType values exactly (including spacing/casing).
-5. **Check for filters:** Report/page/visual filters that might restrict to one month.
+**Start here:** Run `python scripts/diagnose_benchmark_data.py` to analyze source CSVs. If data spans multiple months, proceed with Power BI checks.
+
+**Power BI steps (see docs/BENCHMARK_VISUAL_DIAGNOSTIC.md):**
+1. **Verify ___Benchmark data:** Table visual with ___Benchmark[MonthStart] and COUNTROWS(___Benchmark). Confirm multiple distinct MonthStart values.
+2. **Verify ___DimMonth:** Confirm 13 rows (Jan 2025–Jan 2026).
+3. **Verify relationship:** Model view – active, correct cardinality, filter direction.
+4. **Trace M query:** Incident Date type datetime, MonthStart calculation, EventType matches ___DimEventType.
+5. **Check for filters:** Report/page/visual filters restricting to one month.
+
+**Quick fixes:** See docs/BENCHMARK_QUICK_FIX_REFERENCE.md for Fix #1–#5.
 
 ---
 
@@ -151,14 +159,18 @@ Please:
 
 ```
 Master_Automation\
+├── scripts\
+│   └── diagnose_benchmark_data.py       ← Run first: analyzes source CSV date coverage
+├── docs\
+│   ├── BENCHMARK_VISUALS_HANDOFF_PROMPT.md  (this file)
+│   ├── BENCHMARK_VISUAL_DIAGNOSTIC.md       ← 7-step troubleshooting guide
+│   └── BENCHMARK_QUICK_FIX_REFERENCE.md     ← Fix #1–#5 quick reference
 ├── 02_ETL_Scripts\Benchmark\
 │   ├── ___Benchmark_FIXED.m
 │   ├── ___DimMonth_dynamic.m
 │   ├── Benchmark_DAX_Measures.dax
 │   ├── schemas\data_dictionary.md
 │   └── README.md
-├── docs\
-│   └── BENCHMARK_VISUALS_HANDOFF_PROMPT.md  (this file)
 └── data\backfill\2026_12_compair\
     └── ben chmark test data.csv  (pre-aggregated; validation only)
 

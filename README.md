@@ -6,7 +6,7 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
 
-**Latest Update (2026-02-19)**: Successfully completed February 2026 ETL cycle with critical infrastructure improvements including Response Times ETL restoration, Summons Derived Outputs rewrite, and cross-machine path portability implementation.
+**Latest Update (2026-02-21)**: M code reorganized into 17 page-based subfolders with all 45 PBIX queries exported, split, and headered. Phase 2 Remediation plan created for ReportMonth freeze fix across all archive queries.
 
 ## Directory Structure
 
@@ -53,9 +53,27 @@ Master_Automation/
 │   ├── FEBRUARY_2026_ETL_CYCLE_SUMMARY.md  # Complete ETL cycle execution results
 │   ├── chatlogs/               # Session transcripts and troubleshooting logs
 │   └── (migration guides, verification reports, troubleshooting docs)
-├── m_code/                      # Power BI M code queries
-│   ├── archive/                # Archived/old M code versions
-│   └── (active .m query files)
+├── m_code/                      # Power BI M code queries (45 queries, 17 page folders)
+│   ├── arrests/               # ___Arrest_Categories, ___Arrest_Distro, ___Top_5_Arrests
+│   ├── benchmark/             # ___Benchmark
+│   ├── community/             # ___Combined_Outreach_All, ___chief_projects
+│   ├── csb/                   # ___CSB_Monthly
+│   ├── detectives/            # ___Detectives, ___Det_case_dispositions_clearance
+│   ├── drone/                 # ___Drone
+│   ├── esu/                   # ESU_13Month, fnCleanText, fnMonthKeyFromTableName, etc.
+│   ├── functions/             # fnGetFiles, fnReadCsv, fnEnsureColumns, fnApplyRenameMap, fnLoadRaw
+│   ├── nibrs/                 # ___NIBRS_Monthly_Report
+│   ├── overtime/              # ___Overtime_Timeoff_v3
+│   ├── parameters/            # RootExportPath, EtlRootPath, SourceMode, RangeStart, RangeEnd
+│   ├── patrol/                # ___Patrol, ___Chief2, ___REMU
+│   ├── response_time/         # ___ResponseTimeCalculator
+│   ├── shared/                # ___ComprehensiveDateTable, ___DimMonth, ___DimEventType, etc.
+│   ├── ssocc/                 # ___SSOCC_Data, TAS_Dispatcher_Incident
+│   ├── stacp/                 # ___STACP_pt_1_2, ___Social_Media, STACP_DIAGNOSTIC
+│   ├── summons/               # summons_13month_trend, top5_parking/moving, all_bureaus, etc.
+│   ├── traffic/               # ___Traffic
+│   ├── training/              # ___Cost_of_Training, ___In_Person_Training
+│   └── archive/               # Archived/old M code versions
 ├── outputs/                     # Organized output files
 │   ├── arrests/                # Arrest-related exports
 │   ├── visual_exports/         # Power BI visual exports
