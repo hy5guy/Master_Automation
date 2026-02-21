@@ -10,11 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- [ ] Phase 2 Remediation: Replace DateTime.LocalNow() with pReportMonth parameter in all M code
-- [ ] Phase 2 Remediation: Fix Response Times double extension and dedup sort
-- [ ] Phase 2 Remediation: Add manifest generation to run_all_etl.ps1
-- [ ] Phase 2 Remediation: Rewrite Pre_Flight_Validation.py with argparse and evidence checks
+- [ ] Fix `___Patrol.m` — add `ReportMonth = pReportMonth` binding and `{"01-26", Int64.Type}` column
+- [ ] Fix `___Traffic.m` — add `{"01-26", Int64.Type}` to column type declaration
+- [ ] Enhance `arrest_python_processor.py` — match input file to target month by filename pattern instead of newest-by-mtime
 - [ ] Monitor March 2026 execution for continued validation
+
+---
+
+## [1.17.1] - 2026-02-21
+
+### Changed
+- **pReportMonth advanced** — Updated `m_code/parameters/pReportMonth.m` from `#date(2026, 1, 1)` to `#date(2026, 2, 1)` for February 2026 reporting cycle
+- All 20 M code queries now filter for January 2026 data (previous month from pReportMonth)
+
+### Fixed
+- **___Arrest_Categories blank table** — Root cause: pReportMonth=Jan filtered for Dec 2025 data (missing); advancing to Feb cycle resolves by finding Jan 2026 data (42 records in `2026_01_Arrests_PowerBI_Ready.xlsx`)
+- **Arrest .tab file conversion** — Converted `2026_02_Lawsoft_Monthly_Arrest.tab` (headerless, tab-delimited, 39 records) to `2026_02_LAWSOFT_ARREST.xlsx` with proper column headers derived from January export
+
+### Documented
+- Arrest ETL picks latest `.xlsx` by modification time regardless of month — can cause wrong-file selection when multiple month exports exist
+- Lawsoft exports arrive as `.tab` format (no column headers) requiring conversion before ETL processing
 
 ---
 

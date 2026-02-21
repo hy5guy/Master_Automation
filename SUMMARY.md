@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
 **Last Updated:** 2026-02-21
-**Status:** ✅ Production Ready — Phase 2 Remediation Complete
-**Version:** 1.17.0
+**Status:** ✅ Production Ready — February 2026 Cycle Active
+**Version:** 1.17.1
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ Production Ready — Phase 2 Remediation Complete |
-| **Version** | 1.17.0 |
+| **Status** | ✅ Production Ready — February 2026 Cycle Active |
+| **Version** | 1.17.1 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -583,15 +583,14 @@ Documentation:
 - ✅ **Professional Structure** - Industry-standard directory layout with clear separation of concerns
 
 ### Recent System Status
-- **Version**: 1.11.0
-- **Status**: ✅ Production Ready - 100% Operational (ETL + Power BI)
-- **Root Directory**: Clean (7 files only)
-- **Organized Subdirectories**: 9 categories
-- **Documentation**: Consolidated and current
-- **December 2025 Exports**: Organized (53 files, 16 categories)
-- **ETL Workflows**: 6/6 operational (100% success rate)
-- **Power BI Queries**: Response Time M code fixed (0% errors)
-- **Issues Tracked**: 3 (documented with fixes)
+- **Version**: 1.17.1
+- **Status**: ✅ Production Ready — February 2026 Cycle Active
+- **pReportMonth**: `#date(2026, 2, 1)` — queries filter for January 2026 data
+- **ETL Workflows**: 5/5 enabled scripts operational
+- **Power BI Queries**: 45 queries in 17 folders; all using `pReportMonth` parameter
+- **Phase 2 Remediation**: COMPLETE (A-F); no `DateTime.LocalNow()` or hardcoded paths remain
+- **Arrest Data**: January 2026 processed (42 records); February partial export converted from .tab
+- **Known Issues**: `___Patrol.m` needs `ReportMonth = pReportMonth` + `01-26` column; `___Traffic.m` needs `01-26` column
 
 ---
 
@@ -640,18 +639,20 @@ Documentation:
 
 ---
 
-## Phase 2 Remediation Status (Target: March 10, 2026)
+## Phase 2 Remediation Status — COMPLETE (2026-02-21)
 
 | Priority | Task | Status |
 |----------|------|--------|
-| 0 | M Code `DateTime.LocalNow()` → `ReportMonth` parameter (20 files, 35+ occurrences) | IDENTIFIED |
-| 1 | Community Engagement validation (2 files created, unvalidated) | PENDING |
-| 2 | Summons Derived Outputs schema fix (`IS_AGGREGATE`, `TICKET_COUNT` missing) | BLOCKED |
-| 3 | Hardcoded paths in M Code — `RobertCarucci` / `C:\Dev\` (8 files) | IDENTIFIED |
+| 0 | M Code `DateTime.LocalNow()` → `pReportMonth` parameter (20 files, 25 occurrences) | ✅ COMPLETE |
+| 1 | Community Engagement validation | ✅ COMPLETE |
+| 2 | Summons Derived Outputs (`IS_AGGREGATE`, `TICKET_COUNT`) | ✅ COMPLETE |
+| 3 | Hardcoded paths in M Code — 9 instances fixed | ✅ COMPLETE |
 | 4 | Hardcoded column lists — `___Patrol` & `___Traffic` missing `01-26` column | IDENTIFIED |
 | 5 | Response Times historical backfill (Nov 2024 – Dec 2025) | PENDING |
 
-See [`docs/Phase_2_Remediation_Roadmap.md`](docs/Phase_2_Remediation_Roadmap.md) and [`docs/M_CODE_DATETIME_FIX_GUIDE.md`](docs/M_CODE_DATETIME_FIX_GUIDE.md) for full detail.
+**Remaining:** Patrol/Traffic need `01-26` added to `Table.TransformColumnTypes`; `___Patrol.m` also needs `ReportMonth = pReportMonth` binding.
+
+See [`docs/M_CODE_DATETIME_FIX_GUIDE.md`](docs/M_CODE_DATETIME_FIX_GUIDE.md) for full detail.
 
 ---
 
@@ -679,11 +680,19 @@ The manifest provides a machine-readable reference for the entire Master Automat
 
 **Maintained by:** R. A. Carucci  
 **Last Updated:** 2026-02-21  
-**Version:** 1.17.0
+**Version:** 1.17.1
 
 ---
 
 ## Recent Updates (2026-02-21)
+
+### v1.17.1 — February 2026 Cycle Activation & Arrest .tab Support
+
+- **pReportMonth advanced** — Updated from `#date(2026, 1, 1)` to `#date(2026, 2, 1)` for February reporting cycle
+- **Arrest .tab conversion** — Lawsoft exports arrive as `.tab` (no headers); converted `2026_02_Lawsoft_Monthly_Arrest.tab` to `.xlsx` using January column headers (39 records, Feb 1–9)
+- **___Arrest_Categories resolved** — Was blank because pReportMonth=Jan looked for Dec 2025 data (missing); advancing to Feb cycle now correctly finds Jan 2026 data (42 records)
+- **___Overtime_Timeoff_v3 confirmed** — Populating correctly with pReportMonth parameter
+- **ETL file discovery documented** — `arrest_python_processor.py` picks latest `.xlsx` by modification time; can grab wrong month if newer file exists
 
 ### v1.17.0 — M Code Reorganization and PBIX Baseline Export
 

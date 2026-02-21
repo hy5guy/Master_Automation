@@ -132,6 +132,7 @@ Avoid loading all files at once - use targeted searches.
 - **Project structure**: `docs/PROJECT_STRUCTURE.md`
 - **ESU 13-month**: `docs/ESU_POWER_BI_LOAD_AND_PUBLISH.md`, `m_code/esu/README.md` (single query ESU_13Month.m; Status, ItemKey, Month_Year; workbook requirements)
 - **M Code DateTime fix**: `docs/M_CODE_DATETIME_FIX_GUIDE.md` — audit table of all 20 affected files, ReportMonth parameter pattern, deployment checklist
+- **Monthly report template**: `docs/MONTHLY_REPORT_TEMPLATE_WORKFLOW.md` — template location, monthly cycle steps, M code deployment checklist (49 queries)
 - **Personnel schema**: `09_Reference/Standards/Personnel/Assignment_Master_SCHEMA.md` and `assignment_master.schema.json`
 - **Troubleshooting**: `docs/` folder for script-specific guides
 
@@ -164,6 +165,8 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 - **Logs**: `logs\`
 - **PowerBI Drop**: `<OneDrive>\PowerBI_Date\_DropExports`
 - **ETL Scripts**: `<OneDrive>\02_ETL_Scripts\*`
+- **Report Template**: `<OneDrive>\15_Templates\Monthly_Report_Template.pbix` (gold copy; update pReportMonth each cycle)
+- **Monthly Reports**: `<OneDrive>\Shared Folder\Compstat\Monthly Reports\YYYY\MM_monthname\`
 
 ## Recent Updates (2026-02-12)
 
@@ -312,18 +315,38 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 - **January 2026 Report** - Successfully generated and ready for publication
 
 ### Current System Status
-- **Version**: 1.17.0
-- **Status**: ✅ ETL Operational — Phase 2 Remediation Complete
-- **Enabled Scripts**: 6 (All operational)
-- **Power BI Queries**: 45 queries organized in 17 page folders; Response Time (v2.8.0), STACP, Detective queries all working
-- **Critical Issue**: M Code `DateTime.LocalNow()` in 20 files breaks historical data integrity — fix documented in `docs/M_CODE_DATETIME_FIX_GUIDE.md`
+- **Version**: 1.17.1
+- **Status**: ✅ ETL Operational — Phase 2 Remediation Complete — February 2026 Cycle Active
+- **Enabled Scripts**: 5 (All operational)
+- **Power BI Queries**: 45 queries organized in 17 page folders; all using `pReportMonth` parameter
+- **pReportMonth**: `#date(2026, 2, 1)` — February 2026 cycle (queries filter for January 2026 data)
 - **M Code Baseline**: All 45 PBIX queries exported, split, headered (Jan 2026 monthly report)
-- **Personnel Master**: Assignment_Master_V3_FINAL.xlsx (25 cols, 166 records) — schema updated, Standards mirror created
+- **Personnel Master**: Assignment_Master_V3_FINAL.xlsx (25 cols, 166 records)
 - **Phase 2 Status**: ALL TASKS COMPLETE (A through F). No DateTime.LocalNow() or hardcoded user paths remain in active M code.
+- **Remaining known issues**: `___Patrol.m` missing `ReportMonth = pReportMonth` binding and `01-26` column; `___Traffic.m` missing `01-26` column in type declaration
 
 ---
 
 ## Recent Updates (2026-02-21)
+
+### v1.17.1 — February 2026 Cycle Activation & Arrest Export .tab Support
+
+#### pReportMonth Advanced to February 2026
+- `m_code/parameters/pReportMonth.m` updated from `#date(2026, 1, 1)` to `#date(2026, 2, 1)`
+- All 20 M code queries now filter for **January 2026** data (previous month from pReportMonth)
+- `___Arrest_Categories` now finds 42 January 2026 records in `2026_01_Arrests_PowerBI_Ready.xlsx`
+- `___Overtime_Timeoff_v3` confirmed populating correctly with pReportMonth parameter
+
+#### Arrest Export .tab File Conversion
+- Lawsoft exports arrive as `.tab` (tab-delimited, no headers) — ETL only searches for `*.xlsx`
+- Converted `2026_02_Lawsoft_Monthly_Arrest.tab` (39 records, Feb 1–9) to `2026_02_LAWSOFT_ARREST.xlsx` with column headers from January export
+- Column headers: Address, Age, Arrest Date, blank, Case Number, Charge, DOB, JuvenileFlag, Name, Officer of Record, Place of Arrest StNumber, Place of Arrest Street, Race, ReportCalcSummary, Reviewed, Sex, SS#Calc, UCR #
+- February export is partial (Feb 1–9); full month export needed at month-end for March cycle
+
+#### Arrest ETL File Discovery Note
+- `arrest_python_processor.py` always targets **previous month** (Jan 2026 from today's date)
+- Picks latest `.xlsx` by modification time — may grab wrong month's file if multiple exist
+- Workaround: ensure target month's file is most recently modified, or run before adding next month's export
 
 ### v1.17.0 — M Code Reorganization and PBIX Baseline Export
 
@@ -352,7 +375,7 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 - **Phase 2 remaining**: Task A (M code ReportMonth freeze — 13 files), Task C (orchestrator manifest)
 
 #### Phase 2 Tasks A, C — Completed (Final)
-- **pReportMonth parameter** created at `m_code/parameters/pReportMonth.m` — `#date(2026, 1, 1)`, update once per monthly cycle
+- **pReportMonth parameter** created at `m_code/parameters/pReportMonth.m` — update once per monthly cycle
 - **20 M code files fixed** — 25 `DateTime.LocalNow()` occurrences replaced with `ReportMonth = pReportMonth` binding; covers overtime, training, esu, stacp, detectives, ssocc, traffic, drone, csb, shared, arrests, summons, community
 - **9 hardcoded paths fixed** — `C:\Users\RobertCarucci` (6 files) and `C:\Dev` (1 file) replaced with correct `C:\Users\carucci_r` OneDrive paths
 - **Orchestrator manifest** — `run_all_etl.ps1` accepts `-ReportMonth YYYY-MM`, writes `_manifest.json` + `_manifest.csv` to `_DropExports`
@@ -471,7 +494,7 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 
 ---
 
-*Last updated: 2026-02-21 | Format version: 3.9*
+*Last updated: 2026-02-21 | Format version: 3.10*
 
 ## Recent Updates (2026-02-18)
 

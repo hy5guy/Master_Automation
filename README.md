@@ -6,7 +6,7 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
 
-**Latest Update (2026-02-21)**: M code reorganized into 17 page-based subfolders with all 45 PBIX queries exported, split, and headered. Phase 2 Remediation plan created for ReportMonth freeze fix across all archive queries.
+**Latest Update (2026-02-21)**: v1.17.1 — February 2026 cycle active (`pReportMonth = #date(2026, 2, 1)`). M code reorganized into 17 page-based subfolders, 45 queries using `pReportMonth` parameter. Phase 2 Remediation complete (A-F). Arrest .tab export conversion supported.
 
 ## Directory Structure
 

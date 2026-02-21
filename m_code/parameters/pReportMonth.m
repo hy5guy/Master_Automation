@@ -3,4 +3,4 @@
 // # Author: R. A. Carucci
 // # Purpose: Locked report month parameter — update this single value each monthly cycle.
 
-#date(2026, 1, 1) meta [IsParameterQuery=true, Type="Date", IsParameterQueryRequired=true]
+#date(2026, 2, 1) meta [IsParameterQuery=true, Type="Date", IsParameterQueryRequired=true]
