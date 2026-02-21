@@ -1,106 +1,114 @@
 #!/usr/bin/env python3
-# Timestamp (EST): 2026-02-19-17-20-00
+# 2026-02-21-00-38-51 (EST)
 # Project Name: Hackensack PD | Data Ops & ETL Remediation
-# File Name: scripts/summons_derived_outputs.py
+# File Name: scripts/summons_derived_outputs_simple.py
 # Author: R. A. Carucci
-# Purpose: Simplified version using Power BI exports as authoritative source
+# Purpose: Generate Summons derived outputs from Power BI exports with dynamic month handling, IS_AGGREGATE, and TICKET_COUNT normalization.
 
-"""
-Summons Derived Outputs for Power BI - SIMPLIFIED VERSION
-
-Since we have the authoritative Power BI exports with the correct January 2026 data,
-this script uses those exports directly and supplements with SummonsMaster for historical data.
-"""
-
+import argparse
+import sys
 from pathlib import Path
 from datetime import datetime
+
+sys.path.insert(0, str(Path(__file__).parent))
+from path_config import get_onedrive_root
+
 import pandas as pd
+
+MONTH_NAMES = {
+    1: "january", 2: "february", 3: "march", 4: "april",
+    5: "may", 6: "june", 7: "july", 8: "august",
+    9: "september", 10: "october", 11: "november", 12: "december",
+}
 
 
 def main() -> int:
-    """Main execution function"""
-    print("[INFO] Starting Summons Derived Outputs generation (SIMPLIFIED)...")
-    
-    output_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\_DropExports")
-    export_path = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports\2026\01_january")
-    
+    parser = argparse.ArgumentParser(description="Summons Derived Outputs for Power BI")
+    parser.add_argument("--report-month", required=True, help="Report month in YYYY-MM format")
+    args = parser.parse_args()
+
+    year, month = (int(x) for x in args.report_month.split("-"))
+    yyyy_mm = f"{year}_{month:02d}"
+
+    root = get_onedrive_root()
+    output_dir = root / "Master_Automation" / "_DropExports"
+    export_path = root / "Shared Folder" / "Compstat" / "Monthly Reports" / str(year) / f"{month:02d}_{MONTH_NAMES[month]}"
+
+    print(f"[INFO] Starting Summons Derived Outputs generation (SIMPLIFIED)...")
+    print(f"[INFO] Report month: {args.report_month}  |  Export path: {export_path}")
+
+    written = []
+    skipped = []
+
     try:
-        # FILE 1: backfill_summons_summary.csv - Use Power BI export directly
         dept_file = export_path / "Department-Wide Summons  Moving and Parking.csv"
-        if dept_file.exists():
-            backfill_df = pd.read_csv(dept_file)
-            out_backfill = output_dir / "backfill_summons_summary.csv"
-            backfill_df.to_csv(out_backfill, index=False)
-            print(f"[OK] Written: {out_backfill.name} ({len(backfill_df)} rows)")
-            
-            # Show January 2026 data
-            jan26_data = backfill_df[backfill_df['Month_Year'] == '01-26']
-            if len(jan26_data) > 0:
-                print(f"[INFO] January 2026 data confirmed:")
-                for _, row in jan26_data.iterrows():
-                    print(f"  {row['TYPE']}: {row['Sum of TICKET_COUNT']} tickets")
-        else:
+        if not dept_file.exists():
             print(f"[ERROR] Department-Wide file not found: {dept_file}")
             return 1
-        
-        # FILE 2: wg2_movers_parkers_nov2025.csv - Use Power BI export directly
+
+        backfill_df = pd.read_csv(dept_file)
+        if "Sum of TICKET_COUNT" in backfill_df.columns:
+            backfill_df.rename(columns={"Sum of TICKET_COUNT": "TICKET_COUNT"}, inplace=True)
+        backfill_df["IS_AGGREGATE"] = True
+        out_backfill = output_dir / "backfill_summons_summary.csv"
+        backfill_df.to_csv(out_backfill, index=False)
+        print(f"[OK] Written: {out_backfill.name} ({len(backfill_df)} rows)")
+        written.append(out_backfill.name)
+
+        mm_yy = f"{month:02d}-{year % 100:02d}"
+        month_data = backfill_df[backfill_df.get("Month_Year", pd.Series(dtype=str)) == mm_yy]
+        if len(month_data) > 0:
+            ticket_col = "TICKET_COUNT" if "TICKET_COUNT" in month_data.columns else None
+            print(f"[INFO] {args.report_month} data confirmed:")
+            for _, row in month_data.iterrows():
+                if ticket_col:
+                    print(f"  {row['TYPE']}: {row[ticket_col]} tickets")
+
         wg2_file = export_path / "Summons  Moving & Parking  All Bureaus.csv"
         if wg2_file.exists():
             wg2_df = pd.read_csv(wg2_file)
-            out_wg2 = output_dir / "wg2_movers_parkers_nov2025.csv"
+            out_wg2 = output_dir / f"wg2_movers_parkers_{yyyy_mm}.csv"
             wg2_df.to_csv(out_wg2, index=False)
             print(f"[OK] Written: {out_wg2.name} ({len(wg2_df)} rows)")
-            
-            # Show totals
-            total_m = wg2_df['M'].sum()
-            total_p = wg2_df['P'].sum()
+            total_m = wg2_df["M"].sum()
+            total_p = wg2_df["P"].sum()
             print(f"[INFO] WG2 totals - Moving: {total_m}, Parking: {total_p}")
+            written.append(out_wg2.name)
         else:
-            print(f"[ERROR] WG2 file not found: {wg2_file}")
-            return 1
-        
-        # FILE 3: top5_moving_1125.csv - Use Power BI export directly
+            print(f"[WARN] WG2 file not found (skipping): {wg2_file}")
+            skipped.append("wg2_movers_parkers")
+
         top5m_file = export_path / "Top 5 Moving Violations - Department Wide.csv"
         if top5m_file.exists():
             top5m_df = pd.read_csv(top5m_file)
-            out_top_m = output_dir / "top5_moving_1125.csv"
+            out_top_m = output_dir / f"top5_moving_{yyyy_mm}.csv"
             top5m_df.to_csv(out_top_m, index=False)
             print(f"[OK] Written: {out_top_m.name} ({len(top5m_df)} rows)")
-            
-            # Show top officer
-            if len(top5m_df) > 0:
-                top_officer = top5m_df.iloc[0]
-                print(f"[INFO] Top moving officer: {top_officer['Officer']} ({top_officer['Summons Count']} summons)")
+            written.append(out_top_m.name)
         else:
-            print(f"[ERROR] Top 5 Moving file not found: {top5m_file}")
-            return 1
-        
-        # FILE 4: top5_parking_1125.csv - Use Power BI export directly
+            print(f"[WARN] Top 5 Moving file not found (skipping): {top5m_file}")
+            skipped.append("top5_moving")
+
         top5p_file = export_path / "Top 5 Parking Violations - Department Wide.csv"
         if top5p_file.exists():
             top5p_df = pd.read_csv(top5p_file)
-            out_top_p = output_dir / "top5_parking_1125.csv"
+            out_top_p = output_dir / f"top5_parking_{yyyy_mm}.csv"
             top5p_df.to_csv(out_top_p, index=False)
             print(f"[OK] Written: {out_top_p.name} ({len(top5p_df)} rows)")
-            
-            # Show top officer
-            if len(top5p_df) > 0:
-                top_officer = top5p_df.iloc[0]
-                col_name = top5p_df.columns[1]  # Handle the trailing space issue
-                print(f"[INFO] Top parking officer: {top_officer['Officer']} ({top_officer[col_name]} summons)")
+            written.append(out_top_p.name)
         else:
-            print(f"[ERROR] Top 5 Parking file not found: {top5p_file}")
-            return 1
-        
-        print("\n[SUCCESS] All 4 Summons derived CSVs written to _DropExports:")
-        print(f"  - backfill_summons_summary.csv")
-        print(f"  - wg2_movers_parkers_nov2025.csv")
-        print(f"  - top5_moving_1125.csv")
-        print(f"  - top5_parking_1125.csv")
+            print(f"[WARN] Top 5 Parking file not found (skipping): {top5p_file}")
+            skipped.append("top5_parking")
+
+        print(f"\n[SUCCESS] Summons derived outputs complete:")
+        for name in written:
+            print(f"  + {name}")
+        for name in skipped:
+            print(f"  - {name} (skipped)")
         print(f"[INFO] Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        
+
         return 0
-        
+
     except Exception as e:
         print(f"[ERROR] Failed to generate outputs: {e}")
         return 1

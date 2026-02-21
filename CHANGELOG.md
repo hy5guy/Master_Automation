@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Standardized M code headers** — All 45 `.m` files now have: timestamp (EST), file path, Author: R. A. Carucci, AI-generated purpose line
 - **Splitter script** — `scripts/split_mcode.py` parses consolidated M code and distributes to page folders with headers
 - **PBIX export script** — `Downloads/PBIX_Exports/2026_02_21/Export-PbixData.ps1` for automated PBIX extraction (ADOMD.NET via DAX Studio)
+- **Pre-Flight Validation rewrite** — `scripts/Pre_Flight_Validation.py` now accepts `--report-month YYYY-MM`, validates visual export mapping (36 total, 25 enforced), checks evidence (file size, row count), outputs structured GO/NO-GO JSON gate
+- **Response Times dedup fix** — `scripts/response_time_fresh_calculator.py` v3.1.0: argparse, path_config, sort by Time Out before dedup (first-arriving unit)
 
 ### Changed
 - **m_code/ structure** — From 76 files (11 in root + mixed archive) to 49 clean files across 17 subfolders, 1 file per PBIX query
@@ -33,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **m_code clutter** — Archived 53 stale files (date-stamped snapshots, superseded versions, benchmark iterations, OT staging files) into `m_code/archive/2026_02_21_phase2_cleanup/`
+- **Corrupted workspace script** — Replaced `scripts/process_cad_data_13month_rolling.py` (contained PowerShell) with redirect stub to production location
+- **Summons hardcoded paths and filenames** — `scripts/summons_derived_outputs_simple.py` now uses `path_config`, dynamic `YYYY_MM` filenames, adds `IS_AGGREGATE` and `TICKET_COUNT` columns
 
 ### Documentation
 - CHANGELOG, README, SUMMARY, CLAUDE.md updated to reflect new folder structure, query inventory (45 queries: 25 data, 5 parameters, 5 functions, 10 other), and Phase 2 roadmap

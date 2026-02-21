@@ -319,7 +319,7 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 - **Critical Issue**: M Code `DateTime.LocalNow()` in 20 files breaks historical data integrity — fix documented in `docs/M_CODE_DATETIME_FIX_GUIDE.md`
 - **M Code Baseline**: All 45 PBIX queries exported, split, headered (Jan 2026 monthly report)
 - **Personnel Master**: Assignment_Master_V3_FINAL.xlsx (25 cols, 166 records) — schema updated, Standards mirror created
-- **Phase 2 Status**: Priority 0 (M Code ReportMonth) IDENTIFIED; Priority 1 (Community Engagement) PENDING; Priority 2 (Summons Derived) BLOCKED
+- **Phase 2 Status**: Tasks B, D, E COMPLETED; Task A (M Code ReportMonth freeze — 13 files) PENDING; Task C (orchestrator manifest) PENDING
 
 ---
 
@@ -343,6 +343,13 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 - PBIX has `RangeStart`/`RangeEnd` parameters (may complement `pReportMonth`)
 - 7 queries have broken hardcoded paths: 4 use `C:\Users\RobertCarucci\...`, 2 use `C:\Dev\...`
 - 6 queries show warning icons: `___Drone`, `___ResponseTimeCalculator`, `summons_13month_trend`, `summons_top5_parking`, `summons_top5_moving`, `ESU_13Month`
+
+#### Phase 2 Tasks B, D, E — Completed
+- **Pre_Flight_Validation.py** rewritten: argparse `--report-month YYYY-MM`, path_config portability, visual export mapping validation (36 mappings, 25 enforced), evidence checks (file size, row count), GO/NO-GO JSON gate, personnel updated to V3_FINAL.xlsx
+- **response_time_fresh_calculator.py** v3.1.0: argparse, path_config, first-arriving unit dedup fix (sort by Time Out)
+- **summons_derived_outputs_simple.py**: argparse, path_config, dynamic YYYY_MM filenames, IS_AGGREGATE + TICKET_COUNT columns, optional input warnings
+- **process_cad_data_13month_rolling.py**: corrupted workspace copy replaced with redirect stub
+- **Phase 2 remaining**: Task A (M code ReportMonth freeze — 13 files), Task C (orchestrator manifest)
 
 ---
 

@@ -690,6 +690,10 @@ The manifest provides a machine-readable reference for the entire Master Automat
 - **Archived stale files** — 53 superseded files (date-stamped snapshots, `_FIXED`/`_STANDALONE` variants, benchmark iterations) moved to `m_code/archive/2026_02_21_phase2_cleanup/`
 - **Phase 2 discovery** — PBIX already has `RootExportPath` and `EtlRootPath` parameters; 7 queries have hardcoded broken paths (`C:\Dev` or `C:\Users\RobertCarucci`); 6 queries show warning icons in Power Query
 - **Splitter script** — `scripts/split_mcode.py` automates consolidated M code parsing and distribution to page folders with headers
+- **Pre-Flight Validation rewrite** — `scripts/Pre_Flight_Validation.py`: argparse `--report-month`, visual export mapping validation (36/25), evidence checks (file size, row count), GO/NO-GO JSON gate, path_config portability
+- **Response Times stability** — `scripts/response_time_fresh_calculator.py` v3.1.0: argparse, path_config, first-arriving unit dedup fix (sort by Time Out before drop_duplicates)
+- **Summons derived outputs** — `scripts/summons_derived_outputs_simple.py`: argparse, path_config, dynamic YYYY_MM filenames, IS_AGGREGATE column, TICKET_COUNT normalization, optional input warnings
+- **Corrupted script fix** — `scripts/process_cad_data_13month_rolling.py` replaced with redirect stub (production at 02_ETL_Scripts/Response_Times/)
 
 ---
 

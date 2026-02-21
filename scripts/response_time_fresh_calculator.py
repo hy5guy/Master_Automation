@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
+# 2026-02-21-00-39-17 (EST)
+# Project Name: Hackensack PD | Data Ops & ETL Remediation
+# File Name: scripts/response_time_fresh_calculator.py
+# Author: R. A. Carucci
+# Purpose: Recalculate response times from raw timereport data with first-arriving unit deduplication and argparse-driven date range.
 """
 Response Time Fresh Calculator - ETL Script
-Version: 3.0.0
-Date: 2026-02-09
+Version: 3.1.0
 
 Purpose:
     Recalculate response times from scratch using raw timereport data.
@@ -23,7 +27,7 @@ Logic:
     1. Load raw timereport data (yearly + monthly supplement)
     2. Apply filtering (How Reported, Category_Type, Specific Incidents)
     3. Calculate first response times per incident
-    4. Deduplicate by ReportNumberNew
+    4. Deduplicate by ReportNumberNew (first-arriving unit via Time Out sort)
     5. Map to Response_Type (Emergency, Routine, Urgent)
     6. Aggregate by month and Response_Type
     7. Output in long format (one row per month-type combination)
@@ -31,11 +35,12 @@ Logic:
 Features:
     - Hybrid data loading (yearly baseline + monthly supplement)
     - Comprehensive filtering from JSON configuration
-    - Deduplication to prevent multi-officer double-counting
+    - First-arriving unit deduplication (sort by Time Out before drop_duplicates)
     - Consistent calculations across all months
     - Handles missing/null values gracefully
 """
 
+import argparse
 import pandas as pd
 import numpy as np
 import json
@@ -44,30 +49,14 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import logging
 
+sys.path.insert(0, str(Path(__file__).parent))
+from path_config import get_onedrive_root
+
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
 
-VERSION = "3.0.0"
-
-# Base paths
-BASE_DIR = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack")
-MASTER_AUTO_DIR = BASE_DIR / "Master_Automation"
-TIMEREPORT_BASE = BASE_DIR / "05_EXPORTS" / "_CAD" / "timereport"
-POWERBI_DROP = BASE_DIR / "PowerBI_Date" / "_DropExports"
-CONFIG_DIR = MASTER_AUTO_DIR / "config"
-
-# Input files
-YEARLY_TIMEREPORT_BASE = TIMEREPORT_BASE / "yearly"
-MONTHLY_TIMEREPORT_BASE = TIMEREPORT_BASE / "monthly"
-FILTER_CONFIG = CONFIG_DIR / "response_time_filters.json"
-MAPPING_FILE = BASE_DIR / "02_ETL_Scripts" / "Response_Times" / "input" / "Response_Type_Mapping.xlsx"
-
-# Date range configuration
-START_YEAR = 2025
-START_MONTH = 1
-END_YEAR = 2026
-END_MONTH = 1
+VERSION = "3.1.0"
 
 # Response time window (minutes)
 MIN_RESPONSE_TIME = 0
@@ -77,9 +66,9 @@ MAX_RESPONSE_TIME = 10
 # LOGGING SETUP
 # =============================================================================
 
-def setup_logging():
+def setup_logging(master_auto_dir):
     """Configure logging for the script."""
-    log_dir = MASTER_AUTO_DIR / "logs"
+    log_dir = master_auto_dir / "logs"
     log_dir.mkdir(exist_ok=True)
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -116,16 +105,11 @@ def load_mapping_file(mapping_path):
     logger = logging.getLogger(__name__)
     logger.info(f"Loading mapping configuration...")
     
-    # Since mapping file doesn't exist, use simplified approach:
-    # All incidents map based on Priority field in CAD data
-    # Priority 1 = Emergency, Priority 2 = Urgent, Priority 3 = Routine
-    
     logger.info("Using default CAD Priority-based mapping")
     logger.info("  Priority 1 -> Emergency")
     logger.info("  Priority 2 -> Urgent")  
     logger.info("  Priority 3 -> Routine")
     
-    # Return empty dicts - we'll map by Priority field instead
     return {}, {}
 
 def map_response_types_by_priority(df):
@@ -135,9 +119,6 @@ def map_response_types_by_priority(df):
     logger.info("MAPPING RESPONSE TYPES (BY INCIDENT TYPE)")
     logger.info("=" * 80)
     
-    # For now, use a simple keyword-based approach until we have the full mapping file
-    # This matches common CAD incident patterns
-    
     def classify_incident(incident):
         """Classify incident as Emergency, Urgent, or Routine based on keywords."""
         if pd.isna(incident):
@@ -145,14 +126,12 @@ def map_response_types_by_priority(df):
         
         incident_lower = str(incident).lower()
         
-        # Emergency keywords
         emergency_keywords = [
             'fire', 'assault', 'shooting', 'stabbing', 'robbery', 'burglary in progress',
             'weapons', 'overdose', 'cardiac', 'unconscious', 'accident with injury',
             'domestic violence', 'kidnapping', 'hostage', 'active shooter', 'pursuit'
         ]
         
-        # Routine keywords
         routine_keywords = [
             'parking', 'traffic', 'information', 'patrol', 'paperwork', 'report',
             'registration', 'inspection', 'permit', 'tag', 'complaint signed',
@@ -167,19 +146,16 @@ def map_response_types_by_priority(df):
             if keyword in incident_lower:
                 return 'Routine'
         
-        # Default to Urgent if no clear match
         return 'Urgent'
     
     df['Response_Type'] = df['Incident'].apply(classify_incident)
     
-    # Count distribution
     type_dist = df['Response_Type'].value_counts()
     logger.info(f"\nResponse Type Distribution:")
     for rtype, count in type_dist.items():
         pct = (count / len(df)) * 100
         logger.info(f"  {rtype}: {count:,} ({pct:.1f}%)")
     
-    # Show sample incidents for each type
     logger.info(f"\nSample incidents by type:")
     for rtype in ['Emergency', 'Urgent', 'Routine']:
         if rtype in df['Response_Type'].values:
@@ -188,7 +164,6 @@ def map_response_types_by_priority(df):
             for incident, count in samples.items():
                 logger.info(f"    - {incident}: {count:,}")
     
-    # Remove unmapped
     df = df[df['Response_Type'].notna()].copy()
     logger.info(f"\nRecords with valid Response_Type: {len(df):,}")
     
@@ -199,7 +174,7 @@ def load_timereport_hybrid(yearly_base, monthly_base, start_year, start_month, e
     Load timereport data using hybrid strategy:
     1. Load full year file for baseline
     2. Supplement with monthly files for most recent data
-    3. Deduplicate between sources
+    3. Sort by Time Out and deduplicate (first-arriving unit kept)
     """
     logger = logging.getLogger(__name__)
     logger.info("=" * 80)
@@ -208,7 +183,6 @@ def load_timereport_hybrid(yearly_base, monthly_base, start_year, start_month, e
     
     all_data = []
     
-    # Load yearly files
     for year in range(start_year, end_year + 1):
         yearly_file = yearly_base / str(year) / f"{year}_full_timereport.xlsx"
         if yearly_file.exists():
@@ -216,14 +190,13 @@ def load_timereport_hybrid(yearly_base, monthly_base, start_year, start_month, e
             try:
                 df_year = pd.read_excel(yearly_file)
                 logger.info(f"  Loaded {len(df_year):,} records from {year} yearly file")
-                logger.info(f"  Columns available: {list(df_year.columns[:10])}")  # Show first 10 columns
+                logger.info(f"  Columns available: {list(df_year.columns[:10])}")
                 all_data.append(df_year)
             except Exception as e:
                 logger.error(f"  Error loading {yearly_file}: {e}")
         else:
             logger.warning(f"  Yearly file not found: {yearly_file}")
     
-    # Load monthly supplements
     current_year = end_year
     for month in range(1, end_month + 1):
         monthly_file = monthly_base / f"{current_year}_{month:02d}_timereport.xlsx"
@@ -238,7 +211,6 @@ def load_timereport_hybrid(yearly_base, monthly_base, start_year, start_month, e
         else:
             logger.warning(f"  Monthly file not found: {monthly_file}")
     
-    # Combine all data
     if not all_data:
         logger.error("No timereport files loaded!")
         return pd.DataFrame()
@@ -246,11 +218,11 @@ def load_timereport_hybrid(yearly_base, monthly_base, start_year, start_month, e
     df_combined = pd.concat(all_data, ignore_index=True)
     logger.info(f"Combined dataset: {len(df_combined):,} records before deduplication")
     
-    # Deduplicate by ReportNumberNew (keep first occurrence)
     initial_count = len(df_combined)
+    df_combined.sort_values(['ReportNumberNew', 'Time Out'], inplace=True)
     df_combined = df_combined.drop_duplicates(subset=['ReportNumberNew'], keep='first')
     dedup_count = initial_count - len(df_combined)
-    logger.info(f"Removed {dedup_count:,} duplicate records")
+    logger.info(f"Removed {dedup_count:,} duplicate records (kept first-arriving unit)")
     logger.info(f"Final dataset: {len(df_combined):,} unique records")
     
     return df_combined
@@ -269,7 +241,6 @@ def apply_filters(df, filters):
     initial_count = len(df)
     logger.info(f"Starting records: {initial_count:,}")
     
-    # Filter 1: How Reported (if column exists)
     how_reported_exclude = filters.get('how_reported', {}).get('exclude', [])
     if how_reported_exclude and 'How_Reported' in df.columns:
         df = df[~df['How_Reported'].isin(how_reported_exclude)]
@@ -277,8 +248,6 @@ def apply_filters(df, filters):
     else:
         logger.info("How Reported column not found - skipping filter")
     
-    # Note: Category_Type and Incident filtering require mapping file
-    # Since we're using Priority-based mapping, skip these filters for now
     logger.info("Using simplified Priority-based filtering")
     
     total_removed = initial_count - len(df)
@@ -294,19 +263,16 @@ def calculate_response_times(df):
     logger.info("CALCULATING RESPONSE TIMES")
     logger.info("=" * 80)
     
-    # Calculate response time from Time Out - Time Dispatched
     for col in ['Time Dispatched', 'Time Out']:
         if col in df.columns:
             df[col] = pd.to_datetime(df[col], errors='coerce')
     
     df['Response_Time_Minutes'] = (df['Time Out'] - df['Time Dispatched']).dt.total_seconds() / 60.0
     
-    # Fallback to Time Response if available
     if 'Time Response' in df.columns:
         fallback = pd.to_timedelta(df['Time Response'], errors='coerce').dt.total_seconds() / 60.0
         df['Response_Time_Minutes'] = df['Response_Time_Minutes'].fillna(fallback)
     
-    # Filter valid response times (0-10 minutes)
     valid_mask = (
         (df['Response_Time_Minutes'].notna()) & 
         (df['Response_Time_Minutes'] >= MIN_RESPONSE_TIME) & 
@@ -333,14 +299,12 @@ def map_response_types(df, response_type_map):
     
     df['Response_Type'] = df['Incident_Type'].map(response_type_map)
     
-    # Count unmapped incidents
     unmapped = df['Response_Type'].isna().sum()
     if unmapped > 0:
         logger.warning(f"Unmapped incidents: {unmapped:,}")
         unmapped_types = df[df['Response_Type'].isna()]['Incident_Type'].value_counts()
         logger.warning(f"Top unmapped types:\n{unmapped_types.head(10)}")
     
-    # Remove unmapped incidents
     df = df[df['Response_Type'].notna()].copy()
     logger.info(f"Records with valid Response_Type: {len(df):,}")
     
@@ -353,20 +317,16 @@ def aggregate_by_month(df, start_year, start_month, end_year, end_month):
     logger.info("AGGREGATING BY MONTH")
     logger.info("=" * 80)
     
-    # Map month names to numbers
     month_map = {
         'January': 1, 'February': 2, 'March': 3, 'April': 4, 
         'May': 5, 'June': 6, 'July': 7, 'August': 8,
         'September': 9, 'October': 10, 'November': 11, 'December': 12
     }
     
-    # Convert month names to numbers if needed
     if 'cMonth' in df.columns:
-        # Always map since cMonth contains month names like "January"
         df['cMonth_Numeric'] = df['cMonth'].map(month_map)
         logger.info(f"Converted month names to numbers")
         
-        # Check for unmapped values
         unmapped_count = df['cMonth_Numeric'].isna().sum()
         if unmapped_count > 0:
             logger.warning(f"Unmapped months: {unmapped_count}")
@@ -375,14 +335,12 @@ def aggregate_by_month(df, start_year, start_month, end_year, end_month):
         logger.error("cMonth column not found!")
         return pd.DataFrame()
     
-    # Convert cYear to integer
     if 'cYear' in df.columns:
         df['cYear_Int'] = df['cYear'].fillna(0).astype(int)
     else:
         logger.error("cYear column not found!")
         return pd.DataFrame()
     
-    # Create YearMonth as Period
     df['cMonth_Str'] = df['cMonth_Numeric'].fillna(0).astype(int).astype(str).str.zfill(2)
     df['cYear_Str'] = df['cYear_Int'].astype(str)
     df['YearMonth'] = pd.to_datetime(
@@ -391,11 +349,9 @@ def aggregate_by_month(df, start_year, start_month, end_year, end_month):
         errors='coerce'
     ).dt.to_period('M')
     
-    # Remove rows with invalid YearMonth
     df = df[df['YearMonth'].notna()].copy()
     logger.info(f"Records with valid YearMonth: {len(df):,}")
     
-    # Calculate average response time by month and response type
     monthly_avg = df.groupby(['YearMonth', 'Response_Type'])['Response_Time_Minutes'].mean().reset_index()
     monthly_avg.columns = ['YearMonth', 'Response_Type', 'Average_Response_Time']
     
@@ -421,16 +377,12 @@ def format_output(df_monthly):
     logger.info("FORMATTING OUTPUT")
     logger.info("=" * 80)
     
-    # Convert YearMonth period to string format MM-YY
     df_monthly['MM-YY'] = df_monthly['YearMonth'].dt.strftime('%m-%y')
     
-    # Convert average response time to MM:SS format
     df_monthly['First Response_Time_MMSS'] = df_monthly['Average_Response_Time'].apply(convert_to_mmss_format)
     
-    # Select and order columns
     output_df = df_monthly[['Response_Type', 'MM-YY', 'First Response_Time_MMSS']].copy()
     
-    # Sort by YearMonth and Response_Type
     output_df = output_df.sort_values(['MM-YY', 'Response_Type'])
     
     logger.info(f"Output format: {len(output_df)} rows")
@@ -448,7 +400,6 @@ def save_monthly_files(df_output, output_dir, start_year, start_month, end_year,
     
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Group by month
     df_output['YearMonth_Sort'] = pd.to_datetime(
         df_output['MM-YY'], 
         format='%m-%y'
@@ -460,11 +411,9 @@ def save_monthly_files(df_output, output_dir, start_year, start_month, end_year,
         year = year_month.year
         month = year_month.month
         
-        # Format filename
         filename = f"{year}_{month:02d}_Average_Response_Times__Values_are_in_mmss.csv"
         output_path = output_dir / filename
         
-        # Save (drop the YearMonth_Sort column)
         group_df = group_df.drop('YearMonth_Sort', axis=1)
         group_df.to_csv(output_path, index=False)
         
@@ -475,57 +424,97 @@ def save_monthly_files(df_output, output_dir, start_year, start_month, end_year,
     return files_created
 
 # =============================================================================
+# ARGUMENT PARSING
+# =============================================================================
+
+def parse_args():
+    """Parse command-line arguments."""
+    parser = argparse.ArgumentParser(
+        description=f"Response Time Fresh Calculator v{VERSION} — "
+                    "recalculate response times from raw timereport data."
+    )
+    parser.add_argument(
+        "--report-month",
+        required=True,
+        help="End month of the 13-month window in YYYY-MM format (e.g. 2026-01)."
+    )
+    parser.add_argument(
+        "--root",
+        default=None,
+        help="Override OneDrive root path (defaults to path_config.get_onedrive_root())."
+    )
+    return parser.parse_args()
+
+# =============================================================================
 # MAIN EXECUTION
 # =============================================================================
 
 def main():
     """Main execution function."""
-    logger = setup_logging()
+    args = parse_args()
+
+    # Derive date range from --report-month
+    try:
+        rm_date = datetime.strptime(args.report_month, "%Y-%m")
+    except ValueError:
+        print(f"[ERROR] Invalid --report-month format: {args.report_month!r}  (expected YYYY-MM)")
+        return 1
+
+    end_year = rm_date.year
+    end_month = rm_date.month
+    start_month = end_month
+    start_year = end_year - 1
+
+    # Resolve paths
+    base_dir = Path(args.root) if args.root else get_onedrive_root()
+    master_auto_dir = base_dir / "Master_Automation"
+    timereport_base = base_dir / "05_EXPORTS" / "_CAD" / "timereport"
+    powerbi_drop = base_dir / "PowerBI_Date" / "_DropExports"
+    config_dir = master_auto_dir / "config"
+
+    yearly_timereport_base = timereport_base / "yearly"
+    monthly_timereport_base = timereport_base / "monthly"
+    filter_config = config_dir / "response_time_filters.json"
+    mapping_file = base_dir / "02_ETL_Scripts" / "Response_Times" / "input" / "Response_Type_Mapping.xlsx"
+
+    logger = setup_logging(master_auto_dir)
     
     logger.info("=" * 80)
     logger.info(f"RESPONSE TIME FRESH CALCULATOR v{VERSION}")
     logger.info("=" * 80)
     logger.info(f"Start time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    logger.info(f"Date range: {START_YEAR}-{START_MONTH:02d} to {END_YEAR}-{END_MONTH:02d}")
+    logger.info(f"Date range: {start_year}-{start_month:02d} to {end_year}-{end_month:02d}")
+    logger.info(f"OneDrive root: {base_dir}")
     
     try:
-        # Step 1: Load configuration
-        filters = load_filter_config(FILTER_CONFIG)
-        response_type_map, category_type_map = load_mapping_file(MAPPING_FILE)
+        filters = load_filter_config(filter_config)
+        response_type_map, category_type_map = load_mapping_file(mapping_file)
         
-        # Step 2: Load timereport data
         df_raw = load_timereport_hybrid(
-            YEARLY_TIMEREPORT_BASE,
-            MONTHLY_TIMEREPORT_BASE,
-            START_YEAR,
-            START_MONTH,
-            END_YEAR,
-            END_MONTH
+            yearly_timereport_base,
+            monthly_timereport_base,
+            start_year,
+            start_month,
+            end_year,
+            end_month
         )
         
         if df_raw.empty:
             logger.error("No data loaded! Exiting.")
             return 1
         
-        # Step 3: Apply filters (simplified - no incident mapping)
         df_filtered = apply_filters(df_raw, filters)
         
-        # Step 4: Calculate response times
         df_valid = calculate_response_times(df_filtered)
         
-        # Step 5: Map response types BY PRIORITY (not incident type)
         df_mapped = map_response_types_by_priority(df_valid)
         
-        # Step 6: Aggregate by month
-        df_monthly = aggregate_by_month(df_mapped, START_YEAR, START_MONTH, END_YEAR, END_MONTH)
+        df_monthly = aggregate_by_month(df_mapped, start_year, start_month, end_year, end_month)
         
-        # Step 7: Format output
         df_output = format_output(df_monthly)
         
-        # Step 8: Save files
-        files_created = save_monthly_files(df_output, POWERBI_DROP, START_YEAR, START_MONTH, END_YEAR, END_MONTH)
+        files_created = save_monthly_files(df_output, powerbi_drop, start_year, start_month, end_year, end_month)
         
-        # Summary
         logger.info("=" * 80)
         logger.info("EXECUTION SUMMARY")
         logger.info("=" * 80)
@@ -536,7 +525,7 @@ def main():
         logger.info(f"Monthly aggregates: {len(df_monthly):,}")
         logger.info(f"Output rows: {len(df_output):,}")
         logger.info(f"Files created: {len(files_created)}")
-        logger.info(f"Output directory: {POWERBI_DROP}")
+        logger.info(f"Output directory: {powerbi_drop}")
         logger.info(f"End time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         logger.info("=" * 80)
         logger.info("SUCCESS - Response Time calculation complete!")

@@ -29,7 +29,8 @@ Master_Automation/
 │   ├── run_all_etl.bat         # Batch file orchestrator
 │   ├── run_etl_script.ps1      # Helper script to run individual scripts
 │   ├── path_config.py          # Centralized get_onedrive_root() for portability (env var support)
-│   ├── summons_derived_outputs.py  # Rewritten for Power BI compatibility (2026-02-19)
+│   ├── Pre_Flight_Validation.py          # Pre-flight GO/NO-GO gate (argparse, evidence checks, mapping validation)
+│   ├── summons_derived_outputs_simple.py  # Summons derived outputs (argparse, dynamic filenames, IS_AGGREGATE)
 │   ├── overtime_timeoff_with_backfill.py     # Overtime/TimeOff monthly wrapper (v10 + backfill)
 │   ├── validate_exports.py                  # Pre-flight OT/TimeOff export validation
 │   ├── validate_outputs.py                   # FIXED CSV schema validation
