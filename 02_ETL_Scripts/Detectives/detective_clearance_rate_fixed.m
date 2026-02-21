@@ -1,8 +1,10 @@
 // Det_case_dispositions_clearance — CCD/_CCD_MOM
 // Fixed row order • Robust % normalization • Rolling 13-Month window
 // Updated: 2026-01-11 - Fixed to include December 2025 (12-25) in the filter
+// Updated: 2026-02-21 - Replaced DateTime.LocalNow() with pReportMonth parameter
 
 let
+    ReportMonth = pReportMonth,
     // --- Load table ---------------------------------------------------------
     Source = Excel.Workbook(
         File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Detectives\detectives_monthly.xlsx"),
@@ -119,7 +121,7 @@ let
 
     // --- Rolling 13-Month window (include previous completed month) --------
     // Filter includes the previous completed month (December 2025 when current is January 2026)
-    CurrentDate     = Date.From(DateTime.LocalNow()),
+    CurrentDate     = ReportMonth,
     CurrentYear     = Date.Year(CurrentDate),
     CurrentMonth    = Date.Month(CurrentDate),
     // Previous month: if current is January, previous is December of previous year

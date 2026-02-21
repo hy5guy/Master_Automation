@@ -7,6 +7,7 @@ logs/archive/
 _DropExports/*
 !_DropExports/.gitkeep
 tmpclaude-*-cwd
+.tmp.driveupload/
 
 # Output directories (testing/validation data)
 outputs/visual_exports/*

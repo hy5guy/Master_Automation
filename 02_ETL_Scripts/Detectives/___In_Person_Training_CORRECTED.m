@@ -1,4 +1,4 @@
-// 🕒 2026-01-12-17-45-00
+// 2026-02-21-01-30-00 (EST)
 // Project: Policy_Training / In_Person_Training
 // Author: R. A. Carucci
 // Purpose: Load In-Person training list from ETL output with proper date filtering
@@ -44,8 +44,9 @@ let
          {"Attendees Count",
           each try Number.RoundDown(Number.From(_)) otherwise 0, Int64.Type}}),
 
-    // *** NEW: Calculate cutoff date (end of prior complete month) ***
-    Today = DateTime.Date(DateTime.LocalNow()),
+    ReportMonth = pReportMonth,
+    // Calculate cutoff date (end of prior complete month)
+    Today = ReportMonth,
     FirstOfCurrentMonth = Date.StartOfMonth(Today),
     LastDayOfPriorMonth = Date.AddDays(FirstOfCurrentMonth, -1),
     CutoffDate = Date.From(LastDayOfPriorMonth),

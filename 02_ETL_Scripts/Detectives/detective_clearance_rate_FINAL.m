@@ -2,8 +2,10 @@
 // Fixed row order • Robust % normalization • Rolling 13-Month window
 // Updated: 2026-01-11 - Fixed filter to include December 2025 (12-25)
 // Updated: 2026-01-12 - Changed unpivot column to Month_MM_YY to match visual
+// Updated: 2026-02-21 - Replaced DateTime.LocalNow() with pReportMonth parameter
 
 let
+    ReportMonth = pReportMonth,
     // --- Load table ---------------------------------------------------------
     Source = Excel.Workbook(
         File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Detectives\detectives_monthly.xlsx"),
@@ -121,7 +123,7 @@ let
 
     // --- Rolling 13-Month window (include previous completed month) --------
     // Fixed: Use explicit year/month calculation to ensure December 2025 is included
-    CurrentDate     = Date.From(DateTime.LocalNow()),
+    CurrentDate     = ReportMonth,
     CurrentYear     = Date.Year(CurrentDate),
     CurrentMonth    = Date.Month(CurrentDate),
     // Previous month: if current is January, previous is December of previous year
