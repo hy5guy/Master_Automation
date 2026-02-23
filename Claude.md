@@ -44,27 +44,30 @@ New to this project? Start with:
 - `docs/` - Project documentation
   - `response_time/` - Response Time documentation and reports
   - `archived_workflows/` - Archived workflow files
-- `m_code/` - Power BI M code queries (45 queries across 17 page-based subfolders)
-  - `arrests/` - ___Arrest_Categories, ___Arrest_Distro, ___Top_5_Arrests
-  - `benchmark/` - ___Benchmark
-  - `community/` - ___Combined_Outreach_All, ___chief_projects
-  - `csb/` - ___CSB_Monthly
-  - `detectives/` - ___Detectives, ___Det_case_dispositions_clearance
-  - `drone/` - ___Drone
-  - `esu/` - ESU_13Month, fnCleanText, fnMonthKeyFromTableName, TrackedItems, MonthlyActivity
-  - `functions/` - fnGetFiles, fnReadCsv, fnEnsureColumns, fnApplyRenameMap, fnLoadRaw
-  - `nibrs/` - ___NIBRS_Monthly_Report
-  - `overtime/` - ___Overtime_Timeoff_v3
-  - `parameters/` - RootExportPath, EtlRootPath, SourceMode, RangeStart, RangeEnd
-  - `patrol/` - ___Patrol, ___Chief2, ___REMU
-  - `response_time/` - ___ResponseTimeCalculator
-  - `shared/` - ___ComprehensiveDateTable, ___DimMonth, ___DimEventType, ___Arrest_Raw_Data_Preview, ___Arrest_Date_Distribution, Parameters_Check
-  - `ssocc/` - ___SSOCC_Data, TAS_Dispatcher_Incident
-  - `stacp/` - ___STACP_pt_1_2, ___Social_Media, STACP_DIAGNOSTIC
-  - `summons/` - summons_13month_trend, summons_top5_parking, summons_top5_moving, summons_all_bureaus, ___Summons
-  - `traffic/` - ___Traffic
-  - `training/` - ___Cost_of_Training, ___In_Person_Training
-  - `archive/` - Archived M code versions (53+ superseded files)
+- `m_code/` - Power BI M code queries (45 queries across 20 page-based subfolders)
+ - `arrests/` - ___Arrest_Categories, ___Arrest_Distro, ___Top_5_Arrests
+ - `benchmark/` - ___Benchmark
+ - `chief/` - ___Chief2, ___chief_projects
+ - `community/` - ___Combined_Outreach_All
+ - `csb/` - ___CSB_Monthly
+ - `detectives/` - ___Detectives, ___Det_case_dispositions_clearance
+ - `drone/` - ___Drone
+ - `esu/` - ESU_13Month
+ - `functions/` - fnGetFiles, fnReadCsv, fnEnsureColumns, fnApplyRenameMap, fnLoadRaw
+ - `nibrs/` - ___NIBRS_Monthly_Report
+ - `overtime/` - ___Overtime_Timeoff_v3
+ - `parameters/` - RootExportPath, EtlRootPath, SourceMode, RangeStart, RangeEnd, pReportMonth
+ - `patrol/` - ___Patrol
+ - `remu/` - ___REMU
+ - `response_time/` - ___ResponseTimeCalculator
+ - `shared/` - ___ComprehensiveDateTable, ___DimMonth, ___DimEventType, ___Arrest_Raw_Data_Preview, ___Arrest_Date_Distribution, Parameters_Check
+ - `social_media/` - ___Social_Media
+ - `ssocc/` - ___SSOCC_Data, TAS_Dispatcher_Incident
+ - `stacp/` - ___STACP_pt_1_2, STACP_DIAGNOSTIC
+ - `summons/` - summons_13month_trend, summons_top5_parking, summons_top5_moving, summons_all_bureaus, ___Summons
+ - `traffic/` - ___Traffic
+ - `training/` - ___Cost_of_Training, ___In_Person_Training
+ - `archive/` - Archived M code versions (53+ superseded files)
 - `outputs/` - Organized output files
   - `arrests/` - Arrest-related exports
   - `visual_exports/` - Power BI visual exports
@@ -315,15 +318,61 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 - **January 2026 Report** - Successfully generated and ready for publication
 
 ### Current System Status
-- **Version**: 1.17.1
-- **Status**: ✅ ETL Operational — Phase 2 Remediation Complete — February 2026 Cycle Active
+- **Version**: 1.17.5
+- **Status**: ✅ Template Updated — Staging Data Refresh Pending
 - **Enabled Scripts**: 5 (All operational)
-- **Power BI Queries**: 45 queries organized in 17 page folders; all using `pReportMonth` parameter
-- **pReportMonth**: `#date(2026, 2, 1)` — February 2026 cycle (queries filter for January 2026 data)
+- **Power BI Queries**: 45+ queries loading cleanly; all use `pReportMonth` parameter
+- **pReportMonth**: `#date(2026, 2, 1)` in both repo and template
 - **M Code Baseline**: All 45 PBIX queries exported, split, headered (Jan 2026 monthly report)
+- **Report Template**: Surgical edits complete — all queries load, Close & Apply succeeds with zero DAX errors
+- **Staging Data Gap**: `summons_powerbi_latest.xlsx` only has data through Sep 2025; summons visuals empty for Jan 2026. Will populate after next ETL run
 - **Personnel Master**: Assignment_Master_V3_FINAL.xlsx (25 cols, 166 records)
-- **Phase 2 Status**: ALL TASKS COMPLETE (A through F). No DateTime.LocalNow() or hardcoded user paths remain in active M code.
-- **Remaining known issues**: `___Patrol.m` missing `ReportMonth = pReportMonth` binding and `01-26` column; `___Traffic.m` missing `01-26` column in type declaration
+- **Phase 2 Status**: ALL TASKS COMPLETE (A-F) in repo. Template deployment COMPLETE.
+- **Critical constraint**: Repo M code output schemas have diverged from PBIX DAX model. Cannot replace entire query bodies — only fix paths, DateTime.LocalNow(), and column types.
+- **Laptop path junction**: `C:\Users\carucci_r` → `C:\Users\RobertCarucci` (Windows junction enables M code path compatibility between desktop and laptop)
+
+---
+
+## Recent Updates (2026-02-23)
+
+### v1.17.5 — Surgical Template Update COMPLETE
+
+All surgical edits applied successfully to the February 2026 Power BI template. Every query loads without errors and Close & Apply completes cleanly.
+
+#### What was done:
+- Created `pReportMonth` parameter (Date, 2/1/2026) in template
+- Fixed file paths in 4 queries (`ESU_13Month`, `summons_top5_parking`, `summons_top5_moving`, `___ResponseTimeCalculator`)
+- Replaced `DateTime.LocalNow()` with `pReportMonth` in 6 queries
+- Re-created `___Summons` query (12 DAX measures referenced it but it was missing); added `TICKET_COUNT` and `ASSIGNMENT_FOUND` columns
+- Added `Count` and `MonthName` columns to `___ResponseTimeCalculator` for DAX SUMMARIZE measures
+- Fixed `summons_13month_trend`: removed non-existent columns, added `TICKET_COUNT`, deduplicated by `TICKET_NUMBER`
+- Deleted 4 orphaned DAX calculated tables (`Arrests`, `Demographics`, etc.) referencing non-existent `Arrest_Top`
+
+#### Pending:
+- **Staging data refresh** — `summons_powerbi_latest.xlsx` only has data through Sep 2025. Summons visuals will populate once the ETL runs and refreshes the staging file with Oct 2025 – Jan 2026 data.
+- `summons_top5_parking` uses `List.Max(YearMonthKey)` instead of `pReportMonth` — shows stale data until staging is refreshed
+
+### v1.17.4 — Bulk M Code Paste Failed; Surgical Approach Executed
+- Bulk paste broke DAX model (schema mismatch). All changes discarded. Surgical approach applied (v1.17.5).
+
+---
+
+## Recent Updates (2026-02-22)
+
+### v1.17.3 — Template Refresh & Laptop Path Resolution
+
+#### Report Template Refreshed from January 2026 Published Report
+- **Old template** (`Monthly_Report_Template.pbix`) had cascading model-level errors after bulk M code paste — archived as `Monthly_Report_Template_ARCHIVED_2026_02_22.pbix` in `15_Templates\`
+- **New template** copied from `Shared Folder\Compstat\Monthly Reports\2026\01_january\2026_01_Monthly_Report.pbix` — clean, error-free baseline with latest formatting and DAX model
+
+#### Laptop Path Resolution — Windows Junction
+- M code references `C:\Users\carucci_r\...` (desktop username); laptop has `C:\Users\RobertCarucci\...`
+- Created Windows junction: `mklink /J C:\Users\carucci_r C:\Users\RobertCarucci`
+- All M code data sources now resolve correctly on both machines without modifying M code files
+
+#### M Code Folder Reorganization (v1.17.2)
+- Expanded from 17 to 20 page-based subfolders: `remu/`, `chief/`, `social_media/` split out from patrol/community/stacp
+- Visual export mapping updated to match new folder structure
 
 ---
 
@@ -494,7 +543,7 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 
 ---
 
-*Last updated: 2026-02-21 | Format version: 3.10*
+*Last updated: 2026-02-23 | Format version: 3.12*
 
 ## Recent Updates (2026-02-18)
 

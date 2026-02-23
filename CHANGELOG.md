@@ -10,10 +10,100 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- [ ] Fix `___Patrol.m` — add `ReportMonth = pReportMonth` binding and `{"01-26", Int64.Type}` column
-- [ ] Fix `___Traffic.m` — add `{"01-26", Int64.Type}` to column type declaration
+- [ ] Refresh `summons_powerbi_latest.xlsx` staging file with Oct 2025 – Jan 2026 data (next ETL run)
 - [ ] Enhance `arrest_python_processor.py` — match input file to target month by filename pattern instead of newest-by-mtime
+- [ ] Implement 3-metric Response Time tables (Travel Time, Total Response, Processing Time)
 - [ ] Monitor March 2026 execution for continued validation
+
+---
+
+## [1.17.5] - 2026-02-23
+
+### Completed — Surgical Template Update (All Queries Loading, No DAX Errors)
+
+Successfully applied surgical M code edits to the February 2026 Power BI template. All queries load without errors. Close & Apply completes cleanly.
+
+### Added
+- **`pReportMonth` parameter** — Created in template (Type: Date, Value: 2/1/2026)
+- **`___Summons` query** — Re-created as new blank query; DAX model had 12 measures referencing this table but it was missing from the template. Includes dynamic column typing (`ExistingColumns` / `FilteredTypes` pattern), plus computed `TICKET_COUNT` (each 1) and `ASSIGNMENT_FOUND` (each true) columns required by DAX measures
+- **`___ResponseTimeCalculator` columns** — Added `Count` (each 1, Int64) and `MonthName` (derived from YearMonth, e.g. "November 2024") to satisfy DAX SUMMARIZE measures
+
+### Changed
+- **Path fixes (4 queries):**
+  - `ESU_13Month` — `C:\Users\RobertCarucci` → `C:\Users\carucci_r`
+  - `summons_top5_parking` — `C:\Users\RobertCarucci` → `C:\Users\carucci_r`
+  - `summons_top5_moving` — `C:\Users\RobertCarucci` → `C:\Users\carucci_r`
+  - `___ResponseTimeCalculator` — `C:\Dev\PowerBI_Date` → `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date` (2 file paths)
+- **DateTime.LocalNow() → pReportMonth (6 queries):**
+  - `summons_top5_moving`, `summons_all_bureaus`, `___Drone`, `___Traffic`, `___Social_Media`
+  - `summons_top5_moving` also had a stray `DateTime.LocalNow()` concatenated to the final `in` clause — removed
+- **`summons_13month_trend`** — Removed 4 non-existent columns from `ChangedType` (`TICKET_COUNT`, `IS_AGGREGATE`, `POSS_CONTRACT_TYPE`, `ASSIGNMENT_FOUND`); added `TICKET_COUNT` as computed column (each 1); added `Table.Distinct` dedup on `TICKET_NUMBER` to fix relationship uniqueness constraint
+
+### Removed
+- **4 orphaned DAX calculated tables** — `Arrests`, `Demographics`, `Distribution of Arrests by County, City and Gender`, `Top_5_Officers_Table` (all referenced non-existent `Arrest_Top` table; pre-existing issue in January template)
+
+### Known Issues
+- **Summons staging data gap** — `summons_powerbi_latest.xlsx` only contains data through September 2025. Queries that filter by `pReportMonth` (January 2026) return empty results. Summons visuals (Top 5 Moving, All Bureaus, Department-Wide trend) will populate correctly once the staging file is refreshed by the next ETL run
+- **`summons_top5_parking`** uses `List.Max(YearMonthKey)` instead of `pReportMonth` — shows September 2025 data (latest available) while subtitle says "January 2026". Will self-correct when staging data is updated
+- **Department-Wide Summons** missing March 2025 — gap in staging source data
+
+---
+
+## [1.17.4] - 2026-02-23
+
+### Failed — Bulk M Code Paste into Template (Second Attempt)
+
+Attempted to paste repo M code into all 11 queries in the refreshed January 2026 template. Queries loaded data successfully (Drone 74.7 KB, Patrol 222 KB, ResponseTimeCalculator 268 bytes) but cascading DAX model errors occurred during Close & Apply.
+
+**Root Cause: Schema mismatch between repo M code and PBIX DAX model.**
+
+### Reverted
+- **All 11 template query changes discarded** — Used Power BI "Discard changes" to revert all queries back to original January M code. Template is back to clean state.
+
+### Documented
+- **Surgical approach plan created** — `plans/surgical_template_update_8b5a8e70.plan.md`
+- Key lesson: Do NOT replace entire query bodies with repo M code. Only make minimal edits that preserve the original output schema.
+
+---
+
+## [1.17.3] - 2026-02-22
+
+### Changed
+- **Report template refreshed** — Old template had cascading Power BI model errors after bulk M code paste; archived as `Monthly_Report_Template_ARCHIVED_2026_02_22.pbix`
+- **New template** — Copied from January 2026 published report (`2026_01_Monthly_Report.pbix`) to `15_Templates\Monthly_Report_Template.pbix`; clean baseline with latest formatting, DAX model, and all working queries
+
+### Added
+- **Laptop path junction** — Created Windows junction `C:\Users\carucci_r` → `C:\Users\RobertCarucci` so M code data sources resolve on both desktop and laptop without modifying M code files
+
+---
+
+## [1.17.2] - 2026-02-22
+
+### Changed
+- **M Code folder reorganization** — Expanded from 17 to 20 page-based subfolders for clearer navigation
+  - `patrol/` — Now contains only `___Patrol.m` (was: Patrol, Chief2, REMU)
+  - `remu/` — New folder for `___REMU.m` (moved from patrol/)
+  - `chief/` — New folder for `___Chief2.m` (from patrol/) and `___chief_projects.m` (from community/)
+  - `community/` — Now contains only `___Combined_Outreach_All.m` (was: Outreach + Chief Projects)
+  - `social_media/` — New folder for `___Social_Media.m` (moved from stacp/)
+  - `stacp/` — Now contains only `___STACP_pt_1_2.m` and `STACP_DIAGNOSTIC.m`
+- **Visual export mapping** — Updated `visual_export_mapping.json` target_folder values to match new m_code structure
+  - Chief Projects: `chief_projects` → `chief`
+  - Chief Law Enforcement Duties: `law_enforcement_duties` → `chief`
+  - Social Media Posts: `social_media_and_time_report` → `social_media`
+  - Monthly Accrual: remains at `social_media_and_time_report` (unchanged)
+- **ESU simplified** — `MonthlyActivity` and `TrackedItems` queries removed from template; `ESU_13Month.m` is the sole ESU query
+
+### Fixed
+- **___Drone.m syntax error** — Removed invalid backslash `\` line continuation characters on lines 159-160 (M code does not support C-style line continuations)
+- **___Social_Media.m syntax error** — Same backslash issue on line 49; `Table.SelectColumns` call now on single line
+- **___chief_projects.m syntax error** — Same backslash issue on lines 9-14 in `ChangedType` step; fixed during folder move
+- **summons_13month_trend.m column error** — Removed 4 non-existent column declarations from `ChangedType` step (`TICKET_COUNT`, `IS_AGGREGATE`, `POSS_CONTRACT_TYPE`, `ASSIGNMENT_FOUND`); these columns do not exist in the staging workbook
+- **summons_top5_moving.m blank table** — Switched from `pReportMonth`-based month filtering to `List.Max(YearMonthKey)` approach (matching the working `summons_top5_parking.m`); PEO exclusion logic retained
+
+### Documentation
+- Updated CLAUDE.md, CHANGELOG.md, SUMMARY.md, README.md with new 20-folder m_code structure
+- Updated m_code file headers (// # path) to reflect new folder locations
 
 ---
 
@@ -994,8 +1084,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 **Maintained by:** R. A. Carucci  
-**Last Updated:** 2026-02-09  
-**Version:** 1.12.0
+**Last Updated:** 2026-02-23  
+**Version:** 1.17.5
 
 ## [1.15.9] - 2026-02-18
 

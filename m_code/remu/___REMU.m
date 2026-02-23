@@ -1,5 +1,5 @@
 // 🕒 2026-02-20-23-48-50
-// # patrol/___REMU.m
+// # remu/___REMU.m
 // # Author: R. A. Carucci
 // # Purpose: Load REMU monthly activity metrics from contribution workbook.
 
@@ -10,7 +10,7 @@ let
     Source        = Excel.Workbook(File.Contents(WorkbookPath), null, true),
     REMU_MoM      = Source{[Item=TableName,Kind="Table"]}[Data],
 
-    // 2. Clean “Tracked Items”
+    // 2. Clean "Tracked Items"
     Cleaned       = Table.TransformColumns(
                       REMU_MoM,
                       {{"Tracked Items", each Text.Trim(Text.Clean(_)), type text}}
@@ -20,7 +20,7 @@ let
                       each [Tracked Items] <> null and [Tracked Items] <> ""
                     ),
 
-    // 3. Unpivot all “MM-YY” columns into [Month] & [Total]
+    // 3. Unpivot all "MM-YY" columns into [Month] & [Total]
     MonthCols     = List.Select(
                       Table.ColumnNames(Filtered),
                       each Text.Length(_) = 5 and Text.Contains(_,"-")
@@ -32,7 +32,7 @@ let
                       "Total"
                     ),
 
-    // 4. Parse “MM-YY” → first-of-month date
+    // 4. Parse "MM-YY" → first-of-month date
     AddDate       = Table.AddColumn(
                       Unpivoted,
                       "PeriodDate",

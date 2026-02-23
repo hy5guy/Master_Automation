@@ -4,15 +4,6 @@
 // # Purpose: Compute top 5 moving violation officers for the latest month.
 
 let
-    ReportMonth = pReportMonth,
-
-    // Previous complete month (e.g. in Feb 2026 show Jan 2026 = 01-26)
-    PrevDate = Date.AddMonths(ReportMonth, -1),
-    PrevYear = Date.Year(PrevDate),
-    PrevMonth = Date.Month(PrevDate),
-    PreviousMonthKey = PrevYear * 100 + PrevMonth,
-    MonthYearText = Text.PadStart(Number.ToText(PrevMonth), 2, "0") & "-" & Text.End(Number.ToText(PrevYear), 2),
-
     // Load directly from Excel file
     Source = Excel.Workbook(
         File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
@@ -41,23 +32,28 @@ let
         ( [OFFICER_DISPLAY_NAME] = null or not (Text.StartsWith([OFFICER_DISPLAY_NAME], "PEO ") or Text.StartsWith([OFFICER_DISPLAY_NAME], "PEO,") or Text.StartsWith([OFFICER_DISPLAY_NAME], "PEO.")) )
     ),
     
-    // Filter to PREVIOUS COMPLETE MONTH (not "max in file" — so January export shows 01-26)
-    FilteredLatestMonth = Table.SelectRows(FilteredMovingNoPEO, each [YearMonthKey] = PreviousMonthKey),
+    // Find LATEST month using YearMonthKey (integer sorting, not text!)
+    LatestKey = List.Max(FilteredMovingNoPEO[YearMonthKey]),
     
-    // Group by badge: Count = number of Moving rows per officer for that month (from staging file)
+    // Filter to latest month only
+    FilteredLatestMonth = Table.SelectRows(FilteredMovingNoPEO, each [YearMonthKey] = LatestKey),
+    
+    // Group by OFFICER and count summons
     GroupedRows = Table.Group(
         FilteredLatestMonth, 
-        {"PADDED_BADGE_NUMBER", "Month_Year"}, 
-        {
-            {"Count", each Table.RowCount(_), type number},
-            {"Officer", each List.First([OFFICER_DISPLAY_NAME]), type text}
-        }
+        {"OFFICER_DISPLAY_NAME", "Month_Year"}, 
+        {{"Count", each Table.RowCount(_), type number}}
     ),
     
-    RemovedBadge = Table.RemoveColumns(GroupedRows, {"PADDED_BADGE_NUMBER"}),
-    SortedRows = Table.Sort(RemovedBadge, {{"Count", Order.Descending}}),
+    // Sort by count descending
+    SortedRows = Table.Sort(GroupedRows, {{"Count", Order.Descending}}),
+    
+    // Keep top 5
     Top5 = Table.FirstN(SortedRows, 5),
-    // Ensure Month_Year label matches previous month (e.g. 01-26)
-    SetMonthLabel = Table.TransformColumns(Top5, {{"Month_Year", each MonthYearText, type text}})
+    
+    // RENAME COLUMNS TO MATCH VISUAL EXPECTATIONS
+    RenamedColumns = Table.RenameColumns(Top5, {
+        {"OFFICER_DISPLAY_NAME", "Officer"}
+    })
 in
-    SetMonthLabel
+    RenamedColumns

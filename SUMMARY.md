@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-02-21
-**Status:** ✅ Production Ready — February 2026 Cycle Active
-**Version:** 1.17.1
+**Last Updated:** 2026-02-23
+**Status:** ✅ Template Updated — February 2026 Cycle Active (Staging Data Refresh Pending)
+**Version:** 1.17.5
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ Production Ready — February 2026 Cycle Active |
-| **Version** | 1.17.1 |
+| **Status** | ✅ Template Updated — Staging Data Refresh Pending |
+| **Version** | 1.17.5 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -99,23 +99,26 @@ Master_Automation/
 │   ├── response_time/          # Response Time docs (13 files)
 │   ├── archived_workflows/     # Archived workflows
 │   └── (migration guides, reports, troubleshooting)
-├── m_code/                      # Power BI M code (45 queries, 17 page folders)
+├── m_code/                      # Power BI M code (45 queries, 20 page folders)
 │   ├── arrests/               # 3 queries (Categories, Distro, Top 5)
 │   ├── benchmark/             # 1 query
-│   ├── community/             # 2 queries (Outreach, Chief's Projects)
+│   ├── chief/                 # 2 queries (Chief2, chief_projects)
+│   ├── community/             # 1 query (Combined_Outreach_All)
 │   ├── csb/                   # 1 query
 │   ├── detectives/            # 2 queries (Detectives, CCD)
 │   ├── drone/                 # 1 query
-│   ├── esu/                   # 5 queries (ESU_13Month, fnCleanText, etc.)
+│   ├── esu/                   # 1 query (ESU_13Month)
 │   ├── functions/             # 5 shared functions (fnGetFiles, fnReadCsv, etc.)
 │   ├── nibrs/                 # 1 query
 │   ├── overtime/              # 1 query (v3)
-│   ├── parameters/            # 5 parameters (RootExportPath, EtlRootPath, etc.)
-│   ├── patrol/                # 3 queries (Patrol, Chief2, REMU)
+│   ├── parameters/            # 6 parameters (RootExportPath, EtlRootPath, pReportMonth, etc.)
+│   ├── patrol/                # 1 query (Patrol)
+│   ├── remu/                  # 1 query (REMU)
 │   ├── response_time/         # 1 query (ResponseTimeCalculator)
 │   ├── shared/                # 6 queries (DateTable, DimMonth, DimEventType, etc.)
+│   ├── social_media/          # 1 query (Social_Media)
 │   ├── ssocc/                 # 2 queries (SSOCC_Data, TAS_Dispatcher)
-│   ├── stacp/                 # 3 queries (STACP, Social Media, Diagnostic)
+│   ├── stacp/                 # 2 queries (STACP_pt_1_2, STACP_DIAGNOSTIC)
 │   ├── summons/               # 5 queries (13month, top5_parking, top5_moving, all_bureaus, dept_wide)
 │   ├── traffic/               # 1 query
 │   ├── training/              # 2 queries (Cost, In-Person)
@@ -583,14 +586,17 @@ Documentation:
 - ✅ **Professional Structure** - Industry-standard directory layout with clear separation of concerns
 
 ### Recent System Status
-- **Version**: 1.17.1
-- **Status**: ✅ Production Ready — February 2026 Cycle Active
-- **pReportMonth**: `#date(2026, 2, 1)` — queries filter for January 2026 data
+- **Version**: 1.17.5
+- **Status**: ✅ Template Updated — Staging Data Refresh Pending
+- **pReportMonth**: `#date(2026, 2, 1)` in both repo and template
 - **ETL Workflows**: 5/5 enabled scripts operational
-- **Power BI Queries**: 45 queries in 17 folders; all using `pReportMonth` parameter
-- **Phase 2 Remediation**: COMPLETE (A-F); no `DateTime.LocalNow()` or hardcoded paths remain
+- **Power BI Queries**: 45+ queries loading cleanly; all use `pReportMonth` parameter
+- **Report Template**: Surgical edits complete — all queries load, Close & Apply succeeds with zero errors
+- **Staging Data Gap**: `summons_powerbi_latest.xlsx` only has data through Sep 2025; summons visuals empty for Jan 2026. Will auto-populate after next ETL run refreshes the staging file
+- **Laptop Junction**: `C:\Users\carucci_r` → `C:\Users\RobertCarucci` for cross-machine M code path compatibility
+- **Phase 2 Remediation**: COMPLETE (A-F) in repo; template deployment COMPLETE
 - **Arrest Data**: January 2026 processed (42 records); February partial export converted from .tab
-- **Known Issues**: `___Patrol.m` needs `ReportMonth = pReportMonth` + `01-26` column; `___Traffic.m` needs `01-26` column
+- **Critical Lesson**: Repo M code output schemas have diverged from PBIX DAX model expectations. Do NOT replace entire query bodies. Only make targeted edits that preserve the original output schema.
 
 ---
 
@@ -643,16 +649,16 @@ Documentation:
 
 | Priority | Task | Status |
 |----------|------|--------|
-| 0 | M Code `DateTime.LocalNow()` → `pReportMonth` parameter (20 files, 25 occurrences) | ✅ COMPLETE |
+| 0 | M Code `DateTime.LocalNow()` → `pReportMonth` parameter (20 files, 25 occurrences) | ✅ COMPLETE (repo + template) |
 | 1 | Community Engagement validation | ✅ COMPLETE |
 | 2 | Summons Derived Outputs (`IS_AGGREGATE`, `TICKET_COUNT`) | ✅ COMPLETE |
-| 3 | Hardcoded paths in M Code — 9 instances fixed | ✅ COMPLETE |
-| 4 | Hardcoded column lists — `___Patrol` & `___Traffic` missing `01-26` column | IDENTIFIED |
+| 3 | Hardcoded paths in M Code — 9 instances fixed | ✅ COMPLETE (repo + template) |
+| 4 | Hardcoded column lists — `___Patrol` & `___Traffic` missing `01-26` column | ✅ COMPLETE (repo) |
 | 5 | Response Times historical backfill (Nov 2024 – Dec 2025) | PENDING |
+| 6 | Deploy fixes to PBIX template (surgical approach) | ✅ **COMPLETE** |
+| 7 | Refresh `summons_powerbi_latest.xlsx` with Oct 2025 – Jan 2026 data | **PENDING** (next ETL run) |
 
-**Remaining:** Patrol/Traffic need `01-26` added to `Table.TransformColumnTypes`; `___Patrol.m` also needs `ReportMonth = pReportMonth` binding.
-
-See [`docs/M_CODE_DATETIME_FIX_GUIDE.md`](docs/M_CODE_DATETIME_FIX_GUIDE.md) for full detail.
+**Template deployment COMPLETE.** All surgical edits applied successfully. Staging data refresh needed for summons visuals.
 
 ---
 
@@ -679,8 +685,8 @@ The manifest provides a machine-readable reference for the entire Master Automat
 ---
 
 **Maintained by:** R. A. Carucci  
-**Last Updated:** 2026-02-21  
-**Version:** 1.17.1
+**Last Updated:** 2026-02-23  
+**Version:** 1.17.5
 
 ---
 
@@ -750,6 +756,38 @@ The manifest provides a machine-readable reference for the entire Master Automat
 - **Multi-unit Rate**: 28.2% — 2,939 duplicate units removed from 10,440 CAD records
 - **CAD Mapping**: Created `CAD_CALL_TYPE.xlsx` from `CallType_Categories.csv` (649 mappings)
 - **Visual Mapping**: 25/36 visuals enforce 13-month windows ✅
+
+---
+
+## Recent Updates (2026-02-23)
+
+### v1.17.5 — Surgical Template Update COMPLETE
+
+**All queries loading cleanly** — Close & Apply completes with zero errors.
+
+**Changes applied to template:**
+- Created `pReportMonth` parameter (Date, 2/1/2026)
+- Fixed file paths in 4 queries (`ESU_13Month`, `summons_top5_parking`, `summons_top5_moving`, `___ResponseTimeCalculator`)
+- Replaced `DateTime.LocalNow()` with `pReportMonth` in 6 queries (`summons_top5_moving`, `summons_all_bureaus`, `___Drone`, `___Traffic`, `___Social_Media`)
+- Re-created missing `___Summons` query (fixes 12 DAX measure errors) with computed `TICKET_COUNT` and `ASSIGNMENT_FOUND` columns
+- Added `Count` and `MonthName` columns to `___ResponseTimeCalculator` (fixes DAX SUMMARIZE errors)
+- Fixed `summons_13month_trend`: removed 4 non-existent columns, added `TICKET_COUNT` computed column, deduplicated by `TICKET_NUMBER`
+- Deleted 4 orphaned DAX calculated tables referencing non-existent `Arrest_Top` table
+
+**Pending: Staging data refresh** — `summons_powerbi_latest.xlsx` only has data through September 2025. Summons visuals will populate correctly once the staging file is refreshed with Oct 2025 – Jan 2026 data by the next ETL run.
+
+### v1.17.4 — Bulk M Code Paste Failed; Surgical Approach Executed
+
+**Second bulk paste failed** — DAX schema mismatch. All changes discarded. Surgical approach successfully applied (see v1.17.5 above).
+
+---
+
+## Recent Updates (2026-02-22)
+
+### v1.17.3 — Template Refresh & Laptop Path Resolution
+- **Report template refreshed** from January 2026 published report; old broken template archived
+- **Laptop path junction**: `C:\Users\carucci_r` → `C:\Users\RobertCarucci` for cross-machine compatibility
+- **M code reorganization** (v1.17.2): 20 page-based subfolders; Drone/Social Media/Summons syntax fixes
 
 ---
 

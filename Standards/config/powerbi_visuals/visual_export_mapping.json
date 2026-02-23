@@ -289,7 +289,7 @@
       "requires_normalization": false,
       "is_backfill_required": false,
       "enforce_13_month_window": false,
-      "target_folder": "chief_projects",
+      "target_folder": "chief",
       "notes": "List of specific dated events. No aggregation."
     },
     {
@@ -304,7 +304,7 @@
       "requires_normalization": false,
       "is_backfill_required": false,
       "enforce_13_month_window": true,
-      "target_folder": "social_media_and_time_report",
+      "target_folder": "social_media",
       "notes": "Wide format (months as columns). Pipeline must unpivot."
     },
     {
@@ -319,7 +319,7 @@
       "requires_normalization": false,
       "is_backfill_required": false,
       "enforce_13_month_window": true,
-      "target_folder": "law_enforcement_duties",
+      "target_folder": "chief",
       "notes": "Trend data. Normalization needed for 'Sum of Total'.",
       "match_aliases": [
         "Chief Michael Antista's Projects and Initiatives",

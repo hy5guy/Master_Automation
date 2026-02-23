@@ -1,5 +1,5 @@
 // 🕒 2026-02-21-01-00-00 (EST)
-// # stacp/___Social_Media.m
+// # social_media/___Social_Media.m
 // # Author: R. A. Carucci
 // # Purpose: Load social media engagement metrics with rolling 13-month window.
 
@@ -46,8 +46,7 @@ let
     ExistingInOrder = List.Select(DesiredOrder, each List.Contains(ColumnNames, _)),
 
 // Select (and order) the rolling 13-month columns
-#"Selected Columns" = Table.SelectColumns(#"Changed Type", ExistingInOrder,    \
-                                          MissingField.Ignore)
+#"Selected Columns" = Table.SelectColumns(#"Changed Type", ExistingInOrder, MissingField.Ignore)
 
 in
 #"Selected Columns"

@@ -6,7 +6,7 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
 
-**Latest Update (2026-02-21)**: v1.17.1 — February 2026 cycle active (`pReportMonth = #date(2026, 2, 1)`). M code reorganized into 17 page-based subfolders, 45 queries using `pReportMonth` parameter. Phase 2 Remediation complete (A-F). Arrest .tab export conversion supported.
+**Latest Update (2026-02-23)**: v1.17.5 — February 2026 template update complete. All queries load cleanly (zero DAX errors). Staging data refresh pending — `summons_powerbi_latest.xlsx` only has data through Sep 2025; summons visuals will populate after next ETL run. 45+ queries in 20 page-based subfolders with `pReportMonth` parameter.
 
 ## Directory Structure
 
@@ -54,23 +54,26 @@ Master_Automation/
 │   ├── FEBRUARY_2026_ETL_CYCLE_SUMMARY.md  # Complete ETL cycle execution results
 │   ├── chatlogs/               # Session transcripts and troubleshooting logs
 │   └── (migration guides, verification reports, troubleshooting docs)
-├── m_code/                      # Power BI M code queries (45 queries, 17 page folders)
+├── m_code/                      # Power BI M code queries (45 queries, 20 page folders)
 │   ├── arrests/               # ___Arrest_Categories, ___Arrest_Distro, ___Top_5_Arrests
 │   ├── benchmark/             # ___Benchmark
-│   ├── community/             # ___Combined_Outreach_All, ___chief_projects
+│   ├── chief/                 # ___Chief2, ___chief_projects
+│   ├── community/             # ___Combined_Outreach_All
 │   ├── csb/                   # ___CSB_Monthly
 │   ├── detectives/            # ___Detectives, ___Det_case_dispositions_clearance
 │   ├── drone/                 # ___Drone
-│   ├── esu/                   # ESU_13Month, fnCleanText, fnMonthKeyFromTableName, etc.
+│   ├── esu/                   # ESU_13Month
 │   ├── functions/             # fnGetFiles, fnReadCsv, fnEnsureColumns, fnApplyRenameMap, fnLoadRaw
 │   ├── nibrs/                 # ___NIBRS_Monthly_Report
 │   ├── overtime/              # ___Overtime_Timeoff_v3
-│   ├── parameters/            # RootExportPath, EtlRootPath, SourceMode, RangeStart, RangeEnd
-│   ├── patrol/                # ___Patrol, ___Chief2, ___REMU
+│   ├── parameters/            # RootExportPath, EtlRootPath, pReportMonth, SourceMode, RangeStart, RangeEnd
+│   ├── patrol/                # ___Patrol
+│   ├── remu/                  # ___REMU
 │   ├── response_time/         # ___ResponseTimeCalculator
 │   ├── shared/                # ___ComprehensiveDateTable, ___DimMonth, ___DimEventType, etc.
+│   ├── social_media/          # ___Social_Media
 │   ├── ssocc/                 # ___SSOCC_Data, TAS_Dispatcher_Incident
-│   ├── stacp/                 # ___STACP_pt_1_2, ___Social_Media, STACP_DIAGNOSTIC
+│   ├── stacp/                 # ___STACP_pt_1_2, STACP_DIAGNOSTIC
 │   ├── summons/               # summons_13month_trend, top5_parking/moving, all_bureaus, etc.
 │   ├── traffic/               # ___Traffic
 │   ├── training/              # ___Cost_of_Training, ___In_Person_Training
@@ -518,10 +521,32 @@ The manifest provides a machine-readable reference for the entire Master Automat
 ---
 
 **Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`  
-**Last Updated:** 2026-02-09  
-**Version:** 1.12.0  
-**Status:** ✅ Production Ready - 100% Operational (ETL + Power BI)
+**Last Updated:** 2026-02-23  
+**Version:** 1.17.5  
+**Status:** ✅ Template Updated — Staging Data Refresh Pending
 
+
+## 2026-02-23
+
+### v1.17.5 — Surgical Template Update COMPLETE
+- **All queries load cleanly** — Close & Apply succeeds with zero DAX errors
+- **Changes applied**: `pReportMonth` parameter created; paths fixed in 4 queries; `DateTime.LocalNow()` replaced in 6 queries; `___Summons` query re-created (12 DAX measures); `___ResponseTimeCalculator` got `Count`/`MonthName` columns; `summons_13month_trend` fixed (dedup, computed columns); 4 orphaned DAX tables deleted
+- **Staging data gap**: `summons_powerbi_latest.xlsx` only has data through Sep 2025 — summons visuals will populate after next ETL run refreshes staging with Oct 2025 – Jan 2026 data
+- **`summons_top5_parking`** still uses `List.Max(YearMonthKey)` — will self-correct when staging data is refreshed
+
+### v1.17.4 — Bulk M Code Paste Failed
+- Bulk paste broke DAX model (schema mismatch); all changes discarded; surgical approach applied (v1.17.5)
+
+---
+
+## 2026-02-22
+
+### v1.17.3 — Template Refresh & Laptop Path Resolution
+- **Report template refreshed** from January 2026 published report (`2026_01_Monthly_Report.pbix`); old broken template archived
+- **Laptop path junction** created: `C:\Users\carucci_r` → `C:\Users\RobertCarucci` — M code paths resolve on both machines
+- **M code reorganization** (v1.17.2): 20 page-based subfolders; Drone/Social Media/Summons syntax fixes
+
+---
 
 ## 2026-02-18
 

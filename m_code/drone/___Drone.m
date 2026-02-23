@@ -156,9 +156,8 @@ let
     // ─── Combine both tables & add date keys ───────────────────────────────────────
     Combined = Table.Combine({DFR_Tagged, NonDFR_Tagged}),
     WithDate = Table.AddColumn(Combined, "PeriodDate", each
-#date(2000 + Number.FromText(Text.End([Period], 2)),                           \
-      Number.FromText(Text.Start([Period], 2)), 1),                            \
-    type date),
+        #date(2000 + Number.FromText(Text.End([Period], 2)), Number.FromText(Text.Start([Period], 2)), 1),
+        type date),
     WithSort = Table.AddColumn(WithDate, "DateSortKey", each 
         Date.Year([PeriodDate]) * 100 + Date.Month([PeriodDate]), Int64.Type),
 

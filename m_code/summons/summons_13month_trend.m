@@ -9,8 +9,6 @@ let
     PromotedHeaders = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
     ChangedType = Table.TransformColumnTypes(PromotedHeaders,{
         {"TICKET_NUMBER", type text}, 
-        {"TICKET_COUNT", Int64.Type}, 
-        {"IS_AGGREGATE", type logical}, 
         {"PADDED_BADGE_NUMBER", type text}, 
         {"OFFICER_DISPLAY_NAME", type text}, 
         {"OFFICER_NAME_RAW", type text}, 
@@ -32,8 +30,6 @@ let
         {"WG2", type text}, 
         {"WG3", type text}, 
         {"WG4", type text}, 
-        {"POSS_CONTRACT_TYPE", type text}, 
-        {"ASSIGNMENT_FOUND", type logical}, 
         {"DATA_QUALITY_SCORE", Int64.Type}, 
         {"TOTAL_PAID_AMOUNT", type text}, 
         {"COST_AMOUNT", Int64.Type}, 
