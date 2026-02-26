@@ -64,6 +64,9 @@ let
         "Total",
         each [M] + [P] + (try [C] otherwise 0),
         type number
-    )
+    ),
+
+    // Rename WG2 to Bureau for cleaner visual display
+    RenamedColumns = Table.RenameColumns(AddedTotal, {{"WG2", "Bureau"}})
 in
-    AddedTotal
+    RenamedColumns
