@@ -1,7 +1,9 @@
-// 🕒 2026-02-23-10-00-00 (EST)
+// 🕒 2026-02-26-18-30-00 (EST)
 // # summons/summons_all_bureaus.m
 // # Author: R. A. Carucci
-// # Purpose: Aggregate summons counts by bureau for moving and parking violations (latest available month).
+// # Purpose: Aggregate summons counts by bureau for moving and parking violations (report month).
+// # Note: Uses pReportMonth ("YYYY-MM") instead of List.Max to avoid partial next-month records
+// #   bleeding into the visual when the staging file contains early tickets from the following month.
 
 let
     Source = Excel.Workbook(
@@ -12,11 +14,12 @@ let
     PromotedHeaders = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
     ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"YearMonthKey", Int64.Type}, {"TYPE", type text}, {"WG2", type text}}),
 
-    // Find latest month from ALL data first (before WG2 filtering)
-    LatestKey = List.Max(ChangedType[YearMonthKey]),
+    // Derive target YearMonthKey from pReportMonth ("YYYY-MM" -> YYYYMM integer)
+    ReportMonthParts = Text.Split(pReportMonth, "-"),
+    ReportYearMonthKey = Number.From(ReportMonthParts{0} & ReportMonthParts{1}),
 
-    // Filter to latest month, then remove rows with blank/unknown bureau
-    FilteredLatestMonth = Table.SelectRows(ChangedType, each [YearMonthKey] = LatestKey),
+    // Filter to report month only (prevents partial next-month spillover from affecting totals)
+    FilteredLatestMonth = Table.SelectRows(ChangedType, each [YearMonthKey] = ReportYearMonthKey),
     FilteredClean = Table.SelectRows(FilteredLatestMonth, each
         [WG2] <> null and [WG2] <> "" and [WG2] <> "UNKNOWN"),
 
