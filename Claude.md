@@ -318,7 +318,7 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 - **January 2026 Report** - Successfully generated and ready for publication
 
 ### Current System Status
-- **Version**: 1.17.5
+- **Version**: 1.17.6
 - **Status**: ✅ Template Updated — Staging Data Refresh Pending
 - **Enabled Scripts**: 5 (All operational)
 - **Power BI Queries**: 45+ queries loading cleanly; all use `pReportMonth` parameter

@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.7] - 2026-02-26
+
+### Fixed
+- **`{REPORT_MONTH}` token scoping bug in `run_all_etl.ps1`** — Variables `$year` and `$monthNum` are defined only inside the `Save-MonthlyReport` function and were out of scope when the token replacement ran during the script-execution loop, causing the substitution to produce `"-"` instead of `"2026-01"`. Fixed by computing `$prevMonthToken` directly from the `$ReportMonth` parameter using `[datetime]::ParseExact` at the point of substitution. File: `scripts/run_all_etl.ps1` (lines ~517–526).
+- **`DEFAULT_INPUT_PATH` double-extension and wrong folder in Response Times script** — Hardcoded default was `monthly_export\2025\2025_11_Monthly_CAD.xlsx.xlsx` (dead path post-reorganization + double `.xlsx` extension). Updated to `timereport\monthly\2026_01_timereport.xlsx` to match the current file structure. File: `02_ETL_Scripts\Response_Times\process_cad_data_13month_rolling.py` (line 45).
+- **`POWERBI_OUTPUT_DIR` dead `C:\Dev` path in Response Times script** — Secondary copy target pointed to `C:\Dev\PowerBI_Date\Backfill\2025_12\response_time` (dead since 2026-02-24 reorganization). Updated to the production drop folder `PowerBI_Date\_DropExports`. File: `02_ETL_Scripts\Response_Times\process_cad_data_13month_rolling.py` (line 48).
+
+### ETL Run — February 2026 Cycle (2026-02-26)
+- **Arrests** ✅ — 42 January 2026 records from `2026_01_LAWSOFT_ARREST.xlsx`; output `2026_01_Arrests_PowerBI_Ready.xlsx`.
+- **Community Engagement** ✅ — 2 files copied to drop folder.
+- **Overtime / TimeOff** ✅ — 13-month window 2025-01 → 2026-01; 10,060 rows; 30 output files.
+- **Response Times** ✅ *(manual re-run after orchestrator fix)* — 1,991 records, all 3 response types validated. `2026_01_Average_Response_Times__Values_are_in_mmss.csv` copied to drop folder and backfill (`PowerBI_Date\Backfill\2026_01\response_time\`).
+- **Summons** ✅ — 7 files including refreshed `summons_powerbi_latest_summons_data.csv` copied to drop folder.
+- **Summons Derived Outputs** ❌ *(expected — not a blocker)* — Requires Power BI visual export (`Department-Wide Summons Moving and Parking.csv`) to exist in the monthly reports folder before this script can run. Re-run after Power BI refresh + export step.
+
+### Notes
+- February file `2026_02_LAWSOFT_ARREST.xlsx` was temporarily renamed `.hold` before the ETL run and restored after to prevent the arrest ETL from picking up a partial-month file via mtime-based selection.
+- Monthly report template saved to `Shared Folder\Compstat\Monthly Reports\2026\01_january\2026_01_Monthly_Report.pbix`. Open in Power BI Desktop and refresh all connections before publishing.
+
+---
+
+## [1.17.6] - 2026-02-26
+
+### Fixed
+- **`___Traffic.m` backslash syntax errors** — Removed all M code backslash line-continuation characters (invalid in Power BI Advanced Editor); query now pastes cleanly. Also fixed indentation and removed string-concatenation split across lines in `File.Contents()` path. File: `m_code/traffic/___Traffic.m`
+- **Dead `C:\Dev\PowerBI_Date` path in config** — `C:\Dev\PowerBI_Date` was moved to `04_PowerBI/PowerBI_Date_Dev` during 2026-02-24 directory reorganization. Updated `PD_BCI_LTP` override in `config/scripts.json` and `config/scripts-PD_BCI_LTP.json` to point to the standard OneDrive production path. Laptop junction (`C:\Users\carucci_r` → `C:\Users\RobertCarucci`) makes this override unnecessary in practice.
+
+### Context
+- **2026-02-24 Directory Reorganization** — `C:\Dev` consolidated into OneDrive numbered directory structure. Key moves affecting Master_Automation:
+  - `C:\Dev\PowerBI_Date` → `04_PowerBI/PowerBI_Date_Dev` (archived Dev copy; production `PowerBI_Date` remains at OneDrive root — unaffected)
+  - `C:\Dev\Power_BI_Data` → `04_PowerBI/Power_BI_Data_Dev`
+  - `C:\Dev\overtime_timeoff`, `response_times`, `summons`, etc. → `00_dev/projects/` (dev copies; production ETL scripts remain in `02_ETL_Scripts\` — unaffected)
+  - Migration scripts → `14_Workspace/scripts/`
+  - All active M code files confirmed clean (no `C:\Dev` references)
+
+---
+
 ## [Unreleased]
 
 ### Planned

@@ -15,7 +15,7 @@
     "continue_on_error": true,
     "cleanup_temp_files": true,
     "powerbi_drop_path_overrides": {
-      "PD_BCI_LTP": "C:\\Dev\\PowerBI_Date\\_DropExports"
+      "PD_BCI_LTP": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\_DropExports"
     }
   },
   "scripts": [

@@ -1,6 +1,6 @@
 {
   "settings": {
-    "powerbi_drop_path": "C:\\Dev\\PowerBI_Date\\_DropExports",
+    "powerbi_drop_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\_DropExports",
     "log_directory": "logs",
     "python_executable": "python",
     "continue_on_error": true,

@@ -514,9 +514,15 @@ foreach ($scriptConfig in $scripts) {
         $scriptArgs = ""
         if ($scriptConfig.args) {
             $scriptArgs = $scriptConfig.args
-            # Replace {REPORT_MONTH} token with calculated month
-            $reportMonth = "$year-$monthNum"
-            $scriptArgs = $scriptArgs -replace '\{REPORT_MONTH\}', $reportMonth
+            # Replace {REPORT_MONTH} token — compute previous month directly from $ReportMonth
+            # ($year/$monthNum are scoped to Save-MonthlyReport; cannot be used here)
+            if ($ReportMonth -match "^\d{4}-\d{2}$") {
+                $rmDate = [datetime]::ParseExact($ReportMonth, "yyyy-MM", $null)
+                $prevMonthToken = $rmDate.AddMonths(-1).ToString("yyyy-MM")
+            } else {
+                $prevMonthToken = (Get-Date).AddMonths(-1).ToString("yyyy-MM")
+            }
+            $scriptArgs = $scriptArgs -replace '\{REPORT_MONTH\}', $prevMonthToken
             $psi.Arguments = "`"$scriptFile`" $scriptArgs"
         } else {
             $psi.Arguments = $scriptFile

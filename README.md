@@ -6,7 +6,7 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
 
-**Latest Update (2026-02-23)**: v1.17.5 — February 2026 template update complete. All queries load cleanly (zero DAX errors). Staging data refresh pending — `summons_powerbi_latest.xlsx` only has data through Sep 2025; summons visuals will populate after next ETL run. 45+ queries in 20 page-based subfolders with `pReportMonth` parameter.
+**Latest Update (2026-02-26)**: v1.17.7 — February 2026 ETL cycle complete (4/5 automated + 1 manual re-run). Fixed `{REPORT_MONTH}` scoping bug in `run_all_etl.ps1`; fixed dead `C:\Dev` default paths in Response Times script. All five ETL modules produced January 2026 outputs. Monthly report template saved to `Shared Folder\Compstat\Monthly Reports\2026\01_january\`. Summons Derived Outputs requires Power BI visual export step before re-run.
 
 ## Directory Structure
 
@@ -521,8 +521,8 @@ The manifest provides a machine-readable reference for the entire Master Automat
 ---
 
 **Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`  
-**Last Updated:** 2026-02-23  
-**Version:** 1.17.5  
+**Last Updated:** 2026-02-26  
+**Version:** 1.17.6  
 **Status:** ✅ Template Updated — Staging Data Refresh Pending
 
 
