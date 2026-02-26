@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.8] - 2026-02-26
+
+### Fixed
+- **`summons_powerbi_latest.xlsx` staging schema mismatch** — The staging file at `03_Staging\Summons\summons_powerbi_latest.xlsx` retained the OLD schema (first column `PADDED_BADGE_NUMBER`, no `TICKET_NUMBER`), while the M code in `summons_13month_trend` expects `TICKET_NUMBER` as the first column. Fix: copied the ETL-fresh `PowerBI_Date\_DropExports\summons_powerbi_latest.xlsx` (new schema with `TICKET_NUMBER` first) over the staging copy. The staging file now matches the M code schema and resolves the "The column 'TICKET_NUMBER' of the table wasn't found" refresh error.
+- **`___ResponseTimeCalculator.m` missing January 2026 source** — The M code was hardcoded to only two backfill CSV files (Oct 2025 and Dec 2025), so `01-26` never appeared in Response Time visuals after refresh. Added a third source block loading `PowerBI_Date\Backfill\2026_01\response_time\2026_01_Average_Response_Times__Values_are_in_mmss.csv` and included it in `Table.Combine`. File: `m_code/response_time/___ResponseTimeCalculator.m`.
+
+### ETL Refresh Validation (2026-02-26 Power BI refresh)
+- **Summons — Moving & Parking (All Bureaus)**: ✅ Data populated after refresh. CSB: 5M/0P, Detective Bureau: 15M/61P, Patrol Bureau: 255M/628P, Traffic Bureau: 143M/2599P.
+- **Top 5 Moving Violations**: ✅ M. Jacobsen #0138 (84), M. O'Neill #0327 (48), D. Francavilla #0329 (39)...
+- **Top 5 Parking Violations**: ✅ K. Torres #2027 (678), G. Gallorini #0256 (415), D. Rizzi #2030 (382)...
+- **Monthly Accrual and Usage Summary (Overtime/TimeOff)**: ✅ January 2026 (`01-26`) data present both before and after refresh; SAT: 497.5h, Sick: 1635h.
+- **Average Response Times (mm:ss)**: ❌ Still ends at `12-25` — Jan 2026 data requires the `___ResponseTimeCalculator` M code update above to be pasted into Power BI Advanced Editor, then refresh again.
+- **summons_13month_trend**: ❌ TICKET_NUMBER error — resolved by staging file fix above; re-refresh required.
+- **Community Engagement (___Combined_Outreach_All)**: ⚠️ 0 records for January 2026 — not a bug. The source data (`community_engagement_data_*.csv`) only contains events through November 2025. No January 2026 community engagement events have been entered in the source system. Re-run ETL once source data is available.
+
+---
+
 ## [1.17.7] - 2026-02-26
 
 ### Fixed

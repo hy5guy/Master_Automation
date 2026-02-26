@@ -6,7 +6,7 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
 
-**Latest Update (2026-02-26)**: v1.17.7 — February 2026 ETL cycle complete (4/5 automated + 1 manual re-run). Fixed `{REPORT_MONTH}` scoping bug in `run_all_etl.ps1`; fixed dead `C:\Dev` default paths in Response Times script. All five ETL modules produced January 2026 outputs. Monthly report template saved to `Shared Folder\Compstat\Monthly Reports\2026\01_january\`. Summons Derived Outputs requires Power BI visual export step before re-run.
+**Latest Update (2026-02-26)**: v1.17.8 — Post-refresh fixes: summons staging Excel updated to new schema (resolves TICKET_NUMBER error); `___ResponseTimeCalculator.m` extended with January 2026 source. Summons, Top 5, and OT/TO visuals confirmed correct after refresh. Response Times and summons_13month_trend require one more Power BI refresh after pasting updated M code.
 
 ## Directory Structure
 

@@ -189,10 +189,94 @@ let
     ),
     
     // ========================================================================
+    // LOAD JANUARY 2026 DATA (ETL Output)
+    // ========================================================================
+    
+    Jan2026Raw = Csv.Document(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2026_01\response_time\2026_01_Average_Response_Times__Values_are_in_mmss.csv"),
+        [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]
+    ),
+    Jan2026Headers = Table.PromoteHeaders(Jan2026Raw, [PromoteAllScalars=true]),
+    
+    Jan2026Renamed = Table.RenameColumns(
+        Jan2026Headers,
+        {
+            {"Response Type", "Response_Type"},
+            {"First Response_Time_MMSS", "Response_Time_MMSS"},
+            {"MM-YY", "MM-YY"}
+        },
+        MissingField.Ignore
+    ),
+    
+    Jan2026WithMMYY = if Table.HasColumns(Jan2026Renamed, "MM-YY") then
+        Jan2026Renamed
+    else if Table.HasColumns(Jan2026Renamed, "MM_YY") then
+        Table.RenameColumns(Jan2026Renamed, {{"MM_YY", "MM-YY"}})
+    else
+        Jan2026Renamed,
+    
+    Jan2026WithAvg = Table.AddColumn(
+        Jan2026WithMMYY,
+        "Average_Response_Time",
+        each let
+            timeStr = Text.Trim(Text.From([Response_Time_MMSS])),
+            parts = Text.Split(timeStr, ":"),
+            minutes = if List.Count(parts) >= 2 then
+                let
+                    mins = Number.From(parts{0}),
+                    secs = Number.From(parts{1}),
+                    totalMins = mins + (secs / 60.0)
+                in
+                    totalMins
+            else
+                null
+        in
+            minutes,
+        type number
+    ),
+    
+    Jan2026WithYearMonth = Table.AddColumn(
+        Jan2026WithAvg,
+        "YearMonth",
+        each let
+            mmYY = Text.Trim(Text.From([#"MM-YY"])),
+            parts = Text.Split(mmYY, "-"),
+            yearMonth = if List.Count(parts) >= 2 then
+                let
+                    mm = parts{0},
+                    yy = "20" & parts{1},
+                    yearMonthStr = yy & "-" & Text.PadStart(mm, 2, "0")
+                in
+                    yearMonthStr
+            else
+                null
+        in
+            yearMonth,
+        type text
+    ),
+    
+    Jan2026WithDateKey = Table.AddColumn(
+        Jan2026WithYearMonth,
+        "Date_Sort_Key",
+        each let
+            yearMonth = [YearMonth],
+            dateValue = try 
+                let
+                    dateStr = yearMonth & "-01",
+                    parsed = Date.FromText(dateStr)
+                in
+                    parsed
+            otherwise null
+        in
+            dateValue,
+        type date
+    ),
+
+    // ========================================================================
     // COMBINE DATASETS
     // ========================================================================
     
-    Combined = Table.Combine({BackfillWithDateKey, Nov2025WithDateKey}),
+    Combined = Table.Combine({BackfillWithDateKey, Nov2025WithDateKey, Jan2026WithDateKey}),
     
     // ========================================================================
     // ENSURE ALL REQUIRED COLUMNS EXIST AND ARE CORRECT TYPE
