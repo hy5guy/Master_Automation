@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.9] - 2026-02-26
+
+### Fixed
+- **`summons_13month_trend.m` — removed `TICKET_NUMBER` from `ChangedType`** — The current `summons_etl_enhanced.py` produces staging files with `PADDED_BADGE_NUMBER` as the first column (old schema); `TICKET_NUMBER` never exists in that file. `Table.TransformColumnTypes` has no `MissingField.Ignore` option, so the reference caused the "column not found" error. Removed the line; `TICKET_NUMBER` was not used in any downstream calculation.
+- **`PATROL BUREAU` → `PATROL DIVISION` consolidation in both summons M code files** — The assignment master (`final_assignment.csv`) assigns patrol officers to WG2 = "PATROL BUREAU", but the All Bureaus visual should show "PATROL DIVISION". Previously only "HOUSING" and "OFFICE OF SPECIAL OPERATIONS" were consolidated. Added "PATROL BUREAU" to the `if` condition in both `summons_13month_trend.m` and `summons_all_bureaus.m`.
+- **Restored `summons_powerbi_latest.xlsx` from today's ETL timestamped copy** — Incorrect file (Feb 17 `_DropExports` copy with WG2=None and sparse month coverage) was overwritten; restored from `summons_powerbi_20260226_164646.xlsx` which has proper WG2 assignments for all bureaus.
+
+### Known Data Discrepancies (Jan 2026 report, requires investigation)
+- **Traffic Bureau summons count gap**: ETL (from ATS court data): 143M / 2,599P. Submitted report: 217M / 3,117P. Delta: +74M +518P. Likely explained by `data/traffic_peo_additions_2026_02_17.csv` (untracked) containing PEO parking tickets not yet fed into the summons ETL.
+- **Detective Bureau summons count gap**: ETL: 15M / 61P. Submitted report: 0M / 1P. Investigation needed — possible assignment master change reclassified some patrol officers as Detective Bureau since the submitted report was generated.
+- **OT/TO July and August 2025 drift**: FIXED_monthly_breakdown reprocessed from raw data. Small positive differences vs submitted report (July sick +24h, July SAT +32h, August SAT +4h). Likely caused by retroactively-added raw records in the export files. These reflect more accurate data than was submitted; not a bug.
+
+---
+
 ## [1.17.8] - 2026-02-26
 
 ### Fixed

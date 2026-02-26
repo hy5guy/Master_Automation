@@ -8,7 +8,6 @@ let
     Summons_Data_Sheet = Source{[Item="Summons_Data",Kind="Sheet"]}[Data],
     PromotedHeaders = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
     ChangedType = Table.TransformColumnTypes(PromotedHeaders,{
-        {"TICKET_NUMBER", type text}, 
         {"PADDED_BADGE_NUMBER", type text}, 
         {"OFFICER_DISPLAY_NAME", type text}, 
         {"OFFICER_NAME_RAW", type text}, 
@@ -37,6 +36,6 @@ let
         {"PROCESSING_TIMESTAMP", type datetime}
     }),
     FilteredClean = Table.SelectRows(ChangedType, each [WG2] <> "UNKNOWN"),
-    AddConsolidatedBureau = Table.AddColumn(FilteredClean, "Bureau_Consolidated", each if [WG2] = "HOUSING" or [WG2] = "OFFICE OF SPECIAL OPERATIONS" then "PATROL DIVISION" else [WG2], type text)
+    AddConsolidatedBureau = Table.AddColumn(FilteredClean, "Bureau_Consolidated", each if [WG2] = "HOUSING" or [WG2] = "OFFICE OF SPECIAL OPERATIONS" or [WG2] = "PATROL BUREAU" then "PATROL DIVISION" else [WG2], type text)
 in
     AddConsolidatedBureau

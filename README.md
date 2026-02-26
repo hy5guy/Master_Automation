@@ -6,7 +6,7 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
 
-**Latest Update (2026-02-26)**: v1.17.8 — Post-refresh fixes: summons staging Excel updated to new schema (resolves TICKET_NUMBER error); `___ResponseTimeCalculator.m` extended with January 2026 source. Summons, Top 5, and OT/TO visuals confirmed correct after refresh. Response Times and summons_13month_trend require one more Power BI refresh after pasting updated M code.
+**Latest Update (2026-02-26)**: v1.17.9 — Summons M code fixes: removed TICKET_NUMBER dependency (not in current ETL schema), added PATROL BUREAU → PATROL DIVISION consolidation. Restored staging file from today's ETL. Known data gaps: Traffic Bureau +74M/+518P vs submitted (PEO additions not yet in ETL); Detective Bureau discrepancy under investigation. OT/TO 7-25/8-25 drift is from retroactive raw-data additions (more accurate, not a bug).
 
 ## Directory Structure
 

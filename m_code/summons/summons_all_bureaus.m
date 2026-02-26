@@ -24,9 +24,9 @@ let
     GroupedRows = Table.Group(FilteredClean, {"WG2", "TYPE"},
         {{"Count", each Table.RowCount(_), type number}}),
 
-    // Consolidate HOUSING & OSO into PATROL DIVISION
+    // Consolidate HOUSING, OSO, and PATROL BUREAU into PATROL DIVISION
     ConsolidatedBureaus = Table.TransformColumns(GroupedRows,
-        {"WG2", each if _ = "HOUSING" or _ = "OFFICE OF SPECIAL OPERATIONS"
+        {"WG2", each if _ = "HOUSING" or _ = "OFFICE OF SPECIAL OPERATIONS" or _ = "PATROL BUREAU"
             then "PATROL DIVISION" else _}),
 
     // Re-group after consolidation
