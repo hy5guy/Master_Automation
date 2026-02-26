@@ -6,7 +6,7 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
 
-**Latest Update (2026-02-26)**: v1.17.9 — Summons M code fixes: removed TICKET_NUMBER dependency (not in current ETL schema), added PATROL BUREAU → PATROL DIVISION consolidation. Restored staging file from today's ETL. Known data gaps: Traffic Bureau +74M/+518P vs submitted (PEO additions not yet in ETL); Detective Bureau discrepancy under investigation. OT/TO 7-25/8-25 drift is from retroactive raw-data additions (more accurate, not a bug).
+**Latest Update (2026-02-26)**: v1.17.10 — Assignment Master updated to V3 schema (Feb 20, 2026): 166 rows, PATROL DIVISION, 36 Traffic Bureau officers. Summons ETL updated to detect V2/V3 schema automatically. Staging file regenerated — Jan 2026 bureau counts now match submitted report (Traffic: 217M/3,117P; Detective: 0M/1P). Power BI refresh required to pick up new staging data.
 
 ## Directory Structure
 

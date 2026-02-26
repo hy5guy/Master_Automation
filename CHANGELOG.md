@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.10] - 2026-02-26
+
+### Fixed
+- **`summons_etl_enhanced.py` — Assignment Master V3 schema support** — The ETL's `_load_assignment_master` function was hardcoded to look for `Proposed 4-Digit Format` (V2 schema, Jan 14 vintage). The `09_Reference\Personnel\Assignment_Master_V2.csv` file was updated to V3 schema on 2026-02-20, replacing `Proposed 4-Digit Format` with `STANDARD_NAME` and renaming `PATROL BUREAU` → `PATROL DIVISION`. Updated `_load_assignment_master` to detect schema version and accept either column name, with detailed logging for which schema is in use. File: `02_ETL_Scripts\Summons\summons_etl_enhanced.py`.
+- **Updated `Master_Automation\Assignment_Master_V2.csv` to Feb 20, 2026 version** — ETL was reading the Jan 14 vintage (163 rows, `PATROL BUREAU` in WG2, 29 Traffic Bureau officers). Installed the current `09_Reference\Personnel\Assignment_Master_V2.csv` (166 rows, `PATROL DIVISION`, 36 Traffic Bureau officers, 9 Detective Bureau officers). Old file backed up as `Assignment_Master_V2_backup_20260114.csv`.
+
+### ETL Re-run — Summons (2026-02-26 18:09)
+After the Assignment Master and ETL script fixes, the summons ETL was re-run. January 2026 results now match the submitted report:
+- **Traffic Bureau**: M=217, P=3,117 ✅ (was 143M / 2,599P with old master)
+- **Detective Bureau**: M=0, P=1 ✅ (was 15M / 61P with old master)
+- **Patrol Division**: M=238, P=450 (HOUSING and OSO consolidated by M code)
+- **No `PATROL BUREAU` category** — all patrol assigned correctly to `PATROL DIVISION` ✅
+- Total: 462M / 3,577P across all bureaus (e-ticket data only; excludes CJIS/PEO if applicable)
+- Staging file updated: `03_Staging\Summons\summons_powerbi_latest.xlsx` (timestamped: `summons_powerbi_20260226_180905.xlsx`)
+- Badge `9110` unmatched — not in Assignment Master; flagged in log; records preserved as NO_MATCH.
+
+---
+
 ## [1.17.9] - 2026-02-26
 
 ### Fixed
@@ -14,9 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`PATROL BUREAU` → `PATROL DIVISION` consolidation in both summons M code files** — The assignment master (`final_assignment.csv`) assigns patrol officers to WG2 = "PATROL BUREAU", but the All Bureaus visual should show "PATROL DIVISION". Previously only "HOUSING" and "OFFICE OF SPECIAL OPERATIONS" were consolidated. Added "PATROL BUREAU" to the `if` condition in both `summons_13month_trend.m` and `summons_all_bureaus.m`.
 - **Restored `summons_powerbi_latest.xlsx` from today's ETL timestamped copy** — Incorrect file (Feb 17 `_DropExports` copy with WG2=None and sparse month coverage) was overwritten; restored from `summons_powerbi_20260226_164646.xlsx` which has proper WG2 assignments for all bureaus.
 
-### Known Data Discrepancies (Jan 2026 report, requires investigation)
-- **Traffic Bureau summons count gap**: ETL (from ATS court data): 143M / 2,599P. Submitted report: 217M / 3,117P. Delta: +74M +518P. Likely explained by `data/traffic_peo_additions_2026_02_17.csv` (untracked) containing PEO parking tickets not yet fed into the summons ETL.
-- **Detective Bureau summons count gap**: ETL: 15M / 61P. Submitted report: 0M / 1P. Investigation needed — possible assignment master change reclassified some patrol officers as Detective Bureau since the submitted report was generated.
+### Known Data Discrepancies (Jan 2026 report — resolved in v1.17.10)
+- **Traffic Bureau summons count gap**: ETL (from ATS court data): 143M / 2,599P. Submitted report: 217M / 3,117P. Root cause: outdated Assignment Master (Jan 14 vintage, 29 Traffic officers) was used. Resolved by installing Feb 20 master (36 Traffic officers).
+- **Detective Bureau summons count gap**: ETL: 15M / 61P. Submitted report: 0M / 1P. Root cause: same outdated Assignment Master caused some officers to be incorrectly bucketed to Detective Bureau. Resolved in v1.17.10.
 - **OT/TO July and August 2025 drift**: FIXED_monthly_breakdown reprocessed from raw data. Small positive differences vs submitted report (July sick +24h, July SAT +32h, August SAT +4h). Likely caused by retroactively-added raw records in the export files. These reflect more accurate data than was submitted; not a bug.
 
 ---
