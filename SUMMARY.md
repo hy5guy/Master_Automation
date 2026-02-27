@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
 **Last Updated:** 2026-02-27
-**Status:** ⚠️ v1.17.18 — Executive report and print version delivered; HPD design system template created; Calculator M code in PBIX still needs manual update + refresh
-**Version:** 1.17.18
+**Status:** ⚠️ v1.17.19 — Response time filter corrections complete; all 25 monthly CSVs regenerated (citizen-initiated definition); Power BI refresh required
+**Version:** 1.17.19
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ⚠️ v1.17.18 — Executive report + print version delivered; design system template created; Calculator M code update + refresh pending |
-| **Version** | 1.17.18 |
+| **Status** | ⚠️ v1.17.19 — Three-layer filter expansion + peer-review corrections complete; 25 monthly CSVs regenerated (citizen-initiated); Power BI refresh required |
+| **Version** | 1.17.19 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -688,6 +688,30 @@ The manifest provides a machine-readable reference for the entire Master Automat
 **Maintained by:** R. A. Carucci  
 **Last Updated:** 2026-02-23  
 **Version:** 1.17.5
+
+---
+
+## Recent Updates (2026-02-27)
+
+### v1.17.19 — Peer-Review Corrections to Incident Exclusion List
+
+- **9 types moved from EXCLUDED to INCLUDED:** Suspicious Person, Suspicious Vehicle, Missing Person - Adult, Missing Person - Juvenile, NARCAN Deployment - Juvenile - Aid, Overdose - Juvenile - Aid, Juvenile Complaint (Criminal), ESU - Response. All are citizen-initiated dispatched calls.
+- **Juvenile NARCAN/Overdose inconsistency resolved:** Juvenile versions now consistent with adult equivalents (included).
+- **`_normalize()` enhanced:** Explicit en-dash, em-dash, replacement-char handling added before non-ASCII sweep.
+- Exclusion list: 280 → **272 normalized types**. Jan-26 Urgent: n=355 → 400, ratio 1.0×. All 18 metrics clean.
+- **All 25 monthly CSVs regenerated.**
+
+### v1.17.18 — Response Time Three-Layer Filter Expansion (Analyst Specification)
+
+- **"How Reported" filter (NEW):** Retains citizen-initiated calls for service: 9-1-1, Phone (non-emergency line — alarms, break-ins, noise complaints), Walk-In. Excludes Self-Initiated, Radio, eMail, Fax, Mail, Virtual Patrol, Teletype, Other - See Notes, Canceled Call. Applied before dedup. Removes ~60–65% of CAD records.
+- **Incident exclusion list expanded: 92 → ~234 types** — Analyst-confirmed list adds self-initiated enforcement (MV Violations, Traffic Violations, Field Contacts, targeted patrol variants), administrative processing, regulatory enforcement, special operations, and traffic infrastructure types.
+- **Category_Type filter (NEW):** Safety-net filter excludes incidents mapping to "Administrative and Support" or "Community Engagement" in `CallType_Categories.csv`.
+- **`_normalize()` updated:** Dashes and non-ASCII characters now replaced with space before whitespace collapse.
+- **"101 types" stale comment fixed** in both scripts; runtime count logged at startup.
+- **All 25 monthly CSVs regenerated.** Total annual records: 2025: 114,064 → 18,502 final (citizen-initiated).
+- **Routine bimodal distribution resolved for Jan-26:** mean/median ratio 9.5× → 1.1× (median 0:13 → 3:19, n=1,075 → 388).
+- **Comparison doc:** `docs/response_time/2026_02_27_PreFix_vs_PostFix_Comparison_v1.17.18.md`
+- **Power BI refresh required.**
 
 ---
 

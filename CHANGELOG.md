@@ -7,7 +7,138 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.19] - 2026-02-27
+
+### Fixed — Peer-Review Corrections to Incident Exclusion List
+
+**File:** `02_ETL_Scripts/Response_Times/response_time_batch_all_metrics.py`
+
+Eight incident types moved from EXCLUDED to INCLUDED following peer review that identified them
+as citizen-initiated dispatched calls rather than officer-initiated or administrative entries:
+
+| Type | Rationale for Inclusion |
+|---|---|
+| `Suspicious Person` | Citizens call 9-1-1 to report suspicious persons — genuine dispatched call |
+| `Suspicious Vehicle` | Same — citizen report requiring officer dispatch |
+| `Missing Person - Adult` | Initial reports are citizen-initiated (Return variant remains excluded) |
+| `Missing Person - Juvenile` | Consistent with Missing Person - Adult decision |
+| `NARCAN Deployment - Juvenile - Aid` | Adult equivalent (`NARCAN Deployment - Adult - Aid`) was already included |
+| `Overdose - Juvenile - Aid` | Consistent with adult equivalent which was already included |
+| `Juvenile Complaint (Criminal)` | Can be a citizen report of juvenile criminal activity requiring dispatch |
+| `ESU - Response` | Tactical deployment to active citizen emergency (barricade, hostage, etc.) — distinct from ESU Training and ESU Targeted Patrol (both remain excluded) |
+
+`_normalize()` enhanced to explicitly handle en-dash (U+2013), em-dash (U+2014), minus sign
+(U+2212), replacement character (U+FFFD), and soft hyphen (U+00AD) before the general non-ASCII
+sweep. Prevents entire class of unicode dash-variant matching failures permanently.
+
+### Impact
+- Exclusion list: 280 → 272 normalized types
+- Jan-26 Urgent: n=355 → 400 (Dispatch-to-Scene), ratio 1.1× → 1.0×
+- Jan-25 Urgent: n=427 → 492 (Dispatch-to-Scene)
+- Jan-26 Emergency and Routine: unchanged (these types are Urgent-classified)
+- **All 25 monthly CSVs regenerated.** Power BI refresh required.
+
+---
+
 ## [1.17.18] - 2026-02-27
+
+### Fixed — Three-Layer Filter Expansion for Response Time Batch ETL
+
+**File:** `02_ETL_Scripts/Response_Times/response_time_batch_all_metrics.py`
+
+#### LAYER 1 — "How Reported" filter (NEW) — citizen-initiated definition
+Retains all citizen-initiated calls for service. Values **kept**: `9-1-1`, `Phone` (non-emergency
+line — break-ins, noise complaints, alarm monitoring company calls), `Walk-In` (citizen at station,
+officer dispatched). Values **excluded**: `Self-Initiated`, `Radio`, `Teletype`, `Fax`,
+`Other - See Notes`, `eMail`, `Mail`, `Virtual Patrol`, `Canceled Call`.
+
+Applied before dedup so all records for a non-citizen-initiated call are removed before the
+first-arriving-unit sort. Removes ~60–65% of CAD records.
+
+*Note: An intermediate implementation used "9-1-1 only" which excluded Phone and Walk-In. This was
+corrected after peer review established that (a) alarm monitoring company calls (Phone) constitute
+the largest population of genuine Urgent dispatched calls, (b) sample sizes became statistically
+marginal (n<110 for some Jan-26 categories), and (c) the 9-1-1-only definition is methodologically
+indefensible for non-emergency citizen reports.*
+
+Impact (final): 2024 from 110,328 (year-filtered) → 44,653; 2025 from 114,064 → 43,560;
+2026-01 from 10,435 → 3,734.
+
+#### LAYER 2 — Incident exclusion list (EXPANDED: 92 → 234 types)
+Analyst-confirmed full exclusion list replacing the original 92-type list. Two new blocks added:
+
+- **Self-initiated enforcement / officer-directed patrol:** `Motor Vehicle Violation` (and
+  variants), `Traffic Violation`, `Field Contact/ Information`, `ESU - Targeted Patrol`,
+  `Targeted Area Patrol` (and case variants), `Virtual - Patrol`, `Business Check`,
+  `Property Check`, `Municipal Property/Building Check`, `Checked Road Conditions (Weather)`,
+  all `Community Engagement - *` sub-types.
+
+- **Administrative processing / internal operations:** Court processing (`Court Appearance`,
+  `Court Order`, `Court - Municipal Prisoner`), record dispositions (`Unfounded Incident`,
+  `Exceptionally Cleared/Closed`, `Warrant Recall`), sex offender processing (registration,
+  serve documents, travel, removal orders), property processing (dispositions, returns,
+  surrenders), service of legal documents (`Service - Subpoena`, `Service - Summons`,
+  `Service of TRO / FRO`), internal/clerical (`Fingerprints`, `Photography`, `Meeting`,
+  `Computer Issue - *`, `Generator Test`, `Civil Defense Test`), prisoner handling
+  (`Prisoner Log`, `Prisoner Transport`), informational (`General Information`,
+  `Notification Request`, `Warning Issued`), investigations/evidence/ALPR (BOLO, DNA
+  Sample, evidence delivery/retrieval, facial recognition), missing persons, search warrant
+  executions, suspicious activity reports, juvenile administrative, assistance calls
+  (Assist Motorist, Mutual Aid, Escort, Funeral Escort, etc.), regulatory enforcement
+  (ABC Advisory Check, Alarm Ordinance, Alcoholic Beverage violations, Snow Removal,
+  Vending Without Permit), special operations (A.T.R.A., Controlled Buy, ESU Response,
+  pursuits, RDF/RDT deployment, UAS Operation), and traffic infrastructure
+  (Traffic Light Malfunction, Traffic Sign/Signal Malfunction, Motor Vehicle Private
+  Property Tow, Breath Test, Repossessed Motor Vehicle).
+
+#### LAYER 3 — Category_Type filter (NEW)
+After backfilling `Category_Type` from `CallType_Categories.csv` via normalized incident
+matching, excludes any record whose `Category_Type` is `"Administrative and Support"` or
+`"Community Engagement"`. Acts as a safety net for types not explicitly in the incident list.
+Impact: minimal (38 additional records in 2024, 26 in 2025, 2 in 2026-01) — confirming the
+incident list is comprehensive.
+
+#### Normalization enhancement (`_normalize()`)
+Updated to replace non-ASCII characters AND ASCII dashes with a space before whitespace
+collapse (previously stripped non-ASCII and kept dashes). This ensures unicode replacement-
+character variants (e.g., `Motor Vehicle Violation \ufffd Private Property`) normalize
+identically to their canonical dash-separated forms. Applied symmetrically to both the
+exclusion set and CAD data so existing matches are unaffected.
+
+#### Stale "101 types" comment fixed
+Both `response_time_batch_all_metrics.py` and `process_cad_data_13month_rolling.py` contained
+a stale comment claiming "101 types." Programmatic extraction confirmed both scripts had
+exactly 92 identical types prior to v1.17.18. Comments corrected. Runtime logging added:
+`logging.info(f"Admin incident filter: {len(ADMIN_INCIDENTS_NORM)} normalized types loaded")`
+to prevent future drift. Post-v1.17.18 actual count: **280 normalized types.**
+
+### Pre/Post Impact (Jan-25 and Jan-26)
+Full comparison: `docs/response_time/2026_02_27_PreFix_vs_PostFix_Comparison_v1.17.18.md`
+
+**Routine "Time Out − Time Dispatched" — bimodal distribution resolved for Jan-26:**
+- Jan-26: Mean/median ratio improved from 9.5× → 1.1× (2:04 avg/0:13 median → 3:33 avg/3:19 median)
+- Record count: 1,075 (pre) → 388 (post, citizen-initiated)
+
+**Sample sizes — statistically sound with citizen-initiated definition:**
+- Jan-26: Emergency n=234, Routine n=388, Urgent n=355 (Dispatch-to-Scene)
+- Jan-25: Emergency n=336, Routine n=721, Urgent n=427 (Dispatch-to-Scene)
+
+**Total annual records reduced to citizen-initiated subset:**
+- 2024: 110,328 (year-filtered) → 17,656 final (84% reduction — ~60% from How Reported filter, remainder from incident/category filters)
+- 2025: 114,064 → 17,785 final (84% reduction)
+- 2026-01: 10,435 → 1,444 final (86% reduction)
+
+**All 25 monthly CSVs regenerated** at `PowerBI_Date\Backfill\response_time_all_metrics\`.
+Power BI refresh required.
+
+### Tech Debt Logged
+- **Response Type priority inconsistency (rolling script):** `process_cad_data_13month_rolling.py`
+  drops the original CAD `Response Type` column and maps only via `CAD_CALL_TYPE.xlsx`, discarding
+  valid direct-from-CAD values for 2025+ data. The rolling script is not the active Power BI source.
+  Deferred to a future refactor; batch ETL priority cascade (CAD value → exact match → normalized
+  match) remains correct.
+
+---
 
 ### Added - Report Deliverables and Reusable Design System
 

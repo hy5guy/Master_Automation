@@ -6,7 +6,9 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
 
-**Latest Update (2026-02-27):** v1.17.18 — Executive report deliverables for Chief Antista: screen version and print-optimized version (full color, letter-sized, no em dashes). Reusable HPD report design system prompt created at `docs/templates/HPD_Report_Style_Prompt.md`. Prior: v1.17.17 peer review corrections (Opus) — admin list count corrected to 92, Routine bimodal skew documented. See `CHANGELOG.md` for full detail. **Power BI action still pending:** Update ___ResponseTimeCalculator M code in Desktop then refresh all three response time queries.
+**Latest Update (2026-02-27):** v1.17.19 — Peer-review corrections: Suspicious Person, Suspicious Vehicle, Missing Person (Adult/Juvenile), NARCAN/Overdose Juvenile, Juvenile Complaint (Criminal), and ESU - Response moved from excluded to included (citizen-initiated dispatched calls). Normalization enhanced for unicode dash variants. All 25 monthly CSVs regenerated. See `CHANGELOG.md` for full detail. **Power BI refresh required.**
+
+**v1.17.18 (2026-02-27):** Response time batch ETL three-layer filter expansion. (1) New "How Reported" filter retains citizen-initiated calls for service: 9-1-1, Phone (non-emergency line — alarms, break-ins, noise complaints from monitoring companies), Walk-In. Excludes Self-Initiated, Radio, eMail, Fax, Mail, Virtual Patrol, Teletype, Canceled Call. (2) Incident exclusion list expanded from 92 to ~234 analyst-confirmed types. (3) New Category_Type safety-net filter excludes "Administrative and Support" and "Community Engagement" incidents. Normalization updated to handle unicode/dash variants. All 25 monthly CSVs regenerated. Routine bimodal skew resolved for Jan-26 (mean/median ratio: 9.5× → 1.1×, n=388). See `CHANGELOG.md` and `docs/response_time/2026_02_27_PreFix_vs_PostFix_Comparison_v1.17.18.md` for full detail. **Power BI refresh required.**
 
 ## Directory Structure
 
