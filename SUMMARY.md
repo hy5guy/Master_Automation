@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-02-26
-**Status:** ⚠️ v1.17.17 — Peer review complete (Opus); Calculator M code in PBIX needs manual update + refresh; Routine skew documented
-**Version:** 1.17.17
+**Last Updated:** 2026-02-27
+**Status:** ⚠️ v1.17.18 — Executive report and print version delivered; HPD design system template created; Calculator M code in PBIX still needs manual update + refresh
+**Version:** 1.17.18
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ⚠️ v1.17.17 — Opus peer review complete; Routine skew documented; Calculator M code update + refresh pending |
-| **Version** | 1.17.17 |
+| **Status** | ⚠️ v1.17.18 — Executive report + print version delivered; design system template created; Calculator M code update + refresh pending |
+| **Version** | 1.17.18 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -96,7 +96,8 @@ Master_Automation/
 │   ├── (other helper Python scripts)
 │   └── _testing/               # Benchmark/debug scripts (4 files)
 ├── docs/                        # Documentation files
-│   ├── response_time/          # Response Time docs (13 files)
+│   ├── response_time/          # Response Time docs (15 files incl. Chief Antista reports)
+│   ├── templates/              # Reusable AI prompt templates (HPD design system)
 │   ├── archived_workflows/     # Archived workflows
 │   └── (migration guides, reports, troubleshooting)
 ├── m_code/                      # Power BI M code (45 queries, 20 page folders)

@@ -6,7 +6,7 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
 
-**Latest Update (2026-02-26):** v1.17.17 — Peer review corrections (Claude Opus): admin list count corrected to 92; production rolling script sort confirmed; NEW FINDING: Routine "Dispatch to On Scene" has 10× mean/median skew (bimodal — traffic stops and field contacts where officer is already on scene). Documented as data characteristic with admin talking point. See `CHANGELOG.md` and `PEER_REVIEW_Response_Time_v1_17_16_2026_02_26.md`. **Action required:** Update ___ResponseTimeCalculator M code in Power BI Desktop then refresh all three response time queries.
+**Latest Update (2026-02-27):** v1.17.18 — Executive report deliverables for Chief Antista: screen version and print-optimized version (full color, letter-sized, no em dashes). Reusable HPD report design system prompt created at `docs/templates/HPD_Report_Style_Prompt.md`. Prior: v1.17.17 peer review corrections (Opus) — admin list count corrected to 92, Routine bimodal skew documented. See `CHANGELOG.md` for full detail. **Power BI action still pending:** Update ___ResponseTimeCalculator M code in Desktop then refresh all three response time queries.
 
 ## Directory Structure
 
@@ -49,6 +49,10 @@ Master_Automation/
 │   └── _testing/                             # Benchmark and debug scripts
 ├── docs/                        # Project documentation (migration, verification, guides)
 │   ├── response_time/          # Response Time documentation and reports
+│   │   ├── Response_Time_Correction_Report_Chief_Antista_2026_02_26.html  # Executive report (screen)
+│   │   └── Response_Time_Correction_Report_Chief_Antista_2026_02_26_PRINT.html  # Print version (color, letter)
+│   ├── templates/              # Reusable AI prompt templates and design systems
+│   │   └── HPD_Report_Style_Prompt.md  # HPD navy/gold HTML report design system prompt
 │   ├── archived_workflows/     # Archived workflow files
 │   ├── DESKTOP_CONFIGURATION_TROUBLESHOOTING.md  # Desktop setup and troubleshooting guide
 │   ├── FEBRUARY_2026_ETL_CYCLE_SUMMARY.md  # Complete ETL cycle execution results

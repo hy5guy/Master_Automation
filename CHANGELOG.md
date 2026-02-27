@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.18] - 2026-02-27
+
+### Added - Report Deliverables and Reusable Design System
+
+#### Executive Report for Chief Antista
+- **`docs/response_time/Response_Time_Correction_Report_Chief_Antista_2026_02_26.html`**
+  Full-color HTML report prepared for Chief Antista explaining the response time data
+  correction (v1.17.15-v1.17.17). Covers all three findings, before/after impact table,
+  corrected January 2026 values, methodology defense, data coverage, and Power BI refresh
+  steps. Uses the HPD navy/gold design system (see below). Signature block included.
+
+- **`docs/response_time/Response_Time_Correction_Report_Chief_Antista_2026_02_26_PRINT.html`**
+  Print-optimized version of the Chief Antista report. Retains the full navy/gold color
+  theme, finding badges, and table styling from the screen version but is scaled for
+  letter paper (8.5in, 0.75in margins), includes page-break controls, and uses
+  `print-color-adjust: exact` to preserve colors in print/PDF output. All em dashes
+  replaced with standard hyphens for clean printing. Includes a forced page break before
+  the methodology section (page 2).
+
+#### Reusable Design System Template
+- **`docs/templates/HPD_Report_Style_Prompt.md`** (new directory: `docs/templates/`)
+  Reusable AI prompt template capturing the full HPD report design system. Paste the
+  style block into any future AI conversation when requesting an HTML report to get the
+  same formatting automatically. Contains:
+  - Color palette with hex values (navy #1a2744, gold #c8a84b, green #2e7d32, red #b71c1c)
+  - Typography and spacing rules
+  - Component specs for: alert boxes (gold/green), finding badges (critical/high/info),
+    KPI summary grid, data tables (standard and corrected-values variant), signature block
+  - Full copy-paste CSS block (complete `<style>` tag contents)
+  - Full HTML skeleton with all structural elements and placeholder text
+  - Quick-reference cheat sheet of class names and their purposes
+
+---
+
 ## [1.17.17] - 2026-02-26
 
 ### Documentation — Peer Review Corrections (Claude Opus, 2026-02-26)
