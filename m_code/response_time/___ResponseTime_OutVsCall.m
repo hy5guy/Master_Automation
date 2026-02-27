@@ -2,7 +2,7 @@
 // # response_time/___ResponseTime_OutVsCall.m
 // # Author: R. A. Carucci
 // # Metric: Time Out − Time of Call  (total response: call receipt → officer on scene)
-// # Source: PowerBI_Date\Backfill\response_time_all_metrics\
+// # Source: PowerBI_Date\response_time_all_metrics\ (v1.17.20 baseline)
 //
 // Rolling 13-Month Window (driven by pReportMonth):
 //   End   = month BEFORE pReportMonth  (last complete month)
@@ -16,7 +16,7 @@ let
     StartYM   = Date.Year(StartDate) * 100 + Date.Month(StartDate),
 
     // ── Load all monthly CSVs from the unified backfill folder ─────────────────
-    AllFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\response_time_all_metrics"),
+    AllFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\response_time_all_metrics"),
     CSVFiles = Table.SelectRows(AllFiles, each Text.EndsWith([Name], "_response_times.csv")),
     WithFullPath = Table.AddColumn(CSVFiles, "FullPath", each [Folder Path] & [Name], type text),
 
