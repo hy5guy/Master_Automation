@@ -1,19 +1,15 @@
 // 🕒 2026-02-26-20-00-00 (EST)
-// # response_time/___ResponseTimeCalculator.m
+// # response_time/___ResponseTime_OutVsCall.m
 // # Author: R. A. Carucci
-// # Metric: Time Out − Time Dispatched
+// # Metric: Time Out − Time of Call  (total response time from first ring to officer on scene)
 // # Source: PowerBI_Date\Backfill\response_time_all_metrics\  (all months 2024–present)
-// # Note: 2024 data has sparse Response Type population (mostly Routine only).
-// #       2025 and 2026+ have complete Emergency/Urgent/Routine coverage.
 
 let
     // ── Load all monthly CSVs from the unified backfill folder ─────────────────
     AllFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\response_time_all_metrics"),
 
-    // Keep only the monthly metric CSVs
     CSVFiles = Table.SelectRows(AllFiles, each Text.EndsWith([Name], "_response_times.csv")),
 
-    // Build full path column, then load + combine all CSVs
     WithFullPath = Table.AddColumn(CSVFiles, "FullPath", each [Folder Path] & [Name], type text),
 
     LoadCSV = (filePath as text) =>
@@ -25,7 +21,7 @@ let
     AllData = Table.Combine(List.Transform(WithFullPath[FullPath], LoadCSV)),
 
     // ── Filter to this metric only ─────────────────────────────────────────────
-    Filtered = Table.SelectRows(AllData, each [Metric_Type] = "Time Out - Time Dispatched"),
+    Filtered = Table.SelectRows(AllData, each [Metric_Type] = "Time Out - Time of Call"),
 
     // ── Standardize column types ───────────────────────────────────────────────
     Typed = Table.TransformColumnTypes(
@@ -60,10 +56,8 @@ let
     ),
 
     // ── Alias / compatibility columns for DAX measures ─────────────────────────
-    WithDate = Table.AddColumn(WithDateKey, "Date", each [Date_Sort_Key], type date),
-
-    WithAvgRT = Table.AddColumn(WithDate, "Average_Response_Time", each [Avg_Minutes], type number),
-
+    WithDate    = Table.AddColumn(WithDateKey, "Date", each [Date_Sort_Key], type date),
+    WithAvgRT   = Table.AddColumn(WithDate, "Average_Response_Time", each [Avg_Minutes], type number),
     WithCategory = Table.AddColumn(WithAvgRT, "Category", each [Response_Type], type text),
 
     RenamedMMSS = Table.RenameColumns(WithCategory, {{"First_Response_Time_MMSS", "Response_Time_MMSS"}}),

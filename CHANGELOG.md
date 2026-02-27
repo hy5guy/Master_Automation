@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.11] - 2026-02-26
+
+### Added
+- **`02_ETL_Scripts\Response_Times\response_time_batch_all_metrics.py`** — New batch ETL that processes all available CAD timereport data and outputs all three response time metrics to a single folder consumed by Power BI via `Folder.Files()`. Sources: `2024_full_timereport.xlsx`, `2025_full_timereport.xlsx`, `2026_01_timereport.xlsx`. Produces 25 monthly CSVs in `PowerBI_Date\Backfill\response_time_all_metrics\`.
+- **`m_code\response_time\___ResponseTime_OutVsCall.m`** — New Power BI query for **Time Out − Time of Call** (total response: call receipt to officer on scene). Uses `Folder.Files()` on the unified backfill folder, filtered by `Metric_Type = "Time Out - Time of Call"`. Same output schema as `___ResponseTimeCalculator.m` for DAX compatibility.
+- **`m_code\response_time\___ResponseTime_DispVsCall.m`** — New Power BI query for **Time Dispatched − Time of Call** (dispatcher queue time: call receipt to dispatch). Same architecture as above, filtered by `Metric_Type = "Time Dispatched - Time of Call"`.
+
+### Changed
+- **`m_code\response_time\___ResponseTimeCalculator.m`** — Replaced all hardcoded individual CSV source blocks with a single `Folder.Files()` load from `PowerBI_Date\Backfill\response_time_all_metrics`, filtered to `Metric_Type = "Time Out - Time Dispatched"`. This is the "golden standard" re-run using raw CAD data (not the old pre-aggregated backfill CSVs with potentially flawed calculations). Covers 2024–01-26. Output schema unchanged for DAX compatibility.
+
+### ETL Run — Response Time Batch (2026-02-26)
+- **2024 Full Year**: 82,891 records after dedup. `Response Type` was nearly unpopulated (< 1% valid values — CAD export issue). Only `Routine` (and a handful of `Emergency`) appear for 2024 months. Data is included but should be interpreted with caution.
+- **2025 Full Year**: 87,436 records after dedup → 84,162 with valid Response Type (96%). All three types (Emergency/Urgent/Routine) present for all 12 months. 2025 data is reliable.
+- **2026-01 Monthly**: 7,499 records after dedup → 7,498 with valid Response Type (100%). All three types present.
+- **Output**: 25 monthly CSVs (2024-01 through 2026-01) written to `PowerBI_Date\Backfill\response_time_all_metrics\`.
+
+---
+
 ## [1.17.10] - 2026-02-26
 
 ### Fixed
