@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.12] - 2026-02-26
+
+### Fixed
+- **`response_time_batch_all_metrics.py` — CallType_Categories mapping for missing Response Type** — The 2024 CAD timereport export had `Response Type` populated for <1% of records (~894 out of 82,891 after dedup). Added a three-tier resolution cascade: (1) use original CAD value if valid, (2) exact match on `Incident` column against `09_Reference\Classifications\CallTypes\CallType_Categories.csv`, (3) normalized match (lowercase + strip + collapse spaces + remove non-ASCII). Resolution results: 2024: 894 from CAD + 81,831 from map = 82,725 usable; 2025: 84,162 from CAD + 3,266 from map = 87,428 usable; 2026-01: 7,498 from CAD + 1 from map = 7,499. All 25 monthly output CSVs now contain all three types (Emergency/Urgent/Routine) for every month.
+
+### ETL Re-run — Response Time Batch (2026-02-26, with CallType mapping)
+- **2024**: 82,725 records resolved → 9 rows/month (3 types × 3 metrics) for all 12 months. Emergency 01-24: 2:54 avg, Urgent 01-24: 3:00 avg, Routine 01-24: 1:21 avg (Time Out − Dispatched).
+- **2025**: 87,428 records → full coverage all 12 months.
+- **2026-01**: 7,499 records → full coverage.
+- CallType agreement with original CAD values: 99.5% (4 disagreements in 886 cross-validated records — minor classification differences, not code errors).
+
+---
+
 ## [1.17.11] - 2026-02-26
 
 ### Added
