@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.21] - 2026-02-27
+
+### Added — Visual Export Mapping: Response Time + ESU
+
+**File:** `Standards/config/powerbi_visuals/visual_export_mapping.json`
+
+- **Three response time visuals** mapped to `Processed_Exports/response_time/`:
+  - `Average Response Time (Dispatch to On Scene)` → `response_time_dispatch_to_onscene`
+  - `Dispatch Processing Time (Call Received to Dispatch)` → `dispatch_processing_time`
+  - `Average Response Time (From Time Received to On Scene)` → `response_time_received_to_onscene`
+- **ESU** mapped to dedicated folder `Processed_Exports/esu/` → `esu_activity` (no normalization required; already Long format: TrackedItem, Month_Year, Sum of Total).
+
+**Archive:** `_DropExports` contents archived to `archive/_DropExports_pre_2026_02_27/` before export run.
+
+**Doc:** `Standards/config/powerbi_visuals/README.md` updated with ESU and response time visual references.
+
+---
+
+## [1.17.20] - 2026-02-27
+
+### Changed — Baseline Run from Raw Exports Only (13 Months)
+
+**File:** `02_ETL_Scripts/Response_Times/response_time_batch_all_metrics.py`
+
+First run of v1.17.19 filter logic from raw exports only — no backfill. Establishes a true
+13-month baseline for future runs.
+
+- **Sources:** 2024 removed. Only 2025 yearly + 2026-01 monthly (Jan 2025–Jan 2026).
+- **Output path:** `PowerBI_Date\Backfill\response_time_all_metrics` → `PowerBI_Date\response_time_all_metrics` (canonical baseline)
+- **Output files:** 13 monthly CSVs (2025_01 through 2026_01), not 25.
+
+**Archive:** Previous 25-month backfill archived to `Master_Automation\archive\response_time_backfill_pre_baseline_20260227\`.
+
+**Power BI:** The three M code queries (`___ResponseTimeCalculator`, `___ResponseTime_OutVsCall`, `___ResponseTime_DispVsCall`) updated to read from the new path. **Update the PBIX file** if it still references the old Backfill path.
+
+**Doc:** `docs/response_time/2026_02_27_Baseline_Run_v1.17.20.md`
+
+---
+
 ## [1.17.19] - 2026-02-27
 
 ### Fixed — Peer-Review Corrections to Incident Exclusion List

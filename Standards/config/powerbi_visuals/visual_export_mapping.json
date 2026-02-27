@@ -233,6 +233,63 @@
       "notes": "Trend data. Already in Long format with multiple value columns."
     },
     {
+      "visual_name": "Average Response Time (Dispatch to On Scene)",
+      "page_name": "Response Time",
+      "match_aliases": [
+        "Average Response Time (Dispatch to On Scene)",
+        "Response Time__Average Response Time (Dispatch to On Scene)"
+      ],
+      "standardized_filename": "response_time_dispatch_to_onscene",
+      "normalized_folder": "response_time",
+      "data_format": "Long",
+      "date_column": "MM-YY",
+      "date_format": "MM-YY",
+      "time_period": "Rolling 13 months",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "response_time",
+      "notes": "Dispatch to On Scene. Columns: Response Type, MM-YY, First Response_Time_MMSS."
+    },
+    {
+      "visual_name": "Dispatch Processing Time (Call Received to Dispatch)",
+      "page_name": "Response Time",
+      "match_aliases": [
+        "Dispatch Processing Time (Call Received to Dispatch)",
+        "Response Time__Dispatch Processing Time (Call Received to Dispatch)"
+      ],
+      "standardized_filename": "dispatch_processing_time",
+      "normalized_folder": "response_time",
+      "data_format": "Long",
+      "date_column": "MM-YY",
+      "date_format": "MM-YY",
+      "time_period": "Rolling 13 months",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "response_time",
+      "notes": "Call Received to Dispatch. Columns: Response Type, MM-YY, First Response_Time_MMSS."
+    },
+    {
+      "visual_name": "Average Response Time (From Time Received to On Scene)",
+      "page_name": "Response Time",
+      "match_aliases": [
+        "Average Response Time (From Time Received to On Scene)",
+        "Response Time__Average Response Time (From Time Received to On Scene)"
+      ],
+      "standardized_filename": "response_time_received_to_onscene",
+      "normalized_folder": "response_time",
+      "data_format": "Long",
+      "date_column": "MM-YY",
+      "date_format": "MM-YY",
+      "time_period": "Rolling 13 months",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "response_time",
+      "notes": "From Time Received to On Scene. Columns: Response Type, MM-YY, First Response_Time_MMSS."
+    },
+    {
       "visual_name": "Incident Count by Date and Event Type",
       "page_name": "Benchmark",
       "standardized_filename": "benchmark_incident_count",
@@ -400,6 +457,25 @@
       "enforce_13_month_window": true,
       "target_folder": "traffic",
       "notes": "Trend data. Normalization needed for 'First Value'."
+    },
+    {
+      "visual_name": "ESU",
+      "page_name": "ESU",
+      "match_aliases": [
+        "ESU",
+        "ESU__ESU"
+      ],
+      "standardized_filename": "esu_activity",
+      "normalized_folder": "esu",
+      "data_format": "Long",
+      "date_column": "Month_Year",
+      "date_format": "MM-YY",
+      "time_period": "Rolling 13 months",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "esu",
+      "notes": "Trend data. Columns: TrackedItem, Month_Year, Sum of Total. Already in Long format."
     },
     {
       "visual_name": "Motor Vehicle Accidents - Summary",

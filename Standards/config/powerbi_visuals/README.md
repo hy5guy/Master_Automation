@@ -33,6 +33,18 @@ python scripts/process_powerbi_exports.py --verify-only   # Report only
 
 Default source: `Master_Automation/_DropExports`. Override with `--source` or set `source_folder_override` in the JSON.
 
+## Target folders (Processed_Exports)
+
+| Folder | Visuals |
+|--------|---------|
+| `response_time` | Average Response Time (Dispatch to On Scene), Dispatch Processing Time (Call Received to Dispatch), Average Response Time (From Time Received to On Scene), Response Times by Priority |
+| `esu` | ESU (TrackedItem, Month_Year, Sum of Total — no normalization) |
+| `summons` | Department-Wide Summons, Summons Moving & Parking All Bureaus, Top 5 Moving/Parking Violations |
+| `drone` | DFR Activity, Non-DFR Performance Metrics |
+| `traffic` | Traffic Bureau, Motor Vehicle Accidents |
+| `patrol` | Patrol Division |
+| … | See `visual_export_mapping.json` for full list |
+
 ## Backfill-required visuals (current)
 
 - Department-Wide Summons  Moving and Parking  
