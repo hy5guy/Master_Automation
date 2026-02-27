@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
 **Last Updated:** 2026-02-26
-**Status:** ✅ February 2026 ETL — Response time golden-standard batch run complete; Power BI refresh required (pReportMonth + three response time queries)
-**Version:** 1.17.14
+**Status:** ⚠️ v1.17.17 — Peer review complete (Opus); Calculator M code in PBIX needs manual update + refresh; Routine skew documented
+**Version:** 1.17.17
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ Power BI refresh required — Response time queries (pReportMonth, Summary_Type); summons staging |
-| **Version** | 1.17.14 |
+| **Status** | ⚠️ v1.17.17 — Opus peer review complete; Routine skew documented; Calculator M code update + refresh pending |
+| **Version** | 1.17.17 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -687,6 +687,22 @@ The manifest provides a machine-readable reference for the entire Master Automat
 **Maintained by:** R. A. Carucci  
 **Last Updated:** 2026-02-23  
 **Version:** 1.17.5
+
+---
+
+## Recent Updates (2026-02-26)
+
+### v1.17.15 — First-Arriving-Unit Dedup Fix + ETL Re-run (Peer Review Findings)
+
+- **Bug fixed: `response_time_batch_all_metrics.py`** — Added `sort_values(["ReportNumberNew", "Time Out"])` before `drop_duplicates()` in `load_and_clean()`. For the 28.2% of calls with multiple responding units, the script previously kept whichever row appeared first in the source Excel file instead of the first-arriving officer. Identified via Sonnet + Opus peer review (2026-02-26).
+- **All 25 monthly CSVs regenerated** — `response_time_all_metrics\` 2024-01 through 2026-01 regenerated with corrected dedup logic. Emergency 01-26 Dispatch to On Scene corrected from 3:11 → 2:51 (−20 seconds). Routine values stable (1–3 second changes).
+- **M code confirmed correct** — Both `___ResponseTime_OutVsCall.m` and `___ResponseTime_DispVsCall.m` already had the 13-month pReportMonth window (Opus Bug 2 finding was based on an older version; current files are correct). No code change required.
+- **`process_cad_data_13month_rolling.py` confirmed** — v1.15.9 sort fix already present; added clarifying comment.
+- **New docs created:**
+  - `docs/response_time/2026_02_26_PreFix_vs_PostFix_Comparison.md` — Full delta table pre/post fix
+  - `docs/response_time/RECORD_COUNT_MISMATCH_EXPLAINED.md` — Admin-facing explanation for different record counts per metric
+  - `docs/response_time/POWERBI_REFRESH_REQUIRED_2026_02_26.md` — Refresh checklist (⏳ PENDING)
+- **Power BI refresh required** — All three response time queries must be refreshed to reflect corrected CSVs.
 
 ---
 

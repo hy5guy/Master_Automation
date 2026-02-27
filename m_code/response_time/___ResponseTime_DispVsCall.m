@@ -78,13 +78,26 @@ let
 
     RenamedMMSS = Table.RenameColumns(WithSummary, {{"First_Response_Time_MMSS", "Response_Time_MMSS"}}),
 
+    // ── Count and MonthName for line chart / template compatibility ─────────────
+    WithCount = Table.AddColumn(RenamedMMSS, "Count", each 1, Int64.Type),
+    WithMonthName = Table.AddColumn(WithCount, "MonthName", each
+        let
+            parts = Text.Split([YearMonth], "-"),
+            monthNum = if List.Count(parts) >= 2 then Number.From(parts{1}) else 1,
+            monthNames = {"January","February","March","April","May","June","July","August","September","October","November","December"},
+            name = if monthNum >= 1 and monthNum <= 12 then monthNames{monthNum - 1} & " " & parts{0} else [YearMonth]
+        in name,
+        type text
+    ),
+
     Result = Table.SelectColumns(
-        RenamedMMSS,
+        WithMonthName,
         {
             "YearMonth", "Date_Sort_Key", "Date",
             "Response_Type", "Category", "Summary_Type",
             "Average_Response_Time", "Response_Time_MMSS",
-            "MM-YY", "Record_Count", "Metric_Type"
+            "MM-YY", "Record_Count", "Metric_Type",
+            "Count", "MonthName"
         }
     )
 

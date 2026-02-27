@@ -1,0 +1,20 @@
+// LEGACY: These measures reference tables 'ResponseTimes' and 'CAD_Raw' (raw CAD timereport model).
+// The template now uses aggregated tables from M: ___ResponseTimeCalculator, ___ResponseTime_OutVsCall, ___ResponseTime_DispVsCall.
+// Use the measures in response_time_measures.dax for the line chart and visuals to avoid Missing_References.
+//
+// Primary KPI
+Response Time (Total) = 
+    AVERAGE('ResponseTimes'[Time Out]) - AVERAGE('ResponseTimes'[Time of Call])
+
+// Operational Metrics
+Unit Travel Time = 
+    AVERAGE('ResponseTimes'[Time Out]) - AVERAGE('ResponseTimes'[Time Dispatched])
+
+Call Processing Time = 
+    AVERAGE('ResponseTimes'[Time Dispatched]) - AVERAGE('ResponseTimes'[Time of Call])
+
+// Validation
+Multi-Unit Rate = 
+    VAR TotalCAD = COUNTROWS(ALL('CAD_Raw'))
+    VAR Deduplicated = COUNTROWS('ResponseTimes')
+    RETURN (1 - Deduplicated / TotalCAD)

@@ -6,7 +6,7 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
 
-**Latest Update (2026-02-26):** v1.17.14 — Response time: golden-standard batch ETL (2024/2025/2026-01) with CallType backfill; three M code queries with pReportMonth rolling 13-month window; `Summary_Type` column restored for DAX measures (Emergency_Avg_13M, Routine_Avg_13M, Urgent_Avg_13M). CallType_Categories +15 alias rows (664 total). Handoff doc: `docs/HANDOFF_Response_Time_Golden_Standard_And_CallType_2026_02_26.md`. Power BI: ensure pReportMonth exists, refresh all three response time queries.
+**Latest Update (2026-02-26):** v1.17.17 — Peer review corrections (Claude Opus): admin list count corrected to 92; production rolling script sort confirmed; NEW FINDING: Routine "Dispatch to On Scene" has 10× mean/median skew (bimodal — traffic stops and field contacts where officer is already on scene). Documented as data characteristic with admin talking point. See `CHANGELOG.md` and `PEER_REVIEW_Response_Time_v1_17_16_2026_02_26.md`. **Action required:** Update ___ResponseTimeCalculator M code in Power BI Desktop then refresh all three response time queries.
 
 ## Directory Structure
 

@@ -1,0 +1,27 @@
+// Response Time DAX Measures — for aggregated M query tables (golden standard)
+// Use these in the template so the line chart and other visuals do not get Missing_References.
+//
+// Data model: Three tables loaded from M queries (response_time_all_metrics CSVs):
+//   ___ResponseTimeCalculator  = Time Out − Time Dispatched (travel time)
+//   ___ResponseTime_OutVsCall  = Time Out − Time of Call (total response)
+//   ___ResponseTime_DispVsCall = Time Dispatched − Time of Call (dispatch queue)
+//
+// Each table has: Date, Date_Sort_Key, Category, Summary_Type, Average_Response_Time, Response_Time_MMSS, Count, MonthName.
+// Line chart: X = Date or MonthName, Legend = Category, Y = Average_Response_Time or one of the measures below.
+
+// ─── For line chart (Time Out − Time Dispatched) ─────────────────────────────
+Avg Response Time (Travel) = 
+    AVERAGE('___ResponseTimeCalculator'[Average_Response_Time])
+
+// ─── For line chart (Time Out − Time of Call) — use with ___ResponseTime_OutVsCall visual ─
+Avg Response Time (Total) = 
+    AVERAGE('___ResponseTime_OutVsCall'[Average_Response_Time])
+
+// ─── For line chart (Time Dispatched − Time of Call) — use with ___ResponseTime_DispVsCall visual ─
+Avg Response Time (Dispatch Queue) = 
+    AVERAGE('___ResponseTime_DispVsCall'[Average_Response_Time])
+
+// Optional: use when you need a single value for a card or KPI (filter by Category in the visual)
+// Sum of Count is total records; use with Table = ___ResponseTimeCalculator or OutVsCall or DispVsCall
+Response Time Record Count = 
+    SUM('___ResponseTimeCalculator'[Count])

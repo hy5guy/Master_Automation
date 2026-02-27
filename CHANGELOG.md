@@ -7,6 +7,156 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.17] - 2026-02-26
+
+### Documentation — Peer Review Corrections (Claude Opus, 2026-02-26)
+
+Independent peer review of v1.17.15 and v1.17.16 confirmed both bug fixes are correct.
+The following corrections and new findings were applied.
+
+### Corrected
+- **CHANGELOG v1.17.16 — Admin list count**: "26 of 101" corrected to "~91 of 92."
+  Runtime count: `len(ADMIN_INCIDENTS_RAW) = 92`, `len(ADMIN_INCIDENTS_NORM) = 92`.
+  Cross-check shows ~91 of 92 types present in `CallType_Categories.csv`, all mapped as
+  Routine. The "101" figure in the header comment referenced the rolling script's list;
+  the batch script's `ADMIN_INCIDENTS_RAW` set has 92 unique entries.
+
+- **CHANGELOG v1.17.15 — Reference script sort claim**: The v1.17.15 entry states the
+  sort was "confirmed present" in `process_cad_data_13month_rolling.py`. Confirmed in the
+  production file at `02_ETL_Scripts\Response_Times\` (lines 496–503, verified by grep).
+  The file Claude Opus reviewed may have been an older snapshot uploaded to that session.
+  The production copy is correct.
+
+### New Finding — Routine "Dispatch to On Scene" Bimodal Distribution
+- **File:** `PowerBI_Date\Backfill\response_time_all_metrics\`
+- **Metric:** `Time Out - Time Dispatched` | **Response Type:** Routine
+- **Finding:** Mean/median ratio is ~10× (01-25: Mean 2:01, Median 0:11; 01-26: Mean 2:04,
+  Median 0:13). This is a **bimodal distribution** — a large cluster of near-zero times
+  (officer self-initiated traffic stops and field contacts where `Time Out ≈ Time Dispatched`
+  because the officer is already on scene) mixed with a smaller cluster of true dispatched
+  responses (2–5+ minutes). The 92-type admin filter correctly removes administrative
+  activities but does NOT remove legitimate enforcement self-initiated calls.
+- **Other metrics are healthy:** All other Response_Type × Metric_Type combinations have
+  mean/median ratios of 1.0–2.6×. Emergency "Dispatch to On Scene" is 1.1–1.2×.
+- **Impact:** The Routine "Dispatch to On Scene" average (2:01–2:04) understates the time
+  for true citizen-dispatched calls. This is a data characteristic, not a code error.
+- **Recommended talking point for admin:**
+  > "Routine dispatch-to-scene includes traffic stops and officer field contacts where our
+  > officer was already at the location when CAD assigned the report number — so the
+  > measured time is near zero for those records. The average reflects this mix. Emergency
+  > and Urgent calls, which are exclusively citizen-reported, show a clean 2:31–2:55
+  > range with no distributional skew."
+- **Tracked for future enhancement:** Add a "dispatched-only" view (filter where
+  `Time Dispatched - Time of Call > 0:30`) to isolate true citizen-initiated Routine calls.
+  `Median_Minutes` is already in all CSVs and can be surfaced in DAX when needed.
+
+### Added
+- **`docs/response_time/PEER_REVIEW_Response_Time_v1_17_16_2026_02_26.md`** — Full
+  independent peer review by Claude Opus (2026-02-26). Confidence level: HIGH.
+  All action items documented and tracked.
+
+---
+
+## [1.17.16] - 2026-02-26
+
+### Fixed — CRITICAL
+- **`response_time_batch_all_metrics.py` — Missing Administrative Incident Filter**
+  Added 92-type admin incident exclusion list (`ADMIN_INCIDENTS_RAW`, runtime-verified:
+  `len(ADMIN_INCIDENTS_NORM) = 92`) applied after dedup, before Response Type mapping.
+  Without this filter, officer self-initiated activities — Meal Break, Coffee Break,
+  Patrol Check, Task Assignment, Traffic Detail, TAPS operations, Training, Court
+  assignments, Vehicle Maintenance, Vacation, Administrative Assignment, and 80+ others
+  — were included as "Routine" calls with near-zero dispatch processing times, corrupting
+  all three metrics for the Routine category.
+
+  **Peer Review Note (Claude Opus, 2026-02-26):** Cross-check of `ADMIN_INCIDENTS_NORM`
+  against `CallType_Categories.csv` (664 entries) found **~91 of 92 admin types present
+  in the CSV, all mapped as Routine**. The CHANGELOG originally stated "26 of 101" —
+  this was significantly understated. The actual overlap is near-complete, confirming
+  that admin activities were being included as Routine via both the CAD Response Type
+  field and the CallType mapping cascade.
+  - 2024: 82,891 records after dedup → 35,171 after admin filter (47,720 excluded = 57.6%)
+  - 2025: 87,436 records after dedup → 33,797 after admin filter (53,639 excluded = 61.4%)
+  - 2026-01: 7,499 records after dedup → 3,131 after admin filter (4,368 excluded = 58.3%)
+  - **Routine Dispatch Processing Time 01-25: 0:50 → 2:27 (corrected +1:37)**
+  - **Routine Dispatch to On Scene 01-25: 0:48 → 2:01 (corrected +1:13)**
+  - **Routine Time Received to On Scene 01-25: 1:14 → 3:22 (corrected +2:08)**
+  - Values now follow expected operational pattern: Emergency (2:52–4:58) > Routine (2:01–3:22)
+  - 26 of the 101 admin types were confirmed present in `CallType_Categories.csv` mapped as
+    Routine — verifying they were actively distorting output.
+
+  All 25 monthly CSVs regenerated again. Power BI refresh required.
+
+### Added
+- **`docs/response_time/2026_02_26_dax_DispVsCall_title_subtitle.dax`** — DAX title/subtitle
+  measures for the `___ResponseTime_DispVsCall` visual.
+  - `RT DispVsCall Title = "Dispatch Processing Time (Call Received to Dispatch)"`
+  - `RT DispVsCall Subtitle = "Values in mm:ss. From time call is received until unit is dispatched. Rolling 13 months."`
+
+### Also Identified (Action Required)
+- **`___ResponseTimeCalculator` in Power BI still shows pre-fix values** — The Calculator
+  query M code in the PBIX was manually recreated from an old version and still reads from
+  the old backfill path, not the unified `response_time_all_metrics` folder. Update the
+  Calculator M code in Power BI Desktop to match
+  `m_code/response_time/___ResponseTimeCalculator.m` (uses `Folder.Files()` on the unified
+  folder). After updating, refresh to pick up both the dedup fix (v1.17.15) and the admin
+  filter fix (v1.17.16).
+
+---
+
+## [1.17.15] - 2026-02-26
+
+### Fixed
+- **`response_time_batch_all_metrics.py` — First-Arriving-Unit Deduplication**
+  Added `sort_values(["ReportNumberNew", "Time Out"])` before `drop_duplicates()` in
+  `load_and_clean()`. Without this sort, multi-unit incidents (28.2% of calls) retained
+  whichever row appeared first in the source Excel file rather than the first-arriving
+  officer. This flaw was identified via peer review (Sonnet + Opus, 2026-02-26) and mirrors
+  the fix applied to `process_cad_data_13month_rolling.py` in v1.15.9. All 25 monthly CSVs
+  were regenerated after this fix. See `docs/response_time/2026_02_26_PreFix_vs_PostFix_Comparison.md`
+  for delta analysis.
+
+- **`___ResponseTime_OutVsCall.m` and `___ResponseTime_DispVsCall.m` — Rolling 13-Month Window**
+  Opus peer review flagged these two queries as missing the pReportMonth-driven 13-month window.
+  On inspection, both files already contain the correct `EndDate`/`StartDate`/`Windowed` filter
+  block (added in v1.17.11/v1.17.14). No code change required — the Opus finding was based on
+  an older version. Confirmed consistent with `___ResponseTimeCalculator.m`.
+
+- **`process_cad_data_13month_rolling.py` — v1.15.9 Sort Fix Confirmed Present**
+  Peer review verification task confirmed the `sort_values(['ReportNumberNew', 'Time Out'])`
+  before `drop_duplicates()` is in place. Added clarifying comment referencing v1.15.9.
+
+### Added
+- **`docs/response_time/2026_02_26_PreFix_vs_PostFix_Comparison.md`** — Delta analysis of
+  pre-fix vs post-fix response time values for the Time Out − Time Dispatched metric.
+  Emergency Jan-26: 3:11 → 2:51 (−20 seconds). Full 13-month table with record counts for
+  all three metrics.
+- **`docs/response_time/RECORD_COUNT_MISMATCH_EXPLAINED.md`** — Plain-language explanation of
+  why the three response time visuals show different record counts for the same month and
+  response type. Audience: admin and anyone auditing the report.
+- **`docs/response_time/POWERBI_REFRESH_REQUIRED_2026_02_26.md`** — Refresh checklist for
+  all three response time Power BI queries after this fix.
+
+### Notes
+- Record count differences across the three metrics (per month and response type) are
+  expected and defensible — each metric independently requires valid timestamps in both
+  its columns. This is documented behavior, not a bug.
+- `Median_Minutes` is written to all CSVs but not yet surfaced in M code or DAX.
+  Tracked for future enhancement.
+- 2024 Response Type classification relies primarily on CallType_Categories.csv reference
+  mapping (<1% sourced from original CAD values). Appropriate for trend analysis; disclose
+  in year-over-year comparisons.
+- 0–10 minute outlier filter is applied by the batch ETL and excludes records where the
+  computed difference is ≤ 0 or > 10 minutes. This is appropriate methodology.
+
+### ETL Re-run — Response Time Batch (2026-02-26, post first-arriving-unit fix)
+- **2024**: 82,891 records after dedup → 82,889 usable. 858 from CAD, 82,031 from CallType map, 2 excluded.
+- **2025**: 87,436 records after dedup → 87,428 usable. 84,162 from CAD, 3,266 from map, 8 excluded.
+- **2026-01**: 7,499 records after dedup → 7,499 usable. 7,498 from CAD, 1 from map, 0 excluded.
+- Total runtime: ~111 seconds. 25 CSVs written to `PowerBI_Date\Backfill\response_time_all_metrics\`.
+
+---
+
 ## [1.17.14] - 2026-02-26
 
 ### Fixed

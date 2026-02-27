@@ -1,0 +1,9 @@
+// ___ResponseTime_DispVsCall — Title and subtitle for line chart
+// Metric: Time Dispatched − Time of Call (dispatcher processing time: call receipt → unit dispatched)
+// Paste these measures into the report and bind them to the visual's Title and Subtitle fields.
+
+RT DispVsCall Title =
+    "Dispatch Processing Time (Call Received to Dispatch)"
+
+RT DispVsCall Subtitle =
+    "Values in mm:ss. From time call is received until unit is dispatched. Rolling 13 months."

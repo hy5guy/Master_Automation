@@ -1,0 +1,214 @@
+// ___ResponseTimeCalculator — DAX measures (restored and reworked 2026-02-26)
+// Table: ___ResponseTimeCalculator (Time Out − Time Dispatched: dispatch to on scene)
+// Summary_Type is always "Response_Type" in this table. Rolling window is driven by data (13 months).
+//
+// Shared rolling window (13 months ending at max Date in table):
+// Rolling_EndDate = last month in data
+// Rolling_StartDate = 13 months before Rolling_EndDate
+
+Rolling_EndDate = 
+    CALCULATE(MAX('___ResponseTimeCalculator'[Date]), ALL('___ResponseTimeCalculator'))
+
+Rolling_StartDate = 
+    EDATE([Rolling_EndDate], -12)
+
+// Returns 1 when current context date is within the table's 13-month window (no hardcoded dates).
+Is_Rolling_Period = 
+VAR EndDateInTable = [Rolling_EndDate]
+VAR StartDate = [Rolling_StartDate]
+VAR CurrentDate = MAX('___ResponseTimeCalculator'[Date])
+RETURN
+    IF(AND(CurrentDate >= StartDate, CurrentDate <= EndDateInTable), 1, 0)
+
+// ─── Title and subtitle for "Average Response Times" line chart (dispatch → on scene) ───
+RT Average Title = 
+    "Average Response Time (Dispatch to On Scene)"
+
+RT Average Subtitle = 
+    "Values in mm:ss. Time from dispatch to officer on scene. Rolling 13 months."
+
+// ─── 12M / 13M averages (dynamic rolling window) ─────────────────────────────────────
+Department_Avg_12M = 
+VAR EndDate = [Rolling_EndDate]
+VAR StartDate = [Rolling_StartDate]
+RETURN
+    CALCULATE(
+        AVERAGE('___ResponseTimeCalculator'[Average_Response_Time]),
+        FILTER(
+            '___ResponseTimeCalculator',
+            '___ResponseTimeCalculator'[Summary_Type] = "Response_Type" &&
+            '___ResponseTimeCalculator'[Date] >= StartDate &&
+            '___ResponseTimeCalculator'[Date] <= EndDate
+        )
+    )
+
+Category_Response_Avg = 
+VAR EndDate = [Rolling_EndDate]
+VAR StartDate = [Rolling_StartDate]
+RETURN
+    CALCULATE(
+        AVERAGEX(
+            FILTER(
+                '___ResponseTimeCalculator',
+                '___ResponseTimeCalculator'[Summary_Type] = "Response_Type" &&
+                '___ResponseTimeCalculator'[Date] >= StartDate &&
+                '___ResponseTimeCalculator'[Date] <= EndDate
+            ),
+            '___ResponseTimeCalculator'[Average_Response_Time]
+        )
+    )
+
+Emergency_Avg_13M = 
+VAR EndDate = [Rolling_EndDate]
+VAR StartDate = [Rolling_StartDate]
+RETURN
+    CALCULATE(
+        AVERAGE('___ResponseTimeCalculator'[Average_Response_Time]),
+        FILTER(
+            '___ResponseTimeCalculator',
+            '___ResponseTimeCalculator'[Summary_Type] = "Response_Type" &&
+            '___ResponseTimeCalculator'[Category] = "Emergency" &&
+            '___ResponseTimeCalculator'[Date] >= StartDate &&
+            '___ResponseTimeCalculator'[Date] <= EndDate
+        )
+    )
+
+Routine_Avg_12M = 
+VAR EndDate = [Rolling_EndDate]
+VAR StartDate = [Rolling_StartDate]
+RETURN
+    CALCULATE(
+        AVERAGEX(
+            FILTER(
+                '___ResponseTimeCalculator',
+                '___ResponseTimeCalculator'[Summary_Type] = "Response_Type" &&
+                '___ResponseTimeCalculator'[Category] = "Routine" &&
+                '___ResponseTimeCalculator'[Date] >= StartDate &&
+                '___ResponseTimeCalculator'[Date] <= EndDate
+            ),
+            '___ResponseTimeCalculator'[Average_Response_Time]
+        )
+    )
+
+Routine_Avg_13M = 
+VAR EndDate = [Rolling_EndDate]
+VAR StartDate = [Rolling_StartDate]
+RETURN
+    CALCULATE(
+        AVERAGE('___ResponseTimeCalculator'[Average_Response_Time]),
+        FILTER(
+            '___ResponseTimeCalculator',
+            '___ResponseTimeCalculator'[Summary_Type] = "Response_Type" &&
+            '___ResponseTimeCalculator'[Category] = "Routine" &&
+            '___ResponseTimeCalculator'[Date] >= StartDate &&
+            '___ResponseTimeCalculator'[Date] <= EndDate
+        )
+    )
+
+Urgent_Avg_12M = 
+VAR EndDate = [Rolling_EndDate]
+VAR StartDate = [Rolling_StartDate]
+RETURN
+    CALCULATE(
+        AVERAGEX(
+            FILTER(
+                '___ResponseTimeCalculator',
+                '___ResponseTimeCalculator'[Summary_Type] = "Response_Type" &&
+                '___ResponseTimeCalculator'[Category] = "Urgent" &&
+                '___ResponseTimeCalculator'[Date] >= StartDate &&
+                '___ResponseTimeCalculator'[Date] <= EndDate
+            ),
+            '___ResponseTimeCalculator'[Average_Response_Time]
+        )
+    )
+
+Urgent_Avg_13M = 
+VAR EndDate = [Rolling_EndDate]
+VAR StartDate = [Rolling_StartDate]
+RETURN
+    CALCULATE(
+        AVERAGE('___ResponseTimeCalculator'[Average_Response_Time]),
+        FILTER(
+            '___ResponseTimeCalculator',
+            '___ResponseTimeCalculator'[Summary_Type] = "Response_Type" &&
+            '___ResponseTimeCalculator'[Category] = "Urgent" &&
+            '___ResponseTimeCalculator'[Date] >= StartDate &&
+            '___ResponseTimeCalculator'[Date] <= EndDate
+        )
+    )
+
+Total_Incidents_12M = 
+VAR EndDate = [Rolling_EndDate]
+VAR StartDate = [Rolling_StartDate]
+RETURN
+    CALCULATE(
+        SUMX(
+            FILTER(
+                '___ResponseTimeCalculator',
+                '___ResponseTimeCalculator'[Summary_Type] = "Response_Type" &&
+                '___ResponseTimeCalculator'[Date] >= StartDate &&
+                '___ResponseTimeCalculator'[Date] <= EndDate
+            ),
+            '___ResponseTimeCalculator'[Count]
+        )
+    )
+
+// Best (lowest) monthly average in the rolling window
+Best_Month_12M = 
+VAR EndDate = [Rolling_EndDate]
+VAR StartDate = [Rolling_StartDate]
+VAR Summarized = 
+    SUMMARIZE(
+        FILTER(
+            '___ResponseTimeCalculator',
+            '___ResponseTimeCalculator'[Summary_Type] = "Response_Type" &&
+            '___ResponseTimeCalculator'[Date] >= StartDate &&
+            '___ResponseTimeCalculator'[Date] <= EndDate
+        ),
+        '___ResponseTimeCalculator'[YearMonth],
+        '___ResponseTimeCalculator'[MonthName]
+    )
+VAR WithAvg = ADDCOLUMNS(Summarized, "MonthAvg", CALCULATE(AVERAGE('___ResponseTimeCalculator'[Average_Response_Time])))
+VAR BestMonthData = MINX(FILTER(WithAvg, [MonthAvg] > 0), [MonthAvg])
+RETURN
+    IF(ISBLANK(BestMonthData), BLANK(), FORMAT(BestMonthData, "0.00") & " min")
+
+Monthly_Response_Avg = 
+CALCULATE(
+    AVERAGEX(
+        FILTER(
+            '___ResponseTimeCalculator',
+            '___ResponseTimeCalculator'[Summary_Type] = "Response_Type"
+        ),
+        '___ResponseTimeCalculator'[Average_Response_Time]
+    )
+)
+
+Performance_vs_Target = 
+VAR TargetTime = 3.0
+VAR ActualTime = [Department_Avg_12M]
+RETURN
+    IF(
+        ISBLANK(ActualTime),
+        "No Data",
+        IF(
+            ActualTime <= TargetTime,
+            "✅ Meeting Target",
+            "⚠️ Above Target"
+        )
+    )
+
+RT Footnote (multiline) = 
+"Data Correction Notice: Response time reporting has been enhanced with new parameters:" &
+UNICHAR(10) &
+"- Officer-initiated events (such as motor vehicle stops and tasks) are excluded." &
+UNICHAR(10) &
+"- Responses over 25 minutes are excluded." &
+UNICHAR(10) &
+"Self-initiated activity can produce artificially low times, while prolonged responses may be due to dispatcher error or atypical delays. These updates make the average response time more accurate and representative of typical service calls. All data has been validated, with integrity checks in place for future reporting."
+
+RT Priority Subtitle = 
+"Rolling 13-Month Overview (" & 'UI'[UI MonthRange 13m] & ")"
+
+RT Priority Title = 
+"Response Times by Priority"
