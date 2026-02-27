@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.13] - 2026-02-26
+
+### Fixed
+- **`CallType_Categories.csv` — 15 alias rows added for CAD encoding/formatting variants** — Audit identified 17 unmatched incident types across 2024-2026 (174 records). Root causes:
+  - **Pattern A — statute spacing**: `2C: 18-2` (space after colon) vs `2C:18-2` in reference. Affected: `Burglary - Auto`, `Burglary - Commercial`, `Burglary - Residence`. (3 entries)
+  - **Pattern B — Unicode replacement character `\ufffd`**: Corrupted dash in CAD Excel export. Affected: `Medical Call`, `Motor Vehicle Crash - Hit and Run`, `Motor Vehicle Violation - Private Property`, `Property - Lost/Found`, `Hazardous Road Condition - Flooding`, `Motor Vehicle Crash - Pedestrian Struck`. (7 entries)
+  - **Pattern C — missing space around dash**: `Fight -Unarmed`, `Discovery-Motor Vehicle`, `Hazardous Road Condition -General`, `Hazardous Condition -Health / Welfare`, `Sex Offender-General`. (5 entries)
+  - **Truly unresolvable**: `nan` (no incident name, 9 records) and `'1'` (garbage, 1 record) — remain excluded.
+  - All 15 additions validated at >0.93 fuzzy score against existing reference entries. 2024 unresolvable reduced from 166 to 2.
+- Updated `09_Reference\Classifications\CallTypes\CallType_Categories.csv`: 649 rows → 664 rows.
+
+---
+
 ## [1.17.12] - 2026-02-26
 
 ### Fixed
