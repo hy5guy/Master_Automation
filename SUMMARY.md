@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
 **Last Updated:** 2026-02-26
-**Status:** ✅ February 2026 ETL Complete — Power BI refresh required to pick up updated summons staging data
-**Version:** 1.17.10
+**Status:** ✅ February 2026 ETL — Response time golden-standard batch run complete; Power BI refresh required (pReportMonth + three response time queries)
+**Version:** 1.17.14
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ Power BI Refresh In Progress — Response Times M code update needed |
-| **Version** | 1.17.10 |
+| **Status** | ✅ Power BI refresh required — Response time queries (pReportMonth, Summary_Type); summons staging |
+| **Version** | 1.17.14 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 

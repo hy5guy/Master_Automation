@@ -79,14 +79,15 @@ let
     WithDate     = Table.AddColumn(WithDateKey,  "Date",                  each [Date_Sort_Key], type date),
     WithAvgRT    = Table.AddColumn(WithDate,     "Average_Response_Time", each [Avg_Minutes],   type number),
     WithCategory = Table.AddColumn(WithAvgRT,    "Category",              each [Response_Type], type text),
+    WithSummary  = Table.AddColumn(WithCategory, "Summary_Type",          each "Response_Type", type text),
 
-    RenamedMMSS = Table.RenameColumns(WithCategory, {{"First_Response_Time_MMSS", "Response_Time_MMSS"}}),
+    RenamedMMSS = Table.RenameColumns(WithSummary, {{"First_Response_Time_MMSS", "Response_Time_MMSS"}}),
 
     Result = Table.SelectColumns(
         RenamedMMSS,
         {
             "YearMonth", "Date_Sort_Key", "Date",
-            "Response_Type", "Category",
+            "Response_Type", "Category", "Summary_Type",
             "Average_Response_Time", "Response_Time_MMSS",
             "MM-YY", "Record_Count", "Metric_Type"
         }

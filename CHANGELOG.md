@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.14] - 2026-02-26
+
+### Fixed
+- **Response time M code — restore `Summary_Type` column for DAX measures** — The DAX measures `Emergency_Avg_13M`, `Routine_Avg_13M`, and `Urgent_Avg_13M` filter on `'_ResponseTimeCalculator'[Summary_Type] = "Response_Type"`. The rewritten M code (v1.17.11) had dropped this column, causing "Column 'Summary_Type' in table '_ResponseTimeCalculator' cannot be found" and Missing_References on the line chart. Restored `Summary_Type` in all three response time queries (`___ResponseTimeCalculator.m`, `___ResponseTime_OutVsCall.m`, `___ResponseTime_DispVsCall.m`) with literal value `"Response_Type"` so existing measures work without change.
+
+### Added
+- **`docs/HANDOFF_Response_Time_Golden_Standard_And_CallType_2026_02_26.md`** — Handoff document summarizing response time golden-standard ETL, CallType mapping, M code changes, DAX fix, and next steps for Power BI and future months.
+
+---
+
 ## [1.17.13] - 2026-02-26
 
 ### Fixed
