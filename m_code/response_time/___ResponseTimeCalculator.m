@@ -1,19 +1,28 @@
-// 🕒 2026-02-26-20-00-00 (EST)
+// 🕒 2026-02-26-21-00-00 (EST)
 // # response_time/___ResponseTimeCalculator.m
 // # Author: R. A. Carucci
 // # Metric: Time Out − Time Dispatched
-// # Source: PowerBI_Date\Backfill\response_time_all_metrics\  (all months 2024–present)
-// # Note: 2024 data has sparse Response Type population (mostly Routine only).
-// #       2025 and 2026+ have complete Emergency/Urgent/Routine coverage.
+// # Source: PowerBI_Date\Backfill\response_time_all_metrics\
+//
+// Rolling 13-Month Window (driven by pReportMonth):
+//   pReportMonth = #date(YYYY, M, 1)  — first day of the report's month
+//   End   = month BEFORE pReportMonth  (last complete month)
+//   Start = 12 months before End       (13 months total, inclusive)
+//   Example: pReportMonth = #date(2026,2,1) → window = Jan-25 through Jan-26
+//
+// Using pReportMonth (not TODAY()) ensures historical monthly report files
+// always display the correct 13-month window for their report period.
 
 let
+    // ── Rolling 13-month window boundaries ────────────────────────────────────
+    EndDate   = Date.AddMonths(DateTime.Date(pReportMonth), -1),  // last complete month
+    StartDate = Date.AddMonths(EndDate, -12),                      // 13 months total
+    EndYM     = Date.Year(EndDate)   * 100 + Date.Month(EndDate),
+    StartYM   = Date.Year(StartDate) * 100 + Date.Month(StartDate),
+
     // ── Load all monthly CSVs from the unified backfill folder ─────────────────
     AllFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\response_time_all_metrics"),
-
-    // Keep only the monthly metric CSVs
     CSVFiles = Table.SelectRows(AllFiles, each Text.EndsWith([Name], "_response_times.csv")),
-
-    // Build full path column, then load + combine all CSVs
     WithFullPath = Table.AddColumn(CSVFiles, "FullPath", each [Folder Path] & [Name], type text),
 
     LoadCSV = (filePath as text) =>
@@ -24,12 +33,20 @@ let
 
     AllData = Table.Combine(List.Transform(WithFullPath[FullPath], LoadCSV)),
 
-    // ── Filter to this metric only ─────────────────────────────────────────────
-    Filtered = Table.SelectRows(AllData, each [Metric_Type] = "Time Out - Time Dispatched"),
+    // ── Filter to this metric and the rolling 13-month window ─────────────────
+    FilteredMetric = Table.SelectRows(AllData, each [Metric_Type] = "Time Out - Time Dispatched"),
+    Windowed = Table.SelectRows(FilteredMetric, each
+        let
+            parts = Text.Split(Text.Trim([#"MM-YY"]), "-"),
+            mm    = Number.FromText(parts{0}),
+            yy    = 2000 + Number.FromText(parts{1}),
+            ym    = yy * 100 + mm
+        in ym >= StartYM and ym <= EndYM
+    ),
 
     // ── Standardize column types ───────────────────────────────────────────────
     Typed = Table.TransformColumnTypes(
-        Filtered,
+        Windowed,
         {
             {"Response_Type",            type text},
             {"MM-YY",                    type text},
@@ -46,8 +63,7 @@ let
         "YearMonth",
         each let
             parts = Text.Split(Text.Trim([#"MM-YY"]), "-"),
-            mm = parts{0},
-            yy = "20" & parts{1}
+            mm = parts{0}, yy = "20" & parts{1}
         in yy & "-" & Text.PadStart(mm, 2, "0"),
         type text
     ),
@@ -60,11 +76,9 @@ let
     ),
 
     // ── Alias / compatibility columns for DAX measures ─────────────────────────
-    WithDate = Table.AddColumn(WithDateKey, "Date", each [Date_Sort_Key], type date),
-
-    WithAvgRT = Table.AddColumn(WithDate, "Average_Response_Time", each [Avg_Minutes], type number),
-
-    WithCategory = Table.AddColumn(WithAvgRT, "Category", each [Response_Type], type text),
+    WithDate     = Table.AddColumn(WithDateKey,  "Date",                  each [Date_Sort_Key], type date),
+    WithAvgRT    = Table.AddColumn(WithDate,     "Average_Response_Time", each [Avg_Minutes],   type number),
+    WithCategory = Table.AddColumn(WithAvgRT,    "Category",              each [Response_Type], type text),
 
     RenamedMMSS = Table.RenameColumns(WithCategory, {{"First_Response_Time_MMSS", "Response_Time_MMSS"}}),
 
