@@ -26,6 +26,7 @@ let
         {"DATA_QUALITY_SCORE", Int64.Type}
     }),
     FilteredClean = Table.SelectRows(ChangedType, each [WG2] <> null and [WG2] <> "" and [WG2] <> "UNKNOWN"),
-    AddConsolidatedBureau = Table.AddColumn(FilteredClean, "Bureau_Consolidated", each if [WG2] = "HOUSING" or [WG2] = "OFFICE OF SPECIAL OPERATIONS" or [WG2] = "PATROL BUREAU" then "PATROL DIVISION" else [WG2], type text)
+    WithTicketCount = Table.AddColumn(FilteredClean, "TICKET_COUNT", each 1, Int64.Type),
+    AddConsolidatedBureau = Table.AddColumn(WithTicketCount, "Bureau_Consolidated", each if [WG2] = "HOUSING" or [WG2] = "OFFICE OF SPECIAL OPERATIONS" or [WG2] = "PATROL BUREAU" then "PATROL DIVISION" else [WG2], type text)
 in
     AddConsolidatedBureau
