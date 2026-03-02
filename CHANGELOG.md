@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.22] - 2026-03-02
+
+### Changed — Assignment Master Sync Path-Agnostic (09_Reference/Personnel)
+
+**Location:** `09_Reference\Personnel\` (sibling to Master_Automation; not in this repo)
+
+The Assignment Master sync pipeline (`sync_assignment_master.py`, `fix_team_traffic.py`) was updated to use path-agnostic `BASE_DIR`:
+
+- **Before:** Hardcoded `C:\Users\RobertCarucci\OneDrive - City of Hackensack\09_Reference\Personnel` (laptop path)
+- **After:** `os.path.dirname(os.path.abspath(__file__))` — works on desktop (`carucci_r`) and laptop (`RobertCarucci`) without modification
+
+**Impact:** Personnel sync can be run from either machine. ETL scripts (Overtime/TimeOff, Summons) consume `Assignment_Master_V2.csv` from `09_Reference\Personnel\` or `Master_Automation\` (copy). Run `python sync_assignment_master.py` from `09_Reference\Personnel\` after editing GOLD; copy CSV to Master_Automation if ETL reads from there.
+
+**Personnel repo:** Git initialized in `09_Reference\Personnel\` with v1.3.0 commit.
+
+---
+
 ## [1.17.21] - 2026-02-27
 
 ### Added — Visual Export Mapping: Response Time + ESU

@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-02-27
+**Last Updated:** 2026-03-02
 **Status:** ⚠️ v1.17.19 — Response time filter corrections complete; all 25 monthly CSVs regenerated (citizen-initiated definition); Power BI refresh required
-**Version:** 1.17.19
+**Version:** 1.17.22
 
 ---
 
@@ -41,7 +41,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 ✅ **Overtime/TimeOff hardening** - Pre-flight validation, strict file discovery, output schema check, test_pipeline.bat  
 ✅ **Visual export normalization** - Orchestrator normalizes "Monthly Accrual and Usage Summary" CSVs in _DropExports before organize_backfill  
 ✅ **Summons backfill prep** - `summons_backfill_merge.py` for gap months (03-25, 07-25, 10-25, 11-25); injection point documented  
-✅ **13-month rolling window** - 24 Power BI visuals enforced to exactly 13 months (end = previous month); `process_powerbi_exports.py` (match_pattern, enforce_13_month), `validate_13_month_window.py`; docs in `docs/13_MONTH_*.md`  
+✅ **13-month rolling window** - 24 Power BI visuals enforced to exactly 13 months (end = previous month); `process_powerbi_exports.py` (match_pattern, enforce_13_month), `validate_13_month_window.py`; docs in `docs/13_MONTH_*.md`
+✅ **Assignment Master sync path-agnostic** - `09_Reference/Personnel/sync_assignment_master.py` uses `os.path.dirname(os.path.abspath(__file__))`; works on desktop (carucci_r) and laptop (RobertCarucci)  
 
 ---
 
