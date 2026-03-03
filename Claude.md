@@ -136,7 +136,7 @@ Avoid loading all files at once - use targeted searches.
 - **ESU 13-month**: `docs/ESU_POWER_BI_LOAD_AND_PUBLISH.md`, `m_code/esu/README.md` (single query ESU_13Month.m; Status, ItemKey, Month_Year; workbook requirements)
 - **M Code DateTime fix**: `docs/M_CODE_DATETIME_FIX_GUIDE.md` — audit table of all 20 affected files, ReportMonth parameter pattern, deployment checklist
 - **Monthly report template**: `docs/MONTHLY_REPORT_TEMPLATE_WORKFLOW.md` — template location, monthly cycle steps, M code deployment checklist (49 queries)
-- **Personnel schema**: `09_Reference/Personnel/Assignment_Master_SCHEMA.md` (auto-generated); `09_Reference/Standards/Personnel/assignment_master.schema.json`. Sync scripts in `09_Reference/Personnel/` (sync_assignment_master.py, fix_team_traffic.py) use path-agnostic BASE_DIR — work on desktop (carucci_r) and laptop (RobertCarucci).
+- **Personnel schema**: `09_Reference/Personnel/Assignment_Master_SCHEMA.md` (auto-generated); `09_Reference/Standards/Personnel/assignment_master.schema.json`. Sync scripts in `09_Reference/Personnel/scripts/` (sync_assignment_master.py, fix_team_traffic.py); run `python scripts/sync_assignment_master.py` or `run_sync.bat` from Personnel root. Path-agnostic BASE_DIR — works on desktop (carucci_r) and laptop (RobertCarucci).
 - **Troubleshooting**: `docs/` folder for script-specific guides
 
 ## Protected Resources
