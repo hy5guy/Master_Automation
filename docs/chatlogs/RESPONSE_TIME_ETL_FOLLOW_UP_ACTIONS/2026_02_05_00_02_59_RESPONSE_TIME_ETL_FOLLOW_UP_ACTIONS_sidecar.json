@@ -1,0 +1,75 @@
+{
+  "source_file": "RESPONSE_TIME_ETL_FOLLOW_UP_ACTIONS.md",
+  "source_path": "C:\\_chunker\\02_data\\RESPONSE_TIME_ETL_FOLLOW_UP_ACTIONS.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\RESPONSE_TIME_ETL_FOLLOW_UP_ACTIONS\\2026_02_05_00_02_59_RESPONSE_TIME_ETL_FOLLOW_UP_ACTIONS.origin.json",
+  "created_at": "2026_02_05_00_02_59",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "data",
+      "script",
+      "file",
+      "2025",
+      "december",
+      "available"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Response Time ETL - Follow-Up Actions\n\n**Date:** 2026-01-14  \n**Status:** Follow-up actions complete, December 2025 data unavailable in source file\n\n## ✅ What Was Completed\n\n1. **M Code Updated** (`m_code/response_time_calculator.m`)...",
+    "first_line": "# Response Time ETL - Follow-Up Actions"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-05T00:02:59+00:00_RESPONSE_TIME_ETL_FOLLOW_UP_ACTIONS_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "2025",
+        "ai",
+        "available",
+        "code",
+        "data",
+        "december",
+        "docs",
+        "excel",
+        "file",
+        "json",
+        "markdown",
+        "police",
+        "powershell",
+        "python",
+        "script",
+        "sql"
+      ],
+      "key_terms": [
+        "data",
+        "script",
+        "file",
+        "2025",
+        "december",
+        "available"
+      ],
+      "summary": "# Response Time ETL - Follow-Up Actions\n\n**Date:** 2026-01-14  \n**Status:** Follow-up actions complete, December 2025 data unavailable in source file\n\n## ✅ What Was Completed\n\n1.",
+      "char_length": 14080,
+      "byte_length": 14540
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

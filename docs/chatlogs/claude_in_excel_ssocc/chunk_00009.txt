@@ -1,0 +1,305 @@
+| Debug: Range.formulas
+I see the issue - the API doesn't accept "formula" property in the cells array for set_cell_range. Let me use the correct Office.js approach to set formulas:
+
+
+Convert text to formulas in 
+YEARLY_TOTALS
+R2:AC58
+Parameters:
+{
+  "code": "..."
+}
+Code:
+// Generate formulas for all 57 rows × 12 columns
+const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+const tableNames = months.map(m => `_26_${m}`);
+
+// Build the 57x12 formula array
+const formulas = [];
+for (let row = 0; row < 57; row++) {
+    const rowFormulas = [];
+    for (let col = 0; col < 12; col++) {
+        rowFormulas.push(`=COUNTIF(${tableNames[col]}[Service/Product],[@[ServiceName_Normalized]])`);
+    }
+    formulas.push(rowFormulas);
+}
+
+// Get the range and set formulas
+const sheet = context.workbook.worksheets.getItem("YEARLY_TOTALS");
+const range = sheet.getRange("R2:AC58");
+
+// Set the formulas
+range.formulas = formulas;
+
+// Set number format to ensure it's numeric (not text)
+range.numberFormat = [["0"]];
+
+await context.sync();
+
+return { 
+    success: true, 
+    rowCount: formulas.length, 
+    colCount: formulas[0].length,
+    totalCells: formulas.length * formulas[0].length,
+    sampleFormula: formulas[0][0]
+};
+Show more
+Error:
+{"success":false,"error":"There was an internal error while processing the request. ","code":"GeneralException","message":"There was an internal error while processing the request. ","errorLocation":"Range.formulas","statement":"range.formulas = ...;","surroundingStatements":["var workbook = context.workbook;","var worksheets = workbook.worksheets;","var worksheet = worksheets.getItem(...);","var range = worksheet.getRange(...);","// Instantiate {range}","// >>>>>","range.formulas = ...;","// <<<<<","range.numberFormat = ...;"],"fullStatements":["Please enable config.extendedErrorLogging to see full statements."]} I'm encountering an issue setting formulas directly. Let me try a different approach - setting the formulas using formulasLocal property:
+
+
+Convert text to formulas using formulasLocal
+Parameters:
+{
+  "code": "..."
+}
+Code:
+// Try using formulasLocal instead
+const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+const tableNames = months.map(m => `_26_${m}`);
+
+// Build formula array
+const formulas = [];
+for (let row = 0; row < 57; row++) {
+    const rowFormulas = [];
+    for (let col = 0; col < 12; col++) {
+        rowFormulas.push(`=COUNTIF(${tableNames[col]}[Service/Product],[@[ServiceName_Normalized]])`);
+    }
+    formulas.push(rowFormulas);
+}
+
+const sheet = context.workbook.worksheets.getItem("YEARLY_TOTALS");
+const range = sheet.getRange("R2:AC58");
+
+// Try formulasLocal
+range.formulasLocal = formulas;
+
+await context.sync();
+
+return { 
+    success: true,
+    message: "Formulas converted successfully"
+};
+Show more
+Error:
+{"success":false,"error":"There was an internal error while processing the request. ","code":"GeneralException","message":"There was an internal error while processing the request. ","errorLocation":"Range.formulasLocal","statement":"range.formulasLocal = ...;","surroundingStatements":["var workbook = context.workbook;","var worksheets = workbook.worksheets;","var worksheet = worksheets.getItem(...);","var range = worksheet.getRange(...);","// Instantiate {range}","// >>>>>","range.formulasLocal = ...;","// <<<<<"],"fullStatements":["Please enable config.extendedErrorLogging to see full statements."]} The issue is that formulas using structured references in a table context can't be set from outside the table. Let me try a different approach - setting them one column at a time:
+
+
+Convert column R (01-26) text to formulas
+Parameters:
+{
+  "code": "..."
+}
+Code:
+// Try column by column approach for column R (01-26 / _26_JAN)
+const sheet = context.workbook.worksheets.getItem("YEARLY_TOTALS");
+const range = sheet.getRange("R2:R58");
+
+// Build single column formulas
+const formulas = [];
+for (let i = 0; i < 57; i++) {
+    formulas.push(["=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"]);
+}
+
+range.formulas = formulas;
+
+await context.sync();
+
+return { success: true, column: "R", rows: 57 };
+Show more
+Error:
+{"success":false,"error":"There was an internal error while processing the request. ","code":"GeneralException","message":"There was an internal error while processing the request. ","errorLocation":"Range.formulas","statement":"range.formulas = ...;","surroundingStatements":["var workbook = context.workbook;","var worksheets = workbook.worksheets;","var worksheet = worksheets.getItem(...);","var range = worksheet.getRange(...);","// Instantiate {range}","// >>>>>","range.formulas = ...;","// <<<<<"],"fullStatements":["Please enable config.extendedErrorLogging to see full statements."]} The structured reference [@[ServiceName_Normalized]] requires the formula to be within the table context. Let me try using table column addressing:
+
+
+Get table and set formulas via table columns
+Parameters:
+{
+  "code": "..."
+}
+Code:
+// Access the table directly
+const table = context.workbook.tables.getItem("YEARLY_TOTALS");
+const columns = table.columns;
+columns.load("items/name,items/index");
+
+await context.sync();
+
+// Find the column indices for R through AC (01-26 through 12-26)
+const columnNames = ["01-26", "02-26", "03-26", "04-26", "05-26", "06-26", 
+                     "07-26", "08-26", "09-26", "10-26", "11-26", "12-26"];
+const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
+const results = [];
+for (let i = 0; i < columnNames.length; i++) {
+    const colName = columnNames[i];
+    const monthTable = `_26_${months[i]}`;
+    
+    try {
+        // Get the data body range for this column
+        const dataColumn = table.columns.getItem(colName);
+        const dataRange = dataColumn.getDataBodyRange();
+        
+        // Build formulas for all 57 rows
+        const formulas = [];
+        for (let row = 0; row < 57; row++) {
+            formulas.push([`=COUNTIF(${monthTable}[Service/Product],[@[ServiceName_Normalized]])`]);
+        }
+        
+        // Set the formulas
+        dataRange.formulas = formulas;
+        
+        results.push({ column: colName, status: "queued", rows: 57 });
+    } catch (e) {
+        results.push({ column: colName, status: "error", error: e.message });
+    }
+}
+
+await context.sync();
+
+return { success: true, columns: results };
+Show more
+Error:
+{"success":false,"error":"There was an internal error while processing the request. ","code":"GeneralException","message":"There was an internal error while processing the request. ","errorLocation":"Range.formulas","statement":"dataBodyRange.formulas = ...;","surroundingStatements":["...","var table = tables.getItem(...);","var columns = table.columns;","var column = columns.getItem(...);","var dataBodyRange = column.getDataBodyRange();","// Instantiate {dataBodyRange}","// >>>>>","dataBodyRange.formulas = ...;","// <<<<<","var column1 = columns.getItem(...);","var dataBodyRange1 = column1.getDataBodyRange();","// Instantiate {dataBodyRange1}","dataBodyRange1.formulas = ...;","var column2 = columns.getItem(...);","..."],"fullStatements":["Please enable config.extendedErrorLogging to see full statements."]} This is consistently failing. Let me check if the issue is related to the formula syntax or if there's a different problem. Let me try to read what's currently in those cells more carefully:
+
+
+Inspect cell R2 properties in detail
+Parameters:
+{
+  "code": "..."
+}
+Code:
+const sheet = context.workbook.worksheets.getItem("YEARLY_TOTALS");
+const cell = sheet.getRange("R2");
+
+cell.load("values,formulas,formulasLocal,formulasR1C1,text,valueTypes,numberFormat");
+
+await context.sync();
+
+return {
+    values: cell.values,
+    formulas: cell.formulas,
+    formulasLocal: cell.formulasLocal,
+    formulasR1C1: cell.formulasR1C1,
+    text: cell.text,
+    valueTypes: cell.valueTypes,
+    numberFormat: cell.numberFormat
+};
+Show more
+Result:
+{
+  "success": true,
+  "result": {
+    "values": [
+      [
+        "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      ]
+    ],
+    "formulas": [
+      [
+        "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      ]
+    ],
+    "formulasLocal": [
+      [
+        "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      ]
+    ],
+    "formulasR1C1": [
+      [
+        "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      ]
+    ],
+    "text": [
+      [
+        "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      ]
+    ],
+    "valueTypes": [
+      [
+        "String"
+      ]
+    ],
+    "numberFormat": [
+      [
+        "0"
+      ]
+    ]
+  }
+}
+Show more
+Interesting! The cell shows valueTypes: "String" but when I read the formulas property, it returns the formula text. This suggests Excel is treating it as a string but reporting it in the formulas property. Let me try using setFormula method cell by cell for a sample:
+
+
+Try cell-by-cell formula setting for R2
+Parameters:
+{
+  "code": "..."
+}
+Code:
+const sheet = context.workbook.worksheets.getItem("YEARLY_TOTALS");
+const cell = sheet.getRange("R2");
+
+// Clear the cell first
+cell.clear(Excel.ClearApplyTo.all);
+
+await context.sync();
+
+// Now set the formula
+cell.formulas = [["=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"]];
+
+await context.sync();
+
+// Read it back
+cell.load("values,valueTypes,formulas");
+await context.sync();
+
+return {
+    values: cell.values,
+    valueTypes: cell.valueTypes,
+    formulas: cell.formulas
+};
+Show more
+Error:
+{"success":false,"error":"The argument is invalid or missing or has an incorrect format. ","code":"InvalidArgument","message":"The argument is invalid or missing or has an incorrect format. ","errorLocation":"Range.formulas","statement":"v.formulas = ...;","surroundingStatements":["var v = context.workbook._getObjectByReferenceId(\"R!{C03B0A0A-FFF9-4CDF-B367-DD0CE153A2F0}! {336955E5-AD93-4477-A3B4-F6011F8433FD}\");","// >>>>>","v.formulas = ...;","// <<<<<"],"fullStatements":["Please enable config.extendedErrorLogging to see full statements."]} The formula is failing even after clearing. The issue is that the structured reference [@[ServiceName_Normalized]] requires Excel to recognize the cell is within a table. Let me try a different approach - using replaceAll to convert the apostrophe-prefixed text:
+
+
+Check for leading apostrophes in R2
+Parameters:
+{
+  "code": "..."
+}
+Code:
+// Check if the cells have leading apostrophes that aren't visible
+const sheet = context.workbook.worksheets.getItem("YEARLY_TOTALS");
+const range = sheet.getRange("R2:AC58");
+
+// Use find to search for cells starting with apostrophe
+const foundRanges = range.findAll("'=COUNTIF*", {
+    completeMatch: false,
+    matchCase: false
+});
+
+foundRanges.load("address,areaCount");
+
+await context.sync();
+
+if (foundRanges.areas.items.length > 0) {
+    return {
+        hasApostrophes: true,
+        foundCount: foundRanges.areaCount,
+        sampleAddress: foundRanges.areas.items[0].address
+    };
+} else {
+    return {
+        hasApostrophes: false,
+        message: "No leading apostrophes found"
+    };
+}
+Show more
+Error:
+{"success":false,"error":"range.findAll is not a function"}
+When responding to programmatic tool calling, only tool_result blocks are allowed. Column R selected
+
+
+What can I do for you? Accept all edits
+LOG

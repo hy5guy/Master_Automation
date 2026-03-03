@@ -1,0 +1,616 @@
+Click **Refresh** in Power BI
+3. **Save** the template
+
+**All done! The diagnostic query is back. ** 🎉
+
+---
+
+**User**
+
+all visuals are broken now 
+Visual 1: Fields that need to be fixed
+Something's wrong with one or more fields: (_Backfill) Type, (_Backfill) Period, (_Backfill) Value 
+Visual 2: Fields that need to be fixed
+Something's wrong with one or more fields: C_wg3) WG2, (_wg3) Mr (—wg3) P this is the personnel refrece file
+Visual 3: Fields that need to be fixed
+Something's wrong with one or more fields: (_TopParking) Parking Summons, (_TopParking)
+Proposed Standardized Name
+Visual 4: x
+Fields that need to be fixed
+Something's wrong with one or more fields: (_TopMoving) Moving Summons, C_TopMoving)
+Proposed Standardized Name
+
+---
+
+**Cursor**
+
+Ah! **The visuals are still pointing to the old January temporary query names! ** The queries are fixed, but the visuals need to be updated to use the new query names. ## 🔧 Fix the Visual References
+
+You need to update each visual to point to the correct NEW query. Here's how:
+
+### Visual 1: 13-Month Trend (Department-Wide Summons)
+**Error:** Looking for `(_Backfill)` fields  
+**Fix:** Change to `summons_13month_trend`
+
+1. Click on the visual (the 13-month trend chart)
+2. In the **Fields** pane (right side), you'll see fields with `(_Backfill)` prefix
+3. **Remove all** `(_Backfill)` fields from the visual
+4. Expand `summons_13month_trend` in the Fields pane
+5. Drag these fields to the visual:
+   - **Axis/X-axis:** `Period` or `Month_Year`
+   - **Values:** `TICKET_COUNT` (or sum by `TYPE`)
+   - **Legend:** `TYPE`
+
+### Visual 2: All Bureaus by Type
+**Error:** Looking for `(_wg3)` fields  
+**Fix:** Change to `summons_all_bureaus`
+
+1. Click on the visual (bureau comparison chart)
+2. In **Fields** pane, remove all `(_wg3)` fields
+3. Expand `summons_all_bureaus` in the Fields pane
+4. Drag these fields:
+   - **Axis:** `Bureau/Division` (or `WG2`)
+   - **Values:** `M` and `P` (Moving and Parking columns)
+
+### Visual 3: Top 5 Parking Leaders
+**Error:** Looking for `(_TopParking)` fields  
+**Fix:** Change to `summons_top5_parking`
+
+1. Click on the visual (Top 5 Parking table/chart)
+2. Remove all `(_TopParking)` fields
+3. Expand `summons_top5_parking` in Fields pane
+4. Drag these fields:
+   - **Columns/Values:** `Officer`, `Summons Count`
+
+### Visual 4: Top 5 Moving Leaders
+**Error:** Looking for `(_TopMoving)` fields  
+**Fix:** Change to `summons_top5_moving`
+
+1. Click on the visual (Top 5 Moving table/chart)
+2. Remove all `(_TopMoving)` fields
+3. Expand `summons_top5_moving` in Fields pane
+4. Drag these fields:
+   - **Columns/Values:** `Officer`, `Summons Count`
+
+---
+
+## 🎯 Quick Visual Fix Steps
+
+For **each broken visual**:
+1. **Click** the visual
+2. Look at **Fields** pane (right side)
+3. Find the section showing fields used in this visual
+4. **Click the X** next to each old field name (e.g., `(_Backfill)`, `(_wg3)`, etc.) 5. From the Fields pane list, **expand** the correct new query name
+6. **Drag** the correct fields into the visual
+
+---
+
+## 📋 Query Name Mapping
+
+| Old Query (January) | New Query (Fixed) | Visual Type |
+|---------------------|-------------------|-------------|
+| `___Backfill` | `summons_13month_trend` | 13-month line/bar chart |
+| `___wg3` | `summons_all_bureaus` | Bureau comparison |
+| `___TopParking` | `summons_top5_parking` | Top 5 table |
+| `___TopMoving` | `summons_top5_moving` | Top 5 table |
+
+---
+
+## 💡 Alternative: Go Back to Power Query and Create Aliases
+
+If updating visuals is too tedious, you can create **duplicate queries** with the old names that reference the new ones:
+
+1. Go back to **Transform Data** (Power Query Editor)
+2. Right-click `summons_13month_trend` → **Reference**
+3. Rename the new query to `___Backfill`
+4. Repeat for the others
+
+But I **don't recommend this** - better to fix the visuals properly now! ---
+
+**Start with Visual 1 and let me know if you need help with the field mapping! ** 🎯
+
+---
+
+**User**
+
+summons_13month_trend attachment 1 and 2
+summons_all_bureaus attachment 3 and 4  we have to make the summons whole numbers
+summons_top5_parking attachment 5 and 6 we have to make the summons whole numbers
+summons_top5_moving attachment 7 and 8 we have to make the summons whole numbers
+
+---
+
+**Cursor**
+
+🎉 **Excellent! All 4 visuals are working! ** But yes, we need to fix the decimal numbers (316.00 → 316). ## 🔧 Fix: Make Summons Counts Whole Numbers
+
+The issue is in the M code - the count columns are defined as `type number` (allows decimals) instead of `Int64.Type` (whole numbers). Let me provide the corrected M code for the 3 affected queries:
+
+---
+
+## Fix 1: `summons_all_bureaus` (M and P columns)
+
+Go back to **Transform Data** → Right-click `summons_all_bureaus` → **Advanced Editor**
+
+Replace the **Group by** section (around line 85-95) with this:
+
+```m
+    // Group by WG2 (Bureau) and TYPE, then sum TICKET_COUNT
+    #"Grouped by Bureau and Type" = Table.Group(
+        #"Replaced PATROL BUREAU",
+        {"WG2"},
+        {
+            {"M", each List.Sum(Table.SelectRows(_, each [TYPE] = "M")[TICKET_COUNT]), Int64.Type},
+            {"P", each List.Sum(Table.SelectRows(_, each [TYPE] = "P")[TICKET_COUNT]), Int64.Type}
+        }
+    ),
+```
+
+**Changed:** `type number` → `Int64.Type` (on both M and P lines)
+
+---
+
+## Fix 2: `summons_top5_parking` (Summons Count)
+
+Right-click `summons_top5_parking` → **Advanced Editor**
+
+Find the **Group by Officer** section (around line 128-136) and replace with:
+
+```m
+    // Group by Officer and sum TICKET_COUNT
+    #"Grouped by Officer" = Table.Group(
+        #"Formatted Officer Name",
+        {"Officer"},
+        {
+            {"Sum of Summons Count", each List.Sum([TICKET_COUNT]), Int64.Type}
+        }
+    ),
+```
+
+**Changed:** `type number` → `Int64.Type`
+
+---
+
+## Fix 3: `summons_top5_moving` (Already correct, but verify)
+
+Right-click `summons_top5_moving` → **Advanced Editor**
+
+Verify the Group by section has `Int64.Type`:
+
+```m
+    #"Grouped by Officer" = Table.Group(
+        #"Formatted Officer Name",
+        {"Officer"},
+        {
+            {"Sum of Summons Count", each List.Sum([TICKET_COUNT]), Int64.Type}
+        }
+    ),
+```
+
+This one should already be correct. ---
+
+## ⚡ Quick Alternative: Format in Visual (Faster!) Instead of changing M code, you can format the visuals:
+
+### For each visual showing decimals:
+1. **Click** the visual
+2. **Right-click** on the number field showing decimals (e.g., "Sum of M", "Summons Count")
+3. Select **Format** (or **Column tools** in ribbon)
+4. Change **Format** to "Whole number"
+
+Or:
+
+1. Select the visual
+2. In **Visualizations** pane → **Format visual** (paint roller icon)
+3. Expand **Values** or **Data labels**
+4. Set **Display units** to "None"
+5. Set **Value decimal places** to **0**
+
+---
+
+## 📝 Which Method? - **M Code fix** = Permanent, affects all future reports ✅ (Recommended)
+- **Visual formatting** = Quick fix for this report only
+
+**I recommend fixing the M code** so it's correct in the template forever! Let me know which method you prefer, or if you want me to provide complete updated M code files! 🎯
+
+---
+
+**User**
+
+Fix 3:
+I found that this file actually still has type number instead of Int64.Type. Let me update it:
+
+Updated! The file had type number instead of Int64.Type, so I've corrected it to use Int64.Type. the subtitle dex is off ofr the top 5 parking and moving
+
+please provide dax that will show Department-wide parking violations (November 2025) where the date is dynamic for both
+also will need a dax for all bureus where the date is dynamic too
+
+---
+
+**Cursor**
+
+Perfect! ✅ All visuals are working with whole numbers now! Now let's fix those dynamic subtitles with DAX. ## 📅 DAX for Dynamic Subtitles
+
+### 1. Top 5 Parking - Dynamic Subtitle
+
+Create a new measure in the `summons_top5_parking` table:
+
+```dax
+Top5_Parking_Subtitle = 
+VAR LatestMonth = MAX(summons_top5_parking[Month_Year])
+VAR MonthName = 
+    SWITCH(
+        TRUE(),
+        CONTAINSSTRING(LatestMonth, "01-"), "January",
+        CONTAINSSTRING(LatestMonth, "02-"), "February",
+        CONTAINSSTRING(LatestMonth, "03-"), "March",
+        CONTAINSSTRING(LatestMonth, "04-"), "April",
+        CONTAINSSTRING(LatestMonth, "05-"), "May",
+        CONTAINSSTRING(LatestMonth, "06-"), "June",
+        CONTAINSSTRING(LatestMonth, "07-"), "July",
+        CONTAINSSTRING(LatestMonth, "08-"), "August",
+        CONTAINSSTRING(LatestMonth, "09-"), "September",
+        CONTAINSSTRING(LatestMonth, "10-"), "October",
+        CONTAINSSTRING(LatestMonth, "11-"), "November",
+        CONTAINSSTRING(LatestMonth, "12-"), "December",
+        "Unknown"
+    )
+VAR YearPart = 
+    IF(
+        LEN(LatestMonth) >= 5,
+        "20" & RIGHT(LatestMonth, 2),
+        "Unknown"
+    )
+RETURN
+    "Department-wide parking violations (" & MonthName & " " & YearPart & ")"
+```
+
+---
+
+### 2. Top 5 Moving - Dynamic Subtitle
+
+Create a new measure in the `summons_top5_moving` table:
+
+```dax
+Top5_Moving_Subtitle = 
+VAR LatestMonth = MAX(summons_top5_moving[Month_Year])
+VAR MonthName = 
+    SWITCH(
+        TRUE(),
+        CONTAINSSTRING(LatestMonth, "01-"), "January",
+        CONTAINSSTRING(LatestMonth, "02-"), "February",
+        CONTAINSSTRING(LatestMonth, "03-"), "March",
+        CONTAINSSTRING(LatestMonth, "04-"), "April",
+        CONTAINSSTRING(LatestMonth, "05-"), "May",
+        CONTAINSSTRING(LatestMonth, "06-"), "June",
+        CONTAINSSTRING(LatestMonth, "07-"), "July",
+        CONTAINSSTRING(LatestMonth, "08-"), "August",
+        CONTAINSSTRING(LatestMonth, "09-"), "September",
+        CONTAINSSTRING(LatestMonth, "10-"), "October",
+        CONTAINSSTRING(LatestMonth, "11-"), "November",
+        CONTAINSSTRING(LatestMonth, "12-"), "December",
+        "Unknown"
+    )
+VAR YearPart = 
+    IF(
+        LEN(LatestMonth) >= 5,
+        "20" & RIGHT(LatestMonth, 2),
+        "Unknown"
+    )
+RETURN
+    "Department-wide moving violations (" & MonthName & " " & YearPart & ")"
+```
+
+---
+
+### 3. All Bureaus - Dynamic Subtitle
+
+Create a new measure in the `summons_all_bureaus` table:
+
+```dax
+AllBureaus_Subtitle = 
+VAR LatestMonth = MAX(summons_all_bureaus[Month_Year])
+VAR MonthName = 
+    SWITCH(
+        TRUE(),
+        CONTAINSSTRING(LatestMonth, "01-"), "January",
+        CONTAINSSTRING(LatestMonth, "02-"), "February",
+        CONTAINSSTRING(LatestMonth, "03-"), "March",
+        CONTAINSSTRING(LatestMonth, "04-"), "April",
+        CONTAINSSTRING(LatestMonth, "05-"), "May",
+        CONTAINSSTRING(LatestMonth, "06-"), "June",
+        CONTAINSSTRING(LatestMonth, "07-"), "July",
+        CONTAINSSTRING(LatestMonth, "08-"), "August",
+        CONTAINSSTRING(LatestMonth, "09-"), "September",
+        CONTAINSSTRING(LatestMonth, "10-"), "October",
+        CONTAINSSTRING(LatestMonth, "11-"), "November",
+        CONTAINSSTRING(LatestMonth, "12-"), "December",
+        "Unknown"
+    )
+VAR YearPart = 
+    IF(
+        LEN(LatestMonth) >= 5,
+        "20" & RIGHT(LatestMonth, 2),
+        "Unknown"
+    )
+RETURN
+    "Summons issued during " & MonthName & " " & YearPart
+```
+
+---
+
+## 🔧 How to Apply These Measures
+
+### Step 1: Create the Measures
+
+1. In Power BI Desktop (Report view)
+2. Click on the table in the **Fields** pane (e.g., `summons_top5_parking`)
+3. Right-click the table → **New measure**
+4. Paste the DAX code
+5. Press **Enter**
+6. Repeat for the other two measures
+
+### Step 2: Apply to Visual Subtitles
+
+For each visual:
+
+1. **Click** the visual
+2. In **Visualizations** pane → **Format visual** (paint roller icon)
+3. Expand **General** → **Title**
+4. Click **fx** next to **Subtitle**
+5. Change dropdown from "Auto" to **"Field value"**
+6. Select the corresponding measure:
+   - Top 5 Parking: `Top5_Parking_Subtitle`
+   - Top 5 Moving: `Top5_Moving_Subtitle`
+   - All Bureaus: `AllBureaus_Subtitle`
+7. Done! ---
+
+## 📝 Alternative: If Month_Year Column Not in Query
+
+If you get an error that `Month_Year` doesn't exist in the query, we need to go back to **Transform Data** and add it. Let me know if you need help with that, or if the DAX measures work! 🎯
+
+---
+
+## ✅ Expected Results
+
+- **January 2026 data**: "Department-wide parking violations (January 2026)"
+- **February 2026 data**: "Department-wide parking violations (February 2026)"
+- And so on... The subtitle will automatically update based on whatever month is in the data! 🚀
+
+---
+
+**User**
+
+[Month_Year]) is causing an error as it does not exist
+
+---
+
+**Cursor**
+
+Ah, right! The queries filter by `Month_Year` but don't **output** that column. We need to add it to each query. ## 🔧 Fix: Add Month_Year Column to Each Query
+
+Go back to **Transform Data** (Power Query Editor) and update each of the 3 queries:
+
+---
+
+### Fix 1: `summons_all_bureaus`
+
+Right-click `summons_all_bureaus` → **Advanced Editor**
+
+Find the **Latest Month** line (around line 52):
+```m
+#"Latest Month" = List.Max(#"Filtered E-Ticket Data"[Month_Year]),
+```
+
+After the final step (before `in #"Sorted Rows"`), add this:
+
+```m
+    // Add Month_Year column for subtitle
+    #"Added Month" = Table.AddColumn(#"Sorted Rows", "Month_Year", each #"Latest Month", type text)
+in
+    #"Added Month"
+```
+
+**Full ending should look like:**
+```m
+    // Sort by Bureau/Division name
+    #"Sorted Rows" = Table.Sort(#"Renamed Columns", {{"Bureau/Division", Order.Ascending}}),
+    
+    // Add Month_Year column for subtitle
+    #"Added Month" = Table.AddColumn(#"Sorted Rows", "Month_Year", each #"Latest Month", type text)
+in
+    #"Added Month"
+```
+
+---
+
+### Fix 2: `summons_top5_parking`
+
+Right-click `summons_top5_parking` → **Advanced Editor**
+
+Find the **Latest Month** line (around line 38):
+```m
+#"Latest Month" = List.Max(#"Filtered E-Ticket Data"[Month_Year]),
+```
+
+After the final step (before `in #"Renamed Columns"`), add this:
+
+```m
+    // Add Month_Year column for subtitle
+    #"Added Month" = Table.AddColumn(#"Renamed Columns", "Month_Year", each #"Latest Month", type text)
+in
+    #"Added Month"
+```
+
+**Full ending should look like:**
+```m
+    // Take top 5
+    #"Top 5" = Table.FirstN(#"Sorted Rows", 5),
+    #"Renamed Columns" = Table.RenameColumns(#"Top 5",{{"Sum of Summons Count", "Summons Count"}}),
+    
+    // Add Month_Year column for subtitle
+    #"Added Month" = Table.AddColumn(#"Renamed Columns", "Month_Year", each #"Latest Month", type text)
+in
+    #"Added Month"
+```
+
+---
+
+### Fix 3: `summons_top5_moving`
+
+Right-click `summons_top5_moving` → **Advanced Editor**
+
+Find the **Latest Month** line (around line 45):
+```m
+#"Latest Month" = List.Max(#"Exclude Multiple Officers"[Month_Year]),
+```
+
+After the final step (before `in #"Renamed Columns"`), add this:
+
+```m
+    // Add Month_Year column for subtitle
+    #"Added Month" = Table.AddColumn(#"Renamed Columns", "Month_Year", each #"Latest Month", type text)
+in
+    #"Added Month"
+```
+
+**Full ending should look like:**
+```m
+    // Take top 5
+    #"Top 5" = Table.FirstN(#"Sorted Rows", 5),
+    #"Renamed Columns" = Table.RenameColumns(#"Top 5",{{"Sum of Summons Count", "Summons Count"}}),
+    
+    // Add Month_Year column for subtitle
+    #"Added Month" = Table.AddColumn(#"Renamed Columns", "Month_Year", each #"Latest Month", type text)
+in
+    #"Added Month"
+```
+
+---
+
+## ✅ After Making These Changes
+
+1. Click **Home** → **Close & Apply**
+2. In Report view, try the DAX measures again
+3. The `Month_Year` column should now exist in each table! ---
+
+## 🎯 Quick Check
+
+After applying and closing Power Query:
+1. Go to **Data** view (left sidebar)
+2. Click on `summons_all_bureaus` table
+3. You should now see a `Month_Year` column (e.g., "01-26")
+4. Same for the other two tables
+
+Let me know if you get any errors and I'll help troubleshoot! 🚀
+
+---
+
+**User**
+
+the dax logic is off the top 5 parking is showing as December but it should state January 2026 
+
+i think one of the dax I used in the past was Subtitle_Top_5_NEW = 
+FORMAT(EOMONTH(TODAY(), -1), "MMMM yyyy") & " - Department-Wide Performance"
+
+---
+
+**Cursor**
+
+Ah! You're right - your old DAX using `EOMONTH(TODAY(), -1)` is simpler and more reliable! Since the monthly reports always represent the previous completed month, that's the perfect approach. ## 🎯 Updated DAX - Using Previous Month Logic
+
+Replace all three subtitle measures with these simpler versions:
+
+### 1. Top 5 Parking - Subtitle
+
+```dax
+Top5_Parking_Subtitle = 
+"Department-wide parking violations (" & FORMAT(EOMONTH(TODAY(), -1), "MMMM yyyy") & ")"
+```
+
+### 2. Top 5 Moving - Subtitle
+
+```dax
+Top5_Moving_Subtitle = 
+"Department-wide moving violations (" & FORMAT(EOMONTH(TODAY(), -1), "MMMM yyyy") & ")"
+```
+
+### 3. All Bureaus - Subtitle
+
+```dax
+AllBureaus_Subtitle = 
+"Summons issued during " & FORMAT(EOMONTH(TODAY(), -1), "MMMM yyyy")
+```
+
+---
+
+## 📅 How This Works
+
+- `TODAY()` = Current date (e.g., February 13, 2026)
+- `EOMONTH(TODAY(), -1)` = End of previous month (e.g., January 31, 2026)
+- `FORMAT(..., "MMMM yyyy")` = "January 2026"
+
+**Result:**
+- When report is generated in February → Shows "January 2026"
+- When report is generated in March → Shows "February 2026"
+- And so on...
+
+---
+
+## ✅ Benefits of This Approach
+
+✅ **Simpler** - No need to parse Month_Year column  
+✅ **Always accurate** - Based on when report is run  
+✅ **Consistent** - Matches your monthly report cycle  
+✅ **No query changes needed** - Don't need to add Month_Year column
+
+---
+
+## 🔧 To Update
+
+1. In Power BI, right-click each measure → **Edit**
+2. Replace with the new simpler DAX
+3. Done! This should now show **"January 2026"** correctly! 🎉
+
+---
+
+**User**
+
+ok now that it is updated do we remove C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports\2026\01_january\2026_01_Monthly_FINAL_LAP.pbix? if so can the file name be yyyy_mm_Monthly_Report? ---
+
+**Cursor**
+
+Good question! Here's what we should do:
+
+## 🎯 Keep the File & Update Script for Future
+
+### 1. **Keep** the January 2026 File
+✅ Keep: `2026_01_Monthly_FINAL_LAP.pbix`
+
+**Why? ** This is your working January report with all the fixes we just made. It's a valid monthly report. ### 2. **Optionally Rename** for Consistency
+You can rename it to match the new naming convention:
+
+**Old name:**
+```
+2026_01_Monthly_FINAL_LAP.pbix
+```
+
+**New name:**
+```
+2026_01_Monthly_Report.pbix
+```
+
+PowerShell command:
+```powershell
+Rename-Item "C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports\2026\01_january\2026_01_Monthly_FINAL_LAP.pbix" `
+            "C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports\2026\01_january\2026_01_Monthly_Report.pbix"
+```
+
+### 3. **Update ETL Script** for Future Months
+
+The filename is set in `run_all_etl.ps1`. Let me check and update it:
+
+Perfect! I found it. Let me update the script to use the new naming convention:
+
+Perfect! ✅ Script updated. Now let me create a summary document:
+
+Perfect!

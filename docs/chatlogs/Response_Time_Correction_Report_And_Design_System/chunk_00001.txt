@@ -1,0 +1,456 @@
+4. Attach the **Required** artifacts (and as many Recommended/Optional as you can), especially **`response_time_batch_all_metrics.py`** so Claude can confirm whether the CSVs are built with first-arriving-unit logic and whether backfill should be excluded. 5. Use Claude’s methodology summary and one-page explanation for admin and any footnote or briefing you need. ---
+
+**User**
+
+Sonnet Review:@c:\Users\carucci_r\Downloads\Claude-Police response time metrics verification and backfill data quality.json 
+Opus Secondary Review: @c:\Users\carucci_r\Downloads\Claude-Response time metric verification artifacts.json 
+@c:\Users\carucci_r\Downloads\Response_Time_Admin_Brief_2026_02_26.docx @c:\Users\carucci_r\Downloads\PEER_REVIEW_Response_Time_Verification_2026_02_26.md 
+
+# Cursor AI — Response Time Pipeline Fixes & Documentation Updates
+# 2026-02-26 | Master_Automation v1.17.14 → v1.17.15
+# Author: R. A. Carucci | Hackensack PD Principal Analyst
+
+---
+
+## CONSOLIDATED FINDINGS SUMMARY (Sonnet + Opus Peer Review)
+
+### BUG 1 — CRITICAL: Missing Sort in Batch ETL (Both reviewers confirmed)
+- **File:** `02_ETL_Scripts/Response_Times/response_time_batch_all_metrics.py`
+- **Function:** `load_and_clean()`
+- **Problem:** `drop_duplicates(subset="ReportNumberNew", keep="first")` runs WITHOUT a prior
+  `sort_values(["ReportNumberNew", "Time Out"])`. For the 28.2% of calls with multiple
+  responding units, the script keeps whichever row is first in the Excel file instead of
+  the first-arriving officer (first by Time Out). This contradicts the documented methodology
+  and the fix already applied to `process_cad_data_13month_rolling.py` in v1.15.9. - **Impact:** All 25 monthly CSVs in `PowerBI_Date\Backfill\response_time_all_metrics\` may
+  report incorrect response times for multi-unit incidents. ### BUG 2 — HIGH: Missing 13-Month Window Filter in Two M Code Queries (Opus only)
+- **Files:**
+  - `m_code/response_time/___ResponseTime_OutVsCall.m`
+  - `m_code/response_time/___ResponseTime_DispVsCall.m`
+- **Problem:** These two queries load ALL data from the backfill folder without applying the
+  rolling 13-month window filter that exists in `___ResponseTimeCalculator.m`. The Calculator
+  query uses `pReportMonth` to compute StartDate and EndDate; the other two do not. As a
+  result, the "Time Received to On Scene" and "Dispatch Processing Time" visuals are displaying
+  all 25 months of data instead of the correct rolling 13-month window. - **Impact:** Visual inconsistency — Calculator shows 13 months, other two show 25 months. ### FINDING 3 — INFO: Record Count Mismatch Is Expected (Both reviewers confirmed)
+- Each metric independently filters for valid timestamps, so record counts differ per metric
+  (e.g., Emergency Jan-26: 347 / 278 / 336 for the three metrics). This is defensible and
+  expected behavior — not a bug. Document internally so no one tries to reconcile the
+  three numbers as a closed loop. ### FINDING 4 — INFO: Median Data Available but Unused (Opus only)
+- The batch ETL writes `Median_Minutes` to every CSV but no M code or DAX measure uses it. No fix required now, but worth tracking for future reporting enhancements. ### FINDING 5 — INFO: 2024 CallType Data Relies Almost Entirely on Reference Mapping
+- Per CHANGELOG v1.17.12, 2024 CAD data had Response Type populated for <1% of raw records. The three-tier CallType mapping resolved 99.99% but this should be disclosed in year-over-
+  year comparisons. No code fix required — documentation only. ### FINDING 6 — INFO: 0–10 Minute Outlier Filter Not Yet Formally Documented for Admin
+- The batch ETL excludes response times ≤ 0 and > 10 minutes. This is appropriate but should
+  be disclosed in admin-facing methodology documentation. ---
+
+## CURSOR AI INSTRUCTIONS
+
+You are working on the **Master_Automation** repository for Hackensack Police Department. The analyst is R. A. Carucci. Apply all changes below, update version to 1.17.15, and update
+CHANGELOG.md, README.md, and SUMMARY.md to reflect all changes. ---
+
+### TASK 1 — Fix Bug 1: Add Sort Before Dedup in Batch ETL
+
+**File:** `02_ETL_Scripts/Response_Times/response_time_batch_all_metrics.py`
+
+In the `load_and_clean()` function, locate this block:
+
+```python
+before_dedup = len(df)
+df = df.drop_duplicates(subset="ReportNumberNew", keep="first").reset_index(drop=True)
+logging.info(f"  After dedup on ReportNumberNew: {len(df):,} (removed {before_dedup - len(df):,} dupes)")
+```
+
+Replace it with:
+
+```python
+before_dedup = len(df)
+df = df.sort_values(["ReportNumberNew", "Time Out"])  # first-arriving unit
+df = df.drop_duplicates(subset="ReportNumberNew", keep="first").reset_index(drop=True)
+logging.info(f"  After dedup on ReportNumberNew (first-arriving unit): {len(df):,} (removed {before_dedup - len(df):,} dupes)")
+```
+
+Also update the file header comment to note the fix date and version. ---
+
+### TASK 2 — Fix Bug 2: Add 13-Month Window to OutVsCall and DispVsCall M Queries
+
+**Files:**
+- `m_code/response_time/___ResponseTime_OutVsCall.m`
+- `m_code/response_time/___ResponseTime_DispVsCall.m`
+
+Open `m_code/response_time/___ResponseTimeCalculator.m` and copy its date windowing block. It uses `pReportMonth` to compute `EndDate` and `StartDate` like this (adapt exact variable
+names from the actual file):
+
+```m
+EndDate = Date.AddMonths(DateTime.Date(pReportMonth), -1),
+StartDate = Date.AddMonths(EndDate, -12),
+FilteredByDate = Table.SelectRows(#"Previous Step",
+    each [Period_Date] >= StartDate and [Period_Date] <= EndDate),
+```
+
+Apply the SAME windowing logic to `___ResponseTime_OutVsCall.m` and
+`___ResponseTime_DispVsCall.m` so all three queries are consistent. The filter step name
+and column name must match what is actually in those query files — do not assume; read each
+file first. ---
+
+### TASK 3 — Re-Run Batch ETL After Fix
+
+After applying Task 1:
+
+1. Run `02_ETL_Scripts/Response_Times/response_time_batch_all_metrics.py`
+2. Capture the log output showing record counts per source and month
+3. Compare new CSVs in `PowerBI_Date\Backfill\response_time_all_metrics\` against the
+   old ones — note any changes in `First_Response_Time_MMSS` or `Avg_Minutes`
+4. Create a comparison file at:
+   `docs/response_time/2026_02_26_PreFix_vs_PostFix_Comparison.md`
+   documenting old vs. new averages by Response_Type and month for any month where values changed
+
+---
+
+### TASK 4 — Update CHANGELOG.md
+
+Add a new entry for version 1.17.15 at the TOP of the existing CHANGELOG:
+
+```markdown
+## [1.17.15] - 2026-02-26
+
+### Fixed
+- **`response_time_batch_all_metrics.py` — First-Arriving-Unit Deduplication**
+  Added `sort_values(["ReportNumberNew", "Time Out"])` before `drop_duplicates()` in
+  `load_and_clean()`. Without this sort, multi-unit incidents (28.2% of calls) retained
+  whichever row appeared first in the source Excel file rather than the first-arriving
+  officer. This flaw was identified via peer review (Sonnet + Opus, 2026-02-26) and mirrors
+  the fix applied to `process_cad_data_13month_rolling.py` in v1.15.9. All 25 monthly CSVs
+  were regenerated after this fix. See `docs/response_time/2026_02_26_PreFix_vs_PostFix_Comparison.md`
+  for delta analysis. - **`___ResponseTime_OutVsCall.m` and `___ResponseTime_DispVsCall.m` — Rolling 13-Month Window**
+  Applied the same `pReportMonth`-driven 13-month window filter that exists in
+  `___ResponseTimeCalculator.m` to both new queries. Previously these queries loaded all
+  available data (25 months) without date filtering, creating an inconsistency with the
+  Calculator visual. ### Notes
+- Record count differences across the three metrics (per month and response type) are
+  expected and defensible — each metric independently requires valid timestamps in both
+  its columns. This is documented behavior, not a bug. - `Median_Minutes` is written to all CSVs but not yet surfaced in M code or DAX. Tracked for future enhancement. - 2024 Response Type classification relies primarily on CallType_Categories.csv reference
+  mapping (<1% sourced from original CAD values). Appropriate for trend analysis; disclose
+  in year-over-year comparisons. ```
+
+---
+
+### TASK 5 — Update README.md and SUMMARY.md
+
+In both files, update the "Response Times" section to reflect:
+- Version 1.17.15 is the corrected golden standard
+- First-arriving-unit dedup confirmed in both the batch ETL and the rolling script
+- M code now consistently applies 13-month window across all three queries
+- Backfill CSVs regenerated 2026-02-26 post-fix
+- Power BI requires refresh to reflect corrected data
+
+---
+
+### TASK 6 — Create Internal Documentation Note
+
+Create new file: `docs/response_time/RECORD_COUNT_MISMATCH_EXPLAINED.md`
+
+Content should explain (in plain language):
+
+- Why the three visuals show different record counts for the same month/response type
+- That this is expected — each metric requires both its timestamps to be non-null and
+  the computed difference to be between 0 and 10 minutes
+- That the three values are NOT a closed algebraic loop and should not be reconciled
+  by subtraction for reporting purposes
+- Audience: anyone who looks at the data and wonders why 347 ≠ 278 ≠ 336 for Emergency
+
+---
+
+### TASK 7 — Verify `process_cad_data_13month_rolling.py` Still Has the v1.15.9 Fix
+
+Open `02_ETL_Scripts/Response_Times/process_cad_data_13month_rolling.py` and confirm that
+the deduplication step reads:
+
+```python
+df = df.sort_values(["ReportNumberNew", "Time Out"])
+df = df.drop_duplicates(subset=["ReportNumberNew"], keep="first")
+```
+
+If it does, add a comment: `# v1.15.9 fix — first-arriving unit (sort by Time Out)`
+If the sort is missing, apply the same fix from Task 1 and log it in CHANGELOG under 1.17.15. ---
+
+### TASK 8 — Power BI Refresh Reminder File
+
+Create: `docs/response_time/POWERBI_REFRESH_REQUIRED_2026_02_26.md`
+
+Content:
+- All three response time queries must be refreshed in Power BI after this fix
+- Queries: ___ResponseTimeCalculator, ___ResponseTime_OutVsCall, ___ResponseTime_DispVsCall
+- New CSVs are in place at `PowerBI_Date\Backfill\response_time_all_metrics\`
+- Validate that the rolling window now shows 13 months for all three visuals
+- Validate Emergency Jan-26 values against the pre-fix values in the comparison doc
+- Mark this file as COMPLETE after Power BI refresh is confirmed
+
+---
+
+## ACCEPTANCE CRITERIA
+
+All tasks complete when:
+
+- [ ] `response_time_batch_all_metrics.py` has the sort before dedup
+- [ ] Both OutVsCall and DispVsCall M queries have 13-month window filtering
+- [ ] Batch ETL has been re-run and 25 CSVs regenerated
+- [ ] Pre-fix vs. post-fix comparison doc exists with delta values
+- [ ] CHANGELOG 1.17.15 entry is added
+- [ ] README and SUMMARY updated to v1.17.15
+- [ ] `process_cad_data_13month_rolling.py` confirmed or fixed
+- [ ] Power BI refresh completed and confirmed
+- [ ] `POWERBI_REFRESH_REQUIRED_2026_02_26.md` marked complete
+
+
+---
+
+**Cursor**
+
+Both M queries already have the 13-month window. Bug 2 is already resolved in the current files. Now let me find the batch ETL script and the rolling script:
+
+Bug 1 confirmed — no sort before dedup. Now apply all fixes:
+
+Now add the confirming comment to process_cad_data_13month_rolling.py (the fix is already there):
+
+Now run the batch ETL and capture output. This will take a while so I'll background it:
+
+ETL completed. Now generate the pre/post comparison by reading the new CSVs and comparing against the values logged in the CHANGELOG for v1.17.12:
+
+Good data. Now I can build the pre/post comparison from the visual screenshots vs the new post-fix CSVs. Writing all remaining docs simultaneously:
+
+Now update the CHANGELOG, README, and SUMMARY. Let me read the README and SUMMARY first:
+
+Now add the SUMMARY.md Response Time section update and CHANGELOG entry:
+
+Now add the CHANGELOG entry at the top:
+
+All tasks complete. Here's the full summary of what was done:
+
+---
+
+## v1.17.15 — All Tasks Complete
+
+### Bug 1 — Fixed (`response_time_batch_all_metrics.py`)
+Added `sort_values(["ReportNumberNew", "Time Out"])` before `drop_duplicates()` in `load_and_clean()`. The file header was also updated to document the v1.17.15 fix date and rationale. ### Bug 2 — Already Resolved (no code change needed)
+Both `___ResponseTime_OutVsCall.m` and `___ResponseTime_DispVsCall.m` already contain the correct `EndDate`/`StartDate`/`Windowed` 13-month filter block driven by `pReportMonth`. The Opus peer review was looking at an older version. All three M queries are consistent. ### Task 3 — Batch ETL Re-run Completed
+ETL ran in ~111 seconds. All 25 CSVs regenerated. Key deltas confirmed:
+- **Emergency Jan-26 Dispatch to On Scene: 3:11 → 2:51 (−20 seconds)**
+- **Urgent Jan-26 Dispatch to On Scene: 2:54 → 2:35 (−19 seconds)**
+- Routine: minimal change (1–3 seconds) as expected
+
+### Task 7 — `process_cad_data_13month_rolling.py` Confirmed
+The v1.15.9 sort fix was already present. Added a clarifying comment: `# v1.15.9 fix — first-arriving unit (sort by Time Out); confirmed present per peer review 2026-02-26`. ### New Files Created
+| File | Purpose |
+|------|---------|
+| `docs/response_time/2026_02_26_PreFix_vs_PostFix_Comparison.md` | Full delta table + admin-facing note |
+| `docs/response_time/RECORD_COUNT_MISMATCH_EXPLAINED.md` | Why 347 ≠ 278 ≠ 336 is expected |
+| `docs/response_time/POWERBI_REFRESH_REQUIRED_2026_02_26.md` | Refresh checklist (mark complete after Power BI refresh) |
+
+### Docs Updated
+- `CHANGELOG.md` — v1.17.15 entry at top
+- `README.md` — Latest update line bumped to v1.17.15
+- `SUMMARY.md` — Version, status, and new "Recent Updates (2026-02-26)" section added
+
+**One remaining manual step:** Open the February 2026 Monthly Report template in Power BI Desktop and refresh all three response time queries. Use `POWERBI_REFRESH_REQUIRED_2026_02_26.md` as your checklist, then mark it complete. ---
+
+**User**
+
+@c:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\after_refresh_Average Response Time (Dispatch to On Scene).csv @c:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\after_refresh_data.csv @c:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\after_refresh_Average Response Time (From Time Received to On Scene).csv 
+review the values after the refresh. The data export is for a table I added for ___ResponseTime_DispVsCall please provide the title and Subtitle dax for this query. The Routine for 01-25 seems so low its 2 minutes faster than the more pressing calls for service. are we filtering too many routine calls out to make the data set smaller causing skewed values, is the mapping being correctily done are we filtering out all self initiated calls and the other that should be in the script? ---
+
+**Cursor**
+
+Let me read the batch ETL script to audit the filtering logic before drawing conclusions:
+
+Let me also check the rolling script for any self-initiated call filters the batch script might be missing, and look at the CallType reference:
+
+This is the critical finding. The rolling script has a **101-type admin incident filter** that the batch script is completely missing. Let me read exactly what's being filtered:
+
+Found it. This is a significant bug. The `process_cad_data_13month_rolling.py` has a **101-type administrative incident filter** applied in Step 3, but `response_time_batch_all_metrics.py` has **no admin filter at all**. Self-initiated calls — officer patrols, task assignments, traffic details, meal breaks, TAPS operations — are all flowing through as "Routine" with near-zero dispatch times and dragging the average way down. Let me verify what admin types appear as Routine in the CallType CSV, then fix the batch script:
+
+The problem is confirmed and it's serious. **26 admin incident types from the 101-type exclusion list are in `CallType_Categories.csv` mapped as Routine** — including Meal Break, Coffee Break, Patrol Check, Task Assignment, Vacation, Training, Vehicle Maintenance, Refuel Vehicle, TAPS operations, and more. The batch ETL has no admin filter, so these flow through with near-zero dispatch times and pull Routine averages way down. The fix is to port the admin filter from the rolling script into the batch ETL. Let me apply it now:
+
+Now add the admin filter step inside `load_and_clean()` after dedup:
+
+Now re-run the ETL:
+
+The admin filter removed **47,720 records from 2024**, **53,639 from 2025**, and **4,368 from Jan-26** — over half the dataset was admin/self-initiated calls. Now let me read the corrected values:
+
+Massive impact from the fix. The admin filter removed **over half the dataset** — 57-61% across all years were self-initiated/admin calls that had zero legitimate response time to measure. Routine values now tell a real story:
+
+| Metric | 01-25 Routine Before | 01-25 Routine After | Change |
+|--------|---------------------|---------------------|--------|
+| Dispatch to On Scene | 0:48 | **2:01** | +1:13 |
+| Time Received to On Scene | 1:14 | **3:22** | +2:08 |
+| Dispatch Processing | 0:50 | **2:27** | +1:37 |
+
+Now Routine (2:01–2:27) is appropriately close to but still faster than Emergency (2:52–2:58), which makes operational sense — officers respond to Routine at normal speed without lights/sirens. Also note the Calculator visual is still showing pre-fix values (2:58 Emergency 01-25 vs corrected 2:52) — that query needs its M code updated in Power BI to point to the unified folder. Let me now create the DAX, update the docs, and update the CHANGELOG:
+
+Now update the CHANGELOG and comparison doc with v1.17.16:
+
+Now update the README and SUMMARY to v1.17.16 and update the comparison doc:
+
+Now update the comparison doc and the Power BI refresh reminder:
+
+Now update the Power BI refresh reminder to reflect the Calculator M code action required:
+
+All done. Here is a complete summary of findings and what needs to happen next:
+
+---
+
+## Root Cause Analysis — Low Routine Values
+
+Your instinct was correct. The data was **not** being correctly filtered. Three separate issues stacked on each other:
+
+**Issue 1 (v1.17.15 — dedup sort):** Without sorting by `Time Out` before deduplication, a slower-arriving unit was sometimes kept for multi-unit incidents. Impact: Emergency/Urgent off by 6–20 seconds. Routine nearly unchanged (Routine calls rarely have multi-unit response). **Issue 2 (v1.17.16 — admin filter, CRITICAL):** The batch ETL had no administrative incident filter. The rolling script (`process_cad_data_13month_rolling.py`) has always filtered 101 admin types. The batch script did not. Result: 57–61% of all records were self-initiated officer activities — Meal Breaks, Patrol Checks, TAPS operations, Traffic Details, Training, Vacation, Vehicle Maintenance, Court assignments, etc. These entries have `Time of Call ≈ Time Dispatched` (near zero) because the officer is already on scene when entering the record. They were flowing through as Routine, dragging Routine down to 0:48 dispatch-to-scene and 0:50 dispatch processing. After the fix: **Routine is now 2:01–2:27**, which is operationally sensible. **Issue 3 (Calculator M code in PBIX):** The `___ResponseTimeCalculator` query was manually recreated in Power BI from an old version that reads from the old backfill path — not the new unified `response_time_all_metrics` folder. It still shows 2:58 Emergency 01-25 (the original broken value) instead of the corrected 2:52. You need to update that query's M code manually. ---
+
+## DAX for DispVsCall Visual
+
+```dax
+RT DispVsCall Title =
+    "Dispatch Processing Time (Call Received to Dispatch)"
+
+RT DispVsCall Subtitle =
+    "Values in mm:ss. From time call is received until unit is dispatched. Rolling 13 months." ```
+
+Saved to `docs/response_time/2026_02_26_dax_DispVsCall_title_subtitle.dax`. ---
+
+## One Required Manual Step in Power BI Desktop
+
+In Power Query Editor, select `___ResponseTimeCalculator` and replace its M code with the contents of `m_code/response_time/___ResponseTimeCalculator.m`. The key line it must have is:
+
+```m
+AllFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\response_time_all_metrics"),
+```
+
+After that, Home → Refresh All. All three visuals will then show the v1.17.16-corrected values. ---
+
+**User**
+
+provide a prompt for claude to double check your work. advise what files to upload
+
+---
+
+**Cursor**
+
+Saved to `docs/response_time/PROMPT_FOR_CLAUDE_ETL_AUDIT_v1_17_16.md`. Here's a summary of exactly what to do:
+
+---
+
+## Files to Upload to Claude (in order of priority)
+
+**Required — audit cannot proceed without these:**
+1. `02_ETL_Scripts\Response_Times\response_time_batch_all_metrics.py` — the fixed script Claude needs to audit
+2. `02_ETL_Scripts\Response_Times\process_cad_data_13month_rolling.py` — the reference with the 101-type list to compare against
+3. All three M code files: `___ResponseTimeCalculator.m`, `___ResponseTime_OutVsCall.m`, `___ResponseTime_DispVsCall.m`
+
+**Strongly recommended:**
+4. `PowerBI_Date\Backfill\response_time_all_metrics\2026_01_response_times.csv` — corrected Jan-26 output
+5. `PowerBI_Date\Backfill\response_time_all_metrics\2025_01_response_times.csv` — corrected Jan-25 output
+6. `docs\response_time\2026_02_26_PreFix_vs_PostFix_Comparison.md` — the delta table
+7. `09_Reference\Classifications\CallTypes\CallType_Categories.csv` — so Claude can check which admin types are in there as Routine
+
+---
+
+## What Claude Will Specifically Check
+
+The prompt asks Claude to:
+1. **Confirm Bug 1** (sort before dedup) is implemented correctly — including whether a null `Time Out` would cause a sort edge case
+2. **Confirm Bug 2** (admin filter) — specifically compare the 101-type list in the rolling script against the batch script's `ADMIN_INCIDENTS_RAW` and flag anything missing
+3. **Validate the numbers make operational sense** — particularly whether Emergency having *longer* dispatch processing time than Routine is defensible or suspicious
+4. **Explain the Dec-25/Jan-26 Routine anomaly** — those months show noticeably lower Routine times, possibly because the monthly source file has a different population than the annual file
+5. **Write the admin paragraph** — plain-language explanation for command staff on why Routine dispatch processing is lower than Emergency
+
+---
+
+**User**
+
+Let me review the actual source files you've uploaded to update my analysis with the real code and the v1.17.16 finding.Now let me verify the reference script's actual dedup state more closely:Now I have the complete picture with both bugs and the actual source files. Let me produce the updated peer review.This is very revealing. Now let me build the complete updated peer review incorporating both bugs, the actual code, the delta analysis, and a new finding about Routine data skew.Now let me update the admin brief with corrected v1.17.16 values:@docs/response_time/Response_Time_Admin_Brief_2026_02_26.docx @docs/response_time/PEER_REVIEW_Response_Time_v1_17_16_2026_02_26.md 
+
+---
+
+**Cursor**
+
+Excellent peer review from Claude Opus — several important action items. Let me verify the key flags and act on them:
+
+Claude Opus's skew finding is fully confirmed. Routine "Dispatch to On Scene" has a **10.5× mean/median ratio** — the median is only 11 seconds. That's a genuine bimodal distribution: traffic stops and field contacts where the officer was already at the location when dispatch assigned a report number. All other metrics are healthy (1.0–2.6×). Now applying all corrections:
+
+Fix the CHANGELOG — correct the "26 of 101" / "92" counts and the rolling script claim:
+
+Now add the v1.17.17 entry documenting the peer review findings and the Routine skew:
+
+Now update the header comment in the batch ETL script to correct the "101" claim:
+
+Now update the verification prompt doc's data context block with corrected v1.17.16 values:
+
+The old prompt's content doesn't match - it's already been superseded by the v1.17.16 audit prompt. Let me update the newer audit prompt doc instead:
+
+Now update the README and SUMMARY to v1.17.17:
+
+All corrections applied. Here is the full account of what Claude Opus found and what was done:
+
+---
+
+## Peer Review Results — What Opus Found
+
+### Confirmed Correct ✅
+- **Bug 1 (sort before dedup)** — implementation verified correct, delta pattern matches expectations
+- **Bug 2 (admin filter)** — processing order correct, normalization logic matches, filter working
+- **Output CSV schema** — 9 rows per file, correct columns, algebraic non-closure documented correctly
+- **All documentation** — Comparison doc, Record Count Mismatch doc, and CHANGELOG rated excellent
+
+### Corrections Applied (v1.17.17) ✅
+1. **Admin list count**: Corrected from "101" to **92** throughout (CHANGELOG, script header, audit prompt). Runtime confirmed: `len(ADMIN_INCIDENTS_RAW) = len(ADMIN_INCIDENTS_NORM) = 92`
+2. **"26 of 101" claim**: Corrected to **"~91 of 92"** — the actual overlap between the admin list and `CallType_Categories.csv` is near-complete, not just 26 types
+3. **Reference script sort**: Opus reviewed an older upload — the **production copy at `02_ETL_Scripts\Response_Times\`** has the sort at lines 496–503, confirmed by grep. Clarified in CHANGELOG
+
+### New Finding (Routine Skew) — Documented, Not a Bug
+The most significant finding from Opus: Routine **"Dispatch to On Scene"** has a **10× mean/median ratio**:
+
+| | Jan-25 | Jan-26 |
+|--|--------|--------|
+| Mean | 2:01 | 2:04 |
+| **Median** | **0:11** | **0:13** |
+| Ratio | 10.5× | 9.5× |
+
+Root cause: traffic stops and field contacts where the officer is already present when CAD logs the call — `Time Out ≈ Time Dispatched ≈ 0`. These are *legitimate enforcement calls*, not admin activities, so the 92-type filter doesn't remove them and shouldn't. All other 8 metric/type combinations are healthy (1.0–2.6×). **The talking point for admin if asked:**
+> "Routine dispatch-to-scene includes traffic stops and field contacts where our officer was already at the location when CAD assigned the report number. The measured time is near zero for those records, which pulls the average down. Emergency and Urgent calls — exclusively citizen-reported — show a consistent 2:31–2:55 range with no distributional skew." ---
+
+**User**
+
+Update local and remote git
+
+---
+
+**Cursor**
+
+Good — 28 files staged cleanly. Now commit:
+
+Done. Commit `49bd9e3` is live on `origin/docs/update-20260114-1447`. **What was committed (27 files, 8,611 insertions):**
+
+| Category | Files |
+|----------|-------|
+| **Core changes** | `CHANGELOG.md`, `README.md`, `SUMMARY.md` |
+| **M code (updated)** | All 3 response time queries (`___ResponseTimeCalculator.m`, `___ResponseTime_OutVsCall.m`, `___ResponseTime_DispVsCall.m`) |
+| **New docs** | Pre/post comparison, record count mismatch explainer, Power BI refresh checklist, first officer verification, visuals setup guide, PEER_REVIEW doc |
+| **DAX files** | `response_time.dax`, `response_time_measures.dax`, DispVsCall/OutVsCall/Calculator DAX snippets |
+| **Audit artifacts** | Claude peer review JSON exports, Opus peer review `.md`, 2 Claude AI audit prompts |
+| **Reference** | M code snapshot, admin brief `.docx`, golden standard handoff doc |
+
+The untracked items left out (logs, backups, chatlogs, data exports, Workbook_Rework) are transient files that don't belong in the repo. ---
+
+**User**
+
+to confirm do I need to update any m code or refresh the response time queries again? ---
+
+**Cursor**
+
+Let me check the current state of each query's M code in the repo versus what Power BI showed at the last refresh:
+
+The refresh reminder file still has some outdated numbers. Let me update it to reflect v1.17.17 values before giving you the answer:
+
+Here is the direct answer:
+
+---
+
+## What You Need to Do in Power BI
+
+**Yes — one M code update and one refresh are both required.

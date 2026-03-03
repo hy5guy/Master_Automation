@@ -1,0 +1,523 @@
+", "SGT. ", "LT.", "CAPT. ", "CHIEF", "DET. ", "SPO II", "SPO III", "HCOP", "DPW", "CLK", "PEO", "TM", "PLA"
+- Remove badge numbers (3-4 digits at end)
+- Remove special characters, normalize spaces
+
+**Sworn vs NonSworn Classification** (from Personnel file):
+- **Sworn Titles**: "P.O. ", "CHIEF", "LT.", "SPO III", "SGT. ", "DET. ", "CAPT." - **NonSworn Titles**: "SPO II", "HCOP", "C.O. ", "DPW", "CLK", "PEO", "TM", "PLA"
+- Match normalized employee names from exports to personnel file
+- Manual overrides:
+  - "MARIAH RAMIREZ DRAKEFORD" → "MARIAH RAMIREZDRAKEFORD"
+  - "MAXIMILIANO ANGUIZACAZHINDON" → "PO MAXIMILIANO ANGUIZACAZHINDON"
+
+### Step 3: Date Window Filtering
+
+**13-Month Rolling Window**:
+- Window ends on last day of previous month
+- For December 2025 processing: start = 2024-11-01, end = 2025-11-30
+- Only include transactions with Date within this window
+
+### Step 4: Calculate Accruals
+
+**Accrued Comp. Time**:
+- Sum all hours from Overtime files where Category = "COMP"
+- Group by: YearMonth (YYYY-MM), MemberClass (Sworn/NonSworn)
+- **Exclude**: COMP from Time Off files (those are usage, not accruals)
+
+**Accrued Overtime**:
+- Sum all hours from Overtime files where Category = "OT"
+- Group by: YearMonth (YYYY-MM), MemberClass (Sworn/NonSworn)
+- Include all OT rates (1.5x, 2.0x, 2.5x) - no filtering by rate
+
+### Step 5: Calculate Usage
+
+**From Time Off Files Only**:
+- Sum hours per category per month
+- Categories: Sick, SAT, Comp Used, Military, Vacation, IOD
+- Group by: YearMonth (YYYY-MM)
+
+### Step 6: Generate Monthly Breakdown
+
+**For each month in the 13-month window** (2024-11 through 2025-11):
+- Accrued Comp. Time - Non-Sworn: Sum of COMP hours for NonSworn employees
+- Accrued Comp. Time - Sworn: Sum of COMP hours for Sworn employees
+- Accrued Overtime - Non-Sworn: Sum of OT hours for NonSworn employees
+- Accrued Overtime - Sworn: Sum of OT hours for Sworn employees
+- Comp (Hours): Sum of comp time USED (from Time Off)
+- Employee Sick Time (Hours): Sum of sick time usage
+- Used SAT Time (Hours): Sum of SAT time usage
+- Military Leave (Hours): Sum of military leave usage
+- Injured on Duty (Hours): Sum of IOD usage
+
+**Period Labels**: Convert YYYY-MM to MM-YY format (e.g., "2024-11" → "11-24", "2025-12" → "12-25")
+
+## Verification Tasks
+
+### Task 1: Compare December Export with November Backfill
+
+**For months 12-24 through 11-25** (months present in both files):
+
+1. Read the December export CSV (long format)
+2. Read the November backfill CSV (wide format)
+3. For each Time Category and month combination:
+   - Extract value from December export
+   - Extract value from November backfill
+   - Compare values (tolerance: 0.01 hours)
+   - Report any differences
+
+**Expected Results**:
+- Accrual categories (Accrued Comp. Time - Sworn/NonSworn, Accrued Overtime - Sworn/NonSworn) should match exactly for months 01-25 through 10-25
+- Usage categories may differ if November backfill didn't include those months (this is expected)
+
+### Task 2: Independently Process December 2025 Exports
+
+1. Load `2025_12_otactivity.xlsx` and `2025_12_timeoffactivity.xlsx`
+2. Apply all processing logic (filtering, classification, aggregation)
+3. Calculate monthly totals for December 2025 (month 12-25)
+4. Compare your calculated values with the December export CSV
+
+**For December 2025 (12-25) specifically**:
+- Accrued Comp. Time - Non-Sworn
+- Accrued Comp. Time - Sworn
+- Accrued Overtime - Non-Sworn
+- Accrued Overtime - Sworn
+- Comp (Hours)
+- Employee Sick Time (Hours)
+- Used SAT Time (Hours)
+- Military Leave (Hours)
+- Injured on Duty (Hours)
+
+### Task 3: Validate Processing Logic
+
+Check that the Python script logic is correctly implemented:
+
+1. **Status Filtering**: Only "Approved" transactions included
+2. **Date Window**: Only transactions within 13-month window included
+3. **Accrual Source**: Only from Overtime files, not Time Off files
+4. **COMP Exclusion**: COMP from Time Off files excluded from accruals
+5. **Sworn/NonSworn Split**: Correctly classified based on personnel file
+6. **Usage Classification**: Reason-first logic correctly applied
+7. **Name Normalization**: Handles "LastName, FirstName" format correctly
+
+## Expected Output Format
+
+### December Export Format (Long)
+```csv
+Time Category,Sum of Value,PeriodLabel
+Accrued Comp. Time - Non-Sworn,87,12-24
+Accrued Comp. Time - Non-Sworn,17,01-25
+Accrued Comp. Time - Sworn,274,12-24
+Accrued Comp. Time - Sworn,135.75,01-25
+Accrued Overtime - Non-Sworn,167.997851,12-24
+Accrued Overtime - Sworn,1009.252149,12-24
+Comp (Hours),236,12-24
+Employee Sick Time (Hours),1385.5,12-24
+Used SAT Time (Hours),522.5,12-24
+Military Leave (Hours),208,12-24
+Injured on Duty (Hours),204,12-24
+...
+```
+
+### November Backfill Format (Wide)
+```csv
+24-Nov,25-Jan,25-Feb,25-Mar,25-Apr,25-May,25-Jun,25-Jul,25-Aug,25-Sep,Time_Category,25-Oct,Sum of 11-25
+80.25,17,35.5,26,25,30.67253521,19.5,65.63162791,55.23731343,39.5,Accrued Comp. Time - Non-Sworn,20,0
+181.5,135.75,202.5,278.5,202,250.3274648,365,201.6183721,255.7626866,253.5,Accrued Comp. Time - Sworn,293.75,0
+...
+```
+
+## Report Format
+
+Provide your verification report with:
+
+1. **Executive Summary**:
+   - Overall verification status (PASS/FAIL)
+   - Number of comparisons made
+   - Number of matches vs differences
+
+2. **Task 1 Results** (December Export vs November Backfill):
+   - List all matches for months 12-24 through 11-25
+   - List all differences with:
+     - Category
+     - Month
+     - December value
+     - November value
+     - Difference amount
+     - Analysis of why difference exists (if applicable)
+
+3. **Task 2 Results** (Independent Processing):
+   - Your calculated values for December 2025 (12-25)
+   - Comparison with December export values
+   - Any discrepancies with analysis
+
+4. **Task 3 Results** (Logic Validation):
+   - Status filtering: ✓ or ✗ with details
+   - Date window: ✓ or ✗ with details
+   - Accrual source: ✓ or ✗ with details
+   - COMP exclusion: ✓ or ✗ with details
+   - Sworn/NonSworn split: ✓ or ✗ with details
+   - Usage classification: ✓ or ✗ with details
+   - Name normalization: ✓ or ✗ with details
+
+5. **Recommendations**:
+   - Any issues found
+   - Suggested fixes if discrepancies exist
+   - Edge cases discovered
+
+## Critical Rules to Verify
+
+1. **COMP from Time Off files MUST be excluded from accruals** - These represent hours USED, not ACCRUED
+2. **Only Overtime files contribute to accruals** - Time Off files only contribute to usage metrics
+3. **All OT rates included** - 1.5x, 2.0x, 2.5x all count as Accrued Overtime
+4. **Reason-first classification** - For Time Off usage, Reason column takes precedence over Comments
+5. **13-month window** - Only transactions from 2024-11-01 through 2025-11-30 are included
+6. **Approved status only** - Only transactions with approved status are included
+
+## Tolerance for Comparisons
+
+- **Exact match**: Difference ≤ 0.01 hours
+- **Small difference**: 0.01 < Difference ≤ 1.0 hours (investigate)
+- **Large difference**: Difference > 1.0 hours (error likely)
+
+## Questions to Answer
+
+1. Are the accrual calculations correct? 2. Are the usage calculations correct? 3. Is the Sworn/NonSworn classification working correctly? 4. Are there any edge cases or data quality issues? 5. Do the Python scripts match the documented logic? 6. Are there any discrepancies that need investigation? ## Additional Notes
+
+- The November backfill may have zeros for usage categories in months 01-25 through 09-25 - this is expected if that export didn't include those months
+- The December export should have month 12-25 (current month from processing)
+- The November backfill should NOT have month 12-25 (it's the prior month's export)
+- Focus verification on months 12-24 through 11-25 where both files have data
+
+---
+
+**Begin Verification**: Read all data files, apply processing logic, compare results, and provide comprehensive report. ```
+
+
+Created the Claude Code verification prompt. Summary:
+
+## Created: `CLAUDE_CODE_VERIFICATION_PROMPT.md`
+
+### Contents
+
+1. Task overview: three verification tasks
+2. Data files: paths and structures for all input/output files
+3. Processing logic: step-by-step replication of the Python script logic
+4. Verification tasks:
+   - Task 1: Compare December export with November backfill
+   - Task 2: Independently process December 2025 exports
+   - Task 3: Validate processing logic
+5. Report format: structure for the verification report
+6. Critical rules: key business rules to verify
+7. Tolerance levels: thresholds for comparisons
+
+### Features
+
+- Self-contained: includes all necessary information
+- Step-by-step instructions: clear processing steps
+- File paths: exact locations of all data files
+- Expected formats: examples of input/output formats
+- Validation checklist: what to verify
+- Report template: structure for results
+
+### Next steps
+
+1. Share this prompt with Claude Code
+2. Claude Code will:
+   - Read the data files
+   - Process the December 2025 exports independently
+   - Compare results with the Python script outputs
+   - Verify against the November backfill
+   - Generate a verification report
+
+The prompt is ready to use. Should I add anything or create a summary document? ---
+
+**User**
+
+fix 
+
+---
+
+**Cursor**
+
+
+Checking if the file exists and verifying its contents:
+
+
+
+The file exists and is readable. The error may be a Cursor IDE issue. Verifying the file and recreating it if needed:
+
+
+
+The file exists and has content. The issue may be special characters (✓, ✗). Replacing them with simpler text:
+
+
+```markdown
+# Claude Code Verification Prompt: December 2025 Overtime & Time Off Data Processing
+
+## Your Task
+
+You are verifying that the Python ETL scripts correctly process Overtime and Time Off data for December 2025. You need to:
+
+1. **Verify the final output** against backfill data
+2. **Independently process** the December 2025 raw exports using the same logic
+3. **Compare your results** with the Python script outputs
+4. **Report any discrepancies** with detailed analysis
+
+## Data Files to Read
+
+### Input Files (Raw Exports - Process These Independently)
+
+1. **Overtime Export**:
+   - Path: `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\export\month\2025\2025_12_otactivity.xlsx`
+   - Structure: Excel file with columns: Group, Employee, Reason, Date, Shift, Rate, Start Time, End Time, Hours, Pay Type, Status, Comments
+   - Contains overtime hours worked by employees in December 2025
+
+2. **Time Off Export**:
+   - Path: `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\month\2025\2025_12_timeoffactivity.xlsx`
+   - Structure: Excel file with columns: Group, Employee, Reason, Status, Date, Shift, Times, Hours, Comments
+   - Contains time off usage (sick, vacation, comp time used, etc.) in December 2025
+
+3. **Personnel Reference**:
+   - Path: `C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_V2.xlsx`
+   - Maps employee names to titles/ranks
+   - Used to classify employees as "Sworn" or "NonSworn"
+
+### Reference Files (For Comparison)
+
+4. **December 2025 Final Output** (What the Python script produced):
+   - Path: `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\2025_12_Monthly Accrual and Usage Summary.csv`
+   - Format: Long format with columns: Time Category, Sum of Value, PeriodLabel
+   - Contains 13 months of data (12-24 through 12-25)
+
+5. **November 2025 Backfill** (Historical reference):
+   - Path: `C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\projects\PowerBI_Date\Backfill\2025_11\vcs_time_report\2025_11_Monthly Accrual and Usage Summary.csv`
+   - Format: Wide format with Time_Category column and month columns (24-Nov, 25-Jan, 25-Feb, ..., 25-Oct, Sum of 11-25)
+   - Contains previously validated monthly totals for historical months
+
+### Python Script (Reference Logic)
+
+6. **Main Processing Script**:
+   - Path: `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\overtime_timeoff_13month_sworn_breakdown_v10.py`
+   - Read this to understand the exact processing logic
+
+## Processing Logic (Replicate This)
+
+### Step 1: Load and Parse Raw Exports
+
+**Overtime File Processing**:
+- Read the Excel file
+- Extract columns: Employee (name), Date, Hours, Pay Type, Status
+- Filter to only rows where Status is "Approved" (case-insensitive, handles variations like "Approved", "Approved w/ Stip", etc.) - Classify each row as OT or COMP based on Pay Type column:
+  - **OT Detection**: Pay Type contains "overtime", "o.t. ", "o/t", "dt", "double time", "1.5", "2.0", "2.5", "150%", "200%", "250%", or "Cash" (with rate >= 1.5)
+  - **COMP Detection**: Pay Type contains "comp", "compensatory", "comp time", "ct"
+- Extract rate from Pay Type (1.5, 2.0, 2.5, etc.) **Time Off File Processing**:
+- Read the Excel file
+- Extract columns: Employee (name), Date, Hours, Reason, Status, Comments
+- Filter to only rows where Status is "Approved"
+- **CRITICAL**: Do NOT classify COMP from Time Off files as accruals (those are usage, not accruals)
+- For usage classification, use Reason column first, then fallback to Comments:
+  - **Sick**: Reason starts with "sick" OR text contains "sick", "ill", "illness", "sck"
+  - **SAT**: Reason starts with "sat" OR text contains "sat"
+  - **Comp Used**: Reason starts with "comp" OR text contains "comp", "compensatory", "comp time used", "ct used"
+  - **Military**: Reason contains "mil" or "military leave" OR text contains "military", "mil"
+  - **Vacation**: Reason contains "vac", "vacation", "annual", "pto", "personal time off" OR text contains "vacation", "annual", "pto", "personal time"
+  - **IOD**: Text contains "iod", "injured on duty", "injury on duty"
+
+### Step 2: Employee Classification
+
+**Name Normalization**:
+- Convert "LastName, FirstName" → "FirstName LastName"
+- Remove titles/ranks: "C.O. ", "P.O. ", "SGT. ", "LT.", "CAPT. ", "CHIEF", "DET. ", "SPO II", "SPO III", "HCOP", "DPW", "CLK", "PEO", "TM", "PLA"
+- Remove badge numbers (3-4 digits at end)
+- Remove special characters, normalize spaces
+
+**Sworn vs NonSworn Classification** (from Personnel file):
+- **Sworn Titles**: "P.O. ", "CHIEF", "LT.", "SPO III", "SGT. ", "DET. ", "CAPT." - **NonSworn Titles**: "SPO II", "HCOP", "C.O. ", "DPW", "CLK", "PEO", "TM", "PLA"
+- Match normalized employee names from exports to personnel file
+- Manual overrides:
+  - "MARIAH RAMIREZ DRAKEFORD" → "MARIAH RAMIREZDRAKEFORD"
+  - "MAXIMILIANO ANGUIZACAZHINDON" → "PO MAXIMILIANO ANGUIZACAZHINDON"
+
+### Step 3: Date Window Filtering
+
+**13-Month Rolling Window**:
+- Window ends on last day of previous month
+- For December 2025 processing: start = 2024-11-01, end = 2025-11-30
+- Only include transactions with Date within this window
+
+### Step 4: Calculate Accruals
+
+**Accrued Comp. Time**:
+- Sum all hours from Overtime files where Category = "COMP"
+- Group by: YearMonth (YYYY-MM), MemberClass (Sworn/NonSworn)
+- **Exclude**: COMP from Time Off files (those are usage, not accruals)
+
+**Accrued Overtime**:
+- Sum all hours from Overtime files where Category = "OT"
+- Group by: YearMonth (YYYY-MM), MemberClass (Sworn/NonSworn)
+- Include all OT rates (1.5x, 2.0x, 2.5x) - no filtering by rate
+
+### Step 5: Calculate Usage
+
+**From Time Off Files Only**:
+- Sum hours per category per month
+- Categories: Sick, SAT, Comp Used, Military, Vacation, IOD
+- Group by: YearMonth (YYYY-MM)
+
+### Step 6: Generate Monthly Breakdown
+
+**For each month in the 13-month window** (2024-11 through 2025-11):
+- Accrued Comp. Time - Non-Sworn: Sum of COMP hours for NonSworn employees
+- Accrued Comp. Time - Sworn: Sum of COMP hours for Sworn employees
+- Accrued Overtime - Non-Sworn: Sum of OT hours for NonSworn employees
+- Accrued Overtime - Sworn: Sum of OT hours for Sworn employees
+- Comp (Hours): Sum of comp time USED (from Time Off)
+- Employee Sick Time (Hours): Sum of sick time usage
+- Used SAT Time (Hours): Sum of SAT time usage
+- Military Leave (Hours): Sum of military leave usage
+- Injured on Duty (Hours): Sum of IOD usage
+
+**Period Labels**: Convert YYYY-MM to MM-YY format (e.g., "2024-11" → "11-24", "2025-12" → "12-25")
+
+## Verification Tasks
+
+### Task 1: Compare December Export with November Backfill
+
+**For months 12-24 through 11-25** (months present in both files):
+
+1. Read the December export CSV (long format)
+2. Read the November backfill CSV (wide format)
+3. For each Time Category and month combination:
+   - Extract value from December export
+   - Extract value from November backfill
+   - Compare values (tolerance: 0.01 hours)
+   - Report any differences
+
+**Expected Results**:
+- Accrual categories (Accrued Comp. Time - Sworn/NonSworn, Accrued Overtime - Sworn/NonSworn) should match exactly for months 01-25 through 10-25
+- Usage categories may differ if November backfill didn't include those months (this is expected)
+
+### Task 2: Independently Process December 2025 Exports
+
+1. Load `2025_12_otactivity.xlsx` and `2025_12_timeoffactivity.xlsx`
+2. Apply all processing logic (filtering, classification, aggregation)
+3. Calculate monthly totals for December 2025 (month 12-25)
+4. Compare your calculated values with the December export CSV
+
+**For December 2025 (12-25) specifically**:
+- Accrued Comp. Time - Non-Sworn
+- Accrued Comp. Time - Sworn
+- Accrued Overtime - Non-Sworn
+- Accrued Overtime - Sworn
+- Comp (Hours)
+- Employee Sick Time (Hours)
+- Used SAT Time (Hours)
+- Military Leave (Hours)
+- Injured on Duty (Hours)
+
+### Task 3: Validate Processing Logic
+
+Check that the Python script logic is correctly implemented:
+
+1. **Status Filtering**: Only "Approved" transactions included
+2. **Date Window**: Only transactions within 13-month window included
+3. **Accrual Source**: Only from Overtime files, not Time Off files
+4. **COMP Exclusion**: COMP from Time Off files excluded from accruals
+5. **Sworn/NonSworn Split**: Correctly classified based on personnel file
+6. **Usage Classification**: Reason-first logic correctly applied
+7. **Name Normalization**: Handles "LastName, FirstName" format correctly
+
+## Expected Output Format
+
+### December Export Format (Long)
+```csv
+Time Category,Sum of Value,PeriodLabel
+Accrued Comp. Time - Non-Sworn,87,12-24
+Accrued Comp. Time - Non-Sworn,17,01-25
+Accrued Comp. Time - Sworn,274,12-24
+Accrued Comp. Time - Sworn,135.75,01-25
+Accrued Overtime - Non-Sworn,167.997851,12-24
+Accrued Overtime - Sworn,1009.252149,12-24
+Comp (Hours),236,12-24
+Employee Sick Time (Hours),1385.5,12-24
+Used SAT Time (Hours),522.5,12-24
+Military Leave (Hours),208,12-24
+Injured on Duty (Hours),204,12-24
+...
+```
+
+### November Backfill Format (Wide)
+```csv
+24-Nov,25-Jan,25-Feb,25-Mar,25-Apr,25-May,25-Jun,25-Jul,25-Aug,25-Sep,Time_Category,25-Oct,Sum of 11-25
+80.25,17,35.5,26,25,30.67253521,19.5,65.63162791,55.23731343,39.5,Accrued Comp. Time - Non-Sworn,20,0
+181.5,135.75,202.5,278.5,202,250.3274648,365,201.6183721,255.7626866,253.5,Accrued Comp. Time - Sworn,293.75,0
+...
+```
+
+## Report Format
+
+Provide your verification report with:
+
+1. **Executive Summary**:
+   - Overall verification status (PASS/FAIL)
+   - Number of comparisons made
+   - Number of matches vs differences
+
+2. **Task 1 Results** (December Export vs November Backfill):
+   - List all matches for months 12-24 through 11-25
+   - List all differences with:
+     - Category
+     - Month
+     - December value
+     - November value
+     - Difference amount
+     - Analysis of why difference exists (if applicable)
+
+3. **Task 2 Results** (Independent Processing):
+   - Your calculated values for December 2025 (12-25)
+   - Comparison with December export values
+   - Any discrepancies with analysis
+
+4. **Task 3 Results** (Logic Validation):
+   - Status filtering: PASS or FAIL with details
+   - Date window: PASS or FAIL with details
+   - Accrual source: PASS or FAIL with details
+   - COMP exclusion: PASS or FAIL with details
+   - Sworn/NonSworn split: PASS or FAIL with details
+   - Usage classification: PASS or FAIL with details
+   - Name normalization: PASS or FAIL with details
+
+5. **Recommendations**:
+   - Any issues found
+   - Suggested fixes if discrepancies exist
+   - Edge cases discovered
+
+## Critical Rules to Verify
+
+1. **COMP from Time Off files MUST be excluded from accruals** - These represent hours USED, not ACCRUED
+2. **Only Overtime files contribute to accruals** - Time Off files only contribute to usage metrics
+3. **All OT rates included** - 1.5x, 2.0x, 2.5x all count as Accrued Overtime
+4. **Reason-first classification** - For Time Off usage, Reason column takes precedence over Comments
+5. **13-month window** - Only transactions from 2024-11-01 through 2025-11-30 are included
+6. **Approved status only** - Only transactions with approved status are included
+
+## Tolerance for Comparisons
+
+- **Exact match**: Difference ≤ 0.01 hours
+- **Small difference**: 0.01 < Difference ≤ 1.0 hours (investigate)
+- **Large difference**: Difference > 1.0 hours (error likely)
+
+## Questions to Answer
+
+1. Are the accrual calculations correct? 2. Are the usage calculations correct? 3. Is the Sworn/NonSworn classification working correctly? 4. Are there any edge cases or data quality issues? 5. Do the Python scripts match the documented logic? 6. Are there any discrepancies that need investigation? ## Additional Notes
+
+- The November backfill may have zeros for usage categories in months 01-25 through 09-25 - this is expected if that export didn't include those months
+- The December export should have month 12-25 (current month from processing)
+- The November backfill should NOT have month 12-25 (it's the prior month's export)
+- Focus verification on months 12-24 through 11-25 where both files have data
+
+---
+
+**Begin Verification**: Read all data files, apply processing logic, compare results, and provide comprehensive report. ```
+
+
+Replaced the special characters.

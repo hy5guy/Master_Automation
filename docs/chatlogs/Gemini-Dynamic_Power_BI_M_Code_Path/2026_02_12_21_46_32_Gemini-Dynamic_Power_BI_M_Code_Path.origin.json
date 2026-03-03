@@ -1,0 +1,38 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "dataset",
+    "docs",
+    "json",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "data",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "type",
+        "text",
+        "folder",
+        "path",
+        "csv",
+        "cycle"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "{\n  \"metadata\": {\n    \"title\": \"Dynamic Power BI M Code Path\",\n    \"user\": {\n      \"name\": \"RAC\"\n    },\n    \"dates\": {\n      \"exported\": \"2/12/2026 21:41:41\"\n    },\n    \"link\": \"https://gemini.google.com/gem/coding-partner/e0277ab4f18f1b...",
+      "first_line": "{"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-12T21:46:32.264365",
+  "department": "admin"
+}

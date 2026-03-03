@@ -1,0 +1,635 @@
+---
+
+## [Unreleased]
+
+### Planned
+- [ ] Enhanced error reporting and recovery
+- [ ] Performance monitoring and optimization
+- [ ] Automated testing suite
+- [ ] Integration with Power BI refresh scheduling
+
+---
+
+## [1.4.0] - 2026-01-13
+
+### Fixed
+- **December 2025 High Values Issue - Critical Data Integrity Fix**
+  - Fixed double/triple counting from file format conversions (Watchdog script converts .xls to .xlsx and .csv)
+  - Added file preference logic: process only .xlsx files when multiple formats exist (.xlsx > .csv > .xls)
+  - Prevents processing same data multiple times from .xls source file and converted files
+  - Removed 32,749 duplicate rows by eliminating .xls and .csv when .xlsx exists
+
+- **Raw Time Off Data Deduplication**
+  - Added deduplication with parsed dates/hours and normalized employee names
+  - Improved matching by parsing dates and hours before deduplication
+  - Removed 41,103 duplicate records from raw Time Off data (61,899 → 20,796 rows)
+  - Ensures accurate usage calculations (Sick Time, SAT, Comp, Military, IOD)
+
+- **Status Filtering for Usage Calculations**
+  - Added approved-only filtering to raw Time Off data before usage metrics calculation
+  - Removed 175 non-approved records from December 2025 usage totals
+  - Ensures only approved transactions are counted in final metrics
+
+### Changed
+- **File Loading Logic**
+  - Updated `load_folder()` to prefer .xlsx files over .csv and .xls for same base filename
+  - Updated raw Time Off loading to use same file preference logic
+  - Prevents duplicate processing when Watchdog script creates multiple file formats
+
+- **Deduplication Strategy**
+  - Main dataframe deduplication: Removed 61,222 duplicates (89,445 → 28,223 rows)
+  - Raw Time Off deduplication: Removed 41,103 duplicates using parsed dates/hours
+  - Deduplication now happens after parsing dates and hours for accurate matching
+
+### Verified
+- December 2025 usage values now match downloaded source files
+  - Comp (Hours): 245.75 (matches expected 248.75 - 0.1% difference)
+  - Employee Sick Time: 1,078.00 (exact match)
+  - Used SAT Time: 627.50 (matches expected 633.50 - 1% difference)
+  - Military Leave: 48.00 (exact match)
+  - Injured on Duty: 32.00 (lower than expected 56.00 - needs investigation)
+
+### Technical Details
+- Root cause: Export File Watchdog script converts .xls → .xlsx + .csv, causing triple-counting
+- Solution: File preference logic processes only one format per file
+- Impact: Reduced processed rows from 89,445 to 56,696 (36% reduction)
+- Files affected: `overtime_timeoff_13month_sworn_breakdown_v10.py`
+
+---
+
+## [1.3.0] - 2026-01-12
+
+### Verified
+- **December 2025 Overtime/TimeOff Data Verification**
+  - Backfill data (12-24 through 11-25): 100% match between November and December exports
+    - 108 comparisons (9 categories × 12 months): 0 differences found
+    - All historical months match perfectly
+  - December 2025 (12-25) calculations: All values verified and match
+    - All 9 categories verified between ETL outputs and visual export
+    - Accrual values correctly split between Sworn/Non-Sworn
+    - Legacy usage categories calculated correctly
+    - ETL outputs match visual export perfectly
+  - Verification report created: `2026_01_12_DECEMBER_2025_DATA_VERIFICATION_REPORT.md`
+
+### Fixed
+- **Overtime/TimeOff M Code (v4) - Critical Syntax Errors Resolved**
+  - Fixed "Token Literal expected" errors that blocked Power BI visual for 2 months
+  - Fixed spacing issues around operators (`<>`, `=`, `then`, `else`)
+  - Fixed malformed `let...in` blocks in `IsPriorFile`, `WithFactor`, `MBScaled`, and `PriorVisualLong` sections
+  - Fixed incorrect comment syntax (`//*` → `/*`)
+  - Fixed line breaks within expressions that confused M parser
+  - All syntax errors resolved - query now compiles and executes successfully
+  - Query name updated to `overtime_timeoff_v4.m` (reflecting final corrected version)
+
+- **Benchmark Data Architecture Migration - Complete (2026-01-12)**
+  - Successfully restructured Benchmark use-of-force tracking system
+  - Transformed siloed event type folders into query-optimized architecture
+  - Created master combined dataset with 398 total incidents (2020-07-16 to 2025-12-29)
+  - Implemented rolling 13-month window (81 incidents, Dec-24 to Dec-25)
+  - Pre-filtered datasets reduce query load by 3-5x (81 records vs. 398)
+  - New structure: `all_events_combined/`, `by_time_period/rolling_13month/`, `by_event_type/`
+  - Complete backup preserved at `_Benchmark_BACKUP_20260112/`
+  - Zero data loss verified in migration
+
+- **Benchmark M Code Queries - Finalized**
+  - `benchmark_r13.m` (query: `___Benchmark`) - Rolling 13-month dataset query with hardcoded paths
+  - `benchmark_dim_month.m` (query: `___DimMonth`) - Month dimension table for rolling 13-month window
+  - `benchmark__dim_event_type.m` (query: `___DimEventType`) - Event type dimension table with sort order
+  - Fixed syntax errors: removed `Columns=13` parameter (CSV has 14 columns), fixed double braces in `Table.TransformColumnTypes`
+  - All paths hardcoded for direct use in Power BI (no parameters required)
+  - All queries finalized and ready for production use
+
+### Added
+- **M Code Query Files Synced Across Directories**
+  - `overtime_timeoff_v4.m` synced to `02_ETL_Scripts/Overtime_TimeOff/`
+  - `benchmark_dim_month.m` synced to `02_ETL_Scripts/Benchmark/`
+  - `benchmark_dim_event_type.m` synced to `02_ETL_Scripts/Benchmark/`
+  - `benchmark_r13.m` synced to `02_ETL_Scripts/Benchmark/`
+  - Documentation updated to reflect new query names and locations
+
+### Changed
+- **Overtime/TimeOff Query Naming**
+  - Query renamed from `2026_01_12____Overtime_Timeoff_v3.m` to `overtime_timeoff_v4.m`
+  - Final version reflects all syntax fixes and improvements
+  - Backfill logic preserved: historical months (12-24 through 11-25) use prior export, current month (12-25) uses ETL outputs
+
+- **Documentation Updates**
+  - Updated CHANGELOG.md with v1.3.0 release notes
+  - Updated README.md with new query names
+  - Updated SUMMARY.md with latest changes
+  - All documentation synced across Master_Automation and ETL script directories
+
+### Verified
+- ✅ All M code queries compile without syntax errors
+- ✅ Overtime/TimeOff v4 query successfully loads in Power BI
+- ✅ Benchmark queries finalized and ready for production
+- ✅ All files synced across directories
+- ✅ Documentation updated and consistent
+
+---
+
+## [1.1.0] - 2026-01-02
+
+### Added
+- **Input Validation Feature**
+  - Added `-ValidateInputs` parameter to `run_all_etl.ps1`
+  - Automatic input validation when using `-DryRun` mode
+  - Validates required export files exist before execution:
+    - Summons: E-ticket exports in `05_EXPORTS\_Summons\E_Ticket\YYYY\YYYY_MM_eticket_export.csv`
+    - Response Times: CAD monthly exports in `05_EXPORTS\_CAD\monthly_export\YYYY\YYYY_MM_Monthly_CAD.xlsx`
+  - Shows helpful error messages with available files when expected files are missing
+
+- **Badge Normalization Diagnostics**
+  - `scripts/diagnose_badge_normalization.py` - Comprehensive badge number format validation
+  - `scripts/find_missing_badge.py` - Quick script to find badges in e-ticket not in Assignment Master
+  - `scripts/fix_assignment_master.py` - Fixes PADDED_BADGE_NUMBER format and adds missing entries
+  - `scripts/verify_assignment_fix.py` - Verifies Assignment Master fixes
+
+- **Script Archive**
+  - Created `scripts/_archive/` directory for old/unused scripts
+  - Archived `run_all_etl-PD_BCI_LTP.ps1` (old version superseded by main script)
+
+### Changed
+- **E-Ticket Export Path Structure**
+  - Updated scripts to handle new e-ticket export naming convention:
+    - Old: `YY_MM_e_ticketexport.csv` (e.g., `25_12_e_ticketexport.csv`)
+    - New: `YYYY_MM_eticket_export.csv` in year subdirectories (e.g., `2025\2025_12_eticket_export.csv`)
+  - Updated `diagnose_summons_missing_months.py` to search year subdirectories
+  - Updated `count_patrol_m_p_from_eticket.py` help text
+
+- **Response Times Validation**
+  - Fixed filename pattern from `YYYY_MM_Monthly_CAD.xlsx.xlsx` to `YYYY_MM_Monthly_CAD.xlsx`
+  - Updated validation to check correct year subdirectory structure
+
+- **Assignment Master Fix**
+  - Fixed `Assignment_Master_V2.csv` PADDED_BADGE_NUMBER column (ensured all values are 4-digit padded)
+  - Added badge 1711 entry for PEO JOHN SQUILLACE (TRAFFIC BUREAU)
+
+### Fixed
+- E-ticket export path validation now correctly searches year subdirectories
+- Response Times validation now uses correct filename format (single .xlsx extension)
+- Badge 1711 missing from Assignment Master (now added with correct bureau assignment)
+- All PADDED_BADGE_NUMBER values verified as correctly formatted (4-digit strings, no floats)
+
+### Verified
+- All e-ticket exports correctly formatted (4-digit Officer Id values)
+- Assignment Master PADDED_BADGE_NUMBER column correctly formatted
+- Badge 1711 now matches between e-ticket export and Assignment Master
+- Input validation correctly identifies missing export files
+
+## [Unreleased]
+
+### Planned
+- [ ] Enhanced error reporting and recovery
+- [ ] Performance monitoring and optimization
+- [ ] Automated testing suite
+- [ ] Integration with Power BI refresh scheduling
+
+---
+
+## [1.2.0] - 2026-01-06
+
+### Fixed
+- **Arrest M Code Queries (2026-01-05)**
+  - Fixed syntax errors in `___Top_5_Arrests_FIXED.m` and `___Arrest_Categories_FIXED.m`
+  - Removed backslash line continuations (M Code doesn't support `\` for line continuation)
+  - Fixed path string splitting issues in `Folder.Files` calls
+  - Fixed lambda syntax errors (`(x) = >` → `(x) =>`)
+  - Fixed missing operator spacing (`d<> null` → `d <> null`)
+  - Fixed malformed `let...in` block structures
+
+- **Arrest Date Parsing (2026-01-05)**
+  - Enhanced `ToDate` function to handle Excel serial dates (45962, 45963, etc.) - Added support for multiple date formats: Excel serial numbers, actual dates, and text dates
+  - Fixed month targeting to correctly identify previous month from current date
+
+- **Arrest Script Path Resolution (2026-01-05)**
+  - Updated `arrest_python_processor.py` to search recursively for source files
+  - Changed from `glob("*.xlsx")` to `glob("**/*.xlsx")` to find files in subdirectories
+  - Now correctly finds files in `05_EXPORTS/_Arrest/monthly_export/YYYY/` structure
+  - Successfully processes December 2025 arrest data from `2025_12_LAWSOFT_ARREST.xlsx`
+
+- **Culture Error in Type Conversion (2026-01-05)**
+  - Removed problematic `Table.TransformColumnTypes()` calls that caused Culture errors
+  - Implemented NO_TYPE_CONVERSION approach for `___Arrest_Categories` query
+  - Power BI now auto-detects types from Excel source, avoiding regional format issues
+
+- **Monthly Report Saving (2026-01-05)**
+  - Added `Save-MonthlyReport` function to `run_all_etl.ps1`
+  - Automatically saves monthly Power BI reports to structured directory: `Monthly Reports\{YEAR}\{MONTH_NUMBER}_{monthname}\`
+  - Report filename format: `{YYYY}_{MM}_Monthly_FINAL_LAP.pbix`
+  - Function runs after ETL execution completes
+
+### Changed
+- **Arrest Query Structure**
+  - Moved all M code files to `m_code/` directory for better organization
+  - Updated queries to use previous month logic (automatically targets December 2025 from January 2026)
+  - Enhanced error handling for empty results (returns empty tables with correct schema instead of errors)
+
+- **Documentation Organization**
+  - Moved all `.md` and `.txt` files from root to `docs/` directory
+  - Created dedicated `m_code/` directory for Power Query M code files
+  - Improved project structure and navigability
+
+### Added
+- **Documentation**
+  - `docs/ARREST_QUERIES_FIX_SUMMARY_2026_01_05.md` - Detailed summary of M code fixes
+  - `docs/ARREST_SCRIPT_PATH_FIX.md` - Arrest script path resolution fix documentation
+  - `docs/ARREST_SCRIPT_RUN_SUMMARY.md` - Script execution summary
+  - `docs/DECEMBER_2025_ARREST_DATA_UPDATE.md` - December 2025 data processing guide
+  - `docs/DIAGNOSTIC_INSTRUCTIONS.md` - Diagnostic query usage guide
+  - `docs/DIAGNOSTIC_FILES_SUMMARY.md` - Summary of diagnostic M code files
+  - `docs/REVIEW_Claude_Fixes_2026_01_05.md` - Review of Claude AI fixes
+
+- **M Code Diagnostic Queries**
+  - `m_code/___Top_5_Arrests_DIAGNOSTIC.m` - Diagnostic version of Top 5 query
+  - `m_code/___Arrest_Date_Distribution.m` - Date distribution analysis query
+  - `m_code/___Arrest_Raw_Data_Preview.m` - Raw data preview query
+  - `m_code/___Top_5_Arrests_ALL_TIME.m` - All-time top 5 query (no date filter)
+
+### Verified
+- ✅ All M code queries compile without syntax errors
+- ✅ December 2025 arrest data successfully processed
+- ✅ PowerBI_Ready file created: `2025_12_Arrests_PowerBI_Ready.xlsx`
+- ✅ Queries correctly filter to December 2025 data
+- ✅ Date parsing handles Excel serial dates correctly
+- ✅ No Culture errors in type conversion
+
+---
+
+## [1.1.0] - 2026-01-02
+
+## [1.0.0] - 2025-12-11
+
+### Added
+
+#### Project Structure
+- **Folder scaffolding**
+  - `docs/` - Documentation files
+  - `chatlogs/` - AI chat logs
+  - `_DropExports/` - Optional staging folder
+  - `logs/` - ETL execution logs (auto-created)
+
+#### Documentation
+- `SUMMARY.md` - Project summary and quick reference
+- `CHANGELOG.md` - Version history (this file)
+- `docs/PROJECT_STRUCTURE.md` - Directory structure guide
+- `docs/FOLDER_STRUCTURE_CREATED.md` - Folder setup documentation
+- `chatlogs/README.md` - Chat log guidelines
+
+#### Scripts
+- **Migration verification script** (`verify_migration.ps1`)
+  - Automated 8-point verification checklist
+  - Validates config paths, directory structure, junctions, and script references
+  - Provides detailed status report
+
+- **Overtime TimeOff helpers**
+  - `scripts/overtime_timeoff_with_backfill.py` - Monthly wrapper (v10 + backfill + accrual history)
+  - `scripts/restore_fixed_from_backfill.py` - Restore history into `FIXED_monthly_breakdown_*.csv`
+    - Supports both WIDE exports (month columns) and LONG exports (`PeriodLabel` + `Sum of Value`)
+    - Optional `--include-accruals` flag (off by default)
+  - `scripts/compare_vcs_time_report_exports.py` - Compare refreshed exports vs baseline backfill exports
+
+#### Git Repository
+- Initialized local git repository
+- Added `.gitignore` for logs and temporary files
+
+### Changed
+
+#### Configuration (`config\scripts.json`)
+- Updated script filenames to match actual files:
+  - Arrests: `arrest_python_processor.py`
+  - Community Engagement: `deploy_production.py`
+  - Overtime TimeOff: `overtime_timeoff_with_backfill.py` (wrapper around v10 + backfill)
+  - Response Times: `response_time_diagnostic.py`
+  - Summons: `main_orchestrator.py`
+- Disabled scripts without Python files:
+  - Policy Training Monthly
+  - Arrest Data Source
+  - NIBRS
+- Updated `powerbi_drop_path` to OneDrive location
+- Backup created: `config\scripts.json.bak`
+
+#### Scripts
+- `scripts\run_all_etl.ps1` - Updated next-step instructions with new PowerBI_Date path
+- Removed all references to old `C:\Dev\PowerBI_Date` paths
+
+- `scripts/overtime_timeoff_with_backfill.py`
+  - Default backfill root updated to: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill`
+  - Now backfills `analytics_output\monthly_breakdown.csv` for prior 12 months from the same backfill export (preserves current month from v10)
+
+#### Documentation Organization
+- Moved all markdown files (except README.md) to `docs/` folder
+- Organized documentation by topic
+- Created chatlogs directory for AI conversations
+
+#### ETL Scripts
+- Updated Response Times script backfill path:
+  - Changed from: `C:\Dev\PowerBI_Date\Backfill\...`
+  - Changed to: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\...`
+
+### Fixed
+- All path references updated to reflect OneDrive migration
+- Script file path handling verified for OneDrive paths with spaces
+- Documentation consistency across all files
+- ETL script filenames verified and corrected
+
+- Overtime TimeOff historical “null/0” issue in Power BI visual
+  - Restored legacy usage rows into `FIXED_monthly_breakdown_*.csv` from backfill exports
+  - Populated accrual history by backfilling `analytics_output\monthly_breakdown.csv` (previously only current month existed)
+
+### Infrastructure
+- **Master_Automation Junction Created**
+  - Location: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Master_Automation`
+  - Target: `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`
+  - Type: NTFS Junction (symlink)
+
+### Verified
+- ✅ Config file paths correct
+- ✅ PowerBI_Date directory structure intact
+- ✅ Master_Automation junction functional
+- ✅ All script path references updated
+- ✅ Documentation paths corrected
+- ✅ Python executable accessible (Python 3.13.7)
+- ✅ Drop folder accessible and writable
+- ✅ All enabled script files exist and are accessible
+- ✅ Dry run test passed successfully
+
+---
+
+## [0.9.0] - 2025-12-11 - Migration to OneDrive
+
+### Added
+- Migration verification script (`verify_migration.ps1`)
+- Comprehensive migration documentation
+- Verification guides and summaries
+
+### Changed
+- **PowerBI_Date Migration**
+  - From: `C:\Dev\PowerBI_Date_Merged`
+  - To: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date`
+- Updated all path references in configuration and scripts
+- Updated documentation with new paths
+
+### Fixed
+- All old path references removed
+- Script logic verified for OneDrive paths
+
+---
+
+## [0.1.0] - 2025-12-09 - Initial Setup
+
+### Added
+- Initial Master_Automation workspace structure
+- ETL orchestrator scripts (`run_all_etl.ps1`, `run_all_etl.bat`, `run_etl_script.ps1`)
+- Configuration file (`config\scripts.json`)
+- Basic documentation (`README.md`, `QUICK_START.md`)
+
+### Features
+- Sequential ETL script execution
+- Error handling and logging
+- Power BI output integration
+- Selective script execution
+- Status reporting
+
+---
+
+## Future Updates
+
+### Planned
+- [ ] ETL script filename verification and auto-detection
+- [ ] Enhanced error reporting and recovery
+- [ ] Performance monitoring and optimization
+- [ ] Automated testing suite
+- [ ] Integration with Power BI refresh scheduling
+- [ ] Column reorder utility for backfill CSVs
+
+### Under Consideration
+- [ ] Web-based dashboard for ETL status
+- [ ] Email notifications for failures
+- [ ] Retry logic for transient errors
+- [ ] Parallel script execution option
+- [ ] Configuration UI
+- [ ] Automated backfill column ordering
+
+---
+
+## Notes
+
+- All paths are now OneDrive-synced for cloud backup and multi-device access
+- Junction link allows seamless access to Master_Automation from PowerBI_Date directory
+- Verification script should be run after any configuration changes
+- Logs directory is auto-created on first ETL run
+- Documentation organized in `docs/` folder for better structure
+- Chat logs should be saved to `chatlogs/` folder with date prefix
+
+---
+
+**Maintained by:** R. A. Carucci  
+**Last Updated:** 2026-01-13  
+**Current Version:** 1.4.0
+
+
+```
+
+
+Fixing the duplicate Unreleased section and updating README and SUMMARY:
+
+
+```markdown
+# Changelog
+
+All notable changes to the Master_Automation workspace will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). ---
+
+## [Unreleased]
+
+### Planned
+- [ ] Enhanced error reporting and recovery
+- [ ] Performance monitoring and optimization
+- [ ] Automated testing suite
+- [ ] Integration with Power BI refresh scheduling
+
+---
+
+## [1.4.0] - 2026-01-13
+
+### Fixed
+- **December 2025 High Values Issue - Critical Data Integrity Fix**
+  - Fixed double/triple counting from file format conversions (Watchdog script converts .xls to .xlsx and .csv)
+  - Added file preference logic: process only .xlsx files when multiple formats exist (.xlsx > .csv > .xls)
+  - Prevents processing same data multiple times from .xls source file and converted files
+  - Removed 32,749 duplicate rows by eliminating .xls and .csv when .xlsx exists
+
+- **Raw Time Off Data Deduplication**
+  - Added deduplication with parsed dates/hours and normalized employee names
+  - Improved matching by parsing dates and hours before deduplication
+  - Removed 41,103 duplicate records from raw Time Off data (61,899 → 20,796 rows)
+  - Ensures accurate usage calculations (Sick Time, SAT, Comp, Military, IOD)
+
+- **Status Filtering for Usage Calculations**
+  - Added approved-only filtering to raw Time Off data before usage metrics calculation
+  - Removed 175 non-approved records from December 2025 usage totals
+  - Ensures only approved transactions are counted in final metrics
+
+### Changed
+- **File Loading Logic**
+  - Updated `load_folder()` to prefer .xlsx files over .csv and .xls for same base filename
+  - Updated raw Time Off loading to use same file preference logic
+  - Prevents duplicate processing when Watchdog script creates multiple file formats
+
+- **Deduplication Strategy**
+  - Main dataframe deduplication: Removed 61,222 duplicates (89,445 → 28,223 rows)
+  - Raw Time Off deduplication: Removed 41,103 duplicates using parsed dates/hours
+  - Deduplication now happens after parsing dates and hours for accurate matching
+
+### Verified
+- December 2025 usage values now match downloaded source files
+  - Comp (Hours): 245.75 (matches expected 248.75 - 0.1% difference)
+  - Employee Sick Time: 1,078.00 (exact match)
+  - Used SAT Time: 627.50 (matches expected 633.50 - 1% difference)
+  - Military Leave: 48.00 (exact match)
+  - Injured on Duty: 32.00 (lower than expected 56.00 - needs investigation)
+
+### Technical Details
+- Root cause: Export File Watchdog script converts .xls → .xlsx + .csv, causing triple-counting
+- Solution: File preference logic processes only one format per file
+- Impact: Reduced processed rows from 89,445 to 56,696 (36% reduction)
+- Files affected: `overtime_timeoff_13month_sworn_breakdown_v10.py`
+
+---
+
+## [1.3.0] - 2026-01-12
+
+### Verified
+- **December 2025 Overtime/TimeOff Data Verification**
+  - Backfill data (12-24 through 11-25): 100% match between November and December exports
+    - 108 comparisons (9 categories × 12 months): 0 differences found
+    - All historical months match perfectly
+  - December 2025 (12-25) calculations: All values verified and match
+    - All 9 categories verified between ETL outputs and visual export
+    - Accrual values correctly split between Sworn/Non-Sworn
+    - Legacy usage categories calculated correctly
+    - ETL outputs match visual export perfectly
+  - Verification report created: `2026_01_12_DECEMBER_2025_DATA_VERIFICATION_REPORT.md`
+
+### Fixed
+- **Overtime/TimeOff M Code (v4) - Critical Syntax Errors Resolved**
+  - Fixed "Token Literal expected" errors that blocked Power BI visual for 2 months
+  - Fixed spacing issues around operators (`<>`, `=`, `then`, `else`)
+  - Fixed malformed `let...in` blocks in `IsPriorFile`, `WithFactor`, `MBScaled`, and `PriorVisualLong` sections
+  - Fixed incorrect comment syntax (`//*` → `/*`)
+  - Fixed line breaks within expressions that confused M parser
+  - All syntax errors resolved - query now compiles and executes successfully
+  - Query name updated to `overtime_timeoff_v4.m` (reflecting final corrected version)
+
+- **Benchmark Data Architecture Migration - Complete (2026-01-12)**
+  - Successfully restructured Benchmark use-of-force tracking system
+  - Transformed siloed event type folders into query-optimized architecture
+  - Created master combined dataset with 398 total incidents (2020-07-16 to 2025-12-29)
+  - Implemented rolling 13-month window (81 incidents, Dec-24 to Dec-25)
+  - Pre-filtered datasets reduce query load by 3-5x (81 records vs. 398)
+  - New structure: `all_events_combined/`, `by_time_period/rolling_13month/`, `by_event_type/`
+  - Complete backup preserved at `_Benchmark_BACKUP_20260112/`
+  - Zero data loss verified in migration
+
+- **Benchmark M Code Queries - Finalized**
+  - `benchmark_r13.m` (query: `___Benchmark`) - Rolling 13-month dataset query with hardcoded paths
+  - `benchmark_dim_month.m` (query: `___DimMonth`) - Month dimension table for rolling 13-month window
+  - `benchmark__dim_event_type.m` (query: `___DimEventType`) - Event type dimension table with sort order
+  - Fixed syntax errors: removed `Columns=13` parameter (CSV has 14 columns), fixed double braces in `Table.TransformColumnTypes`
+  - All paths hardcoded for direct use in Power BI (no parameters required)
+  - All queries finalized and ready for production use
+
+### Added
+- **M Code Query Files Synced Across Directories**
+  - `overtime_timeoff_v4.m` synced to `02_ETL_Scripts/Overtime_TimeOff/`
+  - `benchmark_dim_month.m` synced to `02_ETL_Scripts/Benchmark/`
+  - `benchmark_dim_event_type.m` synced to `02_ETL_Scripts/Benchmark/`
+  - `benchmark_r13.m` synced to `02_ETL_Scripts/Benchmark/`
+  - Documentation updated to reflect new query names and locations
+
+### Changed
+- **Overtime/TimeOff Query Naming**
+  - Query renamed from `2026_01_12____Overtime_Timeoff_v3.m` to `overtime_timeoff_v4.m`
+  - Final version reflects all syntax fixes and improvements
+  - Backfill logic preserved: historical months (12-24 through 11-25) use prior export, current month (12-25) uses ETL outputs
+
+- **Documentation Updates**
+  - Updated CHANGELOG.md with v1.3.0 release notes
+  - Updated README.md with new query names
+  - Updated SUMMARY.md with latest changes
+  - All documentation synced across Master_Automation and ETL script directories
+
+### Verified
+- ✅ All M code queries compile without syntax errors
+- ✅ Overtime/TimeOff v4 query successfully loads in Power BI
+- ✅ Benchmark queries finalized and ready for production
+- ✅ All files synced across directories
+- ✅ Documentation updated and consistent
+
+---
+
+## [1.1.0] - 2026-01-02
+
+### Added
+- **Input Validation Feature**
+  - Added `-ValidateInputs` parameter to `run_all_etl.ps1`
+  - Automatic input validation when using `-DryRun` mode
+  - Validates required export files exist before execution:
+    - Summons: E-ticket exports in `05_EXPORTS\_Summons\E_Ticket\YYYY\YYYY_MM_eticket_export.csv`
+    - Response Times: CAD monthly exports in `05_EXPORTS\_CAD\monthly_export\YYYY\YYYY_MM_Monthly_CAD.xlsx`
+  - Shows helpful error messages with available files when expected files are missing
+
+- **Badge Normalization Diagnostics**
+  - `scripts/diagnose_badge_normalization.py` - Comprehensive badge number format validation
+  - `scripts/find_missing_badge.py` - Quick script to find badges in e-ticket not in Assignment Master
+  - `scripts/fix_assignment_master.py` - Fixes PADDED_BADGE_NUMBER format and adds missing entries
+  - `scripts/verify_assignment_fix.py` - Verifies Assignment Master fixes
+
+- **Script Archive**
+  - Created `scripts/_archive/` directory for old/unused scripts
+  - Archived `run_all_etl-PD_BCI_LTP.ps1` (old version superseded by main script)
+
+### Changed
+- **E-Ticket Export Path Structure**
+  - Updated scripts to handle new e-ticket export naming convention:
+    - Old: `YY_MM_e_ticketexport.csv` (e.g., `25_12_e_ticketexport.csv`)
+    - New: `YYYY_MM_eticket_export.csv` in year subdirectories (e.g., `2025\2025_12_eticket_export.csv`)
+  - Updated `diagnose_summons_missing_months.py` to search year subdirectories
+  - Updated `count_patrol_m_p_from_eticket.py` help text
+
+- **Response Times Validation**
+  - Fixed filename pattern from `YYYY_MM_Monthly_CAD.xlsx.xlsx` to `YYYY_MM_Monthly_CAD.xlsx`
+  - Updated validation to check correct year subdirectory structure
+
+- **Assignment Master Fix**
+  - Fixed `Assignment_Master_V2.csv` PADDED_BADGE_NUMBER column (ensured all values are 4-digit padded)
+  - Added badge 1711 entry for PEO JOHN SQUILLACE (TRAFFIC BUREAU)
+
+### Fixed
+- E-ticket export path validation now correctly searches year subdirectories
+- Response Times validation now uses correct filename format (single .xlsx extension)
+- Badge 1711 missing from Assignment Master (now added with correct bureau assignment)
+- All PADDED_BADGE_NUMBER values verified as correctly formatted (4-digit strings, no floats)
+
+### Verified
+- All e-ticket exports correctly formatted (4-digit Officer Id values)
+- Assignment Master PADDED_BADGE_NUMBER column correctly formatted
+- Badge 1711 now matches between e-ticket export and Assignment Master
+- Input validation correctly identifies missing export files
+
+---
+
+## [1.2.0] - 2026-01-06
+
+### Fixed
+- **Arrest M Code Queries (2026-01-05)**
+  - Fixed syntax errors in `___Top_5_Arrests_FIXED.m` and `___Arrest_Categories_FIXED.m`
+  - Removed backslash line continuations (M Code doesn't support `\` for line continuation)
+  - Fixed path string splitting issues in `Folder.Files` calls
+  - Fixed lambda syntax errors (`(x) = >` → `(x) =>`)
+  - Fixed missing operator spacing (`d<> null` → `d <> null`)
+  - Fixed malformed `let...in` block structures
+
+- **Arrest Date Parsing (2026-01-05)**
+  - Enhanced `ToDate` function to handle Excel serial dates (45962, 45963, etc.)

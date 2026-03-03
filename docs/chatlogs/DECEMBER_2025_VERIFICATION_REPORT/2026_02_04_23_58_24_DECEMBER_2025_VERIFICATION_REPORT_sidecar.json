@@ -1,0 +1,72 @@
+{
+  "source_file": "DECEMBER_2025_VERIFICATION_REPORT.md",
+  "source_path": "C:\\_chunker\\02_data\\DECEMBER_2025_VERIFICATION_REPORT.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\DECEMBER_2025_VERIFICATION_REPORT\\2026_02_04_23_58_24_DECEMBER_2025_VERIFICATION_REPORT.origin.json",
+  "created_at": "2026_02_04_23_58_24",
+  "tags": [
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "markdown",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "time",
+      "comp",
+      "december",
+      "files",
+      "2025",
+      "processing"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# December 2025 Overtime & Time Off Data Processing Verification Report\n\n**Date:** 2026-01-13\n**Verified By:** Claude Code AI\n**Period Verified:** December 2025 (Month 12-25)\n\n---\n\n## Executive Summary\n\n✅ **VERIFICATION STATUS: PASS**\n\n-...",
+    "first_line": "# December 2025 Overtime & Time Off Data Processing Verification Report"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-04T23:58:24+00:00_DECEMBER_2025_VERIFICATION_REPORT_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "2025",
+        "code",
+        "comp",
+        "data",
+        "december",
+        "docs",
+        "excel",
+        "files",
+        "it-ops",
+        "json",
+        "markdown",
+        "processing",
+        "python",
+        "sql",
+        "time"
+      ],
+      "key_terms": [
+        "time",
+        "comp",
+        "december",
+        "files",
+        "2025",
+        "processing"
+      ],
+      "summary": "# December 2025 Overtime & Time Off Data Processing Verification Report\n\n**Date:** 2026-01-13\n**Verified By:** Claude Code AI\n**Period Verified:** December 2025 (Month 12-25)\n\n---\n\n## Executive Summary\n\n✅ **VERIFICATION STATUS: PASS**\n\n-...",
+      "char_length": 16989,
+      "byte_length": 17577
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

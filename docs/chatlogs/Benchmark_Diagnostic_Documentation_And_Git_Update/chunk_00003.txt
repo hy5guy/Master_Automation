@@ -1,0 +1,675 @@
+Click **Close & Apply**
+
+This will remove whatever filter is blocking the 01-26 data. ### Option 2: Edit the Filtered Rows Step
+
+1. Click on **"Filtered Rows"** step
+2. Look at the formula bar at the top - it will show something like:
+   ```powerquery
+   = Table.SelectRows(#"Sorted Rows", each [Date] < #date(2026,1,1))
+   ```
+   OR
+   ```powerquery
+   = Table.SelectRows(#"Sorted Rows", each [Period] <> "01-26")
+   ```
+3. Tell me what the filter says, and I'll help you fix it
+
+---
+
+## Most Likely Filter Culprits:
+
+Based on common patterns, the "Filtered Rows" step probably contains one of these:
+
+### Date Filter:
+```powerquery
+// BAD - excludes 2026
+each [Date] < #date(2026, 1, 1)
+
+// GOOD - includes Jan 2026
+each [Date] <= #date(2026, 1, 31)
+```
+
+### Year Filter:
+```powerquery
+// BAD - only keeps 2025
+each Date.Year([Date]) = 2025
+
+// GOOD - keeps 2025 and 2026
+each Date.Year([Date]) >= 2025
+```
+
+### Period Filter:
+```powerquery
+// BAD - explicitly excludes 01-26
+each not Text.Contains([Period], "26")
+```
+
+---
+
+## Quick Fix Script:
+
+If you want to just delete the Filtered Rows step programmatically, replace the entire end of your M code from:
+
+```powerquery
+in
+    #"Sorted Rows"
+```
+
+To:
+
+```powerquery
+in
+    FinalDataTypes  // or SortedData, whichever exists
+```
+
+This bypasses any UI-added filter steps. ---
+
+## Next Steps:
+
+1. **Click on "Filtered Rows"** in Applied Steps
+2. **Look at the formula bar** - what does it say? 3. Send me that formula, and I'll provide the exact fix
+
+OR
+
+Just delete the "Filtered Rows" step and see if 01-26 appears! ---
+
+**User**
+
+I deleted the step but 01-26 did not appear
+
+found the issue the changes were made to C:\Users\carucci_r\OneDrive - City of Hackensack\SSOCC\Archive\_SSOCC - Service Log.xlsx
+and the onedrive sync is taking log to sync I changed the source and it works now
+
+---
+
+**Cursor**
+
+## 🎉 Excellent Problem-Solving! ### What Happened:
+
+**Root Cause**: The M code was pointing to the **Archive folder** file:
+```
+C:\Users\carucci_r\OneDrive - City of Hackensack\SSOCC\Archive\_SSOCC - Service Log.xlsx
+```
+
+**Actual Production File**: 
+```
+C:\Users\carucci_r\OneDrive - City of Hackensack\SSOCC\SSOCC - Service Log.xlsx
+```
+
+So Claude in Excel was successfully creating all the tables and formulas in the Archive version, but Power BI was reading from the production version (which didn't have the 01-26 updates yet), or vice versa! ---
+
+## ✅ Current Status:
+
+- ✅ Excel tables and formulas properly created
+- ✅ M code source path corrected
+- ✅ 01-26 data now appearing in Power BI
+- ✅ Visual showing complete 13-month window
+
+---
+
+## 📝 Lessons Learned / Prevention:
+
+To avoid this in the future:
+
+### 1. **Add File Path Verification to Documentation**
+Document the correct file paths in your project:
+
+```
+Production File:
+C:\Users\carucci_r\OneDrive - City of Hackensack\SSOCC\SSOCC - Service Log.xlsx
+
+Archive Location:
+C:\Users\carucci_r\OneDrive - City of Hackensack\SSOCC\Archive\
+```
+
+### 2. **Add Comment in M Code**
+At the top of your M code, add:
+
+```powerquery
+// ⚠️ PRODUCTION FILE PATH - DO NOT CHANGE WITHOUT VERIFICATION
+// C:\Users\carucci_r\OneDrive - City of Hackensack\SSOCC\SSOCC - Service Log.xlsx
+// Last verified: 2026-02-14
+
+let
+    Source = Excel.Workbook(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\SSOCC\SSOCC - Service Log.xlsx"),
+        ...
+```
+
+### 3. **OneDrive Sync Considerations**
+When working with OneDrive files:
+- Always check sync status before expecting changes
+- Consider working directly in Excel Online for instant sync
+- Or use "Always keep on this device" for critical files
+
+---
+
+## Would You Like Me To:
+
+1. **Create a verification checklist** for future Excel → Power BI updates? 2. **Document this incident** in your project docs (similar to the Detective queries fix)? 3. **Create a Power BI parameter** so you can easily switch between Production/Archive/Test files? Great job tracking this down! 🎯
+
+---
+
+**User**
+
+I updated the sourc =e to this file C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\tas\yearly\2025\2025_01_to_2026_02_13_Hackensack_CAD_Data.xlsx
+but I am getting an error 
+Expression.Error: The column 'DispatcherNew' of the table wasn't found. Details:
+    DispatcherNew
+please fix
+// 🕒 TAS Dispatcher Incident Summary
+// Purpose: Import TAS/Virtual Patrol data, normalize incidents and dispatchers,
+//          count by dispatcher/incident/month for rolling 13-month window
+// Output: Normalized table with columns: DispatcherNew, Incident, Month,
+// Month_Sort, Count NOTE: Do NOT auto-format this file - file paths will break
+
+let
+    // =========================
+    // Configuration
+    // =========================
+    FilePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\tas\yearly\2025\2025_01_to_2026_02_13_Hackensack_CAD_Data.xlsx",
+
+    // Valid dispatchers (normalized to lowercase)
+    ValidDispatchers = {"carucci_r", "marino_b", "rios_a", "iannacone_a",
+                        "polson_r"},
+
+    // Valid incident types (normalized)
+    ValidIncidents = {"TAS Alert - Missing Person",
+                      "TAS Alert - Stolen License Plate",
+                      "TAS Alert - Stolen Vehicle", "TAS Alert - Wanted Person",
+                      "Virtual - Patrol"},
+
+    // =========================
+    // Load CSV
+    // =========================
+    Source = Csv.Document(
+        File.Contents(FilePath),
+        [ Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv ]),
+    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+
+    // =========================
+    // Normalize DispatcherNew to lowercase
+    // =========================
+    LowercaseDispatcher = Table.TransformColumns(
+        Promoted, {{"DispatcherNew", Text.Lower, type text}}),
+
+    // =========================
+    // Filter to valid dispatchers only
+    // =========================
+    FilteredDispatchers =
+        Table.SelectRows(LowercaseDispatcher,
+                         each List.Contains(ValidDispatchers, [DispatcherNew])),
+
+    // =========================
+    // Normalize Incident column
+    // Handle case variations: "Tas Alert" -> "TAS Alert", etc. // Map non-matching incidents to "Other"
+    // =========================
+    NormalizedIncident = Table.AddColumn(
+        FilteredDispatchers, "Incident_Normalized",
+        each let incident = if [Incident] = null then "" else Text.Trim([Incident]),
+        // Normalize: lowercase and standardize spacing
+        normalized = Text.Lower(
+            Text.Replace(Text.Replace(incident, "  ", " "), " - ", " - ")),
+        // Find matching valid incident (case-insensitive comparison)
+        matched = List.First(List.Select(
+            ValidIncidents,
+            each Text.Lower(Text.Replace(Text.Replace(_, "  ", " "), " - ",
+                                         " - ")) = normalized), null) in
+            if matched <> null then matched else "Other",
+        type text),
+
+    // Use normalized incidents (no filtering - "Other" included)
+    FilteredIncidents = NormalizedIncident,
+
+    // =========================
+    // Extract month from "Time of Call"
+    // Format: "MM/DD/YYYY HH:MM" -> extract date, then month
+    // =========================
+    WithDate = Table.AddColumn(
+        FilteredIncidents, "CallDate", each let timeOfCall = [#"Time of Call"],
+        // Parse date (handles "MM/DD/YYYY HH:MM" format)
+        dateTimeValue = try DateTime.FromText(timeOfCall) otherwise null,
+        dateValue = if dateTimeValue <> null then Date.From(dateTimeValue) else null
+        in dateValue,
+        type date),
+
+    // =========================
+    // Calculate rolling 13-month window (exclude current month)
+    // =========================
+    NowDT = DateTime.LocalNow(), CurrY = Date.Year(NowDT),
+    CurrM = Date.Month(NowDT), EndY = if CurrM = 1 then CurrY - 1 else CurrY,
+    EndM = if CurrM = 1 then 12 else CurrM - 1,
+
+    // End Date = last day of previous month
+    // Start Date = 12 months before End Date (gives 13 months total)
+    EndDate = #date(EndY, EndM, 1), StartDate = Date.AddMonths(EndDate, -12),
+
+    // Generate list of month start dates in window
+    MonthList = List.Generate(() => StartDate, each _ <= EndDate,
+                              each Date.AddMonths(_, 1)), 
+
+    // Convert to MM-YY format for column headers
+    PeriodLabelsMMYY = List.Transform(
+        MonthList, each Text.PadStart(Text.From(Date.Month(_)), 2, "0") & "-" &
+                       Text.End(Text.From(Date.Year(_)), 2)),
+
+    // =========================
+    // Add Period (MM-YY) column and filter to window
+    // =========================
+    WithPeriod = Table.AddColumn(
+        WithDate, "Period",
+        each if[CallDate]<> null then let y = Date.Year([CallDate]),
+        m = Date.Month([CallDate]),
+        period = Text.PadStart(Text.From(m), 2, "0") & "-" &
+                 Text.End(Text.From(y), 2) in period else null,
+        type text),
+
+    // Filter to only periods in the 13-month window
+    FilteredPeriod = Table.SelectRows(
+        WithPeriod,
+        each[Period]<> null and List.Contains(PeriodLabelsMMYY, [Period])),
+
+    // =========================
+    // Group and count by DispatcherNew, Incident_Normalized, Period
+    // =========================
+    Grouped = Table.Group(FilteredPeriod,
+                          {"DispatcherNew", "Incident_Normalized", "Period"},
+                          {{"Count", each Table.RowCount(_), type number}}),
+
+    // =========================
+    // Create all combinations to ensure zeros for missing data
+    // =========================
+    // Create table of all dispatchers
+    AllDispatchers = Table.FromList(ValidDispatchers, Splitter.SplitByNothing(),
+                                    {"DispatcherNew"}),
+
+    // Create table of all incidents (including "Other")
+    AllIncidents = Table.FromList(List.Combine({ValidIncidents, {"Other"}}),
+                                  Splitter.SplitByNothing(), {"Incident"}),
+
+    // Create table of all periods
+    AllPeriods =
+        Table.FromList(PeriodLabelsMMYY, Splitter.SplitByNothing(), {"Period"}),
+
+    // Create Cartesian product: all dispatchers × all incidents × all periods
+    AllCombinations_Step1 = Table.AddColumn(AllDispatchers, "IncidentTable", each AllIncidents),
+    AllCombinations_Step2 = Table.ExpandTableColumn(AllCombinations_Step1, "IncidentTable", {"Incident"}, {"Incident"}),
+    AllCombinations_Step3 = Table.AddColumn(AllCombinations_Step2, "PeriodTable", each AllPeriods),
+    AllCombinations = Table.ExpandTableColumn(AllCombinations_Step3, "PeriodTable", {"Period"}, {"Period"}),
+
+    // Add Month_Sort to all combinations
+    AllCombinationsWithSort = Table.AddColumn(
+        AllCombinations, "Month_Sort",
+        each let mm = Number.FromText(Text.Start([Period], 2)),
+        yy = Number.FromText(Text.End([Period], 2)),
+        yyyy = if yy < 70 then 2000 + yy else 1900 + yy in yyyy * 100 + mm,
+        Int64.Type),
+
+    // Rename Period to Month in all combinations
+    AllCombinationsRenamed =
+        Table.RenameColumns(AllCombinationsWithSort, {{"Period", "Month"}}),
+
+    // =========================
+    // Join grouped data to all combinations (left join)
+    // =========================
+    // Rename Period to Month in grouped data for join
+    GroupedRenamed = Table.RenameColumns(
+        Grouped, {{"Incident_Normalized", "Incident"}, {"Period", "Month"}}),
+
+    // Left join: all combinations (left) with grouped data (right)
+    Joined = Table.NestedJoin(
+        AllCombinationsRenamed, {"DispatcherNew", "Incident", "Month"},
+        GroupedRenamed, {"DispatcherNew", "Incident", "Month"}, "GroupedData",
+        JoinKind.LeftOuter),
+
+    // Expand the nested table and get Count (or 0 if missing)
+    Expanded =
+        Table.ExpandTableColumn(Joined, "GroupedData", {"Count"}, {"Count"}),
+
+    // Replace null Count with 0
+    WithZeros =
+        Table.ReplaceValue(Expanded, null, 0, Replacer.ReplaceValue, {"Count"}),
+
+    // Final table (already has Month column)
+    Renamed = WithZeros,
+
+    // Reorder columns: DispatcherNew, Incident, Month, Month_Sort, Count
+    Reordered = Table.ReorderColumns(
+        Renamed, {"DispatcherNew", "Incident", "Month", "Month_Sort", "Count"}),
+
+    // Set column types
+    Typed = Table.TransformColumnTypes(Reordered, {{"DispatcherNew", type text},
+                                                   {"Incident", type text},
+                                                   {"Month", type text},
+                                                   {"Month_Sort", Int64.Type},
+                                                   {"Count", type number}})
+
+                in Typed
+
+---
+
+**Cursor**
+
+## 🔍 Root Cause: Wrong File Format Handler
+
+Your file is `.xlsx` (Excel workbook) but the M code is using `Csv.Document()` to load it. This won't work correctly. Additionally, the column 'DispatcherNew' doesn't exist in the source file - we need to check what the actual column names are. ## ✅ Fixed M Code
+
+Replace your entire M code with this corrected version:
+
+```powerquery
+// 🕒 2026-02-14-15-30-00
+// # TAS/Virtual_Patrol/TAS_Dispatcher_Incident_Summary_Fixed.m
+// # Author: R. A. Carucci
+// # Purpose: Import TAS/Virtual Patrol data from Excel workbook, normalize incidents and dispatchers, count by dispatcher/incident/month for rolling 13-month window
+
+let
+    // =========================
+    // Configuration
+    // =========================
+    FilePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\tas\yearly\2025\2025_01_to_2026_02_13_Hackensack_CAD_Data.xlsx",
+    SheetName = "Sheet1",  // ⚠️ CHANGE THIS to match your actual sheet name
+    
+    // Valid dispatchers (normalized to lowercase)
+    ValidDispatchers = {"carucci_r", "marino_b", "rios_a", "iannacone_a", "polson_r"},
+    
+    // Valid incident types (normalized)
+    ValidIncidents = {
+        "TAS Alert - Missing Person",
+        "TAS Alert - Stolen License Plate", 
+        "TAS Alert - Stolen Vehicle",
+        "TAS Alert - Wanted Person",
+        "Virtual - Patrol"
+    },
+
+    // =========================
+    // Load Excel Workbook (FIXED)
+    // =========================
+    Source = Excel.Workbook(
+        File.Contents(FilePath),
+        null, 
+        true
+    ),
+    
+    // Load the specified sheet
+    SheetData = Source{[Item=SheetName,Kind="Sheet"]}[Data],
+    
+    // Promote headers
+    Promoted = Table.PromoteHeaders(SheetData, [PromoteAllScalars=true]),
+    
+    // ⚠️ DIAGNOSTIC: Check actual column names
+    // Uncomment this line temporarily to see all column names:
+    // ColumnNames = Table.ColumnNames(Promoted),
+    
+    // =========================
+    // Map to expected column names (FLEXIBLE)
+    // =========================
+    // Try to find dispatcher column (could be "Dispatcher", "DispatcherNew", "Dispatcher Name", etc.) ColumnNames = Table.ColumnNames(Promoted),
+    
+    DispatcherCol = 
+        if List.Contains(ColumnNames, "DispatcherNew") then "DispatcherNew"
+        else if List.Contains(ColumnNames, "Dispatcher") then "Dispatcher"
+        else if List.Contains(ColumnNames, "DispatcherName") then "DispatcherName"
+        else null,
+    
+    IncidentCol = 
+        if List.Contains(ColumnNames, "Incident") then "Incident"
+        else if List.Contains(ColumnNames, "Incident Type") then "Incident Type"
+        else if List.Contains(ColumnNames, "IncidentType") then "IncidentType"
+        else null,
+    
+    TimeCol = 
+        if List.Contains(ColumnNames, "Time of Call") then "Time of Call"
+        else if List.Contains(ColumnNames, "TimeOfCall") then "TimeOfCall"
+        else if List.Contains(ColumnNames, "CallTime") then "CallTime"
+        else if List.Contains(ColumnNames, "Time") then "Time"
+        else null,
+    
+    // Error if required columns not found
+    CheckColumns = 
+        if DispatcherCol = null then error "Required column not found: Dispatcher (tried: DispatcherNew, Dispatcher, DispatcherName)"
+        else if IncidentCol = null then error "Required column not found: Incident (tried: Incident, Incident Type, IncidentType)"
+        else if TimeCol = null then error "Required column not found: Time (tried: Time of Call, TimeOfCall, CallTime, Time)"
+        else true,
+    
+    // Rename columns to standard names
+    Renamed = Table.RenameColumns(
+        Promoted,
+        {
+            {DispatcherCol, "DispatcherNew"},
+            {IncidentCol, "Incident"},
+            {TimeCol, "Time of Call"}
+        }
+    ),
+
+    // =========================
+    // Normalize DispatcherNew to lowercase
+    // =========================
+    LowercaseDispatcher = Table.TransformColumns(
+        Renamed,
+        {{"DispatcherNew", each if _ = null then null else Text.Lower(Text.Trim(_)), type text}}
+    ),
+
+    // =========================
+    // Filter to valid dispatchers only
+    // =========================
+    FilteredDispatchers = Table.SelectRows(
+        LowercaseDispatcher,
+        each [DispatcherNew] <> null and List.Contains(ValidDispatchers, [DispatcherNew])
+    ),
+
+    // =========================
+    // Normalize Incident column
+    // =========================
+    NormalizedIncident = Table.AddColumn(
+        FilteredDispatchers,
+        "Incident_Normalized",
+        each 
+            let 
+                incident = if [Incident] = null then "" else Text.Trim([Incident]),
+                normalized = Text.Lower(Text.Replace(Text.Replace(incident, "  ", " "), " - ", " - ")),
+                matched = List.First(
+                    List.Select(
+                        ValidIncidents,
+                        each Text.Lower(Text.Replace(Text.Replace(_, "  ", " "), " - ", " - ")) = normalized
+                    ),
+                    null
+                )
+            in
+                if matched <> null then matched else "Other",
+        type text
+    ),
+
+    FilteredIncidents = NormalizedIncident,
+
+    // =========================
+    // Extract month from "Time of Call"
+    // =========================
+    WithDate = Table.AddColumn(
+        FilteredIncidents,
+        "CallDate",
+        each 
+            let 
+                timeOfCall = [#"Time of Call"],
+                dateTimeValue = try DateTime.FromText(Text.From(timeOfCall)) otherwise null,
+                dateValue = if dateTimeValue <> null then Date.From(dateTimeValue) else null
+            in
+                dateValue,
+        type date
+    ),
+
+    // =========================
+    // Calculate rolling 13-month window
+    // =========================
+    NowDT = DateTime.LocalNow(),
+    CurrY = Date.Year(NowDT),
+    CurrM = Date.Month(NowDT),
+    EndY = if CurrM = 1 then CurrY - 1 else CurrY,
+    EndM = if CurrM = 1 then 12 else CurrM - 1,
+    
+    EndDate = #date(EndY, EndM, 1),
+    StartDate = Date.AddMonths(EndDate, -12),
+    
+    MonthList = List.Generate(
+        () => StartDate,
+        each _ <= EndDate,
+        each Date.AddMonths(_, 1)
+    ),
+    
+    PeriodLabelsMMYY = List.Transform(
+        MonthList,
+        each Text.PadStart(Text.From(Date.Month(_)), 2, "0") & "-" & Text.End(Text.From(Date.Year(_)), 2)
+    ),
+
+    // =========================
+    // Add Period (MM-YY) column
+    // =========================
+    WithPeriod = Table.AddColumn(
+        WithDate,
+        "Period",
+        each 
+            if [CallDate] <> null then
+                let 
+                    y = Date.Year([CallDate]),
+                    m = Date.Month([CallDate]),
+                    period = Text.PadStart(Text.From(m), 2, "0") & "-" & Text.End(Text.From(y), 2)
+                in
+                    period
+            else
+                null,
+        type text
+    ),
+
+    FilteredPeriod = Table.SelectRows(
+        WithPeriod,
+        each [Period] <> null and List.Contains(PeriodLabelsMMYY, [Period])
+    ),
+
+    // =========================
+    // Group and count
+    // =========================
+    Grouped = Table.Group(
+        FilteredPeriod,
+        {"DispatcherNew", "Incident_Normalized", "Period"},
+        {{"Count", each Table.RowCount(_), type number}}
+    ),
+
+    // =========================
+    // Create all combinations
+    // =========================
+    AllDispatchers = Table.FromList(ValidDispatchers, Splitter.SplitByNothing(), {"DispatcherNew"}),
+    AllIncidents = Table.FromList(List.Combine({ValidIncidents, {"Other"}}), Splitter.SplitByNothing(), {"Incident"}),
+    AllPeriods = Table.FromList(PeriodLabelsMMYY, Splitter.SplitByNothing(), {"Period"}),
+
+    AllCombinations_Step1 = Table.AddColumn(AllDispatchers, "IncidentTable", each AllIncidents),
+    AllCombinations_Step2 = Table.ExpandTableColumn(AllCombinations_Step1, "IncidentTable", {"Incident"}, {"Incident"}),
+    AllCombinations_Step3 = Table.AddColumn(AllCombinations_Step2, "PeriodTable", each AllPeriods),
+    AllCombinations = Table.ExpandTableColumn(AllCombinations_Step3, "PeriodTable", {"Period"}, {"Period"}),
+
+    AllCombinationsWithSort = Table.AddColumn(
+        AllCombinations,
+        "Month_Sort",
+        each 
+            let 
+                mm = Number.FromText(Text.Start([Period], 2)),
+                yy = Number.FromText(Text.End([Period], 2)),
+                yyyy = if yy < 70 then 2000 + yy else 1900 + yy
+            in
+                yyyy * 100 + mm,
+        Int64.Type
+    ),
+
+    AllCombinationsRenamed = Table.RenameColumns(AllCombinationsWithSort, {{"Period", "Month"}}),
+
+    // =========================
+    // Join and fill zeros
+    // =========================
+    GroupedRenamed = Table.RenameColumns(
+        Grouped,
+        {{"Incident_Normalized", "Incident"}, {"Period", "Month"}}
+    ),
+
+    Joined = Table.NestedJoin(
+        AllCombinationsRenamed,
+        {"DispatcherNew", "Incident", "Month"},
+        GroupedRenamed,
+        {"DispatcherNew", "Incident", "Month"},
+        "GroupedData",
+        JoinKind.LeftOuter
+    ),
+
+    Expanded = Table.ExpandTableColumn(Joined, "GroupedData", {"Count"}, {"Count"}),
+    WithZeros = Table.ReplaceValue(Expanded, null, 0, Replacer.ReplaceValue, {"Count"}),
+
+    // =========================
+    // Final formatting
+    // =========================
+    Reordered = Table.ReorderColumns(
+        WithZeros,
+        {"DispatcherNew", "Incident", "Month", "Month_Sort", "Count"}
+    ),
+
+    Typed = Table.TransformColumnTypes(
+        Reordered,
+        {
+            {"DispatcherNew", type text},
+            {"Incident", type text},
+            {"Month", type text},
+            {"Month_Sort", Int64.Type},
+            {"Count", type number}
+        }
+    )
+
+in
+    Typed
+```
+
+## Key Fixes:
+
+1. **✅ Changed `Csv.Document()` to `Excel.Workbook()`** - Proper handler for `.xlsx` files
+2. **✅ Added sheet selection logic** - Excel workbooks need sheet specification
+3. **✅ Added flexible column name detection** - Auto-detects whether columns are named "Dispatcher", "DispatcherNew", "DispatcherName", etc. 4. **✅ Added error handling** - Clear error messages if required columns aren't found
+5. **✅ Added null handling** - Prevents errors from empty cells
+
+## ⚠️ Action Required:
+
+**You need to update Line 10** with your actual sheet name:
+```powerquery
+SheetName = "Sheet1",  // ⚠️ CHANGE THIS
+```
+
+To find your sheet name, temporarily add this diagnostic step right after loading the Source:
+
+```powerquery
+// Add this after the Source = Excel.Workbook(...) line:
+SheetNames = Source[Name],
+```
+
+This will show you all available sheet names in the workbook. Then update `SheetName` accordingly. Let me know what error (if any) you get after applying this fix! ---
+
+**User**
+
+great thanks 
+
+---
+
+**Cursor**
+
+You're welcome! 🎉
+
+Glad it's working now! You successfully resolved two tricky issues today:
+
+1. ✅ **SSOCC Excel tables** - All 2026 monthly tables created and formulas working
+2. ✅ **TAS M Code** - Fixed file format handler (CSV → Excel) and added flexible column detection
+
+Both are now pulling 01-26 data correctly into Power BI! If you run into any other issues or need help with:
+- Adding more months as 2026 progresses
+- Creating similar queries for other datasets
+- Documenting these fixes in your project
+
+Just let me know! 👍
+
+---
+
+**User**
+
+next page to fix is the visual for query ___Overtime_Timeoff_v3, below is a 
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\overtime_timeoff_backfill.txt backfill of the data for 12-24 through 12-25.  compare it agaiunst what we have saved for the backfill data.

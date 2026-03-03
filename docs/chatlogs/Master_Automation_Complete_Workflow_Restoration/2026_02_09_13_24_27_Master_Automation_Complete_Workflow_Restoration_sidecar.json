@@ -1,0 +1,150 @@
+{
+  "source_file": "Master_Automation_Complete_Workflow_Restoration.md",
+  "source_path": "C:\\_chunker\\02_data\\Master_Automation_Complete_Workflow_Restoration.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Master_Automation_Complete_Workflow_Restoration\\2026_02_09_13_24_27_Master_Automation_Complete_Workflow_Restoration.origin.json",
+  "created_at": "2026_02_09_13_24_27",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "let",
+      "2026",
+      "files",
+      "now",
+      "data",
+      "monthly"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Automation timing, exports, and response times\n_Exported on 2/9/2026 at 13:23:04 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\n## Automation timing\n\nNo. Master_Automation runs ETL scripts in sequence, based on the configured order.",
+    "first_line": "# Automation timing, exports, and response times"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-09T13:24:27+00:00_Master_Automation_Complete_Workflow_Restoration_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "2026",
+        "ai",
+        "code",
+        "current",
+        "data",
+        "docs",
+        "excel",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "monthly",
+        "police",
+        "powershell",
+        "python",
+        "script",
+        "sql",
+        "training"
+      ],
+      "key_terms": [
+        "monthly",
+        "let",
+        "script",
+        "2026",
+        "now",
+        "current"
+      ],
+      "summary": "# Automation timing, exports, and response times\n_Exported on 2/9/2026 at 13:23:04 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\n## Automation timing\n\nNo.",
+      "char_length": 23732,
+      "byte_length": 24921
+    },
+    {
+      "chunk_id": "2026-02-09T13:24:27+00:00_Master_Automation_Complete_Workflow_Restoration_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "2026",
+        "ai",
+        "benchmark",
+        "code",
+        "data",
+        "docs",
+        "excel",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "powershell",
+        "python",
+        "sql",
+        "structure",
+        "training"
+      ],
+      "key_terms": [
+        "benchmark",
+        "data",
+        "2026",
+        "you",
+        "structure",
+        "let"
+      ],
+      "summary": "December 2025 Export Issues ⚠️ (Power BI, not automation)\n\n**Issue**: Two visuals exported blank in December:\n- \"Engagement Initiatives by Bureau\"\n- \"Chief's Projects & Initiatives\"\n\n**Cause**: Power BI using `TODAY()` function in date f...",
+      "char_length": 18760,
+      "byte_length": 19650
+    },
+    {
+      "chunk_id": "2026-02-09T13:24:27+00:00_Master_Automation_Complete_Workflow_Restoration_chunk3",
+      "chunk_index": 3,
+      "file": "chunk_00002.txt",
+      "tags": [
+        "2026",
+        "ai",
+        "code",
+        "data",
+        "docs",
+        "excel",
+        "files",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "powershell",
+        "python",
+        "script",
+        "sql",
+        "training"
+      ],
+      "key_terms": [
+        "let",
+        "files",
+        "now",
+        "2026",
+        "all",
+        "script"
+      ],
+      "summary": "Check that all three event types are present\n4.",
+      "char_length": 22274,
+      "byte_length": 23256
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

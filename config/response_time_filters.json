@@ -1,0 +1,94 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2026-01-14",
+  "description": "Configuration for Response Time ETL filtering rules",
+  "filters": {
+    "how_reported": {
+      "exclude": [
+        "Self-Initiated"
+      ],
+      "description": "How Reported values to exclude from response time calculations"
+    },
+    "category_types": {
+      "exclude": [
+        "Regulatory and Ordinance",
+        "Administrative and Support",
+        "Investigations and Follow-Ups",
+        "Community Engagement"
+      ],
+      "description": "CallType Category_Type values to exclude (entire categories)"
+    },
+    "incidents": {
+      "exclude": [
+        "Temporary Parking",
+        "Traffic Bureau Report",
+        "Traffic Detail",
+        "Traffic Detail - Road Closure",
+        "Traffic Enforcement Detail",
+        "Constable - Secured Park Facilities",
+        "Patrol Check",
+        "Patrol Check - Extra Duty Detail",
+        "Shopping Cart",
+        "Street Light",
+        "TAPS - Business",
+        "TAPS - Housing",
+        "TAPS - Medical Facility",
+        "TAPS - Other",
+        "TAPS - Park",
+        "TAPS - Parking Garage",
+        "TAPS - Religious Facility",
+        "TAPS - School",
+        "Virtual - Patrol",
+        "Weather Alerts",
+        "Cleared - Arrest",
+        "Cleared-Arrest",
+        "Complaint Signed",
+        "Assist Own Agency (Backup)",
+        "ESU - Response",
+        "ESU - Training",
+        "PRD Activation",
+        "RDF Deployment",
+        "RDT Deployment",
+        "TAPS - ESU - Business",
+        "TAPS - ESU - Medical Facility",
+        "TAPS - ESU - Park",
+        "TAPS - ESU - Parking Garage",
+        "TAPS - ESU - Religious Facility",
+        "TAPS - ESU - School",
+        "UAS Operation",
+        "Enticing a Child - 2C:13-6",
+        "Juvenile Complaint (Criminal)",
+        "Juvenile Complaint (Non-Criminal)",
+        "Juvenile Complaint Signed",
+        "TOT DCP&P"
+      ],
+      "description": "Specific incidents to exclude from response time calculations (from non-filtered categories)"
+    },
+    "inclusion_overrides": {
+      "include_despite_category_filter": [
+        "Suspicious Item",
+        "Suspicious Person",
+        "Suspicious Vehicle",
+        "Service - Subpoena",
+        "Service - Summons",
+        "Missing Person - Adult",
+        "Missing Person - Return - Adult",
+        "Property - Found",
+        "Property - Lost",
+        "Property Recovered - Stolen",
+        "Recovered Stolen - Article",
+        "Recovered Stolen - Firearm",
+        "Recovered Stolen License Plate",
+        "Recovered Stolen Vehicle"
+      ],
+      "description": "Incidents to include even if their Category_Type is in the exclude list"
+    }
+  },
+  "notes": [
+    "Filtering order:",
+    "1. Filter How Reported (exclude Self-Initiated)",
+    "2. Apply Category_Type filters (exclude entire categories)",
+    "3. Apply inclusion overrides (include specific incidents despite category filter)",
+    "4. Apply incident filters (exclude specific incidents from remaining data)"
+  ]
+}

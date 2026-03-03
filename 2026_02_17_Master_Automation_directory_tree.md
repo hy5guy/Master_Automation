@@ -1,0 +1,1730 @@
+# Directory Tree: Master_Automation
+
+📁 Master_Automation
+  - 📁 .claude
+    - 📄 settings.local.json
+  - 📁 .tmp.driveupload
+    - 📄 675609
+    - 📄 675613
+    - 📄 675617
+    - 📄 675623
+    - 📄 675627
+    - 📄 675631
+    - 📄 675639
+    - 📄 675643
+    - 📄 675645
+    - 📄 675653
+    - 📄 675657
+    - 📄 675665
+    - 📄 675673
+    - 📄 675677
+    - 📄 675681
+    - 📄 675685
+    - 📄 675693
+    - 📄 675697
+    - 📄 675705
+    - 📄 675709
+    - 📄 675713
+    - 📄 675717
+    - 📄 675721
+    - 📄 675725
+    - 📄 675729
+    - 📄 675733
+    - 📄 675737
+    - 📄 675743
+    - 📄 675747
+    - 📄 675749
+    - 📄 675753
+    - 📄 675757
+    - 📄 675761
+    - 📄 675765
+    - 📄 675769
+    - 📄 675773
+    - 📄 675777
+    - 📄 675781
+    - 📄 675793
+    - 📄 675795
+    - 📄 675799
+    - 📄 675801
+    - 📄 675803
+    - 📄 675813
+    - 📄 675817
+    - 📄 675821
+    - 📄 675823
+    - 📄 675827
+    - 📄 675839
+    - 📄 675843
+    - 📄 675847
+    - 📄 675853
+    - 📄 675857
+    - 📄 675861
+    - 📄 675865
+    - 📄 675869
+    - 📄 675879
+    - 📄 675883
+    - 📄 675887
+    - 📄 675891
+    - 📄 675893
+    - 📄 675895
+    - 📄 675897
+    - 📄 675901
+    - 📄 675909
+    - 📄 675911
+    - 📄 675915
+    - 📄 675919
+    - 📄 675925
+    - 📄 675929
+    - 📄 675933
+    - 📄 675935
+    - 📄 675937
+    - 📄 675941
+    - 📄 675943
+    - 📄 675951
+    - 📄 675953
+    - 📄 675957
+    - 📄 675965
+    - 📄 675973
+    - 📄 675977
+    - 📄 675979
+    - 📄 675983
+    - 📄 675993
+    - 📄 675995
+    - 📄 675999
+    - 📄 676001
+    - 📄 676007
+    - 📄 676011
+    - 📄 676019
+    - 📄 676023
+    - 📄 676027
+    - 📄 676029
+    - 📄 676033
+    - 📄 676041
+  - 📁 02_ETL_Scripts
+    - 📁 Detectives
+      - 📄 ___In_Person_Training_CORRECTED.m
+      - 📄 ___In_Person_Training_UPDATED.m
+      - 📄 DETECTIVE_CLEARANCE_12_25_FIX.md
+      - 📄 detective_clearance_12_25_visual_fix.md
+      - 📄 detective_clearance_rate_FINAL.m
+      - 📄 detective_clearance_rate_fixed.m
+      - 📄 detective_clearance_visual_troubleshooting.md
+      - 📄 detective_clearance_xaxis_fix.md
+      - 📄 in_person_training_code_review.md
+      - 📄 in_person_training_fix.md
+      - 📄 in_person_training_solution.md
+      - 📄 in_person_training_summary.md
+    - 📁 Overtime_TimeOff
+    - 📁 Summons
+      - 📄 ALL_BUREAUS_ANALYSIS.md
+      - 📄 analyze_december_data.py
+      - 📄 analyze_officer_formatting.py
+      - 📄 ASSIGNMENT_MASTER_COLUMNS_EXPLANATION.md
+      - 📄 ASSIGNMENT_MASTER_FIX_SUMMARY.md
+      - 📄 BACKFILL_UPDATE_SUMMARY.md
+      - 📄 CHATGPT_ADDITIONAL_CONTEXT.md
+      - 📄 CHATGPT_ETL_CLARIFICATION.md
+      - 📄 CHATGPT_FILE_CLARIFICATION.md
+      - 📄 CHATGPT_FILE_RECOMMENDATIONS.md
+      - 📄 CHATGPT_FINAL_SUMMARY.md
+      - 📄 CHATGPT_NEXT_STEPS.md
+      - 📄 CHATGPT_RESPONSE_GUIDE.md
+      - 📄 CHATGPT_SUMMARY_FOR_USER.md
+      - 📄 check_liggio_format.py
+      - 📄 CLASSIFICATION_FIX_APPLIED.md
+      - 📄 compare_data.py
+      - 📄 compare_totals.py
+      - 📄 DATA_VERIFICATION_SUMMARY.md
+      - 📄 DAX_SUBTITLE_CORRECTED.txt
+      - 📄 DAX_SUBTITLE_FINAL.txt
+      - 📄 DAX_SUBTITLE_FIXED.txt
+      - 📄 ETL_CLASSIFICATION_FIX_NEEDED.md
+      - 📄 ETL_RUN_SUCCESS_SUMMARY.md
+      - 📄 ETL_RUN_SUMMARY.md
+      - 📄 extract_march_totals.py
+      - 📄 EXTRACT_MISSING_MONTHS.md
+      - 📄 FINAL_SUMMARY.md
+      - 📄 final_verify.py
+      - 📄 fix_patrol_bureau_to_division.py
+      - 📄 investigate_classification.py
+      - 📄 ORGANIZATIONAL_STRUCTURE_CONFIRMATION.md
+      - 📄 PATROL_BUREAU_COMBINE_FIX.md
+      - 📄 PATROL_BUREAU_TO_DIVISION_UPDATE.md
+      - 📄 QUERIES_AND_DAX_UPDATED.md
+      - 📄 restore_assignment_master.py
+      - 📄 SUBTITLE_DAX_FIX.md
+      - 📄 summons_13month_trend.m
+      - 📄 summons_all_bureaus.m
+      - 📄 SUMMONS_QUERIES_SUMMARY.md
+      - 📄 summons_top5_moving_UPDATED.m
+      - 📄 summons_top5_parking.m
+      - 📄 summons_top5_parking_FIXED.m
+      - 📄 TOP5_PARKING_FIX_SUMMARY.md
+      - 📄 TOTALS_ALIGNMENT_FIX.md
+      - 📄 UNKNOWN_RECORDS_ANALYSIS.md
+      - 📄 update_backfill.py
+      - 📄 VERIFICATION_RESULTS.md
+      - 📄 verify_backfill_update.py
+      - 📄 verify_final.py
+      - 📄 verify_patrol_division.py
+      - 📄 verify_results.py
+  - 📁 _DropExports
+  - 📁 config
+    - 📄 response_time_filters.json
+    - 📄 scripts-PD_BCI_LTP.json
+    - 📄 scripts.json
+    - 📄 scripts.json.bak
+  - 📁 data
+    - 📁 backfill
+      - 📁 2026_12_compair
+        - 📄 13-Month NIBRS Clearance Rate Trend January 2025 - January 2026.csv
+        - 📄 13-Month NIBRS Clearance Rate Trend.csv
+        - 📄 2026_02_13_Department-Wide Summons  Moving and Parking.csv
+        - 📄 2026_02_13_Department-Wide_Summons_CORRECTED.csv
+        - 📄 2026_02_16_Training Cost by Delivery Method.csv
+        - 📄 Arrest Categories by Type and Gender.csv
+        - 📄 Arrest Distribution by Local, State & Out of State.csv
+        - 📄 Average Response Times  Values are in mmss.csv
+        - 📄 ben chmark test data.csv
+        - 📄 Chief Law Enforcement Executive Duties.csv
+        - 📄 Chief Michael Antista's Projects and Initiatives.csv
+        - 📄 Crime Suppressions Bureau Monthly Activity Analysis.csv
+        - 📄 data.csv
+        - 📄 Department-Wide Summons  Moving and Parking.csv
+        - 📄 Detective Case Dispositions - Performance Review.csv
+        - 📄 Detective Clearance Rate Performance.csv
+        - 📄 Detective Division  Part 1.csv
+        - 📄 Detective Division  Part 2.csv
+        - 📄 DFR Activity Performance Metrics.csv
+        - 📄 In-Person Training.csv
+        - 📄 Incident Count by Date and Event Type.csv
+        - 📄 Incident Distribution by Event Type.csv
+        - 📄 Monthly Accrual and Usage Summary.csv
+        - 📄 Motor Vehicle Accidents - Summary.csv
+        - 📄 Non-DFR Performance Metrics.csv
+        - 📄 Patrol Division.csv
+        - 📄 Records & Evidence Unit.csv
+        - 📄 Response Times by Priority.csv
+        - 📄 Safe Streets Operations Control Center - Service Breakdown.csv
+        - 📄 School Threat Assessment & Crime Prevention  Part 1.csv
+        - 📄 School Threat Assessment & Crime Prevention  Part 2.csv
+        - 📄 Social Media Posts.csv
+        - 📄 SSOCC Virtual Patrol TAS Alert and Incident Activity.csv
+        - 📄 Summons  Moving & Parking  All Bureaus.csv
+        - 📄 TOP 5 ARREST LEADERS.csv
+        - 📄 Top 5 Moving Violations - Department Wide.csv
+        - 📄 Traffic Bureau.csv
+        - 📄 Training Cost by Delivery Method.csv
+        - 📄 Use of Force Incident Matrix.csv
+      - 📄 2025_12_Monthly_Accrual_and_Usage_Summary.csv
+      - 📄 backfill_from_image_11-25_only.csv
+      - 📄 Monthly_Accrual_and_Usage_Summary_backfill_from_image.csv
+      - 📄 README.md
+    - 📁 preview_table
+      - 📄 ___Benchmark_preview_Table.xlsx
+      - 📄 avg_response_time_2026_02_09.csv - Copy.xlsx
+      - 📄 errors_avg_response_time_2026_02_09.csv.xlsx
+      - 📄 esu_preview_table.xlsx
+      - 📄 response_time.csv
+    - 📁 visual_export
+      - 📁 2026_12
+        - 📄 2025_12_Monthly Accrual and Usage Summary.csv
+        - 📄 2026_02_09_Average Response Times  Values are in mmss.csv
+        - 📄 2026_02_09_Response Times by Priority.csv
+        - 📄 2026_02_10_18_24_36_Monthly Accrual and Usage Summary.csv
+        - 📄 2026_02_10_Monthly Accrual and Usage Summary.csv
+        - 📄 Average Response Times  Values are in mmss.csv
+        - 📄 DFR Activity Performance Metrics.csv
+        - 📄 Response Times by Priority.csv
+        - 📄 Traffic Bureau.csv
+      - 📄 Average Response Times  Values are in mmss.csv
+    - 📄 2026_02_13_closed_case_dispositions.xlsx
+    - 📄 2026_02_13_mom_det.xlsx
+    - 📄 traffic_peo_additions_2026_02_17.csv
+  - 📁 docs
+    - 📁 archived_workflows
+    - 📁 chatlogs
+      - 📁 2025_12_10_CLAUDE_CODE_response_time-reword
+        - 📄 2026_02_04_23_53_49_2025_12_10_CLAUDE_CODE_response_time-reword.origin.json
+        - 📄 2026_02_04_23_53_49_2025_12_10_CLAUDE_CODE_response_time-reword_sidecar.json
+        - 📄 2026_02_04_23_53_49_2025_12_10_CLAUDE_CODE_response_time-reword_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+        - 📄 chunk_00005.txt
+        - 📄 chunk_00006.txt
+        - 📄 chunk_00007.txt
+        - 📄 chunk_00008.txt
+        - 📄 chunk_00009.txt
+        - 📄 chunk_00010.txt
+      - 📁 2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow
+        - 📄 2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow.origin.json
+        - 📄 2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow_sidecar.json
+        - 📄 2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+        - 📄 chunk_00005.txt
+        - 📄 chunk_00006.txt
+        - 📄 chunk_00007.txt
+        - 📄 chunk_00008.txt
+        - 📄 chunk_00009.txt
+        - 📄 chunk_00010.txt
+        - 📄 chunk_00011.txt
+        - 📄 chunk_00012.txt
+        - 📄 chunk_00013.txt
+        - 📄 chunk_00014.txt
+        - 📄 chunk_00015.txt
+        - 📄 chunk_00016.txt
+        - 📄 chunk_00017.txt
+        - 📄 chunk_00018.txt
+      - 📁 2025_12_22_Master_Automation_directory_tree
+        - 📄 2026_02_04_23_53_49_2025_12_22_Master_Automation_directory_tree.origin.json
+        - 📄 2026_02_04_23_53_49_2025_12_22_Master_Automation_directory_tree_sidecar.json
+        - 📄 2026_02_04_23_53_49_2025_12_22_Master_Automation_directory_tree_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 ___ResponseTimeCalculator
+        - 📄 2026_02_04_23_53_49____ResponseTimeCalculator.origin.json
+        - 📄 2026_02_04_23_53_49____ResponseTimeCalculator_sidecar.json
+        - 📄 2026_02_04_23_53_49____ResponseTimeCalculator_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 ACTION_ITEMS
+        - 📄 2026_02_04_23_54_58_ACTION_ITEMS.origin.json
+        - 📄 2026_02_04_23_54_58_ACTION_ITEMS_sidecar.json
+        - 📄 2026_02_04_23_54_58_ACTION_ITEMS_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 all_summons_m_code
+        - 📄 2026_02_04_23_52_38_all_summons_m_code.origin.json
+        - 📄 2026_02_04_23_52_38_all_summons_m_code_sidecar.json
+        - 📄 2026_02_04_23_52_41_all_summons_m_code.origin.json
+        - 📄 2026_02_04_23_52_41_all_summons_m_code_sidecar.json
+        - 📄 2026_02_04_23_52_41_all_summons_m_code_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 Arrest_M_Code_Fixes_And_Documentation_Update_Monthly
+        - 📄 2026_02_04_23_04_05_Arrest_M_Code_Fixes_And_Documentation_Update_Monthly.origin.json
+        - 📄 2026_02_04_23_04_05_Arrest_M_Code_Fixes_And_Documentation_Update_Monthly_sidecar.json
+        - 📄 2026_02_04_23_04_05_Arrest_M_Code_Fixes_And_Documentation_Update_Monthly_transcript.md
+        - 📄 2026_02_04_23_04_06_Arrest_M_Code_Fixes_And_Documentation_Update_Monthly.origin.json
+        - 📄 2026_02_04_23_04_06_Arrest_M_Code_Fixes_And_Documentation_Update_Monthly_sidecar.json
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+        - 📄 chunk_00005.txt
+        - 📄 chunk_00006.txt
+        - 📄 chunk_00007.txt
+        - 📄 chunk_00008.txt
+        - 📄 chunk_00009.txt
+        - 📄 chunk_00010.txt
+        - 📄 chunk_00011.txt
+        - 📄 chunk_00012.txt
+        - 📄 chunk_00013.txt
+        - 📄 chunk_00014.txt
+        - 📄 chunk_00015.txt
+        - 📄 chunk_00016.txt
+        - 📄 chunk_00017.txt
+        - 📄 chunk_00018.txt
+        - 📄 chunk_00019.txt
+        - 📄 chunk_00020.txt
+        - 📄 chunk_00021.txt
+        - 📄 chunk_00022.txt
+        - 📄 chunk_00023.txt
+        - 📄 chunk_00024.txt
+        - 📄 chunk_00025.txt
+        - 📄 chunk_00026.txt
+        - 📄 chunk_00027.txt
+        - 📄 chunk_00028.txt
+      - 📁 BACKFILL_LOCATIONS
+        - 📄 2026_02_04_23_54_58_BACKFILL_LOCATIONS.origin.json
+        - 📄 2026_02_04_23_54_58_BACKFILL_LOCATIONS_sidecar.json
+        - 📄 2026_02_04_23_54_58_BACKFILL_LOCATIONS_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 BACKFILL_WORKFLOW_RECOMMENDATION
+        - 📄 2026_02_04_23_54_58_BACKFILL_WORKFLOW_RECOMMENDATION.origin.json
+        - 📄 2026_02_04_23_54_58_BACKFILL_WORKFLOW_RECOMMENDATION_sidecar.json
+        - 📄 2026_02_04_23_54_58_BACKFILL_WORKFLOW_RECOMMENDATION_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 BENCHMARK_DATA_ARCHITECTURE_MIGRATION
+        - 📄 2026_02_04_23_54_58_BENCHMARK_DATA_ARCHITECTURE_MIGRATION.origin.json
+        - 📄 2026_02_04_23_54_58_BENCHMARK_DATA_ARCHITECTURE_MIGRATION_sidecar.json
+        - 📄 2026_02_04_23_54_58_BENCHMARK_DATA_ARCHITECTURE_MIGRATION_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 Benchmark_Data_Architecture_Migration_Complete
+        - 📄 2026_02_04_23_56_07_Benchmark_Data_Architecture_Migration_Complete.origin.json
+        - 📄 2026_02_04_23_56_07_Benchmark_Data_Architecture_Migration_Complete_sidecar.json
+        - 📄 2026_02_04_23_56_07_Benchmark_Data_Architecture_Migration_Complete_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+        - 📄 chunk_00005.txt
+        - 📄 chunk_00006.txt
+        - 📄 chunk_00007.txt
+        - 📄 chunk_00008.txt
+        - 📄 chunk_00009.txt
+        - 📄 chunk_00010.txt
+        - 📄 chunk_00011.txt
+      - 📁 Benchmark_Diagnostic_Documentation_And_Git_Update
+        - 📄 2026_02_14_01_46_01_Benchmark_Diagnostic_Documentation_And_Git_Update.origin.json
+        - 📄 2026_02_14_01_46_01_Benchmark_Diagnostic_Documentation_And_Git_Update_sidecar.json
+        - 📄 2026_02_14_01_46_01_Benchmark_Diagnostic_Documentation_And_Git_Update_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+        - 📄 chunk_00005.txt
+        - 📄 chunk_00006.txt
+        - 📄 chunk_00007.txt
+      - 📁 Benchmark_M_Code_DateTime_Parsing_Fix
+        - 📄 2026_02_09_22_45_48_Benchmark_M_Code_DateTime_Parsing_Fix.origin.json
+        - 📄 2026_02_09_22_45_48_Benchmark_M_Code_DateTime_Parsing_Fix_sidecar.json
+        - 📄 2026_02_09_22_45_48_Benchmark_M_Code_DateTime_Parsing_Fix_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+      - 📁 Benchmark_Migration_Documentation_Update
+        - 📄 2026_02_04_23_56_07_Benchmark_Migration_Documentation_Update.origin.json
+        - 📄 2026_02_04_23_56_07_Benchmark_Migration_Documentation_Update_sidecar.json
+        - 📄 2026_02_04_23_56_07_Benchmark_Migration_Documentation_Update_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+        - 📄 chunk_00005.txt
+        - 📄 chunk_00006.txt
+        - 📄 chunk_00007.txt
+        - 📄 chunk_00008.txt
+        - 📄 chunk_00009.txt
+        - 📄 chunk_00010.txt
+      - 📁 Building_Production_ETL_Verification_Framework
+        - 📄 2026_02_04_23_56_07_Building_Production_ETL_Verification_Framework.origin.json
+        - 📄 2026_02_04_23_56_07_Building_Production_ETL_Verification_Framework_sidecar.json
+        - 📄 2026_02_04_23_56_07_Building_Production_ETL_Verification_Framework_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+        - 📄 chunk_00005.txt
+        - 📄 chunk_00006.txt
+        - 📄 chunk_00007.txt
+        - 📄 chunk_00008.txt
+      - 📁 Claude-Attached_prompt_and_context_files
+        - 📄 2026_02_12_21_40_00_Claude-Attached_prompt_and_context_files.origin.json
+        - 📄 2026_02_12_21_40_00_Claude-Attached_prompt_and_context_files_sidecar.json
+        - 📄 2026_02_12_21_40_00_Claude-Attached_prompt_and_context_files_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+      - 📁 Claude-Power_BI_benchmark_report_visualization_data_issues
+        - 📄 2026_02_14_01_39_56_Claude-Power_BI_benchmark_report_visualization_data_issues.origin.json
+        - 📄 2026_02_14_01_39_56_Claude-Power_BI_benchmark_report_visualization_data_issues_sidecar.json
+        - 📄 2026_02_14_01_39_56_Claude-Power_BI_benchmark_report_visualization_data_issues_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+      - 📁 CLAUDE_CODE_IMPLEMENTATION_GUIDE
+        - 📄 2026_02_04_23_56_07_CLAUDE_CODE_IMPLEMENTATION_GUIDE.origin.json
+        - 📄 2026_02_04_23_56_07_CLAUDE_CODE_IMPLEMENTATION_GUIDE_sidecar.json
+        - 📄 2026_02_04_23_56_07_CLAUDE_CODE_IMPLEMENTATION_GUIDE_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 CLAUDE_CODE_PROMPT_COMMUNITY_ENGAGEMENT_MISSING_RECORDS
+        - 📄 2026_02_04_23_57_15_CLAUDE_CODE_PROMPT_COMMUNITY_ENGAGEMENT_MISSING_RECORDS.origin.json
+        - 📄 2026_02_04_23_57_15_CLAUDE_CODE_PROMPT_COMMUNITY_ENGAGEMENT_MISSING_RECORDS_sidecar.json
+        - 📄 2026_02_04_23_57_15_CLAUDE_CODE_PROMPT_COMMUNITY_ENGAGEMENT_MISSING_RECORDS_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 CLAUDE_CODE_PROMPT_FIX_OVERTIME_TIMEOFF_M_CODE
+        - 📄 2026_02_04_23_57_16_CLAUDE_CODE_PROMPT_FIX_OVERTIME_TIMEOFF_M_CODE.origin.json
+        - 📄 2026_02_04_23_57_16_CLAUDE_CODE_PROMPT_FIX_OVERTIME_TIMEOFF_M_CODE_sidecar.json
+        - 📄 2026_02_04_23_57_16_CLAUDE_CODE_PROMPT_FIX_OVERTIME_TIMEOFF_M_CODE_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 CLAUDE_CODE_PROMPT_RESPONSE_TIME_ETL_FIX
+        - 📄 2026_02_04_23_57_16_CLAUDE_CODE_PROMPT_RESPONSE_TIME_ETL_FIX.origin.json
+        - 📄 2026_02_04_23_57_16_CLAUDE_CODE_PROMPT_RESPONSE_TIME_ETL_FIX_sidecar.json
+        - 📄 2026_02_04_23_57_16_CLAUDE_CODE_PROMPT_RESPONSE_TIME_ETL_FIX_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 CLAUDE_CODE_PROMPT_RESPONSE_TIME_FILTER_UPDATE
+        - 📄 2026_02_04_23_58_24_CLAUDE_CODE_PROMPT_RESPONSE_TIME_FILTER_UPDATE.origin.json
+        - 📄 2026_02_04_23_58_24_CLAUDE_CODE_PROMPT_RESPONSE_TIME_FILTER_UPDATE_sidecar.json
+        - 📄 2026_02_04_23_58_24_CLAUDE_CODE_PROMPT_RESPONSE_TIME_FILTER_UPDATE_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 claude_code_summons
+        - 📄 2026_02_04_23_58_24_claude_code_summons.origin.json
+        - 📄 2026_02_04_23_58_24_claude_code_summons_sidecar.json
+        - 📄 2026_02_04_23_58_24_claude_code_summons_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+      - 📁 claude_excel_csb_update
+        - 📄 2026_02_13_19_58_55_claude_excel_csb_update.origin.json
+        - 📄 2026_02_13_19_58_55_claude_excel_csb_update_sidecar.json
+        - 📄 2026_02_13_19_58_55_claude_excel_csb_update_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 claude_in_excel_ssocc
+        - 📄 2026_02_13_21_13_19_claude_in_excel_ssocc.origin.json
+        - 📄 2026_02_13_21_13_19_claude_in_excel_ssocc_sidecar.json
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+        - 📄 chunk_00005.txt
+        - 📄 chunk_00006.txt
+        - 📄 chunk_00007.txt
+        - 📄 chunk_00008.txt
+        - 📄 chunk_00009.txt
+      - 📁 Claude_Md_Created_And_GitHub_Connection_Check
+        - 📄 2026_02_04_23_03_52_Claude_Md_Created_And_GitHub_Connection_Check.origin.json
+        - 📄 2026_02_04_23_03_52_Claude_Md_Created_And_GitHub_Connection_Check_sidecar.json
+        - 📄 2026_02_04_23_03_52_Claude_Md_Created_And_GitHub_Connection_Check_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 cursor_thirteen_month_visual_export_pip
+        - 📄 2026_02_13_01_03_21_cursor_thirteen_month_visual_export_pip.origin.json
+        - 📄 2026_02_13_01_03_21_cursor_thirteen_month_visual_export_pip_sidecar.json
+        - 📄 2026_02_13_01_03_21_cursor_thirteen_month_visual_export_pip_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+        - 📄 chunk_00005.txt
+        - 📄 chunk_00006.txt
+        - 📄 chunk_00007.txt
+        - 📄 chunk_00008.txt
+      - 📁 December_2025_High_Values_Fix_And_Verification
+        - 📄 2026_02_04_23_51_20_December_2025_High_Values_Fix_And_Verification.origin.json
+        - 📄 2026_02_04_23_51_20_December_2025_High_Values_Fix_And_Verification_sidecar.json
+        - 📄 2026_02_04_23_51_20_December_2025_High_Values_Fix_And_Verification_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+        - 📄 chunk_00005.txt
+        - 📄 chunk_00006.txt
+        - 📄 chunk_00007.txt
+        - 📄 chunk_00008.txt
+        - 📄 chunk_00009.txt
+        - 📄 chunk_00010.txt
+        - 📄 chunk_00011.txt
+        - 📄 chunk_00012.txt
+        - 📄 chunk_00013.txt
+        - 📄 chunk_00014.txt
+        - 📄 chunk_00015.txt
+        - 📄 chunk_00016.txt
+        - 📄 chunk_00017.txt
+        - 📄 chunk_00018.txt
+        - 📄 chunk_00019.txt
+        - 📄 chunk_00020.txt
+        - 📄 chunk_00021.txt
+        - 📄 chunk_00022.txt
+        - 📄 chunk_00023.txt
+        - 📄 chunk_00024.txt
+        - 📄 chunk_00025.txt
+        - 📄 chunk_00026.txt
+        - 📄 chunk_00027.txt
+        - 📄 chunk_00028.txt
+        - 📄 chunk_00029.txt
+        - 📄 chunk_00030.txt
+        - 📄 chunk_00031.txt
+        - 📄 chunk_00032.txt
+        - 📄 chunk_00033.txt
+        - 📄 chunk_00034.txt
+      - 📁 DECEMBER_2025_VERIFICATION_REPORT
+        - 📄 2026_02_04_23_58_24_DECEMBER_2025_VERIFICATION_REPORT.origin.json
+        - 📄 2026_02_04_23_58_24_DECEMBER_2025_VERIFICATION_REPORT_sidecar.json
+        - 📄 2026_02_04_23_58_24_DECEMBER_2025_VERIFICATION_REPORT_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 December_2025_Visual_Export_Diagnostics_And_Organization
+        - 📄 2026_02_09_10_11_48_December_2025_Visual_Export_Diagnostics_And_Organization.origin.json
+        - 📄 2026_02_09_10_11_48_December_2025_Visual_Export_Diagnostics_And_Organization_sidecar.json
+        - 📄 2026_02_09_10_11_52_December_2025_Visual_Export_Diagnostics_And_Organization.origin.json
+        - 📄 2026_02_09_10_11_52_December_2025_Visual_Export_Diagnostics_And_Organization_sidecar.json
+        - 📄 2026_02_09_10_11_57_December_2025_Visual_Export_Diagnostics_And_Organization.origin.json
+        - 📄 2026_02_09_10_11_57_December_2025_Visual_Export_Diagnostics_And_Organization_sidecar.json
+        - 📄 chunk_00000.txt
+      - 📁 Detective_case_dispo_clearance_preview_table
+        - 📄 2026_02_04_23_59_33_Detective_case_dispo_clearance_preview_table.origin.json
+        - 📄 2026_02_04_23_59_33_Detective_case_dispo_clearance_preview_table_sidecar.json
+        - 📄 2026_02_04_23_59_33_Detective_case_dispo_clearance_preview_table_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 Detective_Queries_Excel_Structure_Mismatch_Fix
+        - 📄 2026_02_13_20_41_06_Detective_Queries_Excel_Structure_Mismatch_Fix.origin.json
+        - 📄 2026_02_13_20_41_06_Detective_Queries_Excel_Structure_Mismatch_Fix_sidecar.json
+        - 📄 2026_02_13_20_41_06_Detective_Queries_Excel_Structure_Mismatch_Fix_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+      - 📁 directory_cleanup_export_of_12_2026_visual_data
+        - 📄 2026_02_05_01_05_48_directory_cleanup_export_of_12_2026_visual_data.origin.json
+        - 📄 2026_02_05_01_05_48_directory_cleanup_export_of_12_2026_visual_data_sidecar.json
+        - 📄 2026_02_05_01_05_48_directory_cleanup_export_of_12_2026_visual_data_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+      - 📁 DIRECTORY_CONSOLIDATION_COMPLETE_2026_02_04
+        - 📄 2026_02_04_23_59_33_DIRECTORY_CONSOLIDATION_COMPLETE_2026_02_04.origin.json
+        - 📄 2026_02_04_23_59_33_DIRECTORY_CONSOLIDATION_COMPLETE_2026_02_04_sidecar.json
+        - 📄 2026_02_04_23_59_33_DIRECTORY_CONSOLIDATION_COMPLETE_2026_02_04_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 ETL_Input_Validation_And_Path_Updates_Monthly
+        - 📄 2026_02_04_23_08_05_ETL_Input_Validation_And_Path_Updates_Monthly.origin.json
+        - 📄 2026_02_04_23_08_05_ETL_Input_Validation_And_Path_Updates_Monthly_sidecar.json
+        - 📄 2026_02_04_23_08_05_ETL_Input_Validation_And_Path_Updates_Monthly_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 Fix_Overtime_TimeOff_Power_Query_M_Syntax_Errors
+        - 📄 2026_02_04_23_59_33_Fix_Overtime_TimeOff_Power_Query_M_Syntax_Errors.origin.json
+        - 📄 2026_02_04_23_59_33_Fix_Overtime_TimeOff_Power_Query_M_Syntax_Errors_sidecar.json
+        - 📄 2026_02_04_23_59_33_Fix_Overtime_TimeOff_Power_Query_M_Syntax_Errors_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 Fix_Version_Mismatch_Documentation_Update
+        - 📄 2026_02_05_00_00_41_Fix_Version_Mismatch_Documentation_Update.origin.json
+        - 📄 2026_02_05_00_00_41_Fix_Version_Mismatch_Documentation_Update_sidecar.json
+        - 📄 2026_02_05_00_00_41_Fix_Version_Mismatch_Documentation_Update_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+      - 📁 Fix_Version_Mismatch_Documentation_Update_monthly
+        - 📄 2026_02_04_23_08_05_Fix_Version_Mismatch_Documentation_Update_monthly.origin.json
+        - 📄 2026_02_04_23_08_05_Fix_Version_Mismatch_Documentation_Update_monthly_sidecar.json
+        - 📄 2026_02_04_23_08_05_Fix_Version_Mismatch_Documentation_Update_monthly_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+      - 📁 Gemini-Data_QA_and_Script_Review
+        - 📄 2026_02_12_21_46_32_Gemini-Data_QA_and_Script_Review.origin.json
+        - 📄 2026_02_12_21_46_32_Gemini-Data_QA_and_Script_Review_sidecar.json
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+      - 📁 Gemini-Debugging_BI_Pipeline_Data_Visibility
+        - 📄 2026_02_12_21_46_32_Gemini-Debugging_BI_Pipeline_Data_Visibility.origin.json
+        - 📄 2026_02_12_21_46_32_Gemini-Debugging_BI_Pipeline_Data_Visibility_sidecar.json
+        - 📄 2026_02_12_21_46_58_Gemini-Debugging_BI_Pipeline_Data_Visibility.origin.json
+        - 📄 2026_02_12_21_46_58_Gemini-Debugging_BI_Pipeline_Data_Visibility_sidecar.json
+        - 📄 2026_02_12_21_46_58_Gemini-Debugging_BI_Pipeline_Data_Visibility_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+      - 📁 Gemini-Dynamic_Power_BI_M_Code_Path
+        - 📄 2026_02_12_21_46_32_Gemini-Dynamic_Power_BI_M_Code_Path.origin.json
+        - 📄 2026_02_12_21_46_32_Gemini-Dynamic_Power_BI_M_Code_Path_sidecar.json
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+      - 📁 Gemini-Power_BI_M_Code_for_Time_Format_Errors
+        - 📄 2026_02_12_21_46_32_Gemini-Power_BI_M_Code_for_Time_Format_Errors.origin.json
+        - 📄 2026_02_12_21_46_32_Gemini-Power_BI_M_Code_for_Time_Format_Errors_sidecar.json
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+      - 📁 Gemini-Temporary_Chat
+        - 📄 2026_01_20_22_05_28_Gemini-Temporary_Chat.origin.json
+        - 📄 2026_01_20_22_05_28_Gemini-Temporary_Chat_sidecar.json
+        - 📄 2026_01_20_22_05_28_Gemini-Temporary_Chat_transcript.md
+        - 📄 2026_02_12_17_01_39_Gemini-Temporary_Chat.origin.json
+        - 📄 2026_02_12_17_01_39_Gemini-Temporary_Chat_sidecar.json
+        - 📄 2026_02_12_17_01_39_Gemini-Temporary_Chat_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+        - 📄 chunk_00005.txt
+        - 📄 chunk_00006.txt
+        - 📄 chunk_00007.txt
+        - 📄 chunk_00008.txt
+      - 📁 M_Code_Fixes_Documentation_Updates_Verification
+        - 📄 2026_02_04_23_51_20_M_Code_Fixes_Documentation_Updates_Verification.origin.json
+        - 📄 2026_02_04_23_51_20_M_Code_Fixes_Documentation_Updates_Verification_sidecar.json
+        - 📄 2026_02_04_23_51_20_M_Code_Fixes_Documentation_Updates_Verification_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+        - 📄 chunk_00005.txt
+        - 📄 chunk_00006.txt
+        - 📄 chunk_00007.txt
+        - 📄 chunk_00008.txt
+        - 📄 chunk_00009.txt
+        - 📄 chunk_00010.txt
+        - 📄 chunk_00011.txt
+        - 📄 chunk_00012.txt
+        - 📄 chunk_00013.txt
+        - 📄 chunk_00014.txt
+        - 📄 chunk_00015.txt
+        - 📄 chunk_00016.txt
+        - 📄 chunk_00017.txt
+        - 📄 chunk_00018.txt
+        - 📄 chunk_00019.txt
+        - 📄 chunk_00020.txt
+        - 📄 chunk_00021.txt
+        - 📄 chunk_00022.txt
+        - 📄 chunk_00023.txt
+        - 📄 chunk_00024.txt
+        - 📄 chunk_00025.txt
+        - 📄 chunk_00026.txt
+        - 📄 chunk_00027.txt
+        - 📄 chunk_00028.txt
+        - 📄 chunk_00029.txt
+        - 📄 chunk_00030.txt
+        - 📄 chunk_00031.txt
+        - 📄 chunk_00032.txt
+        - 📄 chunk_00033.txt
+        - 📄 chunk_00034.txt
+        - 📄 chunk_00035.txt
+        - 📄 chunk_00036.txt
+        - 📄 chunk_00037.txt
+        - 📄 chunk_00038.txt
+        - 📄 chunk_00039.txt
+        - 📄 chunk_00040.txt
+        - 📄 chunk_00041.txt
+        - 📄 chunk_00042.txt
+        - 📄 chunk_00043.txt
+        - 📄 chunk_00044.txt
+        - 📄 chunk_00045.txt
+        - 📄 chunk_00046.txt
+        - 📄 chunk_00047.txt
+        - 📄 chunk_00048.txt
+        - 📄 chunk_00049.txt
+        - 📄 chunk_00050.txt
+        - 📄 chunk_00051.txt
+        - 📄 chunk_00052.txt
+        - 📄 chunk_00053.txt
+        - 📄 chunk_00054.txt
+        - 📄 chunk_00055.txt
+        - 📄 chunk_00056.txt
+        - 📄 chunk_00057.txt
+      - 📁 m_code_for_arrest_queries
+        - 📄 2026_02_05_00_00_41_m_code_for_arrest_queries.origin.json
+        - 📄 2026_02_05_00_00_41_m_code_for_arrest_queries_sidecar.json
+        - 📄 2026_02_05_00_00_41_m_code_for_arrest_queries_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 M_CODE_UPDATE_GUIDE
+        - 📄 2026_02_05_00_01_50_M_CODE_UPDATE_GUIDE.origin.json
+        - 📄 2026_02_05_00_01_50_M_CODE_UPDATE_GUIDE_sidecar.json
+        - 📄 2026_02_05_00_01_50_M_CODE_UPDATE_GUIDE_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 Master_Automation_Complete_Workflow_Restoration
+        - 📄 2026_02_09_13_24_27_Master_Automation_Complete_Workflow_Restoration.origin.json
+        - 📄 2026_02_09_13_24_27_Master_Automation_Complete_Workflow_Restoration_sidecar.json
+        - 📄 2026_02_09_13_24_27_Master_Automation_Complete_Workflow_Restoration_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+      - 📁 Master_Automation_Documentation_Consolidation_And_Directory_
+        - 📄 2026_02_09_10_11_48_Master_Automation_Documentation_Consolidation_And_Directory_.origin.json
+        - 📄 2026_02_09_10_11_48_Master_Automation_Documentation_Consolidation_And_Directory__sidecar.json
+        - 📄 2026_02_09_10_11_52_Master_Automation_Documentation_Consolidation_And_Directory_.origin.json
+        - 📄 2026_02_09_10_11_52_Master_Automation_Documentation_Consolidation_And_Directory__sidecar.json
+        - 📄 2026_02_09_10_11_57_Master_Automation_Documentation_Consolidation_And_Directory_.origin.json
+        - 📄 2026_02_09_10_11_57_Master_Automation_Documentation_Consolidation_And_Directory__sidecar.json
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+      - 📁 MIGRATION_VERIFICATION
+        - 📄 2026_02_05_00_00_41_MIGRATION_VERIFICATION.origin.json
+        - 📄 2026_02_05_00_00_41_MIGRATION_VERIFICATION_sidecar.json
+        - 📄 2026_02_05_00_00_41_MIGRATION_VERIFICATION_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 Overtime_TimeOff_Visual_Backfill_And_M_Code
+        - 📄 2026_02_10_18_47_21_Overtime_TimeOff_Visual_Backfill_And_M_Code.origin.json
+        - 📄 2026_02_10_18_47_21_Overtime_TimeOff_Visual_Backfill_And_M_Code_sidecar.json
+        - 📄 2026_02_10_18_47_21_Overtime_TimeOff_Visual_Backfill_And_M_Code_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+      - 📁 PHASE_1-4_COMPLETION_SUMMARY
+        - 📄 2026_02_05_00_01_50_PHASE_1-4_COMPLETION_SUMMARY.origin.json
+        - 📄 2026_02_05_00_01_50_PHASE_1-4_COMPLETION_SUMMARY_sidecar.json
+        - 📄 2026_02_05_00_01_50_PHASE_1-4_COMPLETION_SUMMARY_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 Power_BI_Response_Time_Type_Conversion_Fix
+        - 📄 2026_02_09_16_54_30_Power_BI_Response_Time_Type_Conversion_Fix.origin.json
+        - 📄 2026_02_09_16_54_30_Power_BI_Response_Time_Type_Conversion_Fix_sidecar.json
+        - 📄 2026_02_09_16_54_30_Power_BI_Response_Time_Type_Conversion_Fix_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+      - 📁 Power_BI_Visual_Export_Verification_And_Fixes_Monthly
+        - 📄 2026_02_04_23_05_22_Power_BI_Visual_Export_Verification_And_Fixes_Monthly.origin.json
+        - 📄 2026_02_04_23_05_22_Power_BI_Visual_Export_Verification_And_Fixes_Monthly_sidecar.json
+        - 📄 2026_02_04_23_05_22_Power_BI_Visual_Export_Verification_And_Fixes_Monthly_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+        - 📄 chunk_00005.txt
+        - 📄 chunk_00006.txt
+        - 📄 chunk_00007.txt
+        - 📄 chunk_00008.txt
+        - 📄 chunk_00009.txt
+        - 📄 chunk_00010.txt
+        - 📄 chunk_00011.txt
+        - 📄 chunk_00012.txt
+        - 📄 chunk_00013.txt
+        - 📄 chunk_00014.txt
+        - 📄 chunk_00015.txt
+        - 📄 chunk_00016.txt
+        - 📄 chunk_00017.txt
+        - 📄 chunk_00018.txt
+        - 📄 chunk_00019.txt
+        - 📄 chunk_00020.txt
+        - 📄 chunk_00021.txt
+        - 📄 chunk_00022.txt
+        - 📄 chunk_00023.txt
+        - 📄 chunk_00024.txt
+        - 📄 chunk_00025.txt
+        - 📄 chunk_00026.txt
+        - 📄 chunk_00027.txt
+        - 📄 chunk_00028.txt
+        - 📄 chunk_00029.txt
+        - 📄 chunk_00030.txt
+        - 📄 chunk_00031.txt
+        - 📄 chunk_00032.txt
+        - 📄 chunk_00033.txt
+        - 📄 chunk_00034.txt
+        - 📄 chunk_00035.txt
+        - 📄 chunk_00036.txt
+        - 📄 chunk_00037.txt
+        - 📄 chunk_00038.txt
+        - 📄 chunk_00039.txt
+        - 📄 chunk_00040.txt
+        - 📄 chunk_00041.txt
+        - 📄 chunk_00042.txt
+        - 📄 chunk_00043.txt
+        - 📄 chunk_00044.txt
+        - 📄 chunk_00045.txt
+        - 📄 chunk_00046.txt
+        - 📄 chunk_00047.txt
+        - 📄 chunk_00048.txt
+        - 📄 chunk_00049.txt
+        - 📄 chunk_00050.txt
+        - 📄 chunk_00051.txt
+        - 📄 chunk_00052.txt
+        - 📄 chunk_00053.txt
+        - 📄 chunk_00054.txt
+        - 📄 chunk_00055.txt
+        - 📄 chunk_00056.txt
+        - 📄 chunk_00057.txt
+        - 📄 chunk_00058.txt
+      - 📁 Response_Time_ETL_Enhanced_Filtering_Implementation
+        - 📄 2026_02_05_00_01_50_Response_Time_ETL_Enhanced_Filtering_Implementation.origin.json
+        - 📄 2026_02_05_00_01_50_Response_Time_ETL_Enhanced_Filtering_Implementation_sidecar.json
+        - 📄 2026_02_05_00_01_50_Response_Time_ETL_Enhanced_Filtering_Implementation_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+        - 📄 chunk_00005.txt
+        - 📄 chunk_00006.txt
+        - 📄 chunk_00007.txt
+        - 📄 chunk_00008.txt
+        - 📄 chunk_00009.txt
+        - 📄 chunk_00010.txt
+      - 📁 RESPONSE_TIME_ETL_EXECUTIVE_SUMMARY
+        - 📄 2026_02_05_00_02_36_RESPONSE_TIME_ETL_EXECUTIVE_SUMMARY.origin.json
+        - 📄 2026_02_05_00_02_36_RESPONSE_TIME_ETL_EXECUTIVE_SUMMARY_sidecar.json
+        - 📄 2026_02_05_00_02_36_RESPONSE_TIME_ETL_EXECUTIVE_SUMMARY_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 Response_Time_ETL_Fix_And_Monthly_CSV_Generator
+        - 📄 2026_02_05_00_02_59_Response_Time_ETL_Fix_And_Monthly_CSV_Generator.origin.json
+        - 📄 2026_02_05_00_02_59_Response_Time_ETL_Fix_And_Monthly_CSV_Generator_sidecar.json
+        - 📄 2026_02_05_00_02_59_Response_Time_ETL_Fix_And_Monthly_CSV_Generator_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+        - 📄 chunk_00005.txt
+        - 📄 chunk_00006.txt
+      - 📁 RESPONSE_TIME_ETL_FOLLOW_UP_ACTIONS
+        - 📄 2026_02_05_00_02_59_RESPONSE_TIME_ETL_FOLLOW_UP_ACTIONS.origin.json
+        - 📄 2026_02_05_00_02_59_RESPONSE_TIME_ETL_FOLLOW_UP_ACTIONS_sidecar.json
+        - 📄 2026_02_05_00_02_59_RESPONSE_TIME_ETL_FOLLOW_UP_ACTIONS_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 RESPONSE_TIME_ETL_QUESTIONS_ANSWERS
+        - 📄 2026_02_05_00_02_59_RESPONSE_TIME_ETL_QUESTIONS_ANSWERS.origin.json
+        - 📄 2026_02_05_00_02_59_RESPONSE_TIME_ETL_QUESTIONS_ANSWERS_sidecar.json
+        - 📄 2026_02_05_00_02_59_RESPONSE_TIME_ETL_QUESTIONS_ANSWERS_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 RESPONSE_TIME_VALUE_COMPARISON
+        - 📄 2026_02_05_00_02_59_RESPONSE_TIME_VALUE_COMPARISON.origin.json
+        - 📄 2026_02_05_00_02_59_RESPONSE_TIME_VALUE_COMPARISON_sidecar.json
+        - 📄 2026_02_05_00_02_59_RESPONSE_TIME_VALUE_COMPARISON_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 RESPONSE_TIMES_M_CODE_COMPLETE_FIX
+        - 📄 2026_02_04_23_52_38_RESPONSE_TIMES_M_CODE_COMPLETE_FIX.origin.json
+        - 📄 2026_02_04_23_52_38_RESPONSE_TIMES_M_CODE_COMPLETE_FIX_sidecar.json
+        - 📄 2026_02_04_23_52_41_RESPONSE_TIMES_M_CODE_COMPLETE_FIX.origin.json
+        - 📄 2026_02_04_23_52_41_RESPONSE_TIMES_M_CODE_COMPLETE_FIX_sidecar.json
+        - 📄 2026_02_04_23_52_41_RESPONSE_TIMES_M_CODE_COMPLETE_FIX_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 RESPONSE_TIMES_M_CODE_FINAL
+        - 📄 2026_02_04_23_52_38_RESPONSE_TIMES_M_CODE_FINAL.origin.json
+        - 📄 2026_02_04_23_52_38_RESPONSE_TIMES_M_CODE_FINAL_sidecar.json
+        - 📄 2026_02_04_23_52_41_RESPONSE_TIMES_M_CODE_FINAL.origin.json
+        - 📄 2026_02_04_23_52_41_RESPONSE_TIMES_M_CODE_FINAL_sidecar.json
+        - 📄 2026_02_04_23_52_41_RESPONSE_TIMES_M_CODE_FINAL_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 RESPONSE_TIMES_M_CODE_FIXED
+        - 📄 2026_02_04_23_52_38_RESPONSE_TIMES_M_CODE_FIXED.origin.json
+        - 📄 2026_02_04_23_52_38_RESPONSE_TIMES_M_CODE_FIXED_sidecar.json
+        - 📄 2026_02_04_23_52_41_RESPONSE_TIMES_M_CODE_FIXED.origin.json
+        - 📄 2026_02_04_23_52_41_RESPONSE_TIMES_M_CODE_FIXED_sidecar.json
+        - 📄 2026_02_04_23_52_41_RESPONSE_TIMES_M_CODE_FIXED_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 RESPONSE_TIMES_M_CODE_PRODUCTION
+        - 📄 2026_02_04_23_53_49_RESPONSE_TIMES_M_CODE_PRODUCTION.origin.json
+        - 📄 2026_02_04_23_53_49_RESPONSE_TIMES_M_CODE_PRODUCTION_sidecar.json
+        - 📄 2026_02_04_23_53_49_RESPONSE_TIMES_M_CODE_PRODUCTION_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 SUMMONS_DIAGNOSTIC_REPORT_2025_12_12
+        - 📄 2026_02_05_00_04_08_SUMMONS_DIAGNOSTIC_REPORT_2025_12_12.origin.json
+        - 📄 2026_02_05_00_04_08_SUMMONS_DIAGNOSTIC_REPORT_2025_12_12_sidecar.json
+        - 📄 2026_02_05_00_04_08_SUMMONS_DIAGNOSTIC_REPORT_2025_12_12_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 Summons_ESU_Patrol_Division_Organizational_Update
+        - 📄 2026_02_05_00_04_08_Summons_ESU_Patrol_Division_Organizational_Update.origin.json
+        - 📄 2026_02_05_00_04_08_Summons_ESU_Patrol_Division_Organizational_Update_sidecar.json
+        - 📄 2026_02_05_00_04_08_Summons_ESU_Patrol_Division_Organizational_Update_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+        - 📄 chunk_00005.txt
+        - 📄 chunk_00006.txt
+        - 📄 chunk_00007.txt
+        - 📄 chunk_00008.txt
+        - 📄 chunk_00009.txt
+        - 📄 chunk_00010.txt
+        - 📄 chunk_00011.txt
+        - 📄 chunk_00012.txt
+        - 📄 chunk_00013.txt
+        - 📄 chunk_00014.txt
+        - 📄 chunk_00015.txt
+        - 📄 chunk_00016.txt
+        - 📄 chunk_00017.txt
+        - 📄 chunk_00018.txt
+        - 📄 chunk_00019.txt
+      - 📁 Summons_ETL_And_Power_BI_M_Code_Fixes
+        - 📄 2026_02_17_03_59_59_Summons_ETL_And_Power_BI_M_Code_Fixes.origin.json
+        - 📄 2026_02_17_03_59_59_Summons_ETL_And_Power_BI_M_Code_Fixes_sidecar.json
+        - 📄 2026_02_17_03_59_59_Summons_ETL_And_Power_BI_M_Code_Fixes_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+        - 📄 chunk_00005.txt
+        - 📄 chunk_00006.txt
+        - 📄 chunk_00007.txt
+        - 📄 chunk_00008.txt
+      - 📁 Thirteen_Month_Visual_Export_Pipeline_Deployment
+        - 📄 2026_02_12_21_59_41_Thirteen_Month_Visual_Export_Pipeline_Deployment.origin.json
+        - 📄 2026_02_12_21_59_41_Thirteen_Month_Visual_Export_Pipeline_Deployment_sidecar.json
+        - 📄 2026_02_12_21_59_41_Thirteen_Month_Visual_Export_Pipeline_Deployment_transcript.md
+        - 📄 chunk_00000.txt
+        - 📄 chunk_00001.txt
+        - 📄 chunk_00002.txt
+        - 📄 chunk_00003.txt
+        - 📄 chunk_00004.txt
+        - 📄 chunk_00005.txt
+        - 📄 chunk_00006.txt
+        - 📄 chunk_00007.txt
+        - 📄 chunk_00008.txt
+      - 📁 VERIFICATION_REPORT
+        - 📄 2026_02_05_00_05_17_VERIFICATION_REPORT.origin.json
+        - 📄 2026_02_05_00_05_17_VERIFICATION_REPORT_sidecar.json
+        - 📄 2026_02_05_00_05_17_VERIFICATION_REPORT_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 VERIFICATION_SUMMARY
+        - 📄 2026_02_05_00_06_26_VERIFICATION_SUMMARY.origin.json
+        - 📄 2026_02_05_00_06_26_VERIFICATION_SUMMARY_sidecar.json
+        - 📄 2026_02_05_00_06_26_VERIFICATION_SUMMARY_transcript.md
+        - 📄 chunk_00000.txt
+      - 📁 VISUAL_EXPORT_CHECKLIST
+        - 📄 2026_02_05_00_07_34_VISUAL_EXPORT_CHECKLIST.origin.json
+        - 📄 2026_02_05_00_07_34_VISUAL_EXPORT_CHECKLIST_sidecar.json
+        - 📄 2026_02_05_00_07_34_VISUAL_EXPORT_CHECKLIST_transcript.md
+        - 📄 chunk_00000.txt
+      - 📄 README.md
+    - 📁 image
+      - 📁 BENCHMARK_CLEANUP_STRATEGY_2026_02_09
+        - 📄 1770658369500.png
+      - 📁 DIAGNOSTIC_INSTRUCTIONS
+        - 📄 1767674652876.png
+      - 📁 m_code_for_arrest_queries
+        - 📄 1767670756586.png
+        - 📄 1767670782744.png
+      - 📁 OVERTIME_TIMEOFF_JAN_2026_GENERATION_SUMMARY
+        - 📄 1771042656054.png
+      - 📁 SUMMONS_DATA_IMPORT_LOGIC_GUIDE
+        - 📄 1771311782459.png
+        - 📄 1771316351695.png
+        - 📄 1771317048786.png
+      - 📁 VISUAL_EXPORT_COMPARISON_2026_02_10
+        - 📄 1770766320584.png
+        - 📄 1770766324150.png
+        - 📄 1770766770510.png
+      - 📁 VISUAL_EXPORT_NORMALIZATION_AND_SUMMONS_BACKFILL
+        - 📄 1770956910543.png
+    - 📁 response_time
+      - 📄 2026_01_14_18_22_57_RESPONSE_TIME_ETL_EXECUTIVE_SUMMARY.html
+      - 📄 2026_01_14_18_27_55_Response_Time_ETL_Enhanced_Filtering_Implementation.html
+      - 📄 2026_01_14_18_39_05_Response Time ETL - Comparison Table.pdf
+      - 📄 Executive Summary. Routine Response Time Metric Correction.pdf
+      - 📄 Response Time Calculation Correction – Executive Summary.pdf
+      - 📄 Response Time Calculation Methods – Executive Comparison 1.pdf
+      - 📄 Response Time Calculation Methods – Executive Comparison.pdf
+      - 📄 Response Time ETL - Executive Packet.pdf
+      - 📄 Response Time ETL Filtering Implementation.pdf
+      - 📄 Response_Time_Calculation_Methods_Comparison.docx
+      - 📄 RESPONSE_TIME_COMPARISON_TABLE_SCRPA_v2.html
+      - 📄 Response_Time_ETL_Executive_Summary.docx
+      - 📄 response_time_executive_summary.html
+    - 📄 13_MONTH_QUICK_REFERENCE.md
+    - 📄 13_MONTH_WINDOW_CORRECTIONS.md
+    - 📄 13_MONTH_WINDOW_IMPLEMENTATION_GUIDE.md
+    - 📄 2026_01_12_Community_Engagement_Missing_Records_RESOLVED.md
+    - 📄 2026_01_12_Data_Verification_Report.md
+    - 📄 2026_01_12_December_2025_ETL_Verification.md
+    - 📄 2026_01_12_November_December_Comparison_Report.md
+    - 📄 2026_02_13_claude_excel_prompt_stacp_query.md
+    - 📄 AGGREGATION_ISSUE_RESOLVED.md
+    - 📄 ARREST_QUERIES_FIX_SUMMARY_2026_01_05.md
+    - 📄 ARREST_SCRIPT_PATH_FIX.md
+    - 📄 ARREST_SCRIPT_RUN_SUMMARY.md
+    - 📄 BACKFILL_BASELINE_CREATED_2026_02_09.md
+    - 📄 BACKFILL_COLUMN_ORDER_ISSUE.md
+    - 📄 BACKFILL_DATA_ISSUES_SUMMONS.md
+    - 📄 BACKFILL_DATA_PATHS.md
+    - 📄 BACKFILL_FILTERING_COMPARISON.md
+    - 📄 badge_check_output.txt
+    - 📄 BENCHMARK_ALL_ERRORS_FIXED_SUMMARY.md
+    - 📄 BENCHMARK_CLEANUP_STRATEGY_2026_02_09.md
+    - 📄 BENCHMARK_DIRECTORY_ANALYSIS_2026_02_09.md
+    - 📄 BENCHMARK_FINAL_FIX_v1.6_SUMMARY.md
+    - 📄 BENCHMARK_FIX_COMPLETE_PACKAGE_2026_02_09.md
+    - 📄 BENCHMARK_FIX_INDEX.md
+    - 📄 BENCHMARK_FIX_README.md
+    - 📄 BENCHMARK_IMPLEMENTATION_CHECKLIST_2026_02_09.md
+    - 📄 BENCHMARK_INCIDENT_DATE_ERROR_FIX_2026_02_09.md
+    - 📄 BENCHMARK_M_CODE_IMPLEMENTATION_2026_02_09.md
+    - 📄 BENCHMARK_POWER_BI_FIX_2026_02_09.md
+    - 📄 BENCHMARK_QUICK_FIX_GUIDE_2026_02_09.md
+    - 📄 BENCHMARK_QUICK_FIX_REFERENCE.md
+    - 📄 BENCHMARK_REPORT_KEY_ERROR_FIX_2026_02_09.md
+    - 📄 BENCHMARK_STEP_ORDER_FIX_v1.3.md
+    - 📄 BENCHMARK_TROUBLESHOOTING_v1.4.md
+    - 📄 BENCHMARK_VISUAL_DIAGNOSTIC.md
+    - 📄 BENCHMARK_VISUALS_HANDOFF_PROMPT.md
+    - 📄 CAD_FILE_WATCHDOG_INVESTIGATION.md
+    - 📄 CLAUDE_AI_FIX_PROMPT.md
+    - 📄 CLAUDE_AI_SUMMONS_NAME_NORMALIZATION_PROMPT.md
+    - 📄 CLAUDE_CODE_FOLLOW_UP_ACTIONS.md
+    - 📄 CLAUDE_CODE_NEXT_STEPS.md
+    - 📄 CLAUDE_DEBUG_PROMPT_v2.7.1_Errors.md
+    - 📄 CLAUDE_OPTIMIZED_PROMPT_EXAMPLE_Response_Time_Fix.md
+    - 📄 Community_Engagement_Missing_Records_Investigation_Resolved.md
+    - 📄 CSB_WORKBOOK_2026_SETUP_COMPLETE.md
+    - 📄 CURSOR_AI_PROMPT.md
+    - 📄 DATE_PARSER_AND_FOLDER_FIXES.md
+    - 📄 DAX_MEASURE_FIXED_FINAL.txt
+    - 📄 DAX_MEASURES_FIXED.txt
+    - 📄 DECEMBER_2025_ARREST_DATA_UPDATE.md
+    - 📄 DECEMBER_2025_EXPORT_QUICK_SUMMARY.md
+    - 📄 DECEMBER_2025_SUMMONS_BACKFILL_AND_PERSONNEL_UPDATES.md
+    - 📄 DETECTIVE_QUERIES_SESSION_SUMMARY_2026_02_13.md
+    - 📄 DETECTIVES_2026_QUICK_REF.md
+    - 📄 DETECTIVES_2026_UPDATE_GUIDE.md
+    - 📄 DETECTIVES_CRITICAL_FIXES_2026_02_13.md
+    - 📄 DETECTIVES_EXCEL_STRUCTURE_MISMATCH_FIX.md
+    - 📄 DETECTIVES_VERIFICATION_CHECKLIST.md
+    - 📄 DIAGNOSTIC_FILES_SUMMARY.md
+    - 📄 DIAGNOSTIC_INSTRUCTIONS.md
+    - 📄 DIAGNOSTIC_REVIEW_SUMMARY_2026_01_05.md
+    - 📄 DIRECTORY_CONSOLIDATION_PLAN_2026_02_04.md
+    - 📄 DIRECTORY_STRUCTURE_RECOMMENDATION.md
+    - 📄 DOCUMENTATION_CONSOLIDATION_2026_02_04.md
+    - 📄 DOCUMENTATION_UPDATE_SUMMARY_v1.11.0.md
+    - 📄 DOCUMENTATION_UPDATES_2026_02_04.md
+    - 📄 EMPLOYEE_SICK_TIME_CALCULATION_LOGIC.md
+    - 📄 ESU_POWER_BI_LOAD_AND_PUBLISH.md
+    - 📄 ETL_RUN_SUMMARY_2026_02_12.md
+    - 📄 EXPORT_ORGANIZATION_SUMMARY.md
+    - 📄 FILTERING_ISSUE_ANALYSIS.md
+    - 📄 FINAL_GO_NO_GO_DECISION_2026_02_09.md
+    - 📄 FINAL_IMPLEMENTATION_SUMMARY.md
+    - 📄 FINAL_SESSION_SUMMARY_2026_02_09.md
+    - 📄 FINAL_SUMMARY_2026_02_09.md
+    - 📄 FINAL_VERIFICATION_ALL_SYSTEMS_GO_2026_02_09.md
+    - 📄 FIXED_DAX_MEASURES.txt
+    - 📄 FOLDER_STRUCTURE_CREATED.md
+    - 📄 GIT_UPDATE_2026_02_09.md
+    - 📄 GIT_UPDATE_2026_02_09_BENCHMARK.md
+    - 📄 GIT_UPDATE_COMPLETE.md
+    - 📄 IMPLEMENTATION_CHECKLIST_2026_02_09.md
+    - 📄 IMPLEMENTATION_COMPLETE_2026_02_09.md
+    - 📄 INCIDENT_MAPPING_IMPLEMENTATION_SUMMARY.md
+    - 📄 M_CODE_HEADER_STANDARD.md
+    - 📄 M_CODE_IMPLEMENTATION_STEPS.md
+    - 📄 MISSING_DATA_EXPORTS.md
+    - 📄 MONTHLY_REPORT_NAMING_ANALYSIS_2026_02_09.md
+    - 📄 OVERTIME_TIMEOFF_BACKFILL_COMPARISON.md
+    - 📄 OVERTIME_TIMEOFF_JAN_2026_GENERATION_SUMMARY.md
+    - 📄 OVERTIME_TIMEOFF_JAN_2026_QUICK_REF.md
+    - 📄 OVERTIME_TIMEOFF_RERUN_AFTER_BACKFILL.md
+    - 📄 PERSONNEL_FOLDER_ANALYSIS.md
+    - 📄 POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md
+    - 📄 POWER_BI_QUERY_REFRESH_CHECKLIST.md
+    - 📄 POWER_BI_REPORT_INFO.md
+    - 📄 POWER_BI_VISUAL_FIX_GUIDE.md
+    - 📄 POWERBI_VISUAL_EXPORT_IMPLEMENTATION_SUMMARY.md
+    - 📄 POWERBI_VISUAL_EXPORT_PIPELINE_FAQ.md
+    - 📄 PRE_RUN_CHECKLIST_2026_02_09.md
+    - 📄 PROJECT_STRUCTURE.md
+    - 📄 QUICK_FIX_Response_Time_M_Code.md
+    - 📄 QUICK_REFERENCE_2026_02_09.md
+    - 📄 QUICK_START-PD_BCI_LTP.md
+    - 📄 QUICK_START.md
+    - 📄 RESPONSE_TIME_COMPARISON_TABLE.md
+    - 📄 RESPONSE_TIME_COMPLETE_SESSION_SUMMARY_2026_02_09.md
+    - 📄 RESPONSE_TIME_ETL_FILTER_UPDATE_PLAN.md
+    - 📄 RESPONSE_TIME_ETL_IMPLEMENTATION_COMPLETE.md
+    - 📄 RESPONSE_TIME_FILE_NAMING_RECONCILIATION_2026_02_09.md
+    - 📄 RESPONSE_TIME_FINAL_COMPLETE_v2.6.0.md
+    - 📄 RESPONSE_TIME_FINAL_FIX_v2.4.0.md
+    - 📄 RESPONSE_TIME_FINAL_FIX_v2.5.0.md
+    - 📄 RESPONSE_TIME_FINAL_STATUS_2026_02_09.md
+    - 📄 RESPONSE_TIME_FINAL_v2.7.0_COMPLETE.md
+    - 📄 RESPONSE_TIME_FRESH_CALCULATOR_GUIDE.md
+    - 📄 RESPONSE_TIME_FRESH_CALCULATOR_SESSION_COMPLETE.md
+    - 📄 RESPONSE_TIME_HYBRID_SOURCE_STRATEGY_2026_02_09.md
+    - 📄 RESPONSE_TIME_M_CODE_FINAL_FIX_SUMMARY_v2.2.0.md
+    - 📄 RESPONSE_TIME_M_CODE_FIX_2026_02_09.md
+    - 📄 RESPONSE_TIME_M_CODE_FIX_SUMMARY.md
+    - 📄 RESPONSE_TIME_MISSING_OUTPUT_FILES.md
+    - 📄 RESPONSE_TIME_PRODUCTION_READY_v2.7.1.md
+    - 📄 RESPONSE_TIME_QUICK_REFERENCE_v2.7.1.md
+    - 📄 RESPONSE_TIME_TIMEREPORT_MIGRATION_2026_02_09.md
+    - 📄 RESPONSE_TIME_v2.8.0_IMPLEMENTATION_COMPLETE.md
+    - 📄 RESPONSE_TIME_v2.8.0_IMPLEMENTATION_GUIDE.md
+    - 📄 RESPONSE_TIME_v2.8.0_SESSION_COMPLETE.md
+    - 📄 RESPONSE_TIME_v2.8.2_SINGLE_SOURCE_FIX.md
+    - 📄 RESPONSE_TIME_v2.8.3_BACKFILL_RESTORE.md
+    - 📄 RESPONSE_TIME_YEARMONTH_FIX_v2.3.0.md
+    - 📄 RESPONSE_TIMES_DAX_COLUMNS.txt
+    - 📄 RESPONSE_TIMES_FILTERING_REVIEW_SUMMARY.md
+    - 📄 RESPONSE_TIMES_M_CODE_CORRECTED.txt
+    - 📄 RESPONSE_TIMES_M_CODE_FINAL_READY.txt
+    - 📄 RESPONSE_TIMES_M_CODE_SIMPLE.txt
+    - 📄 RESPONSE_TIMES_SIMPLE_COLUMNS.txt
+    - 📄 REVIEW_Claude_Fixes_2026_01_05.md
+    - 📄 ROOT_CLEANUP_COMPLETE_2026_02_04.md
+    - 📄 ROOT_CLEANUP_PLAN_2026_02_04.md
+    - 📄 SCRIPT_FILENAME_UPDATE_SUMMARY.md
+    - 📄 SESSION_2026_02_09_COMPLETE_SUCCESS.md
+    - 📄 SESSION_HANDOFF_2026_02_09.md
+    - 📄 SMART_DATE_INFERENCE.md
+    - 📄 SMART_DATE_INFERENCE_DEPLOYMENT.md
+    - 📄 STACP_FIX_QUICK_REF.md
+    - 📄 STACP_INCONSISTENT_DATE_FORMAT_FIX.md
+    - 📄 STACP_SESSION_SUMMARY_2026_02_13.md
+    - 📄 STACP_TROUBLESHOOTING_GUIDE.md
+    - 📄 STACP_WINDOW_CALCULATION_FIX.md
+    - 📄 STACP_YEAR_DETECTION_FIX_2026_02_13.md
+    - 📄 summary.md
+    - 📄 SUMMARY_2026_02_09.md
+    - 📄 SUMMONS_AUTOMATION_SUMMARY.md
+    - 📄 SUMMONS_BACKFILL_INJECTION_POINT.md
+    - 📄 SUMMONS_DATA_IMPORT_LOGIC_GUIDE.md
+    - 📄 SUMMONS_DAX_MEASURES_CORRECTED.txt
+    - 📄 SUMMONS_DISCREPANCY_ANALYSIS.md
+    - 📄 SUMMONS_DOC_INDEX.md
+    - 📄 SUMMONS_FIX_COMPLETE_2026_02_17.md
+    - 📄 SUMMONS_FIX_FINAL_REPORT_2026_02_17.md
+    - 📄 SUMMONS_INTEGRITY_REPORT_GUIDE.md
+    - 📄 SUMMONS_M_CODE_FINAL.md
+    - 📄 SUMMONS_M_CODE_TEMPLATE_FIX.md
+    - 📄 SUMMONS_POWERBI_QUICKSTART.md
+    - 📄 SUMMONS_PRODUCTION_CHECKLIST.md
+    - 📄 SUMMONS_QUICK_REFERENCE.md
+    - 📄 SUMMONS_REMEDIATION_2026_02_17.md
+    - 📄 SUMMONS_REMEDIATION_QUICKSTART.md
+    - 📄 SUMMONS_TEMPLATE_FIX_COMPLETE.md
+    - 📄 SYNTAX_ERRORS_SUMMARY.md
+    - 📄 SYSTEM_STATUS.md
+    - 📄 TEMP_FILES_CLEANUP_2026_02_04.md
+    - 📄 TROUBLESHOOTING_RESPONSE_TIMES.md
+    - 📄 UPDATE_COMPLETE_v1.11.0.md
+    - 📄 VERIFICATION_COMPLETE_2026_02_09.md
+    - 📄 VERIFICATION_REPORT-PD_BCI_LTP.md
+    - 📄 VERIFICATION_SUMMARY_20260113_180309.md
+    - 📄 VERIFICATION_SUMMARY_20260113_181537.md
+    - 📄 VERIFICATION_SUMMARY_20260113_181553.md
+    - 📄 VERIFICATION_SUMMARY_20260113_182109.md
+    - 📄 VISUAL_BACKFILL_AND_EXPORTS_FINDINGS_2026_02_10.md
+    - 📄 VISUAL_EXPORT_COMPARISON_2026_02_10.md
+    - 📄 VISUAL_EXPORT_CONFIG_GEMINI_ENHANCEMENT.md
+    - 📄 VISUAL_EXPORT_GUIDE.md
+    - 📄 VISUAL_EXPORT_NORMALIZATION_AND_SUMMONS_BACKFILL.md
+    - 📄 VISUAL_EXPORT_NORMALIZE_AND_BACKFILL.md
+    - 📄 WATCHDOG_OT_TIMEOFF_CONVERSION_AND_PATHS.md
+  - 📁 image
+    - 📁 2026_01_12____Overtime_Timeoff_v3
+      - 📄 1768250414465.png
+      - 📄 1768250417972.png
+      - 📄 1768250454881.png
+      - 📄 1768254939388.png
+    - 📁 CLAUDE_CODE_FOLLOW_UP_ACTIONS
+      - 📄 1768433627141.png
+    - 📁 CLAUDE_CODE_PROMPT_RESPONSE_TIME_ETL_FIX
+      - 📄 1768422801193.png
+    - 📁 README
+      - 📄 1770668880923.png
+  - 📁 logs
+    - 📄 2025-12-09_22-54-01_ETL_Run.log
+    - 📄 2025-12-09_23-16-32_ETL_Run.log
+    - 📄 2025-12-09_23-16-39_Arrests.log
+    - 📄 2025-12-09_23-16-39_Arrests.log.err
+    - 📄 2025-12-09_23-16-39_Community Engagement.log
+    - 📄 2025-12-09_23-16-39_Community Engagement.log.err
+    - 📄 2025-12-09_23-16-39_ETL_Run.log
+    - 📄 2025-12-09_23-16-39_Overtime TimeOff.log
+    - 📄 2025-12-09_23-16-39_Overtime TimeOff.log.err
+    - 📄 2025-12-09_23-16-39_Policy Training Monthly.log
+    - 📄 2025-12-09_23-16-39_Policy Training Monthly.log.err
+    - 📄 2025-12-09_23-16-39_Response Times.log
+    - 📄 2025-12-09_23-16-39_Response Times.log.err
+    - 📄 2025-12-09_23-16-39_Summons.log
+    - 📄 2025-12-09_23-16-39_Summons.log.err
+    - 📄 2025-12-09_23-22-36_ETL_Run.log
+    - 📄 2025-12-09_23-22-36_Summons.log
+    - 📄 2025-12-09_23-22-36_Summons.log.err
+    - 📄 2025-12-09_23-28-25_Arrest Data Source.log
+    - 📄 2025-12-09_23-28-25_Arrest Data Source.log.err
+    - 📄 2025-12-09_23-28-25_ETL_Run.log
+    - 📄 2025-12-09_23-32-40_ETL_Run.log
+    - 📄 2025-12-09_23-32-40_Overtime TimeOff.log
+    - 📄 2025-12-09_23-32-40_Overtime TimeOff.log.err
+    - 📄 2025-12-09_23-33-32_ETL_Run.log
+    - 📄 2025-12-09_23-33-32_Overtime TimeOff.log
+    - 📄 2025-12-09_23-33-32_Overtime TimeOff.log.err
+    - 📄 2025-12-10_02-01-30_Arrest Data Source.log
+    - 📄 2025-12-10_02-01-30_Arrest Data Source.log.err
+    - 📄 2025-12-10_02-01-30_Arrests.log
+    - 📄 2025-12-10_02-01-30_Arrests.log.err
+    - 📄 2025-12-10_02-01-30_Community Engagement.log
+    - 📄 2025-12-10_02-01-30_Community Engagement.log.err
+    - 📄 2025-12-10_02-01-30_ETL_Run.log
+    - 📄 2025-12-10_02-01-30_Overtime TimeOff.log
+    - 📄 2025-12-10_02-01-30_Overtime TimeOff.log.err
+    - 📄 2025-12-10_02-01-30_Policy Training Monthly.log
+    - 📄 2025-12-10_02-01-30_Policy Training Monthly.log.err
+    - 📄 2025-12-10_02-01-30_Response Times.log
+    - 📄 2025-12-10_02-01-30_Response Times.log.err
+    - 📄 2025-12-10_02-01-30_Summons.log
+    - 📄 2025-12-10_02-01-30_Summons.log.err
+    - 📄 2025-12-10_02-37-17_Arrests.log
+    - 📄 2025-12-10_02-37-17_Arrests.log.err
+    - 📄 2025-12-10_02-37-17_Community Engagement.log
+    - 📄 2025-12-10_02-37-17_Community Engagement.log.err
+    - 📄 2025-12-10_02-37-17_ETL_Run.log
+    - 📄 2025-12-10_02-37-17_Overtime TimeOff.log
+    - 📄 2025-12-10_02-37-17_Overtime TimeOff.log.err
+    - 📄 2025-12-10_02-37-17_Policy Training Monthly.log
+    - 📄 2025-12-10_02-37-17_Policy Training Monthly.log.err
+    - 📄 2025-12-10_02-37-17_Response Times.log
+    - 📄 2025-12-10_02-37-17_Response Times.log.err
+    - 📄 2025-12-10_02-37-17_Summons.log
+    - 📄 2025-12-10_02-37-17_Summons.log.err
+    - 📄 2025-12-10_02-44-46_Arrest Data Source.log
+    - 📄 2025-12-10_02-44-46_Arrest Data Source.log.err
+    - 📄 2025-12-10_02-44-46_Arrests.log
+    - 📄 2025-12-10_02-44-46_Arrests.log.err
+    - 📄 2025-12-10_02-44-46_Community Engagement.log
+    - 📄 2025-12-10_02-44-46_Community Engagement.log.err
+    - 📄 2025-12-10_02-44-46_ETL_Run.log
+    - 📄 2025-12-10_02-44-46_Overtime TimeOff.log
+    - 📄 2025-12-10_02-44-46_Overtime TimeOff.log.err
+    - 📄 2025-12-10_02-44-46_Policy Training Monthly.log
+    - 📄 2025-12-10_02-44-46_Policy Training Monthly.log.err
+    - 📄 2025-12-10_02-44-46_Response Times.log
+    - 📄 2025-12-10_02-44-46_Response Times.log.err
+    - 📄 2025-12-10_02-44-46_Summons.log
+    - 📄 2025-12-10_02-44-46_Summons.log.err
+    - 📄 2025-12-11_13-23-55_ETL_Run.log
+    - 📄 2025-12-11_16-57-58_ETL_Run.log
+    - 📄 2025-12-11_17-31-37_ETL_Run.log
+    - 📄 2025-12-11_18-10-21_ETL_Run.log
+    - 📄 2025-12-11_18-12-20_Arrests.log
+    - 📄 2025-12-11_18-12-20_Arrests.log.err
+    - 📄 2025-12-11_18-12-20_Community Engagement.log
+    - 📄 2025-12-11_18-12-20_Community Engagement.log.err
+    - 📄 2025-12-11_18-12-20_ETL_Run.log
+    - 📄 2025-12-11_18-12-20_Overtime TimeOff.log
+    - 📄 2025-12-11_18-12-20_Overtime TimeOff.log.err
+    - 📄 2025-12-11_18-12-20_Response Times.log
+    - 📄 2025-12-11_18-12-20_Response Times.log.err
+    - 📄 2025-12-11_18-12-20_Summons.log
+    - 📄 2025-12-11_18-12-20_Summons.log.err
+    - 📄 2025-12-11_18-16-31_ETL_Run.log
+    - 📄 2025-12-11_18-16-31_Response Times.log
+    - 📄 2025-12-11_18-16-31_Response Times.log.err
+    - 📄 2025-12-11_18-18-20_ETL_Run.log
+    - 📄 2025-12-11_18-18-20_Response Times.log
+    - 📄 2025-12-11_18-18-20_Response Times.log.err
+    - 📄 2025-12-11_18-18-47_ETL_Run.log
+    - 📄 2025-12-11_18-23-52_Arrests.log
+    - 📄 2025-12-11_18-23-52_Arrests.log.err
+    - 📄 2025-12-11_18-23-52_Community Engagement.log
+    - 📄 2025-12-11_18-23-52_Community Engagement.log.err
+    - 📄 2025-12-11_18-23-52_ETL_Run.log
+    - 📄 2025-12-11_18-23-52_Overtime TimeOff.log
+    - 📄 2025-12-11_18-23-52_Overtime TimeOff.log.err
+    - 📄 2025-12-11_18-23-52_Response Times.log
+    - 📄 2025-12-11_18-23-52_Response Times.log.err
+    - 📄 2025-12-11_18-23-52_Summons.log
+    - 📄 2025-12-11_18-23-52_Summons.log.err
+    - 📄 2025-12-11_18-26-54_Arrests.log
+    - 📄 2025-12-11_18-26-54_Arrests.log.err
+    - 📄 2025-12-11_18-26-54_Community Engagement.log
+    - 📄 2025-12-11_18-26-54_Community Engagement.log.err
+    - 📄 2025-12-11_18-26-54_ETL_Run.log
+    - 📄 2025-12-11_18-26-54_Overtime TimeOff.log
+    - 📄 2025-12-11_18-26-54_Overtime TimeOff.log.err
+    - 📄 2025-12-11_18-26-54_Response Times.log
+    - 📄 2025-12-11_18-26-54_Response Times.log.err
+    - 📄 2025-12-11_18-26-54_Summons.log
+    - 📄 2025-12-11_18-26-54_Summons.log.err
+    - 📄 2025-12-11_18-30-06_Arrests.log
+    - 📄 2025-12-11_18-30-06_Arrests.log.err
+    - 📄 2025-12-11_18-30-06_Community Engagement.log
+    - 📄 2025-12-11_18-30-06_Community Engagement.log.err
+    - 📄 2025-12-11_18-30-06_ETL_Run.log
+    - 📄 2025-12-11_18-30-06_Overtime TimeOff.log
+    - 📄 2025-12-11_18-30-06_Overtime TimeOff.log.err
+    - 📄 2025-12-11_18-30-06_Response Times.log
+    - 📄 2025-12-11_18-30-06_Response Times.log.err
+    - 📄 2025-12-11_18-30-06_Summons.log
+    - 📄 2025-12-11_18-30-06_Summons.log.err
+    - 📄 2025-12-11_22-50-32_ETL_Run.log
+    - 📄 2025-12-11_22-50-32_Summons.log
+    - 📄 2025-12-11_22-50-32_Summons.log.err
+    - 📄 2025-12-11_22-52-53_Arrests.log
+    - 📄 2025-12-11_22-52-53_Arrests.log.err
+    - 📄 2025-12-11_22-52-53_Community Engagement.log
+    - 📄 2025-12-11_22-52-53_Community Engagement.log.err
+    - 📄 2025-12-11_22-52-53_ETL_Run.log
+    - 📄 2025-12-11_22-52-53_Overtime TimeOff.log
+    - 📄 2025-12-11_22-52-53_Overtime TimeOff.log.err
+    - 📄 2025-12-11_22-52-53_Response Times.log
+    - 📄 2025-12-11_22-52-53_Response Times.log.err
+    - 📄 2025-12-11_22-52-53_Summons.log
+    - 📄 2025-12-11_22-52-53_Summons.log.err
+    - 📄 2026-01-02_17-36-39_ETL_Run.log
+    - 📄 2026-01-02_17-40-41_ETL_Run.log
+    - 📄 2026-01-05_22-21-09_Arrests.log
+    - 📄 2026-01-05_22-21-09_Arrests.log.err
+    - 📄 2026-01-05_22-21-09_Community Engagement.log
+    - 📄 2026-01-05_22-21-09_Community Engagement.log.err
+    - 📄 2026-01-05_22-21-09_ETL_Run.log
+    - 📄 2026-01-05_22-21-09_Overtime TimeOff.log
+    - 📄 2026-01-05_22-21-09_Overtime TimeOff.log.err
+    - 📄 2026-01-05_22-21-09_Response Times.log
+    - 📄 2026-01-05_22-21-09_Response Times.log.err
+    - 📄 2026-01-05_22-21-09_Summons.log
+    - 📄 2026-01-05_22-21-09_Summons.log.err
+    - 📄 2026-01-05_22-26-18_ETL_Run.log
+    - 📄 2026-01-05_22-27-08_Arrests.log
+    - 📄 2026-01-05_22-27-08_Arrests.log.err
+    - 📄 2026-01-05_22-27-08_Community Engagement.log
+    - 📄 2026-01-05_22-27-08_Community Engagement.log.err
+    - 📄 2026-01-05_22-27-08_ETL_Run.log
+    - 📄 2026-01-05_22-27-08_Overtime TimeOff.log
+    - 📄 2026-01-05_22-27-08_Overtime TimeOff.log.err
+    - 📄 2026-01-05_22-27-08_Response Times.log
+    - 📄 2026-01-05_22-27-08_Response Times.log.err
+    - 📄 2026-01-05_22-27-08_Summons.log
+    - 📄 2026-01-05_22-27-08_Summons.log.err
+    - 📄 2026-01-05_23-53-42_Arrests.log
+    - 📄 2026-01-05_23-53-42_Arrests.log.err
+    - 📄 2026-01-05_23-53-42_ETL_Run.log
+    - 📄 2026-01-05_23-58-19_Arrests.log
+    - 📄 2026-01-05_23-58-19_Arrests.log.err
+    - 📄 2026-01-05_23-58-19_ETL_Run.log
+    - 📄 2026-01-14_12-49-13_ETL_Run.log
+    - 📄 2026-02-09_11-33-33_ETL_Run.log
+    - 📄 2026-02-09_11-34-46_ETL_Run.log
+    - 📄 2026-02-09_11-58-24_ETL_Run.log
+    - 📄 2026-02-09_12-38-13_Arrests.log
+    - 📄 2026-02-09_12-38-13_Arrests.log.err
+    - 📄 2026-02-09_12-38-13_Community Engagement.log
+    - 📄 2026-02-09_12-38-13_Community Engagement.log.err
+    - 📄 2026-02-09_12-38-13_ETL_Run.log
+    - 📄 2026-02-09_12-38-13_Overtime TimeOff.log
+    - 📄 2026-02-09_12-38-13_Overtime TimeOff.log.err
+    - 📄 2026-02-09_12-38-13_Response Times Monthly Generator.log
+    - 📄 2026-02-09_12-38-13_Response Times Monthly Generator.log.err
+    - 📄 2026-02-09_12-38-13_Summons Derived Outputs (PowerBI_Date CSVs).log
+    - 📄 2026-02-09_12-38-13_Summons Derived Outputs (PowerBI_Date CSVs).log.err
+    - 📄 2026-02-09_12-38-13_Summons.log
+    - 📄 2026-02-09_12-38-13_Summons.log.err
+    - 📄 2026-02-09_12-55-22_Arrests.log
+    - 📄 2026-02-09_12-55-22_Arrests.log.err
+    - 📄 2026-02-09_12-55-22_Community Engagement.log
+    - 📄 2026-02-09_12-55-22_Community Engagement.log.err
+    - 📄 2026-02-09_12-55-22_ETL_Run.log
+    - 📄 2026-02-09_12-55-22_Overtime TimeOff.log
+    - 📄 2026-02-09_12-55-22_Overtime TimeOff.log.err
+    - 📄 2026-02-09_12-55-22_Response Times Monthly Generator.log
+    - 📄 2026-02-09_12-55-22_Response Times Monthly Generator.log.err
+    - 📄 2026-02-09_12-55-22_Summons Derived Outputs (PowerBI_Date CSVs).log
+    - 📄 2026-02-09_12-55-22_Summons Derived Outputs (PowerBI_Date CSVs).log.err
+    - 📄 2026-02-09_12-55-22_Summons.log
+    - 📄 2026-02-09_12-55-22_Summons.log.err
+    - 📄 2026-02-12_23-04-19_Arrests.log
+    - 📄 2026-02-12_23-04-19_Arrests.log.err
+    - 📄 2026-02-12_23-04-19_Community Engagement.log
+    - 📄 2026-02-12_23-04-19_Community Engagement.log.err
+    - 📄 2026-02-12_23-04-19_ETL_Run.log
+    - 📄 2026-02-12_23-04-19_Overtime TimeOff.log
+    - 📄 2026-02-12_23-04-19_Overtime TimeOff.log.err
+    - 📄 2026-02-12_23-04-19_Summons Derived Outputs (PowerBI_Date CSVs).log
+    - 📄 2026-02-12_23-04-19_Summons Derived Outputs (PowerBI_Date CSVs).log.err
+    - 📄 2026-02-12_23-04-19_Summons.log
+    - 📄 2026-02-12_23-04-19_Summons.log.err
+    - 📄 2026-02-13_00-46-43_Arrests.log
+    - 📄 2026-02-13_00-46-43_Arrests.log.err
+    - 📄 2026-02-13_00-46-43_Community Engagement.log
+    - 📄 2026-02-13_00-46-43_Community Engagement.log.err
+    - 📄 2026-02-13_00-46-43_ETL_Run.log
+    - 📄 2026-02-13_00-46-43_Overtime TimeOff.log
+    - 📄 2026-02-13_00-46-43_Overtime TimeOff.log.err
+    - 📄 2026-02-13_00-46-43_Summons Derived Outputs (PowerBI_Date CSVs).log
+    - 📄 2026-02-13_00-46-43_Summons Derived Outputs (PowerBI_Date CSVs).log.err
+    - 📄 2026-02-13_00-46-43_Summons.log
+    - 📄 2026-02-13_00-46-43_Summons.log.err
+    - 📄 2026-02-17_06-17-09_ETL_Run.log
+    - 📄 20260209_203742_response_time_fresh_calculator.log
+    - 📄 20260209_203852_response_time_fresh_calculator.log
+    - 📄 20260209_204014_response_time_fresh_calculator.log
+    - 📄 20260209_204155_response_time_fresh_calculator.log
+    - 📄 20260209_204334_response_time_fresh_calculator.log
+    - 📄 20260209_204450_response_time_fresh_calculator.log
+    - 📄 20260209_204533_response_time_fresh_calculator.log
+    - 📄 20260209_204630_response_time_fresh_calculator.log
+    - 📄 summons_badge_overrides.txt
+  - 📁 m_code
+    - 📁 archive
+      - 📄 2026_01_05____Arrest_Categories (1).m
+      - 📄 2026_01_05____Arrest_Categories.m
+      - 📄 2026_01_12____Overtime_Timeoff_v3.m
+      - 📄 2026_01_12_benchmark_m_codes.m
+      - 📄 2026_01_12_benchmark_m_codes_UPDATED.m
+      - 📄 ___Arrest_Categories_FIXED.m
+      - 📄 ___Combined_Outreach_All.m
+      - 📄 ___Cost_of_Training.m
+      - 📄 ___In_Person_Training.m
+      - 📄 ___TAS_Dispatcher_Incident_Summary.m
+      - 📄 ___Top_5_Arrests_FIXED.m
+      - 📄 benchmark_dim_event_type.m
+      - 📄 benchmark_dim_month.m
+      - 📄 benchmark_r13.m
+      - 📄 overtime_timeoff_v3.m
+      - 📄 overtime_timeoff_v4.m
+    - 📁 detectives
+      - 📄 ___Det_case_dispositions_clearance_2026.m
+      - 📄 ___Detectives_2026.m
+    - 📁 esu
+      - 📄 ESU_13Month.m
+      - 📄 fnCleanText.m
+      - 📄 fnMonthKeyFromTableName.m
+      - 📄 MonthlyActivity.m
+      - 📄 README.md
+      - 📄 TrackedItems.m
+    - 📁 stacp
+      - 📄 STACP_DIAGNOSTIC.m
+      - 📄 STACP_pt_1_2_FIXED.m
+    - 📁 summons
+      - 📄 summons_13month_trend.m
+      - 📄 summons_all_bureaus.m
+      - 📄 summons_diagnostic.m
+      - 📄 summons_top5_moving.m
+      - 📄 summons_top5_parking.m
+    - 📄 2026_01_07_all_queries.m
+    - 📄 2026_02_10____Overtime_Timeoff_v3.m
+    - 📄 2026_02_10_Overtime_Timeoff_v3.m
+    - 📄 2026_02_10_Overtime_Timeoff_v3_CONSOLIDATED.m
+    - 📄 2026_02_10_Overtime_Timeoff_v3_STAGING_ONLY.m
+    - 📄 2026_02_16_Det_case_dispositions_clearance
+    - 📄 2026_02_16_detectives.m
+    - 📄 ___Arrest_Categories_FIXED.m
+    - 📄 ___Arrest_Date_Distribution.m
+    - 📄 ___Arrest_Distro.m
+    - 📄 ___Arrest_Raw_Data_Preview.m
+    - 📄 ___Benchmark_DIAGNOSTIC.m
+    - 📄 ___Benchmark_FINAL_FIX_v1.6.m
+    - 📄 ___Benchmark_FIXED_2026_02_09.m
+    - 📄 ___Benchmark_FIXED_v1.1.m
+    - 📄 ___Benchmark_v1.4_ROBUST.m
+    - 📄 ___Benchmark_v1.5_SIMPLE.m
+    - 📄 ___Cost_of_Training.m
+    - 📄 ___DimEventType.m
+    - 📄 ___DimMonth.m
+    - 📄 ___Overtime_Timeoff_v3.m
+    - 📄 ___ResponseTimeCalculator.m
+    - 📄 ___ResponseTimeCalculator_v2.8.0_FIXED.m
+    - 📄 ___ResponseTimeCalculator_v2.8.2_SINGLE_SOURCE.m
+    - 📄 ___ResponseTimeCalculator_v2.8.3_BACKFILL_RESTORE.m
+    - 📄 ___Summons.m
+    - 📄 ___Summons_All_Bureaus.m
+    - 📄 ___Summons_All_Bureaus_STANDALONE.m
+    - 📄 ___Summons_Top5_Moving.m
+    - 📄 ___Summons_Top5_Moving_STANDALONE.m
+    - 📄 ___Summons_Top5_Parking.m
+    - 📄 ___Summons_Top5_Parking_STANDALONE.m
+    - 📄 ___Top_5_Arrests_ALL_TIME.m
+    - 📄 ___Top_5_Arrests_DIAGNOSTIC.m
+    - 📄 ___Top_5_Arrests_FIXED.m
+    - 📄 _benchmark2026_02_09.m
+    - 📄 _benchmark_simple.m
+    - 📄 _summons_mcode.m
+    - 📄 diagnostic_summons_data.m
+    - 📄 OT_FIXED_Staged.m
+    - 📄 OT_MonthlyBreakdown_Staged.m
+    - 📄 OT_PriorAnchor_Staged.m
+    - 📄 response_time_calculator.m
+    - 📄 Screenshots - Shortcut.lnk
+    - 📄 summons_13month_trend.m
+    - 📄 summons_13month_trend_FIXED.m
+  - 📁 outputs
+    - 📁 arrests
+      - 📄 2025_12_Arrest Categories by Type and Gender.csv
+      - 📄 2025_12_Arrest Distribution by Local, State & Out of State.csv
+      - 📄 2025_12_TOP 5 ARREST LEADERS.csv
+    - 📁 community_engagement
+      - 📄 Incident Count by Date and Event Type.csv
+      - 📄 Incident Count by Date and Event Type_UPDATED.csv
+      - 📄 Incident Distribution by Event Type.csv
+      - 📄 Incident Distribution by Event Type_UPDATED.csv
+      - 📄 Use of Force Incident Matrix.csv
+      - 📄 Use of Force Incident Matrix_UPDATED.csv
+    - 📁 large_exports
+      - 📄 2026_01_14_18_40_58_EXPORT_timereport.xlsx
+      - 📄 2026_01_14_18_40_58_timereport.xlsx
+    - 📁 metadata
+      - 📄 scripts_duplicate.json
+      - 📄 VERIFICATION_SUMMARY_20260113_180309.json
+      - 📄 VERIFICATION_SUMMARY_20260113_181537.json
+      - 📄 VERIFICATION_SUMMARY_20260113_181553.json
+      - 📄 VERIFICATION_SUMMARY_20260113_182109.json
+    - 📁 misc
+      - 📄 cad_data_for_powerbi_final.csv
+      - 📄 data.csv
+      - 📄 Excluded_Records__17_.csv
+      - 📄 filter_incidents_response_types.csv
+      - 📄 Monthly Accrual and Usage Summary.csv
+      - 📄 new_Top 5 Moving Violations - Department Wide.csv
+      - 📄 new_Top 5 Non-Parking Violations - Department Wide.csv
+      - 📄 TimeOffActivity.xls
+      - 📄 Training Cost by Delivery Method.csv
+    - 📁 summons_validation
+      - 📄 2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow.7z
+      - 📄 2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow.zip
+      - 📄 25_11_e_ticketexport.csv
+      - 📄 ___Summons_preview_table.csv
+      - 📄 ___Summons_preview_table.xlsx
+      - 📄 ___Summons_preview_table_latest.csv
+      - 📄 Assignment_Master_V2.csv
+      - 📄 Department-Wide Summons  Moving and Parking.csv
+      - 📄 new_Department-Wide Summons  Moving and Parking.csv
+      - 📄 Summons  Moving & Parking  All Bureaus.csv
+      - 📄 summons_simple_processing.log
+    - 📁 visual_exports
+      - 📄 2025_11_Monthly Accrual and Usage Summary.csv
+      - 📄 2025_12_11_Monthly Accrual and Usage Summary.csv
+      - 📄 2025_12_Monthly Accrual and Usage Summary.csv
+      - 📄 2025_12_Summons  Moving & Parking  All Bureaus.csv
+      - 📄 2026_01_11_02_06_09_Department-Wide Summons  Moving and Parking.csv
+      - 📄 2026_01_11_22_51_55_Summons  Moving & Parking  All Bureaus.csv
+      - 📄 2026_01_11_ChatGPT_Combined_Movers_and_Parkers_Summary__2023_2025_.csv
+      - 📄 2026_01_11_Detective Clearance Rate Performance.csv
+      - 📄 2026_01_11_Summons  Moving & Parking  All Bureaus.csv
+      - 📄 2026_01_12_15_20_17_Monthly Accrual and Usage Summary.csv
+      - 📄 2026_01_12_16_40_41_Monthly Accrual and Usage Summary.csv
+      - 📄 2026_01_12_18_48_07_Monthly Accrual and Usage Summary.csv
+      - 📄 2026_01_12_18_51_47_Engagement Initiatives by Bureau.csv
+      - 📄 2026_01_12_20_16_04_Training Cost by Delivery Method.csv
+      - 📄 2026_01_12_20_16_14_In-Person Training.csv
+      - 📄 2026_01_12_Monthly Accrual and Usage Summary.csv
+      - 📄 2026_01_13_18_32_31_Monthly Accrual and Usage Summary.csv
+      - 📄 2026_01_13_18_41_43_Monthly Accrual and Usage Summary.csv
+      - 📄 2026_01_14_12_41_45_Summons  Moving & Parking  All Bureaus.csv
+      - 📄 2026_01_14_15_04_03_Average Response Times  Values are in mmss.csv
+      - 📄 2026_01_14_15_04_13_Response Times by Priority.csv
+      - 📄 2026_01_14_16_51_24_Average Response Times  Values are in mmss.csv
+      - 📄 2026_01_14_16_51_33_Response Times by Priority.csv
+  - 📁 scripts
+    - 📁 _archive
+      - 📁 visual_export_mapping
+        - 📁 2026_02_17_173019
+          - 📁 scripts
+            - 📄 visual_export_mapping_updated.json
+            - 📄 visual_export_mapping_with_13month.json
+          - 📁 Standards
+            - 📁 config
+              - 📁 powerbi_visuals
+                - 📄 visual_export_mapping.json
+                - 📄 visual_export_mapping_v2.json
+          - 📄 visual_export_mapping_CORRECTED.json
+      - 📄 Attached prompt and context files1.zip
+      - 📄 Attached prompt and context files2.zip
+      - 📄 README.md
+      - 📄 run_all_etl-PD_BCI_LTP.ps1
+    - 📁 _testing
+      - 📄 benchmark_migration_log.txt
+      - 📄 benchmark_r13.dax
+      - 📄 benchmark_restructure.py
+      - 📄 debug_aggregation_issue.py
+    - 📄 10
+    - 📄 add_traffic_officers.py
+    - 📄 Analyze-VisualExports.ps1
+    - 📄 analyze_detective_workbook.py
+    - 📄 analyze_officer_name_duplicates.py
+    - 📄 analyze_personnel_folder.py
+    - 📄 analyze_stacp_workbook.py
+    - 📄 check_detective_table_data.py
+    - 📄 check_detective_tables.py
+    - 📄 check_eticket_source.py
+    - 📄 check_headers.ps1
+    - 📄 check_jan_26_data.py
+    - 📄 check_officer_138.py
+    - 📄 check_officer_id_format.py
+    - 📄 check_raw_csv_138.py
+    - 📄 check_remaining_unknown.py
+    - 📄 check_staging_columns.py
+    - 📄 check_summons_backfill.py
+    - 📄 check_summons_date_range.py
+    - 📄 check_summons_structure.py
+    - 📄 check_traffic_badges_in_master.py
+    - 📄 Cleanup-BenchmarkDirectories.ps1
+    - 📄 compare_csv_vs_staging.py
+    - 📄 compare_policy_training_delivery.py
+    - 📄 compare_response_time_results.py
+    - 📄 compare_summons_all_bureaus.py
+    - 📄 compare_summons_deptwide.py
+    - 📄 compare_traffic_counts.py
+    - 📄 compare_vcs_time_report_exports.py
+    - 📄 count_patrol_m_p_from_eticket.py
+    - 📄 date_inference_logic.py
+    - 📄 debug_december_paytypes.py
+    - 📄 debug_verification.py
+    - 📄 december_2025_verification_results.csv
+    - 📄 Deploy-VisualExportMapping.ps1
+    - 📄 diagnose_badge_normalization.py
+    - 📄 diagnose_benchmark_data.py
+    - 📄 diagnose_community_engagement_missing.py
+    - 📄 diagnose_summons_assignment_mapping.py
+    - 📄 diagnose_summons_blank_bureau.py
+    - 📄 diagnose_summons_missing_months.py
+    - 📄 diagnose_summons_top5_vs_deptwide.py
+    - 📄 diagnose_traffic_gap.py
+    - 📄 find_missing_badge.py
+    - 📄 find_unknown_badges.py
+    - 📄 fix_assignment_master.py
+    - 📄 fix_summons_classification.py
+    - 📄 fix_summons_wg2_from_assignment.py
+    - 📄 generate_summons_integrity_report.py
+    - 📄 inspect_detectives_excel.ps1
+    - 📄 merge_backfill_now.py
+    - 📄 normalize_visual_export_for_backfill.py
+    - 📄 normalize_visual_export_for_backfill_v2.py
+    - 📄 overtime_timeoff_with_backfill.py
+    - 📄 patch_summons_direct.py
+    - 📄 path_config.py
+    - 📄 Power BI benchmark report visualization data issues.zip
+    - 📄 Pre_Flight_Validation.py
+    - 📄 process_powerbi_exports.py
+    - 📄 process_powerbi_exports_BACKUP.py
+    - 📄 process_powerbi_exports_BACKUP_20260212_220953.py
+    - 📄 process_powerbi_exports_CORRECTED.py
+    - 📄 process_powerbi_exports_FINAL.py
+    - 📄 process_powerbi_exports_PATCH.txt
+    - 📄 process_visual_exports.bat
+    - 📄 remerge_wg2.py
+    - 📄 Rename-MonthlyReportFolders.ps1
+    - 📄 reorganize_processed_exports.py
+    - 📄 response_time_fresh_calculator.py
+    - 📄 restore_fixed_from_backfill.py
+    - 📄 run_all_etl.bat
+    - 📄 run_all_etl.ps1
+    - 📄 run_etl_script.ps1
+    - 📄 run_summons_pipeline.py
+    - 📄 run_summons_with_overrides.py
+    - 📄 show_expected_january.py
+    - 📄 summons_backfill_merge.py
+    - 📄 summons_derived_outputs.py
+    - 📄 summons_etl_normalize.py
+    - 📄 test_classification.py
+    - 📄 test_pipeline.bat
+    - 📄 update_assignment_master_peo.ps1
+    - 📄 update_mapping_folders.py
+    - 📄 update_traffic_wg2.py
+    - 📄 validate_13_month_window.py
+    - 📄 validate_exports.py
+    - 📄 validate_outputs.py
+    - 📄 verify_assignment_fix.py
+    - 📄 verify_december_2025_overtime.py
+    - 📄 verify_summons_remediation.py
+    - 📄 verify_traffic_updates.py
+  - 📁 Standards
+    - 📁 config
+      - 📁 powerbi_visuals
+        - 📄 README.md
+        - 📄 visual_export_mapping.json
+  - 📁 verifications
+    - 📁 reports
+      - 📄 ARRESTS_MONTHLY_VERIFICATION_REPORT.md
+      - 📄 OVERTIME_TIMEOFF_MONTHLY_VERIFICATION_REPORT.md
+    - 📄 arrests_verifier.py
+    - 📄 etl_verification_framework.py
+    - 📄 overtime_timeoff_verifier.py
+    - 📄 README.md
+    - 📄 run_all_verifications.py
+  - 📄 .gitignore
+  - 📄 Assignment_Master_V2.csv
+  - 📄 benchmark_diagnostic_20260214_001237.json
+  - 📄 benchmark_DIAGNOSTIC_VERSION.csv
+  - 📄 benchmark_DIAGNOSTIC_VERSION.xlsx
+  - 📄 benchmark_ROBUST_VERSION.csv
+  - 📄 benchmark_ROBUST_VERSION.xlsx
+  - 📄 benchmark_ULTRA_SIMPLE.csv
+  - 📄 benchmark_ULTRA_SIMPLE.xlsx
+  - 📄 CHANGELOG.md
+  - 📄 Claude.md
+  - 📄 claude_code_prompt_update_mapping_json.md
+  - 📄 create_test_exports.py
+  - 📄 gemini_prompt_extract_visual_export_config.md
+  - 📄 gemini_visual_export_config logic.json
+  - 📄 gemini_visual_export_config logic.md
+  - 📄 I need the count of Moving (M) and Parking (P) su....xlsx
+  - 📄 Master_Automation.code-workspace
+  - 📄 overtime_timeoff_backfill.txt
+  - 📄 README.md
+  - 📄 requirements.txt
+  - 📄 run_summons_etl.py
+  - 📄 SUMMARY.md
+  - 📄 verify_migration.ps1

@@ -1,0 +1,650 @@
+current_rows: dict[tuple[str, str, str], float] = {}
+    if target.exists():
+        with target.open("r", newline="", encoding="utf-8-sig") as f:
+            r = csv.DictReader(f)
+            for row in r:
+                ym = (row.get("YearMonth") or "").strip()
+                cls = (row.get("Class") or "").strip()
+                met = (row.get("Metric") or "").strip()
+                hrs = (row.get("Hours") or "").strip()
+                if not ym or not cls or not met or hrs == "":
+                    continue
+                try:
+                    v = float(hrs)
+                except ValueError:
+                    continue
+                current_rows[(ym, cls, met)] = v
+
+    # Parse backfill (WIDE expected; LONG also supported)
+    with backfill_csv.open("r", newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        if not reader.fieldnames:
+            raise ValueError("Backfill CSV has no headers")
+
+        time_col = "Time_Category" if "Time_Category" in reader.fieldnames else ("Time Category" if "Time Category" in reader.fieldnames else None)
+        if not time_col:
+            raise ValueError(f"Backfill CSV missing Time_Category column. Found: {reader.fieldnames}")
+
+        is_long = ("PeriodLabel" in reader.fieldnames) and any(c in reader.fieldnames for c in ("Value", "Sum of Value"))
+        value_col = None
+        if is_long:
+            value_col = "Value" if "Value" in reader.fieldnames else "Sum of Value"
+
+        # Collect accrual backfill values: (YearMonth, Class, Metric) -> Hours
+        backfill_rows: dict[tuple[str, str, str], float] = {}
+
+        def add_value(period_label: str, category: str, value: float) -> None:
+            # Only accrual categories
+            if not category.startswith("Accrued "):
+                return
+            # Skip window-external months
+            ym = _periodlabel_to_yearmonth(period_label)
+            if ym not in window_set:
+                return
+            # Map to monthly_breakdown schema
+            metric = "Accrued Comp. Time" if category.startswith("Accrued Comp. Time") else "Accrued Overtime"
+            cls = "NonSworn" if "Non-Sworn" in category else "Sworn"
+            backfill_rows[(ym, cls, metric)] = float(value)
+
+        if is_long:
+            for row in reader:
+                cat = (row.get(time_col) or "").strip()
+                pl = (row.get("PeriodLabel") or "").strip()
+                raw = (row.get(value_col) or "").strip()
+                if not cat or not pl or raw == "":
+                    continue
+                try:
+                    v = float(raw)
+                except ValueError:
+                    continue
+                add_value(pl, cat, v)
+        else:
+            # WIDE: month columns + Time_Category column
+            month_cols = [c for c in reader.fieldnames if c and c != time_col]
+            for row in reader:
+                cat = (row.get(time_col) or "").strip()
+                if not cat:
+                    continue
+                for col in month_cols:
+                    if col == time_col:
+                        continue
+                    pl = col.strip()
+                    raw = (row.get(col) or "").strip()
+                    if raw == "":
+                        continue
+                    try:
+                        v = float(raw)
+                    except ValueError:
+                        continue
+                    add_value(pl, cat, v)
+
+    # Compose final file rows:
+    # - For months prior to end_month: use backfill (must exist for full history)
+    # - For end_month: prefer current (v10) values; fallback to backfill if missing
+    end_ym = f"{end_month.year:04d}-{end_month.month:02d}"
+    keys: list[tuple[str, str, str]] = []
+    for m in months:
+        ym = f"{m.year:04d}-{m.month:02d}"
+        for cls in ("NonSworn", "Sworn"):
+            for metric in ("Accrued Comp. Time", "Accrued Overtime"):
+                keys.append((ym, cls, metric))
+
+    out_lines: list[tuple[str, str, str, float]] = []
+    missing: list[tuple[str, str, str]] = []
+    for k in keys:
+        ym, cls, metric = k
+        if ym == end_ym and k in current_rows:
+            out_lines.append((ym, cls, metric, current_rows[k]))
+        elif k in backfill_rows:
+            out_lines.append((ym, cls, metric, backfill_rows[k]))
+        elif k in current_rows:
+            out_lines.append((ym, cls, metric, current_rows[k]))
+        else:
+            missing.append(k)
+            out_lines.append((ym, cls, metric, 0.0))
+
+    if dry_run:
+        print(f"[DRY RUN] Would write accrual history to: {target}")
+        if missing:
+            print(f"[DRY RUN][WARN] Missing accrual backfill values for {len(missing)} keys (will write 0.0).") return
+
+    analytics_folder.mkdir(parents=True, exist_ok=True)
+    with target.open("w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(["YearMonth", "Class", "Metric", "Hours"])
+        for ym, cls, metric, hrs in out_lines:
+            w.writerow([ym, cls, metric, f"{hrs}"])
+
+    print(f"[OK] monthly_breakdown.csv backfilled: {target}")
+    if missing:
+        print(f"[WARN] Missing accrual values for {len(missing)} month/class/metric keys; wrote 0.0 for those cells.") def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--backfill-root",
+        default=r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill",
+        help="Root folder containing Backfill\\YYYY_MM\\vcs_time_report\\... CSVs",
+    )
+    parser.add_argument("--dry-run", action="store_true", help="Show what would happen without executing.") args = parser.parse_args()
+
+    overtime_timeoff_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff")
+    overtime_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime")
+    time_off_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off")
+    backfill_root = Path(args.backfill_root)
+
+    paths = Paths(
+        overtime_timeoff_dir=overtime_timeoff_dir,
+        overtime_dir=overtime_dir,
+        time_off_dir=time_off_dir,
+        backfill_root=backfill_root,
+        v10_script=overtime_timeoff_dir / "overtime_timeoff_13month_sworn_breakdown_v10.py",
+        xls_to_xlsx_multi=overtime_dir / "xls_to_xlsx_archiver_com_multi.py",
+        restore_script=Path(__file__).resolve().parent / "restore_fixed_from_backfill.py",
+    )
+
+    today = date.today()
+    # v10 window ends on previous month
+    end_month = prev_month(today)
+    start_month = end_month.replace(year=end_month.year - 1)  # 13-month window start month
+
+    # Backfill should come from the CURRENT end_month (e.g., if end is 2025_12, backfill is 2025_12)
+    # Try current month first, then fallback to previous month if current doesn't exist
+    backfill_month = end_month
+    backfill_folder = backfill_root / month_key_yyyy_mm(backfill_month) / "vcs_time_report"
+    if not backfill_folder.exists():
+        # Fallback to previous month's backfill
+        backfill_month = prev_month(end_month)
+        print(f"[INFO] Current month backfill not found, using previous month: {month_key_yyyy_mm(backfill_month)}")
+
+    fixed_path = paths.overtime_timeoff_dir / "output" / expected_fixed_filename(start_month, end_month)
+
+    print(f"[INFO] Window end month: {month_key_yyyy_mm_dash(end_month)}")
+    print(f"[INFO] Expected FIXED: {fixed_path}")
+    print(f"[INFO] Backfill month: {month_key_yyyy_mm(backfill_month)}")
+
+    ensure_month_exports_are_xlsx(paths, end_month, dry_run=bool(args.dry_run))
+    run_v10(paths, dry_run=bool(args.dry_run))
+
+    if not fixed_path.exists() and not args.dry_run:
+        # Fallback: pick newest FIXED file if name differs for any reason
+        out_dir = paths.overtime_timeoff_dir / "output"
+        candidates = sorted(out_dir.glob("FIXED_monthly_breakdown_*.csv"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if not candidates:
+            raise FileNotFoundError(f"No FIXED_monthly_breakdown_*.csv found in {out_dir}")
+        fixed_path = candidates[0]
+        print(f"[WARN] Expected FIXED not found; using newest: {fixed_path}")
+
+    backfill_csv = find_backfill_csv(paths.backfill_root, backfill_month)
+    print(f"[INFO] Using backfill CSV: {backfill_csv}")
+
+    restore_fixed(paths, fixed_path=fixed_path, backfill_csv=backfill_csv, dry_run=bool(args.dry_run))
+
+    # Backfill accrual history for the 13-month window so Power BI accrual rows are populated
+    backfill_monthly_breakdown_from_backfill(
+        backfill_csv=backfill_csv,
+        analytics_folder=paths.overtime_timeoff_dir / "analytics_output",
+        start_month=start_month,
+        end_month=end_month,
+        dry_run=bool(args.dry_run),
+    )
+
+    print("[OK] Pipeline complete.") return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+
+```
+
+Creating a summary document of the fixes and testing the changes:
+
+
+Both scripts compile successfully. Summary of Phase 2 fixes:
+
+## Phase 2: ETL Pipeline Agent - Monthly Accrual Fixes
+
+### Issues fixed
+
+1. December 2025 export file discovery
+   - Problem: Wrapper script looked for files in the root directories, but actual files are in `export/month/{year}/` subdirectories. - Fix: Updated `ensure_month_exports_are_xlsx()` to search in the correct subdirectory structure with case-insensitive matching. 2. Recursive file scanning in v10
+   - Problem: v10's `load_folder()` only scanned root directories, missing files in subdirectories. - Fix: Changed `glob()` to `rglob()` in both `load_folder()` and the raw time-off loading section to scan recursively. 3. Backfill month selection
+   - Problem: Script used the previous month's backfill, which might not exist. - Fix: Updated logic to try the current month's backfill first, with a fallback to the previous month if needed. ### Changes made
+
+1. `scripts/overtime_timeoff_with_backfill.py`:
+   - Updated `ensure_month_exports_are_xlsx()` to search in `export/month/{year}/` subdirectories
+   - Added case-insensitive filename matching
+   - Updated backfill month selection logic
+
+2. `02_ETL_Scripts/Overtime_TimeOff/overtime_timeoff_13month_sworn_breakdown_v10.py`:
+   - Changed `glob("*.xlsx")` to `rglob("*.xlsx")` in `load_folder()` function (line 369)
+   - Changed `glob("*.xlsx")` to `rglob("*.xlsx")` in raw time-off loading section (line 609)
+
+### Next steps
+
+1. Run the wrapper script to process December 2025:
+   ```powershell
+   python "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\overtime_timeoff_with_backfill.py"
+   ```
+
+2. Verify the output:
+   - Check that `FIXED_monthly_breakdown_2024-12_2025-12.csv` includes December 2025
+   - Verify bottom 5 fields (Comp, Sick Time, IOD, Military Leave, Used SAT Time) are populated for all months
+   - Confirm `monthly_breakdown.csv` includes December 2025 accrual data
+
+3. If December 2025 backfill is missing data:
+   - The December 2025 backfill file only goes through 10-25 (October 2025)
+   - Export the visual again after processing December to include 11-25 and 12-25 for next month's run
+
+### Testing checkpoint
+
+After running the scripts, verify:
+- December 2025 data appears in output files
+- Bottom 5 fields no longer show zeros (restored from backfill)
+- Backfill restoration completed successfully
+
+The scripts should now be able to find and process December 2025 export files. Should I proceed with testing, or move to Phase 3 (Power Query Agent - Combined Outreach fix)? ```powershell
+   python "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\overtime_timeoff_with_backfill.py"
+```
+
+---
+
+**User**
+
+## Response for Cursor AI
+
+**Test Phase 2 changes before proceeding. ** This is a critical data issue. ### Why Test Now (Not Skip to Phase 3)
+
+1. **Critical path dependency**: Monthly Accrual data affects command staff reporting—December 2025 zeros and missing bottom 5 fields are blocking issues[1]
+2. **Validation required**: You made significant changes to file discovery logic (recursive scanning, subdirectory handling, backfill month selection) that need verification[2]
+3. **Cascading risk**: If Phase 2 outputs are wrong, Phase 3+ Power Query fixes won't matter—the underlying data will still be incorrect
+4. **Your workflow standard**: As a police analyst, you verify ETL output before building visuals on top of it
+
+### Phase 2 Testing Instructions
+
+**Run the wrapper script**:
+```powershell
+python "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\overtime_timeoff_with_backfill.py"
+```
+
+**Check these outputs immediately**:[2]
+
+1. **December 2025 presence**:
+   - Open `FIXED_monthly_breakdown_2024-12_2025-12.csv`
+   - Verify row exists for `12-25` (December 2025)
+   - Confirm accrual values are non-zero
+
+2. **Bottom 5 fields restoration**:
+   - Check the same CSV for these rows across all months (especially 12-25):
+     - Comp Time Used
+     - Sick Time Used  
+     - IOD (Injury on Duty)
+     - Military Leave Used
+     - Used SAT Time
+   - All should show actual values, not zeros
+
+3. **Analytics output**:
+   - Verify `analytics_output/monthly_breakdown.csv` also includes December 2025
+
+### Expected Issues to Watch For
+
+- **Backfill incomplete**: Your December 2025 backfill only goes through October 2025 —this means November and December usage data won't be backfilled yet (you'll need to re-export the backfill visual after this run)[2]
+- **File naming mismatches**: Case-insensitive matching should handle variations, but verify the script found the files (check console output)
+- **Path errors**: Recursive scanning is new—confirm no errors about missing directories
+
+### Decision Tree After Testing
+
+**If tests pass** ✓:
+- Document the outputs (screenshot or log snippet)
+- Proceed to Phase 3 (Combined Outreach query fix)
+- Add note to re-export backfill visual to include Nov/Dec 2025 for next month
+
+**If tests fail** ✗:
+- Check console output for specific errors
+- Verify export files actually exist at expected paths
+- Debug file discovery logic before moving forward
+- Do NOT proceed to Phase 3 until Phase 2 data is correct
+
+### Why This Matters for Your Role
+
+You're building a monthly report for command staff. Testing now ensures:[1]
+- Data accuracy before leadership sees it
+- No cascading errors into Power BI visuals
+- Documented verification trail (your standard practice)
+
+**Test first, then report results. ** Don't skip verification on critical data issues. [1](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/10459886/88376f25-6b5e-474e-ab72-79da411d9ad0/image.jpg)
+[2](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/10459886/397da813-2b59-4e3e-980d-fddc85a4b88d/overtime_timeoff_with_backfill.py)
+[3](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/10459886/62b427a4-b02b-4e50-9b54-bc4f4815bd19/image.jpg)
+
+---
+
+**Cursor**
+
+Running Phase 2 tests now to verify December 2025 processing and backfill restoration before proceeding. Excellent! Pipeline ran successfully. Now verifying the outputs:
+
+## ✅ Phase 2 Test Results: SUCCESS
+
+### Verification Summary
+
+**1. December 2025 Processing ✓**
+- **FIXED_monthly_breakdown_2024-12_2025-12.csv**: Row 14 contains December 2025 data
+- **Analytics monthly_breakdown.csv**: Rows 50-53 contain December 2025 accrual data by class
+- Console output confirms: `Usage December 2025: Sick=4312.00, SAT=2714.00, Vac=5251.00, CompUsed=1051.00, Mil=192.00, IOD=128.00`
+
+**2. Bottom 5 Fields Restoration ✓**
+All usage categories now show actual values (not zeros) for December 2025:
+- **Employee Sick Time**: 4,312 hours
+- **Used SAT Time**: 2,714 hours  
+- **Comp (Hours)**: 1,051 hours
+- **Military Leave**: 192 hours
+- **Injured on Duty**: 128 hours
+
+**3. Backfill Restoration ✓**
+- Rows updated: 11/13 months (console output shows `Rows updated: 11/13`)
+- Cells updated: 55 values restored from backfill
+- Prior months (12-24 through 10-25) have backfilled usage data
+- November and December 2025 have freshly calculated values from v10
+
+**4. File Discovery ✓**
+Console output confirms correct file paths found:
+```
+[INFO] Found export files:
+  Overtime: C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\export\month\2025\2025_12_otactivity.xlsx
+  Time Off: C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\month\2025\2025_12_timeoffactivity.xlsx
+```
+
+### Key Observations
+
+1. **Recursive scanning works**: v10 successfully found files in `export/month/2025/` subdirectories
+2. **Accrual data populated**: Both Sworn and NonSworn accruals for December 2025 are calculated
+3. **Usage metrics complete**: All 6 usage categories have real values for December 2025
+4. **Backfill applied correctly**: Prior 11 months restored from December backfill visual export
+
+### Action Items
+
+1. **Re-export backfill visual**: After your next Power BI refresh, export the "Monthly Accrual and Usage Summary" visual again to include November and December 2025 data for next month's backfill
+2. **Power BI refresh**: Update Power BI to pull the new FIXED file that includes December 2025
+
+### Phase 2 Checkpoint: PASSED ✓
+
+All test criteria met:
+- ✅ December 2025 data appears in output files
+- ✅ Bottom 5 fields no longer show zeros  
+- ✅ Backfill restoration completed successfully
+
+**Ready to proceed to Phase 3** (Power Query Agent - Combined Outreach fix). ```plaintext
+[INFO] Found export files:
+  Overtime: C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\export\month\2025\2025_12_otactivity.xlsx
+  Time Off: C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\month\2025\2025_12_timeoffactivity.xlsx
+```
+
+---
+
+**User**
+
+## Response for Cursor AI
+
+**Proceed to Phase 3. ** Phase 2 checkpoint passed with full verification. ### Phase 2 Validation Complete ✓
+
+Your ETL Pipeline Agent work is production-ready:
+
+- **December 2025 processed**: 13-month rolling window now includes current month data
+- **Bottom 5 fields restored**: All usage categories (Sick Time: 4,312 hrs, SAT Time: 2,714 hrs, Comp: 1,051 hrs, Military: 192 hrs, IOD: 128 hrs) showing actual values
+- **File discovery working**: Recursive scanning found files in correct subdirectory structure (`export/month/2025/`)
+- **Backfill applied**: 11/13 months restored with 55 cells updated from backfill data
+- **Console logs clean**: No errors, proper INFO-level logging throughout execution
+
+### Phase 3 Execution Guidance
+
+**For the Power Query Agent**, focus on the Combined Outreach query issue:
+
+**Target query**: `___Combined_Outreach_All` (line ~1002 in M code file)
+
+**Diagnostic steps**:
+1. **Verify ETL output exists**:
+   - Check path: `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\output\`
+   - Look for: `community_engagement_data_*.csv` (with recent timestamp)
+   - Last known output: 12/10/25 (stale)
+
+2. **Check ETL script execution**:
+   - Verify script ran recently: `02_ETL_Scripts\Community_Engagment\src\community_engagement_etl.py`
+   - Check for error logs or last run timestamp
+   - If script hasn't run, determine why (missing source data, scheduler issue, manual run needed)
+
+3. **Fix M code file discovery**:
+   - Current query uses `Folder.Files` with dynamic sorting
+   - Verify it's sorting by `Date modified` descending to get latest file
+   - Check if folder path is correct (should match verified ETL output location)
+   - Ensure query isn't filtering out the latest file
+
+**Testing checkpoint**: After Phase 3, verify:
+- Combined Outreach query refreshes without errors
+- Query picks up latest community engagement CSV file
+- Output date is current (not stuck at 12/10/25)
+
+### Post-Phase 2 Notes
+
+**Action item for later** (not blocking):
+- After your next monthly Power BI refresh, re-export the Monthly Accrual backfill visual to include November and December 2025 data—this will populate those months in next run's backfill restoration
+
+**For your documentation**:
+- Phase 2 fixed the critical data issue command staff needs
+- December 2025 accrual data is now accurate and ready for Power BI visual updates
+- ETL pipeline now handles subdirectory file structures correctly
+
+**Proceed to Phase 3. ** The Combined Outreach query fix is next priority, and it's independent of Phase 2 outputs. [1][2]
+
+[1](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/10459886/88376f25-6b5e-474e-ab72-79da411d9ad0/image.jpg)
+[2](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/10459886/397da813-2b59-4e3e-980d-fddc85a4b88d/overtime_timeoff_with_backfill.py)
+[3](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/10459886/62b427a4-b02b-4e50-9b54-bc4f4815bd19/image.jpg)
+
+---
+
+**Cursor**
+
+Starting Phase 3 (Power Query Agent): Diagnosing and fixing `___Combined_Outreach_All` query stuck at 12/10/25. Latest ETL output is from 12/10/25 (not updating). Checking ETL script and source data:
+
+**Issue found**: Latest ETL output is from 12/10/25 (December 10, 2025) at 2:44 AM, matching the user's report that the visual didn't update. The M code logic appears correct—it uses dynamic file discovery sorting by "Date modified" descending. The problem is the ETL script hasn't run recently. Community Engagement ETL is configured in the orchestrator. The issue is that the script last ran on 12/10/25 and hasn't been executed since. Let me check if the script is actually configured correctly and run it manually:
+
+`deploy_production.py` is a deployment script, not the ETL script itself. Let me find and run the actual ETL script:
+
+Perfect! ETL script ran successfully. Verifying the new output file:
+
+Output file wasn't created. Let me check the export location in the script:
+
+**Found it! ** New output file was created in `src/output/` subdirectory, not the parent `output/` folder. The M code is looking in the wrong directory. Updating the M code to point to the correct output path and updating the ETL configuration:
+
+```objective-c
+// ___Arrest_Categories
+// ___Arrest_Categories
+// 🕒 2025-01-05-15-15-00
+// Project: Arrest_Analysis/Arrest_Categories
+// Author: R. A. Carucci
+// Purpose: Simplified M Code with defensive type handling to avoid Culture errors
+
+let
+    // ═══ A) Load latest Power BI ready file ═══════════════════════
+    FolderFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"),
+    
+    PowerBIFiles = Table.SelectRows(
+        FolderFiles,
+        each [Extension] = ".xlsx" and Text.Contains([Name], "PowerBI_Ready")
+    ),
+    
+    Sorted = Table.Sort(PowerBIFiles, {{"Date modified", Order.Descending}}),
+    
+    // Load the latest file
+    Source = if Table.RowCount(Sorted) > 0 then
+        Excel.Workbook(Sorted{0}[Content], null, true){0}[Data]
+    else
+        error "No Power BI ready files found",
+
+    // ═══ B) Basic data cleaning ═══════════════════════════════════
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+    
+    // Filter to previous month - handle multiple date column name variations
+    ToDate = (x) => 
+        if x = null or x = "" then
+            null
+        else
+            try Date.From(x) otherwise
+            try if Number.From(x) > 0 and Number.From(x) < 1000000 then
+                Date.From(Number.From(x))
+            else
+                null
+            otherwise
+            try Date.FromText(Text.From(x)) otherwise null,
+    
+    Prev = Date.AddMonths(Date.From(DateTime.LocalNow()), -1),
+    PrevY = Date.Year(Prev),
+    PrevM = Date.Month(Prev),
+    
+    // Find the date column (handle variations)
+    DateColumnName = if Table.HasColumns(Headers, "Arrest Date") then
+        "Arrest Date"
+    else if Table.HasColumns(Headers, "Arrest_Date") then
+        "Arrest_Date"
+    else if Table.HasColumns(Headers, "ArrestDate") then
+        "ArrestDate"
+    else if Table.HasColumns(Headers, "Date") then
+        "Date"
+    else
+        null,
+    
+    DateFiltered = if DateColumnName = null then
+        #table({"Name", "Age", "Address", "Charge", "Arrest Date"}, {})
+    else
+        Table.SelectRows(
+            Headers,
+            each let d = ToDate(Record.Field(_, DateColumnName)) in d <> null and Date.Year(d) = PrevY and Date.Month(d) = PrevM
+        ),
+
+    // ═══ C) Handle empty results gracefully ═══════════════════════
+    HasData = Table.RowCount(DateFiltered) > 0,
+    
+    // Use Python-processed geographic data directly
+    WithHomeCategory = if not HasData then
+        #table({"Name", "Age", "Address", "Charge", "Arrest Date", "Home_Category_Final"}, {})
+    else
+        Table.AddColumn(
+            DateFiltered,
+            "Home_Category_Final",
+            each
+                if Table.HasColumns(DateFiltered, "Home_Category") then
+                    [Home_Category]
+                else if Text.Contains(Text.Upper([Address] ? ? ""), "HACKENSACK") then
+                    "Local"
+                else
+                    "Check Data",
+            type text
+        ),
+
+    // ═══ D) Simple charge categorization ═══════════════════════════
+    AddChargeCategory = if not HasData then
+        WithHomeCategory
+    else
+        Table.AddColumn(
+            WithHomeCategory,
+            "ChargeCategory",
+            each
+                let charge = Text.Upper([Charge] ? ? "") in
+                if Text.Contains(charge, "ASSAULT") then "Assault"
+                else if Text.Contains(charge, "SHOPLIFTING") then "Theft"
+                else if Text.Contains(charge, "BURGLARY") then "Burglary"
+                else if Text.Contains(charge, "ROBBERY") then "Robbery"
+                else if Text.Contains(charge, "WARRANT") then "Warrant"
+                else if Text.Contains(charge, "DWI") then "DWI"
+                else if Text.Contains(charge, "DRUG") then "Drug Related"
+                else if Text.Contains(charge, "WEAPON") then "Weapons"
+                else "Other",
+            type text
+        ),
+
+    // ═══ E) Data quality indicators ═══════════════════════════════
+    AddDataQuality = if not HasData then
+        Table.AddColumn(AddChargeCategory, "DataQualityScore", each 0, type number)
+    else if Table.HasColumns(AddChargeCategory, "DataQualityScore") then
+        AddChargeCategory
+    else
+        Table.AddColumn(
+            AddChargeCategory,
+            "DataQualityScore",
+            each
+                (if [Name] <> null and [Name] <> "" then 1 else 0) +
+                (if [Age] <> null and Number.From([Age] ? ? 0) > 0 then 1 else 0) +
+                (if [Address] <> null and [Address] <> "" then 1 else 0) +
+                (if [Charge] <> null and [Charge] <> "" then 1 else 0) +
+                (if Table.HasColumns(AddChargeCategory, "ZIP") and [ZIP] <> null then 1 else 0),
+            type number
+        ),
+
+    // ═══ F) NO TYPE CONVERSION - Avoid Culture errors ═════════════
+    // Skip all type conversions to prevent Culture errors
+    // Power BI will auto-detect types from the Excel source
+    TypedData = AddDataQuality,
+
+    // ═══ G) Add source tracking ═══════════════════════════════════
+    WithSourceInfo = Table.AddColumn(
+        TypedData,
+        "SourceFile",
+        each if Table.RowCount(Sorted) > 0 then Sorted{0}[Name] else "Unknown",
+        type text
+    )
+
+in
+    WithSourceInfo
+
+// ___Arrest_Distro
+// ___Arrest_Distro
+// 🕒 2025-08-07-14-45-00
+// Project: Arrest_Analysis/Arrest_Distro
+// Author: R. A. Carucci
+// Purpose: Process arrest data from most recent Power BI ready file with
+// enhanced null handling Fixed: Resolved all column conflict issues
+
+let
+    // 1. Load folder of Power BI ready files
+    Source = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"),
+    
+    // 2. Filter for UCR-updated files (CSV or Excel)
+    PowerBIFiles = Table.SelectRows(Source, each
+        [Attributes]?[Hidden]? <> true and
+        (Text.EndsWith([Name], ".xlsx") or Text.EndsWith([Name], ".csv")) and
+        (Text.Contains([Name], "ucr_updated") or Text.Contains([Name], "POWERBI_READY") or Text.Contains([Name], "PowerBI_Ready"))
+    ),
+    
+    // 3. Sort by date modified to get the most recent file
+    SortedFiles = Table.Sort(PowerBIFiles, {{"Date modified", Order.Descending}}),
+    
+    // 4. Diagnostic: record which file we're loading
+    LatestFile = if Table.RowCount(SortedFiles) > 0 then SortedFiles{0} else error "No Power BI ready files found",
+    FileName = LatestFile[Name],
+    FileModifiedDate = LatestFile[Date modified],
+    DiagnosticInfo = Table.AddColumn(Table.FromRecords({LatestFile}), "FileDebug", each "Processing: " & [Name] & " (Modified: " & Date.ToText([Date modified]) & ")"),
+    
+    // 5. Load the most recent file
+    LoadedData = Table.AddColumn(DiagnosticInfo, "Data", each 
+        try 
+            if Text.EndsWith([Name], ".csv") then
+                let
+                    CsvData = Csv.Document([Content], [Delimiter=",", Columns=null, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+                    PromotedHeaders = Table.PromoteHeaders(CsvData, [PromoteAllScalars=true])
+                in
+                    PromotedHeaders
+            else
+                let
+                    ExcelFile = Excel.Workbook([Content], null, true),
+                    FirstSheet = ExcelFile{0}[Data],
+                    PromotedHeaders = Table.PromoteHeaders(FirstSheet, [PromoteAllScalars=true])
+                in
+                    PromotedHeaders
+        otherwise error "Failed to load file: " & [Name]
+    ),
+    
+    // 6. Extract the data table
+    DataTable = LoadedData{0}[Data],
+    
+    // 7. Remove entirely blank rows
+    RemoveNulls = Table.SelectRows(DataTable, each List.NonNullCount(Record.FieldValues(_))>0),
+    
+    // 8.

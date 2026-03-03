@@ -1,0 +1,41 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "dataset",
+    "docs",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "data",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "13-month",
+        "visuals",
+        "json",
+        "window",
+        "nibrs",
+        "date"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "{\n  \"metadata\": {\n    \"title\": \"Attached prompt and context files\",\n    \"dates\": {\n      \"created\": \"2/12/2026 20:57:24\",\n      \"updated\": \"2/12/2026 21:31:52\",\n      \"exported\": \"2/12/2026 21:39:39\"\n    },\n    \"link\": \"https://claude.ai...",
+      "first_line": "{"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-12T21:40:00.446976",
+  "department": "admin"
+}

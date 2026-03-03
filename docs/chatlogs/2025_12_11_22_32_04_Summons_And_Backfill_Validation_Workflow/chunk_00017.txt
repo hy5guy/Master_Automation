@@ -1,0 +1,565 @@
+Output:
+- A short summary of each step with the exact counts (Patrol_M, Patrol_P, totals by bureau/type for 11-25, dept-wide M/P for 11-25)
+- A mismatch report table if any comparisons fail
+- Any parsing assumptions made for the raw e-ticket file
+
+---
+
+**User**
+
+top 5 moving m code // 🕒 2025_11_10_13_20_49
+// Project: SummonsMaster/Top_5_Moving_Violations_Direct
+// Author: R. A. Carucci
+// Purpose: Generate Top 5 Moving Violations by Officer for Previous Month
+// (Direct Excel Reference)
+
+let
+  // Paths
+  ExcelPath = "C:/Users/carucci_r/OneDrive - City of Hackensack/03_Staging/Summons/summons_powerbi_latest.xlsx",
+  AMPath    = "C:/Users/carucci_r/OneDrive - City of Hackensack/09_Reference/Personnel/Assignment_Master_V2.csv",
+
+  // Load Excel
+  XlWB   = Excel.Workbook(File.Contents(ExcelPath), null, true),
+  XlRaw  = XlWB{[Item="Summons_Data", Kind="Sheet"]}[Data],
+  XlHdr  = Table.PromoteHeaders(XlRaw, [PromoteAllScalars=true]),
+  XlType = Table.TransformColumnTypes(
+             XlHdr,
+             {
+               {"PADDED_BADGE_NUMBER", type text},
+               {"OFFICER_DISPLAY_NAME", type text},
+               {"WG1", type text}, {"WG2", type text}, {"WG3", type text},
+               {"WG4", type text}, {"WG5", type text},
+               {"TICKET_NUMBER", type text},
+               {"ISSUE_DATE", type datetime},
+               {"VIOLATION_NUMBER", type text},
+               {"VIOLATION_TYPE", type text},
+               {"TYPE", type text}, {"STATUS", type text},
+               {"TOTAL_PAID_AMOUNT", type number},
+               {"FINE_AMOUNT", type number},
+               {"COST_AMOUNT", type number},
+               {"MISC_AMOUNT", type number},
+               {"Year", Int64.Type}, {"Month", Int64.Type},
+               {"YearMonthKey", Int64.Type}, {"Month_Year", type text},
+               {"ASSIGNMENT_FOUND", type logical},
+               {"DATA_QUALITY_SCORE", type number},
+               {"DATA_QUALITY_TIER", type text},
+               {"SOURCE_FILE", type text},
+               {"PROCESSING_TIMESTAMP", type datetime},
+               {"ETL_VERSION", type text}
+             }
+           ),
+
+  // Load Assignment Master
+  AM_Csv  = Csv.Document(File.Contents(AMPath), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+  AM_Hdr  = Table.PromoteHeaders(AM_Csv, [PromoteAllScalars=true]),
+
+  // Normalize join keys in AM
+  AM_KeyPrep1 = Table.AddColumn(
+                  AM_Hdr,
+                  "KEY_BADGE",
+                  each
+                    let
+                      b1 = try Text.From([PADDED_BADGE_NUMBER]) otherwise null,
+                      b2 = if b1 = null then try Text.From([BADGE_PAD]) otherwise null else b1,
+                      b3 = if b2 = null then try Text.From([Badge_Padded]) otherwise null else b2,
+                      b4 = if b3 = null then try Text.From([BadgeNumberPadded]) otherwise null else b3
+                    in b4,
+                  type text
+                ),
+  AM_KeyPrep2 = Table.TransformColumns(AM_KeyPrep1, {{"KEY_BADGE", each if _ = null then "" else _, type text}}),
+  AM_Slim     = Table.SelectColumns(AM_KeyPrep2, {"KEY_BADGE", "WG2"}, MissingField.Ignore),
+
+  // Normalize join keys in Excel
+  Xl_KeyPrep = Table.AddColumn(
+                 XlType,
+                 "KEY_BADGE",
+                 each if [PADDED_BADGE_NUMBER] <> null then Text.From([PADDED_BADGE_NUMBER]) else "",
+                 type text
+               ),
+
+  // Merge to bring WG2 from AM
+  Merged   = Table.NestedJoin(Xl_KeyPrep, {"KEY_BADGE"}, AM_Slim, {"KEY_BADGE"}, "AM", JoinKind.LeftOuter),
+  Expanded = Table.ExpandTableColumn(Merged, "AM", {"WG2"}, {"WG2_AM"}),
+
+  // Fill WG2 from AM when missing in Excel
+  WithWG2  = Table.AddColumn(
+               Expanded,
+               "WG2_Filled",
+               each if [WG2] <> null and [WG2] <> "" then [WG2] else [WG2_AM],
+               type text
+             ),
+
+  // Most recent month
+  MaxYMK   = List.Max(WithWG2[YearMonthKey]),
+  Recent   = Table.SelectRows(WithWG2, each [YearMonthKey] = MaxYMK),
+
+  // Moving violations only
+  Moving   = Table.SelectRows(Recent, each [TYPE] = "M"),
+
+  // Officer fallback if display is missing
+  WithOfficer = Table.AddColumn(
+                  Moving,
+                  "Officer_Effective",
+                  each if [OFFICER_DISPLAY_NAME] <> null and [OFFICER_DISPLAY_NAME] <> ""
+                       then [OFFICER_DISPLAY_NAME]
+                       else try [OFFICER_NAME_RAW] otherwise null,
+                  type text
+                ),
+
+  // Keep only rows with an assignment after fill
+  Assigned = Table.SelectRows(WithOfficer, each [WG2_Filled] <> null and [WG2_Filled] <> ""),
+
+  // Group, sort, top 5, rank
+  Grouped  = Table.Group(Assigned, {"Officer_Effective", "WG2_Filled"}, {{"Summons Count", each Table.RowCount(_), Int64.Type}}),
+  Sorted   = Table.Sort(Grouped, {{"Summons Count", Order.Descending}}),
+  Top5     = Table.FirstN(Sorted, 5),
+  Ranked   = Table.AddIndexColumn(Top5, "Rank", 1, 1),
+
+  // Final columns
+  Renamed  = Table.RenameColumns(Ranked, {{"Officer_Effective", "Officer"}, {"WG2_Filled", "Bureau"}}),
+  Final    = Table.ReorderColumns(Renamed, {"Rank", "Officer", "Bureau", "Summons Count"})
+in
+  Final
+
+Top 5 parking
+// 🕒 2025-09-08-17-30-00
+// Project: SummonsMaster/Top_5_Parking_Dynamic
+// Author: R. A. Carucci
+// Purpose: Generate Top 5 Parking Violations for Most Recent Month in Data
+
+let
+    // Load the current ATS Court Data directly from Excel
+    Source = Excel.Workbook(
+        File.Contents(
+            "C:/Users/carucci_r/OneDrive - City of Hackensack/03_Staging/Summons/summons_powerbi_latest.xlsx"
+        ),
+        null,
+        true
+    ),
+    ATS_Court_Data_Sheet = Source{[Item = "Summons_Data", Kind = "Sheet"]}[Data],
+    #"Promoted Headers" = 
+        Table.PromoteHeaders(ATS_Court_Data_Sheet, [PromoteAllScalars = true]),
+
+    // Set proper data types
+    #"Changed Type" = Table.TransformColumnTypes(
+        #"Promoted Headers",
+        {
+            {"PADDED_BADGE_NUMBER", type text},
+            {"OFFICER_DISPLAY_NAME", type text},
+            {"WG1", type text}, {"WG2", type text}, {"WG3", type text},
+            {"WG4", type text}, {"WG5", type text},
+            {"TICKET_NUMBER", type text},
+            {"ISSUE_DATE", type datetime},
+            {"VIOLATION_NUMBER", type text},
+            {"VIOLATION_TYPE", type text},
+            {"TYPE", type text}, {"STATUS", type text},
+            {"TOTAL_PAID_AMOUNT", type number},
+            {"FINE_AMOUNT", type number},
+            {"COST_AMOUNT", type number},
+            {"MISC_AMOUNT", type number},
+            {"Year", Int64.Type}, {"Month", Int64.Type},
+            {"YearMonthKey", Int64.Type}, {"Month_Year", type text},
+            {"ASSIGNMENT_FOUND", type logical},
+            {"DATA_QUALITY_SCORE", type number},
+            {"DATA_QUALITY_TIER", type text},
+            {"SOURCE_FILE", type text},
+            {"PROCESSING_TIMESTAMP", type datetime},
+            // --- TYPO FIXED ON THIS LINE ---
+            {"ETL_VERSION", type text}
+        }
+    ),
+
+    // Find the most recent month using the YearMonthKey for efficiency
+    MaxYearMonthKey = List.Max(#"Changed Type"[YearMonthKey]),
+
+    // Filter for the most recent month using the key
+    #"Filtered Recent Month" = 
+        Table.SelectRows(#"Changed Type", each [YearMonthKey] = MaxYearMonthKey),
+
+    // Filter for Parking violations only (TYPE = "P")
+    #"Filtered Parking Only" = 
+        Table.SelectRows(#"Filtered Recent Month", each [TYPE] = "P"),
+
+    // Filter out records without officer assignment
+    #"Filtered Assigned Officers" = Table.SelectRows(
+        #"Filtered Parking Only",
+        each [WG2] <> null and [WG2] <> ""
+    ),
+
+    // Group by Officer and count tickets
+    #"Grouped by Officer" = Table.Group(
+        #"Filtered Assigned Officers",
+        {"OFFICER_DISPLAY_NAME", "WG2"},
+        {{"Summons_Count", each Table.RowCount(_), type number}}
+    ),
+
+    // Sort by summons count descending
+    #"Sorted by Count" = 
+        Table.Sort(#"Grouped by Officer", {{"Summons_Count", Order.Descending}}),
+
+    // Take top 5
+    #"Top 5 Officers" = Table.FirstN(#"Sorted by Count", 5),
+
+    // Add rank column
+    #"Added Index" = Table.AddIndexColumn(#"Top 5 Officers", "Rank", 1, 1),
+
+    // Reorder columns for better display
+    #"Reordered Columns" = Table.ReorderColumns(
+        #"Added Index",
+        {"Rank", "OFFICER_DISPLAY_NAME", "WG2", "Summons_Count"}
+    ),
+
+    // Rename columns for better display
+    #"Renamed Columns" = Table.RenameColumns(
+        #"Reordered Columns",
+        {
+            {"OFFICER_DISPLAY_NAME", "Officer"},
+            {"WG2", "Bureau"},
+            {"Summons_Count", "Summons Count"}
+        }
+    )
+in
+    #"Renamed Columns"
+
+---
+
+**Cursor**
+
+Your **Top 5** M code is structurally solid (latest month via `MaxYMK`, filter `TYPE`, group/sort/top-N), but there are **two important correctness risks** you should fix:
+
+## 1) Counting rows vs summing `TICKET_COUNT`
+Right now both queries use `Table.RowCount(_)` as “Summons Count”. That is only correct if **each row = 1 ticket** (true for e-ticket detail rows), but it becomes **wrong** if any **aggregate/history rows** (or any rows with `TICKET_COUNT > 1`) ever appear in the “most recent month” window. **Fix:** group using `List.Sum([TICKET_COUNT])` instead of `Table.RowCount(_)`. Example replacement:
+
+```powerquery
+Grouped =
+    Table.Group(
+        Assigned,
+        {"Officer_Effective", "WG2_Filled"},
+        {{"Summons Count", each List.Sum([TICKET_COUNT]), Int64.Type}}
+    )
+```
+
+(Do the same in the parking query, grouping by `Officer` + `WG2`.) ## 2) Join key needs zero-padding (otherwise WG2 fill can silently fail)
+In your moving query, `KEY_BADGE` comes from `PADDED_BADGE_NUMBER`, but that column is often numeric-looking (e.g. `711` vs `0711`). If one side has `711` and the other has `0711`, your merge won’t match, and `WG2_AM` will stay null. **Fix:** normalize both keys to **4-digit text**:
+
+```powerquery
+AM_KeyPrep2 =
+    Table.TransformColumns(
+        AM_KeyPrep1,
+        {{"KEY_BADGE", each Text.PadStart(Text.Select(Text.From(_), {"0".."9"}), 4, "0"), type text}}
+    ),
+
+Xl_KeyPrep =
+    Table.AddColumn(
+        XlType,
+        "KEY_BADGE",
+        each Text.PadStart(Text.Select(Text.From([PADDED_BADGE_NUMBER]), {"0".."9"}), 4, "0"),
+        type text
+    )
+```
+
+## Parking query: recommend the same WG2 fill logic
+Your parking query currently **does not** merge with `Assignment_Master_V2.csv` to fill missing `WG2`. It will work as long as the ETL always populates `WG2`, but if you get any missing assignment enrichments again, you’ll reintroduce “blank bureau” exclusions. So I’d port the same **AM merge + WG2_Filled** logic into the parking query too. If you want, paste the actual “Top 5 Moving” and “Top 5 Parking” query files (or tell me where they live), and I’ll rewrite the full M code cleanly with these fixes applied end-to-end. ```plaintext
+Grouped =
+    Table.Group(
+        Assigned,
+        {"Officer_Effective", "WG2_Filled"},
+        {{"Summons Count", each List.Sum([TICKET_COUNT]), Int64.Type}}
+    )
+```
+
+```plaintext
+AM_KeyPrep2 =
+    Table.TransformColumns(
+        AM_KeyPrep1,
+        {{"KEY_BADGE", each Text.PadStart(Text.Select(Text.From(_), {"0".."9"}), 4, "0"), type text}}
+    ),
+
+Xl_KeyPrep =
+    Table.AddColumn(
+        XlType,
+        "KEY_BADGE",
+        each Text.PadStart(Text.Select(Text.From([PADDED_BADGE_NUMBER]), {"0".."9"}), 4, "0"),
+        type text
+    )
+```
+
+---
+
+**User**
+
+@Top 5 Moving Violations - Department Wide.csv @Top 5 Non-Parking Violations - Department Wide.csv well the numbers make me think that the dept wide table is off
+
+---
+
+**Cursor**
+
+I’m going to sanity-check this by recomputing the **Top 5 Moving** and **Top 5 Non‑Parking** directly from the current `summons_powerbi_latest.xlsx` (same filters the visuals use). That will tell us whether the **Dept‑Wide totals are wrong**, or whether the **Top‑5 queries are counting the wrong thing** (common issue: `RowCount` vs `Sum(TICKET_COUNT)` or wrong TYPE filter). ```python
+#!/usr/bin/env python3
+"""
+Diagnose Summons Top-5 exports vs Dept-wide totals. Reads the ETL staging workbook and computes:
+- Dept-wide totals by TYPE for the latest Month_Year
+- Top 10 officers by TYPE (moving M, parking P, non-parking != P)
+
+Uses Sum(TICKET_COUNT) so it works for both detail and aggregate rows.
+""" from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+import pandas as pd
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--xlsx", required=True, help="Path to summons_powerbi_latest.xlsx")
+    ap.add_argument("--month", default=None, help="Month_Year label (MM-YY). If omitted, uses max YearMonthKey.") args = ap.parse_args()
+
+    xlsx = Path(args.xlsx)
+    df = pd.read_excel(xlsx, sheet_name="Summons_Data")
+
+    # Normalize
+    df["YearMonthKey"] = pd.to_numeric(df.get("YearMonthKey"), errors="coerce")
+    df["Month_Year"] = df.get("Month_Year", "").astype(str).str.strip()
+    df["TYPE"] = df.get("TYPE", "").astype(str).str.strip().str.upper()
+    df["TICKET_COUNT"] = pd.to_numeric(df.get("TICKET_COUNT"), errors="coerce").fillna(0).astype(int)
+    df["OFFICER_DISPLAY_NAME"] = df.get("OFFICER_DISPLAY_NAME", "").astype(str).str.strip()
+    df["OFFICER_NAME_RAW"] = df.get("OFFICER_NAME_RAW", "").astype(str).str.strip()
+
+    # Pick month
+    if args.month:
+        month = args.month
+        cur = df[df["Month_Year"] == month].copy()
+    else:
+        ymk = int(df["YearMonthKey"].dropna().max())
+        cur = df[df["YearMonthKey"] == ymk].copy()
+        month = cur["Month_Year"].iloc[0] if not cur.empty else "?" if cur.empty:
+        raise SystemExit("No rows found for selected month.") print(f"Workbook: {xlsx}")
+    print(f"Month: {month}")
+    print(f"Rows: {len(cur):,}  Tickets(sum): {int(cur['TICKET_COUNT'].sum()):,}")
+
+    dept = cur.groupby("TYPE")["TICKET_COUNT"].sum().sort_values(ascending=False)
+    print("\n=== Dept-wide totals by TYPE (Sum TICKET_COUNT) ===")
+    print(dept.to_string())
+
+    # Officer effective
+    cur["Officer_Effective"] = cur["OFFICER_DISPLAY_NAME"]
+    mask_blank = (cur["Officer_Effective"] == "") | (cur["Officer_Effective"].str.lower() == "nan")
+    cur.loc[mask_blank, "Officer_Effective"] = cur.loc[mask_blank, "OFFICER_NAME_RAW"]
+
+    def top_n(filter_expr, label: str, n: int = 10) -> None:
+        sub = cur.loc[filter_expr].copy()
+        grp = (
+            sub.groupby("Officer_Effective", as_index=False)["TICKET_COUNT"].sum()
+            .sort_values("TICKET_COUNT", ascending=False)
+            .head(n)
+        )
+        print(f"\n=== Top {n} Officers: {label} (Sum TICKET_COUNT) ===")
+        print(grp.to_string(index=False))
+
+    top_n(cur["TYPE"] == "M", "Moving (TYPE=M)")
+    top_n(cur["TYPE"] == "P", "Parking (TYPE=P)")
+    top_n(cur["TYPE"] != "P", "Non-Parking (TYPE!=P)")
+
+    # Also show rowcount-based top5 (to catch RowCount vs Sum(TICKET_COUNT) issues)
+    def top_n_rowcount(filter_expr, label: str, n: int = 10) -> None:
+        sub = cur.loc[filter_expr].copy()
+        grp = (
+            sub.groupby("Officer_Effective", as_index=False)
+            .size()
+            .rename(columns={"size": "RowCount"})
+            .sort_values("RowCount", ascending=False)
+            .head(n)
+        )
+        print(f\"\n=== Top {n} Officers: {label} (RowCount) ===\")
+        print(grp.to_string(index=False))
+
+    top_n_rowcount(cur["TYPE"] == "M", "Moving (TYPE=M)")
+    top_n_rowcount(cur["TYPE"] != "P", "Non-Parking (TYPE!=P)")
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+```
+
+```python
+#!/usr/bin/env python3
+"""
+Diagnose Summons Top-5 exports vs Dept-wide totals. Reads the ETL staging workbook and computes:
+- Dept-wide totals by TYPE for the latest Month_Year
+- Top 10 officers by TYPE (moving M, parking P, non-parking != P)
+
+Uses Sum(TICKET_COUNT) so it works for both detail and aggregate rows.
+""" from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+import pandas as pd
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--xlsx", required=True, help="Path to summons_powerbi_latest.xlsx")
+    ap.add_argument("--month", default=None, help="Month_Year label (MM-YY). If omitted, uses max YearMonthKey.") args = ap.parse_args()
+
+    xlsx = Path(args.xlsx)
+    df = pd.read_excel(xlsx, sheet_name="Summons_Data")
+
+    # Normalize
+    df["YearMonthKey"] = pd.to_numeric(df.get("YearMonthKey"), errors="coerce")
+    df["Month_Year"] = df.get("Month_Year", "").astype(str).str.strip()
+    df["TYPE"] = df.get("TYPE", "").astype(str).str.strip().str.upper()
+    df["TICKET_COUNT"] = pd.to_numeric(df.get("TICKET_COUNT"), errors="coerce").fillna(0).astype(int)
+    df["OFFICER_DISPLAY_NAME"] = df.get("OFFICER_DISPLAY_NAME", "").astype(str).str.strip()
+    df["OFFICER_NAME_RAW"] = df.get("OFFICER_NAME_RAW", "").astype(str).str.strip()
+
+    # Pick month
+    if args.month:
+        month = args.month
+        cur = df[df["Month_Year"] == month].copy()
+    else:
+        ymk = int(df["YearMonthKey"].dropna().max())
+        cur = df[df["YearMonthKey"] == ymk].copy()
+        month = cur["Month_Year"].iloc[0] if not cur.empty else "?" if cur.empty:
+        raise SystemExit("No rows found for selected month.") print(f"Workbook: {xlsx}")
+    print(f"Month: {month}")
+    print(f"Rows: {len(cur):,}  Tickets(sum): {int(cur['TICKET_COUNT'].sum()):,}")
+
+    dept = cur.groupby("TYPE")["TICKET_COUNT"].sum().sort_values(ascending=False)
+    print("\n=== Dept-wide totals by TYPE (Sum TICKET_COUNT) ===")
+    print(dept.to_string())
+
+    # Officer effective
+    cur["Officer_Effective"] = cur["OFFICER_DISPLAY_NAME"]
+    mask_blank = (cur["Officer_Effective"] == "") | (cur["Officer_Effective"].str.lower() == "nan")
+    cur.loc[mask_blank, "Officer_Effective"] = cur.loc[mask_blank, "OFFICER_NAME_RAW"]
+
+    def top_n(filter_expr, label: str, n: int = 10) -> None:
+        sub = cur.loc[filter_expr].copy()
+        grp = (
+            sub.groupby("Officer_Effective", as_index=False)["TICKET_COUNT"].sum()
+            .sort_values("TICKET_COUNT", ascending=False)
+            .head(n)
+        )
+        print(f"\n=== Top {n} Officers: {label} (Sum TICKET_COUNT) ===")
+        print(grp.to_string(index=False))
+
+    top_n(cur["TYPE"] == "M", "Moving (TYPE=M)")
+    top_n(cur["TYPE"] == "P", "Parking (TYPE=P)")
+    top_n(cur["TYPE"] != "P", "Non-Parking (TYPE!=P)")
+
+    # Also show rowcount-based top5 (to catch RowCount vs Sum(TICKET_COUNT) issues)
+    def top_n_rowcount(filter_expr, label: str, n: int = 10) -> None:
+        sub = cur.loc[filter_expr].copy()
+        grp = (
+            sub.groupby("Officer_Effective", as_index=False)
+            .size()
+            .rename(columns={"size": "RowCount"})
+            .sort_values("RowCount", ascending=False)
+            .head(n)
+        )
+        print(f"\n=== Top {n} Officers: {label} (RowCount) ===")
+        print(grp.to_string(index=False))
+
+    top_n_rowcount(cur["TYPE"] == "M", "Moving (TYPE=M)")
+    top_n_rowcount(cur["TYPE"] != "P", "Non-Parking (TYPE!=P)")
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+
+```
+
+Your instinct is right: **those “Top 5” exports don’t line up with the actual Dept‑Wide totals in the current Power BI source workbook**. ### What the current Power BI source actually contains (11‑25)
+From `03_Staging\Summons\summons_powerbi_latest.xlsx` (`Summons_Data`, month `11-25`), summing `TICKET_COUNT`:
+
+- **Parking (P)**: **2086**
+- **Moving (M)**: **77**
+- **C**: **1** (often excluded in “Moving & Parking” visuals)
+
+### Why your Top‑5 exports look “off”
+Your attached `Top 5 Moving Violations - Department Wide.csv` shows counts like **65** for one officer, but the **entire department only has 77 moving tickets** in 11‑25. That can’t be correct under the same definitions. ### What the correct “Top 5 Moving” should look like for 11‑25 (from the workbook)
+Top moving officers (by **sum of `TICKET_COUNT`**) are:
+
+- D. FRANCAVILLA #0329 — **14**
+- M. JACOBSEN #0138 — **12**
+- N. MAZZACCARO #0377 — **6**
+- A. LOPEZ #0375 — **4**
+- (tie group at 4: ONEILL/GIBSON)
+
+So the Top‑5 files you exported are almost certainly using a **different filter/window** (or different field than `TYPE`, or not restricted to latest month, or referencing a different workbook/version), even though the M code *looks* like it’s using `MaxYMK`. ### Bottom line
+- The **Dept‑Wide table is consistent** with the current ETL workbook. - The **Top‑5 queries/exports are the ones that are inconsistent** and need adjustment (likely: wrong filter/window or wrong data source instance). If you paste the actual Power BI query names for those Top‑5 visuals (or where their M queries live), I can tell you exactly what to change so Top‑5 reconciles to Dept‑Wide every time. ---
+
+**User**
+
+@Top 5 Non-Parking Violations - Department Wide.csv @Top 5 Moving Violations - Department Wide.csv the name of the exports are the visuals names queries ___Top_5_Parking_Violations ___Top_5_Moving_Violations
+
+---
+
+**Cursor**
+
+### What this tells me
+Given the current Power BI source workbook (`03_Staging\Summons\summons_powerbi_latest.xlsx`) for **11-25** we have:
+
+- **Dept-wide M = 77**, **P = 2086** (sum of `TICKET_COUNT`)
+
+So an export showing **65** for a single officer under “Top 5 Moving” can only happen if **the Top-5 query is not scoped to the latest month / not using the current workbook** (or it’s using an old refresh result). Also, your file named **“Top 5 Non-Parking …”** is almost certainly coming from `___Top_5_Parking_Violations` (the officer names in that export are classic high-volume parking/PEO issuers), so the **label/export name is misleading**. ### What to do next (so we can fix it precisely)
+Please paste the *current* M code (as it exists in Power BI right now) for:
+- `___Top_5_Moving_Violations`
+- `___Top_5_Parking_Violations`
+
+I’m going to check 3 things in your queries:
+- **Source**: they both read the same `summons_powerbi_latest.xlsx` path
+- **Month filter**: they truly filter to `MaxYearMonthKey`
+- **Count logic**: they use `List.Sum([TICKET_COUNT])` (not `Table.RowCount(_)`)
+
+### Quick likely fixes (based on symptoms)
+- **Change RowCount → Sum(TICKET_COUNT)** in both queries. - **Confirm refresh**: after the Summons ETL rerun, do **Refresh Preview** / **Refresh** for those queries (they may be showing stale cached results). - **Rename the visual/export**: if `___Top_5_Parking_Violations` is being exported as “Non-Parking”, fix the visual title or export filename to match the query. ---
+
+**User**
+
+@Summons  Moving & Parking  All Bureaus.csv  is from the main summon query ___Summons which also populates Department-Wide Summons  Moving and Parking@Department-Wide Summons  Moving and Parking.csv 
+
+---
+
+**Cursor**
+
+### Yes — that’s consistent
+Your exports:
+
+- `Summons  Moving & Parking  All Bureaus.csv`
+- `Department-Wide Summons  Moving and Parking.csv`
+
+are consistent with coming from the **main** query `___Summons` (because both are just different groupings of the same base table: `WG2`/`TYPE`/`TICKET_COUNT` and `TYPE`/`Month_Year`/`TICKET_COUNT`). ### Why the Top‑5 exports can still be “off”
+`___Top_5_Moving_Violations` and `___Top_5_Parking_Violations` are **separate queries**. Even if they ultimately *intend* to use `___Summons`, they can be wrong if any of these differ from the main query:
+
+- **Data source**: pointing at an older workbook or a different table
+- **Month filter**: not actually restricting to the latest `YearMonthKey`
+- **Measure**: counting rows instead of summing `TICKET_COUNT`
+- **Refresh**: cached result (Top‑5 not refreshed after the workbook changed)
+
+### What I need from you to confirm/fix in one pass
+Paste the current M code for:
+- `___Top_5_Moving_Violations`
+- `___Top_5_Parking_Violations`
+
+Then I’ll tell you exactly which line(s) are causing the mismatch and give you the corrected version (ensuring it uses the same source/month window and `Sum(TICKET_COUNT)` so it reconciles to the dept-wide totals every time). ---
+
+**User**
+
+@all_summons_m_code.txt here are all m codes
+
+---
+
+**Cursor**
+
+You have the smoking gun in the M code: **both Top‑5 queries are counting rows instead of summing `TICKET_COUNT`**, and the Parking query **doesn’t even type `TICKET_COUNT`**, so it can’t do the right thing even if you wanted it to. That is exactly how you can end up with Top‑5 numbers that don’t reconcile to the Dept‑Wide totals (which *should* always be based on `Sum(TICKET_COUNT)`). Below are corrected versions for **both** queries that will reconcile to `___Summons` / Dept‑Wide every time.

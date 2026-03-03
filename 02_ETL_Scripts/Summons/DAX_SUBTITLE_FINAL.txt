@@ -1,0 +1,5 @@
+// DAX Measure for Subtitle - Shows Previous Month
+// If today is January 2026, this shows "December 2025"
+
+Subtitle_Top_5_NEW = 
+FORMAT(EOMONTH(TODAY(), -1), "MMMM yyyy") & " - Department-Wide Performance"

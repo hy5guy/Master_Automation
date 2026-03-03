@@ -1,0 +1,72 @@
+{
+  "source_file": "Claude-Police response time metrics verification and backfill data quality.json",
+  "source_path": "C:\\_chunker\\02_data\\Claude-Police response time metrics verification and backfill data quality.json",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Claude-Police_response_time_metrics_verification_and_backfil\\2026_02_27_00_03_06_Claude-Police_response_time_metrics_verification_and_backfil.origin.json",
+  "created_at": "2026_02_27_00_03_06",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "dataset",
+    "docs",
+    "json",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "data",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "time",
+      "out",
+      "data",
+      "scene",
+      "dispatch",
+      "call"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "{\n  \"metadata\": {\n    \"title\": \"Police response time metrics verification and backfill data quality\",\n    \"dates\": {\n      \"created\": \"2/26/2026 22:28:16\",\n      \"updated\": \"2/26/2026 22:53:40\",\n      \"exported\": \"2/27/2026 0:02:45\"...",
+    "first_line": "{"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-27T00:03:06+00:00_Claude-Police_response_time_metrics_verification_and_backfil_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "call",
+        "code",
+        "data",
+        "dataset",
+        "dispatch",
+        "docs",
+        "json",
+        "markdown",
+        "police",
+        "python",
+        "scene",
+        "sql",
+        "time"
+      ],
+      "key_terms": [
+        "time",
+        "out",
+        "data",
+        "scene",
+        "dispatch",
+        "call"
+      ],
+      "summary": "{\n  \"metadata\": {\n    \"title\": \"Police response time metrics verification and backfill data quality\",\n    \"dates\": {\n      \"created\": \"2/26/2026 22:28:16\",\n      \"updated\": \"2/26/2026 22:53:40\",\n      \"exported\": \"2/27/2026 0:02:45\"...",
+      "char_length": 24400,
+      "byte_length": 24610
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

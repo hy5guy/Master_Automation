@@ -1,0 +1,120 @@
+### 3. **Docs moved to `docs/`**  
+- **`docs/13_MONTH_WINDOW_CORRECTIONS.md`** – selective enforcement and NIBRS pattern matching. - **`docs/13_MONTH_QUICK_REFERENCE.md`** – 24 vs 8 visuals and quick test. - **`docs/13_MONTH_WINDOW_IMPLEMENTATION_GUIDE.md`** – deployment, flow, validation, checklist (paths updated to `scripts/` and `Standards/`). - Removed from repo root and from `scripts/`. ### 4. **Validator**  
+- **`scripts/validate_13_month_window.py`** is unchanged and remains in `scripts/` for validation. ---
+
+**Quick verification**
+
+```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+python scripts\process_powerbi_exports.py --dry-run
+```
+
+You should see `--enforce-13-month` only for the 24 configured visuals, and NIBRS matching via `match_pattern` regardless of the date range in the filename. ---
+
+**User**
+
+update local git and all docs inluding claude.md
+
+---
+
+**Cursor**
+
+
+Checking SUMMARY.md structure and whether README needs updates:
+
+
+
+Updating CLAUDE.md, SUMMARY.md, and CHANGELOG.md, then staging and committing. Checking README for a script list to update:
+
+
+
+Staging docs and scripts, then committing. Staging `Claude.md` (case-sensitive) and committing. Summary of what was updated and committed:
+
+---
+
+## Docs updated
+
+- **CLAUDE.md**  
+  - Set version to **1.15.0** and added a “13-month rolling window” section. - Project map: added `process_powerbi_exports.py`, `validate_13_month_window.py`; clarified normalizer (13-month, PeriodLabel). - Configuration & docs: added `docs/13_MONTH_WINDOW_IMPLEMENTATION_GUIDE.md`, `docs/13_MONTH_WINDOW_CORRECTIONS.md`, `docs/13_MONTH_QUICK_REFERENCE.md`. - Current system status: version 1.15.0, recent updates line. - Format version set to 3.6. - **SUMMARY.md**  
+  - Version 1.15.0, 13-month feature in Key Features, directory tree updated with `process_powerbi_exports.py` and `validate_13_month_window.py`. - **CHANGELOG.md**  
+  - New **[1.15.0] - 2026-02-12** entry: 13-month enforcement, normalizer, process script, mapping, validator, and the three 13-month docs. - **README.md**  
+  - Directory structure: normalizer comment, new lines for `process_powerbi_exports.py` and `validate_13_month_window.py`. ---
+
+## Git commit
+
+**Branch:** `docs/update-20260114-1447`  
+**Commit:** `1023920` — **v1.15.0: 13-month rolling window, process script, docs and git updates**
+
+**15 files changed, 2244 insertions, 344 deletions**
+
+| Type    | Files |
+|--------|--------|
+| Modified | Claude.md, CHANGELOG.md, README.md, SUMMARY.md, requirements.txt, scripts/normalize_visual_export_for_backfill.py, scripts/overtime_timeoff_with_backfill.py, scripts/validate_exports.py |
+| New     | Standards/config/powerbi_visuals/README.md, Standards/config/powerbi_visuals/visual_export_mapping.json, docs/13_MONTH_QUICK_REFERENCE.md, docs/13_MONTH_WINDOW_CORRECTIONS.md, docs/13_MONTH_WINDOW_IMPLEMENTATION_GUIDE.md, scripts/process_powerbi_exports.py, scripts/validate_13_month_window.py |
+
+Untracked items left uncommitted (as before): data/visual_export/, docs/chatlogs/, docs/image/, *.zip, `create_test_exports.py`, `visual_export_mapping_CORRECTED.json`, and other reference/backup files. Say if you want any of those added or ignored via `.gitignore`. ---
+
+**User**
+
+I added files to C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\_DropExports please process
+
+---
+
+**Cursor**
+
+
+Checking how the process script locates _DropExports and which options it supports:
+
+
+
+Processing the 4 CSVs in _DropExports. Processing finished. Here’s what happened:
+
+---
+
+## Result
+
+- **4 files** were taken from `_DropExports` and moved into the processed exports folder. - **Source folder** is empty (no CSVs left in `_DropExports`). ---
+
+## Why they went to “Other”
+
+None of the 4 files matched any entry in `Standards/config/powerbi_visuals/visual_export_mapping.json`. The script matches on the **file stem** (filename without `.csv`) against **visual_name** and **match_aliases** in the mapping. Power BI usually exports with the visual title in the name (e.g. `2026_02_Department-Wide Summons Moving and Parking.csv`). Your files looked like:
+
+- `department-wide_summons.csv`
+- `department_wide_summons_moving_and_parking.csv`
+- `monthly_accrual_and_usage_summary.csv`
+- `training_cost_by_delivery_method.csv`
+
+So they were treated as unmapped and sent to:
+
+**Processed location:**  
+`C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Standards\Processed_Exports\Other\`
+
+With fallback date **2026_01** (no `YYYY_MM_` in the filename), so they’re named like:
+
+- `2026_01_department-wide_summons.csv`
+- `2026_01_department_wide_summons_moving_and_parking.csv`
+- `2026_01_monthly_accrual_and_usage_summary.csv`
+- `2026_01_training_cost_by_delivery_method.csv`
+
+No normalization or 13‑month enforcement was run, because no mapping was found. ---
+
+## For next time (so they match and normalize)
+
+1. **Export from Power BI** with the default export name that includes the visual title (and ideally a date prefix), e.g. `2026_02_Department-Wide Summons Moving and Parking.csv`,  
+   `2026_02_Monthly Accrual and Usage Summary.csv`. 2. **Or** add **match_aliases** in `visual_export_mapping.json` for these filename patterns (e.g. `department_wide_summons_moving_and_parking`, `monthly_accrual_and_usage_summary`, `training_cost_by_delivery_method`) so the script can match and normalize/13‑month them. If you tell me whether you prefer “rename files to match Power BI” or “add aliases in the mapping,” I can give exact steps or a small patch for the mapping. ---
+
+**User**
+
+I'm preparing to export this chat. Please generate a descriptive filename that summarizes the main topic or task of this conversation. Requirements:
+• 4-8 words
+• Title Case (capitalize major words)
+• Replace spaces with underscores
+• Include .md extension
+• No dates or special characters
+
+Output only the filename, with the suffix .md and nothing else. ---
+
+**Cursor**
+
+
+Thirteen_Month_Visual_Export_Pipeline_Deployment.md

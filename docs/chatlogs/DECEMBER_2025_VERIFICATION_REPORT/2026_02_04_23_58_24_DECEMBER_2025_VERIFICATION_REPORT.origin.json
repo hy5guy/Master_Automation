@@ -1,0 +1,37 @@
+{
+  "tags": [
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "markdown",
+    "python",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "time",
+        "comp",
+        "december",
+        "files",
+        "2025",
+        "processing"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# December 2025 Overtime & Time Off Data Processing Verification Report\n\n**Date:** 2026-01-13\n**Verified By:** Claude Code AI\n**Period Verified:** December 2025 (Month 12-25)\n\n---\n\n## Executive Summary\n\n✅ **VERIFICATION STATUS: PASS**\n\n-...",
+      "first_line": "# December 2025 Overtime & Time Off Data Processing Verification Report"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-04T23:58:24.606702",
+  "department": "admin"
+}

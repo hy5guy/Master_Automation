@@ -1,0 +1,38 @@
+{
+  "tags": [
+    "data",
+    "docs",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "archive",
+        "backfill",
+        "csv",
+        "month",
+        "summons",
+        "arrest"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Power BI Visual Export Checklist\n\n**Date:** 2025-12-11  \n**Purpose:** Guide for exporting visuals needed for ETL scripts\n\n---\n\n## Visual Categories\n\n### 📊 Backfill Visuals (Multi-Month Historical Data)\n**Purpose:** These visuals show d...",
+      "first_line": "# Power BI Visual Export Checklist"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-05T00:07:34.682516",
+  "department": "admin"
+}

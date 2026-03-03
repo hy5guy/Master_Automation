@@ -1,0 +1,36 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "markdown",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "backfill",
+        "data",
+        "files",
+        "code",
+        "date",
+        "dev"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# M Code Update Guide for Backfill Data Integration\n\n**Last Updated:** 2025-12-09  \n**Purpose:** Guide for updating Power BI M code queries to use backfill data for historical period (November 2024 - October 2025)\n\n---\n\n## Overview\n\nRepo...",
+      "first_line": "# M Code Update Guide for Backfill Data Integration"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-05T00:01:50.434867",
+  "department": "admin"
+}

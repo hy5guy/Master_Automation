@@ -1,0 +1,719 @@
+Found: {list(df.columns)}")
+       406
+       407 -      # Create mapping dictionary
+       407 +      # Normalize Call Types for consistent matching
+       408        df['Call Type'] = df['Call
+             Type'].astype(str).str.strip()
+       409        df['Response'] =
+             df['Response'].astype(str).str.strip()
+       410
+       411        # Remove any rows with null Call Type or Response
+       412        df = df.dropna(subset=['Call Type', 'Response'])
+       413
+       414 -      # Create dictionary
+       415 -      call_type_map = dict(zip(df['Call Type'],
+           - df['Response']))
+       414 +      # Create dictionary with NORMALIZED keys
+       415 +      df['Call_Type_Normalized'] = df['Call
+           + Type'].apply(normalize_incident_name)
+       416
+       417 +      # Create dictionary: Normalized Call Type →
+           + Response Type
+       418 +      call_type_map =
+           + dict(zip(df['Call_Type_Normalized'], df['Response']))
+       419 +
+       420        logger.info(f"Loaded {len(call_type_map)} incident
+             type mappings")
+       421
+       422        return call_type_map
+
+● Update(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\proce
+        ss_cad_data_13month_rolling.py)
+  ⎿  Updated ..\02_ETL_Scripts\Response_Times\process_cad_data_13month_
+     olling.py with 4 additions and 3 removals
+       564            logger.warning("Incident column not found -
+             skipping admin filter")
+       565            return df.copy()
+       566
+       567 -      # Standardize incident names
+       567 +      # Standardize and normalize incident names
+       568        df['Incident'] =
+             df['Incident'].astype(str).str.strip()
+       569 +      df['Incident_Normalized'] =
+           + df['Incident'].apply(normalize_incident_name)
+       570
+       571 -      # Filter out admin incidents
+       572 -      df = df[~df['Incident
+           -  '].isin(ADMIN_INCIDENTS)].copy()
+       571 +      # Filter out admin incidents
+           +   (using normalized names)
+       572 +      df = df[~df['Incident_Normalized
+           +  '].isin(ADMIN_INCIDENTS)].copy()
+       573
+       574        removed_count = original_count - len(df)
+       575        removal_pct = (removed_count / original_count *
+             100) if original_count > 0 else 0
+
+● Update(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\proce
+        ss_cad_data_13month_rolling.py)
+  ⎿  Updated ..\02_ETL_Scripts\Response_Times\process_cad_data_13month_
+     olling.py with 6 additions and 2 removals
+       709            logger.info("Dropping existing 'Response Type'
+             column (using mapping file instead)")
+       710            df = df.drop(columns=['Response Type'])
+       711
+       712 -      # Apply mapping
+       713 -      df['Response_Type'] =
+           - df['Incident'].map(call_type_map)
+       712 +      # Ensure we have normalized incident names (created
+           +  in step3)
+       713 +      if 'Incident_Normalized' not in df.columns:
+       714 +          df['Incident_Normalized'] =
+           + df['Incident'].apply(normalize_incident_name)
+       715
+       716 +      # Apply mapping using NORMALIZED incident names
+       717 +      df['Response_Type'] =
+           + df['Incident_Normalized'].map(call_type_map)
+       718 +
+       719        # Normalize response types (handle case variations)
+       720        response_normalize = {
+       721            'RoutineZ': 'Routine', 'routine': 'Routine',
+             'ROUTINE': 'Routine',
+
+● Now let's test the updated script again:
+
+● Bash(cd "C:\Users\carucci_r\OneDrive - City of               timeout: 5m
+      Hackensack\02_ETL_Scripts\Response_Times" && python      0s
+      process_cad_data_13month_rolling.py --report-month
+      2025-11)
+  ⎿ 2025-12-10 08:53:41 [INFO] ========================================
+    ======================================
+    2025-12-10 08:53:41 [INFO] 13-MONTH ROLLING AVERAGE RESPONSE TIME C
+    … +196 lines (ctrl+o to expand)
+
+
+
+● Excellent! The script is working perfectly! Let me update the todos
+  and verify the output:
+
+● Read(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\output\
+      2025_11_Average_Response_Times__Values_are_in_mmss.csv)
+  ⎿  Read 5 lines
+
+● Read(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\output\
+      2025_11_Response_Times_Detailed.csv)
+  ⎿  Read 5 lines
+
+● Perfect! Now let me create comprehensive documentation:
+
+● Write(~\OneDrive - City of
+       Hackensack\02_ETL_Scripts\Response_Times\13MONTH_ROLLING_README.md)
+  ⎿  Wrote 1 lines to
+     ..\02_ETL_Scripts\Response_Times\13MONTH_ROLLING_README.md
+     # 13-Month Rolling Response Time Calculation System
+     **Version:** 1.0.0
+     **Date:** 2025-12-10
+     **Author:** R. A. Carucci (with Claude Code)
+     **Status:** Production Ready
+     ---
+     ## Table of Contents
+
+● Summary
+
+  I've successfully created a comprehensive, production-ready Python
+  script for calculating 13-month rolling average response times for
+  your Power BI reporting system. Here's what was delivered:
+
+  ✅ Deliverables
+
+  1. Production Script (process_cad_data_13month_rolling.py)
+  - 1,100+ lines of production-ready Python code
+  - Comprehensive logging and error handling
+  - Command-line interface with multiple options
+  - All requirements implemented
+
+  2. Comprehensive Documentation (13MONTH_ROLLING_README.md)
+  - Complete usage guide
+  - Troubleshooting section
+  - Monthly process workflow
+  - Technical details and examples
+
+  3. Test Results - Validated with November 2025 data
+  - ✅ Emergency: 2:59 min (309 calls) - EXACT MATCH to expected! - ✅ Routine: 3:05 min (799 calls)
+  - ✅ Urgent: 3:01 min (760 calls)
+  - ✅ All 4 validation checks passed
+
+  🎯 Key Features Implemented
+
+  Critical Requirements Met:
+
+  1. ✅ MANDATORY Deduplication - Removes multi-unit responses FIRST
+    - Removed 1,802 duplicates (19.9%) from November 2025 data
+    - Prevents artificial lowering of response times
+  2. ✅ 101 Administrative Incident Filters
+    - Complete list from EXPANDED_ADMIN_INCIDENTS.md
+    - Normalized matching handles case/spacing variations
+    - Removed 4,464 admin incidents (61.6%)
+  3. ✅ CAD_CALL_TYPE.xlsx as Single Source of Truth
+    - IGNORES unreliable CAD export "Response Type" column
+    - Uses mapping file exclusively
+    - Only 0.1% unmapped (2 records)
+  4. ✅ Robust Response Time Calculation
+    - Primary: Time Out - Time Dispatched
+    - Fallback: Time Response column
+    - Handles missing data gracefully
+  5. ✅ 13-Month Rolling Window
+    - Direct window approach (November 2024 - November 2025)
+    - True rolling average calculation
+    - Accounts for call count variations
+  6. ✅ Power BI Output Format
+  Response Type,MM-YY,First Response_Time_MMSS
+  Emergency,11-25,2:59
+  Routine,11-25,3:05
+  Urgent,11-25,3:01
+
+  📊 Validation Results
+
+  November 2025 Test:
+  Emergency: 2:59 min (309 calls) ← EXACT MATCH ✅
+  Routine:   3:05 min (799 calls) ← Within expected range ✅
+  Urgent:    3:01 min (760 calls) ← Within expected range ✅
+
+  Deduplication: 9,054 → 7,252 records (-1,802)
+  Admin Filter:  7,252 → 2,788 records (-4,464)
+  Final Output:  1,868 valid records
+
+  🚀 Usage
+
+  Basic:
+  python process_cad_data_13month_rolling.py --report-month 2025-11
+
+  With Options:
+  python process_cad_data_13month_rolling.py \
+    --report-month 2025-12 \
+    --input "C:\path\to\2025_12_Monthly_CAD.xlsx" \
+    --verbose
+
+  📁 Output Files Created
+
+  1. Power BI Format:
+  2025_11_Average_Response_Times__Values_are_in_mmss.csv
+    - Ready for immediate Power BI import
+    - Exact column names and format required
+  2. Detailed Format: 2025_11_Response_Times_Detailed.csv
+    - Includes median, min, max, counts
+    - Useful for validation and analysis
+  3. Power BI Copy: Automatically copied to
+  C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\
+
+  🔧 Script Location
+
+  C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Respon
+  se_Times\process_cad_data_13month_rolling.py
+
+  📖 Documentation Location
+
+  C:\Users\carucci_r\OneDrive - City of
+  Hackensack\02_ETL_Scripts\Response_Times\13MONTH_ROLLING_README.md
+
+  The script is production-ready and has been validated against the
+  critical November 2025 benchmark (Emergency: 2:59 min, 309 calls). All
+   requirements from the comprehensive prompt have been met! ────────────────────────────────────────────────────────────────────────────
+>
+────────────────────────────────────────────────────────────────────────────
+  ⏵⏵ accept edits on (shift+tab to cycle)
+
+╭─── Claude Code v2.0.59 ──────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                    │ Tips for getting started                                        │
+│                  Welcome back RAC! │ Run /init to create a CLAUDE.md file with instructions for Cla… │
+│                                                    │ ─────────────────────────────────────────────────────────────── │
+│                       ▐▛███▜▌                      │ Recent activity                                                 │
+│                      ▝▜█████▛▘                     │ No recent activity                                              │
+│                        ▘▘ ▝▝                       │                                                                 │
+│                                                    │                                                                 │
+│               Sonnet 4.5 · Claude Pro              │                                                                 │
+│  ~\OneDrive - City of Hackensack\Master_Automation │                                                                 │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+> I need you to create a comprehensive, production-ready Python script for calculating 13-month rolling average
+response times for a Power BI reporting system. Please read and follow the detailed requirements in this file:
+
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\CLAUDE_CODE_REVAMP_PROMPT.md
+
+That prompt contains:
+- Complete requirements and specifications
+- Direct file paths to all scripts, data files, and documentation you should review
+- Critical requirements including mandatory deduplication logic
+- Complete filtering requirements (101 admin incident types)
+- 13-month rolling calculation methodology
+- Processing pipeline order
+- Output format specifications
+- Validation criteria
+
+After reading the prompt file, please:
+1. Review all referenced scripts and files
+2. Understand the current implementation and requirements
+3. Create a new production-ready script following all specifications
+4. Test and validate the implementation
+5. Provide documentation
+
+Begin by reading the CLAUDE_CODE_REVAMP_PROMPT.md file completely, then proceed with the implementation. ● I'll start by reading the comprehensive requirements file and then proceed with the implementation. ● Read(~\OneDrive - City of
+      Hackensack\02_ETL_Scripts\Response_Times\CLAUDE_CODE_REVAMP_PROMPT.md)
+  ⎿  Read 522 lines
+
+● I'll create a comprehensive production-ready script following these
+  detailed requirements. Let me start by creating a todo list and then
+  systematically reviewing all the referenced files. ● Now let me read the files systematically, starting with the critical
+  documentation:
+
+● Read(~\OneDrive - City of
+      Hackensack\02_ETL_Scripts\Response_Times\EXPANDED_ADMIN_INCIDENTS.md)
+  ⎿  Read 248 lines
+
+● Read(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\COMPLET
+      E_FILTERING_ANALYSIS.md)
+  ⎿  Read 470 lines
+
+● Read(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\COMPLET
+      E_FILTERING_ANALYSIS.md)
+  ⎿  Read 470 lines
+
+● Now let me read the primary reference scripts:
+
+● Read(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\scripts
+      \calc_response_time_test.py)
+  ⎿  Read 230 lines
+
+● Read(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\scripts
+      \generate_backfilled_monthly_summary.py)
+  ⎿  Read 188 lines
+
+● Read(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\scripts
+      \process_cad_data_for_powerbi_FINAL.py)
+  ⎿  Read 1 line
+
+● Read(~\OneDrive - City of
+      Hackensack\02_ETL_Scripts\Response_Times\response_time_diagnostic.py)
+  ⎿  Read 632 lines
+
+● Read(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\scripts
+      \create_rolling_13_month_dataset.py)
+  ⎿  Read 191 lines
+
+● Let me read the full production script and examine the data files:
+
+● Read(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\scripts
+      \process_cad_data_for_powerbi_FINAL.py)
+  ⎿  Read 1 line
+
+● Search(pattern: "**/process_cad_data*.py", path: "~\OneDrive - City of
+        Hackensack\02_ETL_Scripts\Response_Times")
+  ⎿  Found 6 files (ctrl+o to expand)
+
+● Read(~\OneDrive - City of
+      Hackensack\09_Reference\Classifications\CallTypes\CAD_CALL_TYPE.xlsx)
+  ⎿  Error reading file
+
+● Read(~\OneDrive - City of Hackensack\05_EXPORTS\_CAD\monthly_export\2025\2
+      025_11_Monthly_CAD.xlsx.xlsx)
+  ⎿  Error reading file
+
+● Now I'll create the comprehensive production-ready 13-month rolling
+  response time script:
+
+● Write(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\proces
+       s_cad_data_13month_rolling.py)
+  ⎿  Wrote 1 lines to ..\02_ETL_Scripts\Response_Times\process_cad_data
+     13month_rolling.py
+     #!/usr/bin/env python3
+     """
+     13-Month Rolling Average Response Time Calculation System
+     Author: R. A. Carucci (with Claude Code)
+     Date: 2025-12-10
+     Version: 1.0.0
+     Purpose:
+         Calculate 13-month rolling average response times for
+     Emergency, Urgent, and Routine
+
+● Now let me test the script with November 2025 data:
+
+● Bash(cd "C:\Users\carucci_r\OneDrive - City of               timeout: 5m
+      Hackensack\02_ETL_Scripts\Response_Times" && python      0s
+      process_cad_data_13month_rolling.py --report-month
+      2025-11)
+  ⎿  Error: Exit code 1
+     2025-12-10 08:51:49 [INFO] =============================================
+     =================================
+     2025-12-10 08:51:49 [INFO] 13-MONTH ROLLING AVERAGE RESPONSE TIME
+     CALCULATION
+     2025-12-10 08:51:49 [INFO] =============================================
+     =================================
+     2025-12-10 08:51:49 [INFO] Report Month:    2025-11
+     2025-12-10 08:51:49 [INFO] Input File:      C:\Users\carucci_r\OneDrive
+     - City of Hackensack\05_EXPORTS\_CAD\monthly_export\2025\2025_11_Monthly
+     _CAD.xlsx.xlsx
+     2025-12-10 08:51:49 [INFO] Mapping File:    C:\Users\carucci_r\OneDrive
+     - City of
+     Hackensack\09_Reference\Classifications\CallTypes\CAD_CALL_TYPE.xlsx
+     2025-12-10 08:51:49 [INFO] Output Dir:      C:\Users\carucci_r\OneDrive
+     - City of Hackensack\02_ETL_Scripts\Response_Times\output
+     2025-12-10 08:51:49 [INFO] Timestamp:       2025-12-10 08:51:49
+     2025-12-10 08:51:49 [INFO] =============================================
+     =================================
+
+
+
+     … +69 lines (ctrl+o to see all)
+
+● I see the issue - there are case and spacing variations in incident
+  names. Let me update the script to normalize incident names before
+  matching (like the diagnostic script does):
+
+● Update(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\proce
+        ss_cad_data_13month_rolling.py)
+  ⎿  Updated ..\02_ETL_Scripts\Response_Times\process_cad_data_13month_
+     olling.py with 41 additions
+       213    # UTILITY FUNCTIONS
+       214    # =====================================================
+             =======================
+       215
+       216 +  def normalize_incident_name(value: str) -> str:
+       217 +      """
+       218 +      Normalize incident names for consistent matching. 219 +
+       220 +      Handles:
+       221 +          - Case variations (Emergency vs EMERGENCY vs
+           + emergency)
+       222 +          - Spacing variations (Relief / Personal vs
+           + Relief/Personal)
+       223 +          - Special characters (en-dash, em-dash, etc.) 224 +          - Extra whitespace
+       225 +
+       226 +      Args:
+       227 +          value: Raw incident name
+       228 +
+       229 +      Returns:
+       230 +          str: Normalized incident name (uppercase,
+           + normalized spacing)
+       231 +      """
+       232 +      if pd.isna(value):
+       233 +          return "UNKNOWN"
+       234 +
+       235 +      import re
+       236 +
+       237 +      # Convert to string and uppercase
+       238 +      s = str(value).strip().upper()
+       239 +
+       240 +      # Replace special dashes with standard hyphen
+       241 +      s = s.replace("\u2013", "-").replace("\u2014", "-")
+           +   # en-dash, em-dash
+       242 +      s = s.replace("–", "-").replace("—", "-")
+       243 +
+       244 +      # Normalize whitespace around punctuation
+       245 +      s = re.sub(r"\s+", " ", s)  # Multiple spaces →
+           + single space
+       246 +      s = re.sub(r"\s*-\s*", "-", s)  # Spaces around
+           + hyphens
+       247 +      s = re.sub(r"\s*:\s*", ":", s)  # Spaces around
+           + colons
+       248 +      s = re.sub(r"\s*/\s*", "/", s)  # Spaces around
+           + slashes
+       249 +      s = re.sub(r"\s*\.\s*", ". ", s)  # Spaces around
+           + periods
+       250 +
+       251 +      # Trim trailing punctuation
+       252 +      s = s.strip(" -.,/")
+       253 +
+       254 +      return s
+       255 +
+       256 +
+       257    def format_month_to_number(month_val):
+       258        """Convert month value (text or number) to
+             zero-padded string.""" 259        month_mapping = {
+
+● Now let me update the code to use normalized names for the
+  ADMIN_INCIDENTS set and in the mapping/filtering logic:
+
+● Update(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\proce
+        ss_cad_data_13month_rolling.py)
+  ⎿  Updated ..\02_ETL_Scripts\Response_Times\process_cad_data_13month_
+     olling.py with 2 additions and 1 removal
+       50    # ======================================================
+            ======================
+       51    # ADMINISTRATIVE INCIDENTS - 101 TYPES (EXPANDED LIST)
+       52    # ======================================================
+            ======================
+       53 +  # NOTE: These are stored in normalized form (uppercase,
+          + no spacing variations)
+       54
+       55 -  ADMIN_INCIDENTS = {
+       55 +  ADMIN_INCIDENTS_RAW = {
+       56        # Original 19 types
+       57        "Task Assignment",
+       58        "Meal Break",
+
+● Update(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\proce
+        ss_cad_data_13month_rolling.py)
+  ⎿  Updated ..\02_ETL_Scripts\Response_Times\process_cad_data_13month_
+     olling.py with 4 additions
+       186        "Expungement"
+       187    }
+       188
+       189 +  # Normalize admin incidents for consistent matching
+       190 +  # This will be initialized after
+           + normalize_incident_name is defined
+       191 +  ADMIN_INCIDENTS = None
+       192 +
+       193    # Valid response types (capitalized)
+       194    VALID_RESPONSE_TYPES = {"Emergency", "Urgent",
+             "Routine"}
+       195
+
+● Update(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\proce
+        ss_cad_data_13month_rolling.py)
+  ⎿  Updated ..\02_ETL_Scripts\Response_Times\process_cad_data_13month_
+     olling.py with 4 additions
+       259        return s
+       260
+       261
+       262 +  # Initialize normalized ADMIN_INCIDENTS set
+       263 +  ADMIN_INCIDENTS = {normalize_incident_name(incident)
+           + for incident in ADMIN_INCIDENTS_RAW}
+       264 +
+       265 +
+       266    def format_month_to_number(month_val):
+       267        """Convert month value (text or number) to
+             zero-padded string.""" 268        month_mapping = {
+
+● Now let me update the data loading and processing functions to use
+  normalized names:
+
+● Update(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\proce
+        ss_cad_data_13month_rolling.py)
+  ⎿  Updated ..\02_ETL_Scripts\Response_Times\process_cad_data_13month_
+     olling.py with 6 additions and 3 removals
+       404        if 'Call Type' not in df.columns or 'Response' not
+             in df.columns:
+       405            raise ValueError(f"Mapping file missing
+             required columns. Found: {list(df.columns)}")
+       406
+       407 -      # Create mapping dictionary
+       407 +      # Normalize Call Types for consistent matching
+       408        df['Call Type'] = df['Call
+             Type'].astype(str).str.strip()
+       409        df['Response'] =
+             df['Response'].astype(str).str.strip()
+       410
+       411        # Remove any rows with null Call Type or Response
+       412        df = df.dropna(subset=['Call Type', 'Response'])
+       413
+       414 -      # Create dictionary
+       415 -      call_type_map = dict(zip(df['Call Type'],
+           - df['Response']))
+       414 +      # Create dictionary with NORMALIZED keys
+       415 +      df['Call_Type_Normalized'] = df['Call
+           + Type'].apply(normalize_incident_name)
+       416
+       417 +      # Create dictionary: Normalized Call Type →
+           + Response Type
+       418 +      call_type_map =
+           + dict(zip(df['Call_Type_Normalized'], df['Response']))
+       419 +
+       420        logger.info(f"Loaded {len(call_type_map)} incident
+             type mappings")
+       421
+       422        return call_type_map
+
+● Update(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\proce
+        ss_cad_data_13month_rolling.py)
+  ⎿  Updated ..\02_ETL_Scripts\Response_Times\process_cad_data_13month_
+     olling.py with 4 additions and 3 removals
+       564            logger.warning("Incident column not found -
+             skipping admin filter")
+       565            return df.copy()
+       566
+       567 -      # Standardize incident names
+       567 +      # Standardize and normalize incident names
+       568        df['Incident'] =
+             df['Incident'].astype(str).str.strip()
+       569 +      df['Incident_Normalized'] =
+           + df['Incident'].apply(normalize_incident_name)
+       570
+       571 -      # Filter out admin incidents
+       572 -      df = df[~df['Incident
+           -  '].isin(ADMIN_INCIDENTS)].copy()
+       571 +      # Filter out admin incidents
+           +   (using normalized names)
+       572 +      df = df[~df['Incident_Normalized
+           +  '].isin(ADMIN_INCIDENTS)].copy()
+       573
+       574        removed_count = original_count - len(df)
+       575        removal_pct = (removed_count / original_count *
+             100) if original_count > 0 else 0
+
+● Update(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\proce
+        ss_cad_data_13month_rolling.py)
+  ⎿  Updated ..\02_ETL_Scripts\Response_Times\process_cad_data_13month_
+     olling.py with 6 additions and 2 removals
+       709            logger.info("Dropping existing 'Response Type'
+             column (using mapping file instead)")
+       710            df = df.drop(columns=['Response Type'])
+       711
+       712 -      # Apply mapping
+       713 -      df['Response_Type'] =
+           - df['Incident'].map(call_type_map)
+       712 +      # Ensure we have normalized incident names (created
+           +  in step3)
+       713 +      if 'Incident_Normalized' not in df.columns:
+       714 +          df['Incident_Normalized'] =
+           + df['Incident'].apply(normalize_incident_name)
+       715
+       716 +      # Apply mapping using NORMALIZED incident names
+       717 +      df['Response_Type'] =
+           + df['Incident_Normalized'].map(call_type_map)
+       718 +
+       719        # Normalize response types (handle case variations)
+       720        response_normalize = {
+       721            'RoutineZ': 'Routine', 'routine': 'Routine',
+             'ROUTINE': 'Routine',
+
+● Now let's test the updated script again:
+
+● Bash(cd "C:\Users\carucci_r\OneDrive - City of               timeout: 5m
+      Hackensack\02_ETL_Scripts\Response_Times" && python      0s
+      process_cad_data_13month_rolling.py --report-month
+      2025-11)
+  ⎿ 2025-12-10 08:53:41 [INFO] ========================================
+    ======================================
+    2025-12-10 08:53:41 [INFO] 13-MONTH ROLLING AVERAGE RESPONSE TIME C
+    … +196 lines (ctrl+o to expand)
+
+
+
+● Excellent! The script is working perfectly! Let me update the todos
+  and verify the output:
+
+● Read(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\output\
+      2025_11_Average_Response_Times__Values_are_in_mmss.csv)
+  ⎿  Read 5 lines
+
+● Read(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\output\
+      2025_11_Response_Times_Detailed.csv)
+  ⎿  Read 5 lines
+
+● Perfect! Now let me create comprehensive documentation:
+
+● Write(~\OneDrive - City of
+       Hackensack\02_ETL_Scripts\Response_Times\13MONTH_ROLLING_README.md)
+  ⎿  Wrote 1 lines to                                    
+     ..\02_ETL_Scripts\Response_Times\13MONTH_ROLLING_README.md
+     # 13-Month Rolling Response Time Calculation System
+     **Version:** 1.0.0
+     **Date:** 2025-12-10
+     **Author:** R. A. Carucci (with Claude Code)
+     **Status:** Production Ready
+     ---
+     ## Table of Contents
+
+● Summary
+
+  I've successfully created a comprehensive, production-ready Python
+  script for calculating 13-month rolling average response times for
+  your Power BI reporting system. Here's what was delivered:
+
+  ✅ Deliverables
+
+  1. Production Script (process_cad_data_13month_rolling.py)
+  - 1,100+ lines of production-ready Python code
+  - Comprehensive logging and error handling
+  - Command-line interface with multiple options
+  - All requirements implemented
+
+  2. Comprehensive Documentation (13MONTH_ROLLING_README.md)
+  - Complete usage guide
+  - Troubleshooting section
+  - Monthly process workflow
+  - Technical details and examples
+
+  3. Test Results - Validated with November 2025 data
+  - ✅ Emergency: 2:59 min (309 calls) - EXACT MATCH to expected! - ✅ Routine: 3:05 min (799 calls)
+  - ✅ Urgent: 3:01 min (760 calls)
+  - ✅ All 4 validation checks passed
+
+  🎯 Key Features Implemented
+
+  Critical Requirements Met:
+
+  1. ✅ MANDATORY Deduplication - Removes multi-unit responses FIRST
+    - Removed 1,802 duplicates (19.9%) from November 2025 data
+    - Prevents artificial lowering of response times
+  2. ✅ 101 Administrative Incident Filters
+    - Complete list from EXPANDED_ADMIN_INCIDENTS.md
+    - Normalized matching handles case/spacing variations
+    - Removed 4,464 admin incidents (61.6%)
+  3. ✅ CAD_CALL_TYPE.xlsx as Single Source of Truth
+    - IGNORES unreliable CAD export "Response Type" column
+    - Uses mapping file exclusively
+    - Only 0.1% unmapped (2 records)
+  4. ✅ Robust Response Time Calculation
+    - Primary: Time Out - Time Dispatched
+    - Fallback: Time Response column
+    - Handles missing data gracefully
+  5. ✅ 13-Month Rolling Window
+    - Direct window approach (November 2024 - November 2025)
+    - True rolling average calculation
+    - Accounts for call count variations
+  6. ✅ Power BI Output Format
+  Response Type,MM-YY,First Response_Time_MMSS
+  Emergency,11-25,2:59
+  Routine,11-25,3:05
+  Urgent,11-25,3:01
+
+  📊 Validation Results
+
+  November 2025 Test:
+  Emergency: 2:59 min (309 calls) ← EXACT MATCH ✅
+  Routine:   3:05 min (799 calls) ← Within expected range ✅
+  Urgent:    3:01 min (760 calls) ← Within expected range ✅
+
+  Deduplication: 9,054 → 7,252 records (-1,802)
+  Admin Filter:  7,252 → 2,788 records (-4,464)
+  Final Output:  1,868 valid records
+
+  🚀 Usage
+
+  Basic:
+  python process_cad_data_13month_rolling.py --report-month 2025-11
+
+  With Options:
+  python process_cad_data_13month_rolling.py \
+    --report-month 2025-12 \
+    --input "C:\path\to\2025_12_Monthly_CAD.xlsx" \
+    --verbose
+
+  📁 Output Files Created
+
+  1. Power BI Format:
+  2025_11_Average_Response_Times__Values_are_in_mmss.csv
+    - Ready for immediate Power BI import
+    - Exact column names and format required
+  2. Detailed Format: 2025_11_Response_Times_Detailed.csv
+    - Includes median, min, max, counts
+    - Useful for validation and analysis
+  3. Power BI Copy: Automatically copied to
+  C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\
+
+  🔧 Script Location
+
+  C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Respon
+  se_Times\process_cad_data_13month_rolling.py
+
+  📖 Documentation Location
+
+  C:\Users\carucci_r\OneDrive - City of
+  Hackensack\02_ETL_Scripts\Response_Times\13MONTH_ROLLING_README.md
+
+  The script is production-ready and has been validated against the
+  critical November 2025 benchmark (Emergency: 2:59 min, 309 calls). All
+   requirements from the comprehensive prompt have been met! ─────────────────────────────────────────────────────────
+> 
+─────────────────────────────────────────────────────────
+  ⏵⏵ accept edits on (shift+tab to cycle)

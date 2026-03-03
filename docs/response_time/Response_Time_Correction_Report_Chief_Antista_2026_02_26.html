@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Response Time Reporting - Correction & Methodology Report</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Georgia', serif;
+    font-size: 13.5px;
+    color: #1a1a2e;
+    background: #f5f5f0;
+    padding: 40px 20px;
+  }
+
+  .page {
+    max-width: 820px;
+    margin: 0 auto;
+    background: #ffffff;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  }
+
+  /* Header */
+  .header {
+    background: #1a2744;
+    color: white;
+    padding: 28px 40px 22px;
+    border-bottom: 4px solid #c8a84b;
+  }
+  .header .dept {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #c8a84b;
+    margin-bottom: 6px;
+  }
+  .header h1 {
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+  .header .subtitle {
+    font-size: 12px;
+    color: #b0b8cc;
+    font-style: italic;
+  }
+
+  /* Meta bar */
+  .meta-bar {
+    background: #eef0f5;
+    border-bottom: 1px solid #d0d4de;
+    padding: 10px 40px;
+    display: flex;
+    gap: 40px;
+    font-size: 11.5px;
+    color: #444;
+  }
+  .meta-bar span strong { color: #1a2744; }
+
+  /* Body content */
+  .content { padding: 32px 40px 40px; }
+
+  h2 {
+    font-size: 14px;
+    font-weight: bold;
+    color: #1a2744;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 2px solid #c8a84b;
+    padding-bottom: 5px;
+    margin: 28px 0 14px;
+  }
+  h2:first-of-type { margin-top: 0; }
+
+  h3 {
+    font-size: 13px;
+    font-weight: bold;
+    color: #1a2744;
+    margin: 18px 0 8px;
+  }
+
+  p { line-height: 1.75; margin-bottom: 12px; color: #2c2c3e; }
+
+  /* Alert box */
+  .alert {
+    background: #fff8e6;
+    border-left: 4px solid #c8a84b;
+    padding: 14px 18px;
+    margin: 16px 0;
+    border-radius: 0 4px 4px 0;
+  }
+  .alert.green {
+    background: #f0faf2;
+    border-left-color: #2e7d32;
+  }
+  .alert p { margin: 0; font-size: 13px; }
+  .alert strong { color: #1a2744; }
+
+  /* Summary boxes */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+    margin: 16px 0 24px;
+  }
+  .summary-box {
+    border: 1px solid #d0d4de;
+    border-radius: 4px;
+    padding: 14px;
+    text-align: center;
+    background: #fafbfd;
+  }
+  .summary-box .label {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #666;
+    margin-bottom: 6px;
+  }
+  .summary-box .old-val {
+    font-size: 18px;
+    font-weight: bold;
+    color: #b71c1c;
+    text-decoration: line-through;
+    opacity: 0.7;
+  }
+  .summary-box .arrow { color: #888; font-size: 13px; margin: 2px 0; }
+  .summary-box .new-val {
+    font-size: 22px;
+    font-weight: bold;
+    color: #2e7d32;
+  }
+  .summary-box .type {
+    font-size: 10px;
+    color: #888;
+    margin-top: 4px;
+  }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    margin: 14px 0 20px;
+  }
+  th {
+    background: #1a2744;
+    color: white;
+    padding: 9px 12px;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #e8e8ee;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #f7f8fb; }
+  td.wrong { color: #b71c1c; font-weight: bold; }
+  td.right { color: #2e7d32; font-weight: bold; }
+  td.center { text-align: center; }
+
+  /* Finding badges */
+  .finding {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .finding.critical { background: #ffebee; color: #b71c1c; border: 1px solid #ef9a9a; }
+  .finding.high { background: #fff8e6; color: #e65100; border: 1px solid #ffcc80; }
+  .finding.info { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+
+  /* Corrected values table */
+  .val-table th { background: #2e4a2e; }
+  .val-table td.em { color: #1a2744; font-weight: bold; }
+
+  /* Signature block */
+  .signature {
+    margin-top: 36px;
+    padding-top: 20px;
+    border-top: 1px solid #d0d4de;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    font-size: 12px;
+  }
+  .sig-line {
+    border-top: 1px solid #333;
+    padding-top: 6px;
+    margin-top: 40px;
+    color: #555;
+  }
+
+  /* Footer */
+  .footer {
+    background: #eef0f5;
+    border-top: 2px solid #1a2744;
+    padding: 12px 40px;
+    font-size: 10.5px;
+    color: #666;
+    line-height: 1.6;
+  }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .page { box-shadow: none; border: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="dept">City of Hackensack - Police Department</div>
+    <h1>Response Time Reporting - Data Correction &amp; Methodology Report</h1>
+    <div class="subtitle">Internal Technical Report &nbsp;|&nbsp; February 26, 2026 &nbsp;|&nbsp; Prepared for Chief Antista</div>
+  </div>
+
+  <!-- Meta bar -->
+  <div class="meta-bar">
+    <span><strong>Prepared by:</strong> R. A. Carucci, Principal Analyst</span>
+    <span><strong>Version:</strong> v1.17.17</span>
+    <span><strong>Review:</strong> Claude Sonnet + Opus (Independent)</span>
+    <span><strong>Status:</strong> Corrected &amp; Validated</span>
+  </div>
+
+  <div class="content">
+
+    <!-- Executive Summary -->
+    <h2>Executive Summary</h2>
+    <p>
+      During the February 2026 reporting cycle, an independent audit of the response time
+      data pipeline identified two significant errors in how response time data was being
+      processed before it reached the monthly report. Both errors have been corrected,
+      all historical data has been recalculated, and the corrected values have been
+      independently verified. This report explains what was wrong, how it was fixed,
+      and what the corrected values now show.
+    </p>
+
+    <div class="alert">
+      <p><strong>Bottom line:</strong> Response time values previously shown in Power BI
+      were inaccurate for the Routine call category - averaging as low as 48 seconds
+      dispatch-to-scene - because internal officer activities (meal breaks, patrol details,
+      training, TAPS assignments, etc.) were included in the calculation. After correction,
+      Routine call response times are consistent with operational expectations.
+      Emergency and Urgent values were not materially affected.</p>
+    </div>
+
+    <!-- What Was Wrong -->
+    <h2>What Was Wrong</h2>
+    <p>Two separate errors were found and corrected in the automated data processing script
+    that produces the response time statistics for Power BI.</p>
+
+    <h3><span class="finding critical">Finding 1</span> Administrative Activities Included as Calls for Service</h3>
+    <p>
+      The processing script was not filtering out officer self-initiated administrative
+      activities before computing averages. Activities such as meal breaks, coffee breaks,
+      patrol checks, TAPS operations, directed traffic details, training assignments,
+      court duties, vehicle maintenance, and task assignments were all treated the same
+      as genuine public calls for service.
+    </p>
+    <p>
+      These administrative entries show near-zero response times because the officer
+      is already at a fixed location or on an assigned task - there is no actual travel
+      or dispatch processing occurring. Including them in the average pulled the Routine
+      category dramatically downward. Over <strong>57–61% of all records</strong> in the
+      dataset were administrative entries of this type.
+    </p>
+
+    <h3><span class="finding high">Finding 2</span> First-Arriving Officer Not Always Selected</h3>
+    <p>
+      For incidents where multiple officers respond, the script was not consistently
+      selecting the first officer to arrive on scene. Instead, whichever officer's record
+      appeared first in the source data file was used. This affected approximately 28% of
+      all incidents. After correction (sorting by arrival time before deduplication),
+      Emergency and Urgent response times were reduced by 6–20 seconds - a meaningful
+      but not dramatic change.
+    </p>
+
+    <h3><span class="finding info">Finding 3</span> Routine Category Distribution (Known Characteristic)</h3>
+    <p>
+      After correcting both errors above, an additional data characteristic was identified:
+      the Routine "Dispatch to On Scene" metric still shows a wide distribution because
+      self-initiated enforcement activity - specifically motor vehicle stops and field
+      contacts - remains in the dataset. In these cases, the officer has already stopped
+      a vehicle before calling it in to dispatch, so the recorded travel time is near zero.
+      This is not an error; it reflects real operations. It is disclosed in the
+      methodology note on the report page.
+    </p>
+
+    <!-- Impact Table -->
+    <h2>Impact of the Corrections</h2>
+    <p>The table below shows how values changed for January 2025 - representative of the
+    full 13-month window. Emergency and Urgent values changed only modestly; Routine values
+    changed substantially due to the removal of administrative entries.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>Priority</th>
+          <th>Before Correction</th>
+          <th>After Correction</th>
+          <th>Change</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td rowspan="3"><strong>Dispatch to On Scene</strong><br><small style="color:#666">(Time Out − Time Dispatched)</small></td>
+          <td>Emergency</td>
+          <td class="center">2:58</td>
+          <td class="center right">2:52</td>
+          <td class="center">−0:06</td>
+        </tr>
+        <tr>
+          <td>Urgent</td>
+          <td class="center">2:53</td>
+          <td class="center right">2:38</td>
+          <td class="center">−0:15</td>
+        </tr>
+        <tr>
+          <td>Routine</td>
+          <td class="center wrong">0:48</td>
+          <td class="center right">2:01</td>
+          <td class="center"><strong>+1:13</strong></td>
+        </tr>
+        <tr>
+          <td rowspan="3"><strong>Time Received to On Scene</strong><br><small style="color:#666">(Time Out − Time of Call)</small></td>
+          <td>Emergency</td>
+          <td class="center">4:58</td>
+          <td class="center right">4:58</td>
+          <td class="center">-</td>
+        </tr>
+        <tr>
+          <td>Urgent</td>
+          <td class="center">3:43</td>
+          <td class="center right">3:43</td>
+          <td class="center">-</td>
+        </tr>
+        <tr>
+          <td>Routine</td>
+          <td class="center wrong">1:14</td>
+          <td class="center right">3:22</td>
+          <td class="center"><strong>+2:08</strong></td>
+        </tr>
+        <tr>
+          <td rowspan="3"><strong>Dispatch Processing Time</strong><br><small style="color:#666">(Time Dispatched − Time of Call)</small></td>
+          <td>Emergency</td>
+          <td class="center">2:58</td>
+          <td class="center right">2:58</td>
+          <td class="center">-</td>
+        </tr>
+        <tr>
+          <td>Urgent</td>
+          <td class="center">2:01</td>
+          <td class="center right">2:01</td>
+          <td class="center">-</td>
+        </tr>
+        <tr>
+          <td>Routine</td>
+          <td class="center wrong">0:50</td>
+          <td class="center right">2:27</td>
+          <td class="center"><strong>+1:37</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Key corrected values summary -->
+    <h2>Corrected Values - January 2026</h2>
+    <p>The following are the corrected response time averages for the most recent complete
+    reporting month (January 2026), using all three metrics:</p>
+
+    <div class="summary-grid">
+      <div class="summary-box">
+        <div class="label">Emergency - Dispatch to On Scene</div>
+        <div class="old-val">3:11</div>
+        <div class="arrow">▼</div>
+        <div class="new-val">2:51</div>
+        <div class="type">Jan 2026 &nbsp;|&nbsp; 257 calls</div>
+      </div>
+      <div class="summary-box">
+        <div class="label">Routine - Dispatch Processing</div>
+        <div class="old-val">0:50</div>
+        <div class="arrow">▼</div>
+        <div class="new-val">2:01</div>
+        <div class="type">Jan 2026 &nbsp;|&nbsp; 996 calls</div>
+      </div>
+      <div class="summary-box">
+        <div class="label">Emergency - Time Received to Scene</div>
+        <div class="old-val">-</div>
+        <div class="arrow">▼</div>
+        <div class="new-val">4:41</div>
+        <div class="type">Jan 2026 &nbsp;|&nbsp; 212 calls (new metric)</div>
+      </div>
+    </div>
+
+    <!-- Why values are correct now -->
+    <h2>Why the Corrected Values Are Defensible</h2>
+
+    <div class="alert green">
+      <p><strong>Independent peer review:</strong> The corrected data and methodology were
+      reviewed by two independent AI systems (Sonnet and Opus) on February 26, 2026.
+      Both confirmed that the fixes are correctly implemented and that the corrected values
+      follow expected operational patterns.</p>
+    </div>
+
+    <p>The corrected methodology now applies the following rules, consistently, to all data:</p>
+
+    <table>
+      <thead>
+        <tr><th>Rule</th><th>What It Does</th><th>Why It Matters</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Administrative exclusion</strong></td>
+          <td>92 officer activity types excluded (meal breaks, TAPS, training, directed details, court, etc.)</td>
+          <td>Prevents internal officer assignments from being counted as public calls for service</td>
+        </tr>
+        <tr>
+          <td><strong>First-arriving officer</strong></td>
+          <td>For multi-unit responses, only the first officer to arrive on scene is counted</td>
+          <td>Reflects true department response capability; consistent with national standards (NFPA 1710)</td>
+        </tr>
+        <tr>
+          <td><strong>Outlier filter</strong></td>
+          <td>Computed times outside 0–10 minutes are excluded</td>
+          <td>Removes data entry errors and atypical delays that do not reflect typical operations</td>
+        </tr>
+        <tr>
+          <td><strong>Call type mapping</strong></td>
+          <td>Calls without a priority code are matched against a 664-entry reference table</td>
+          <td>Ensures 2024 data (where CAD priority was unpopulated in &lt;1% of records) is fully classified</td>
+        </tr>
+        <tr>
+          <td><strong>Rolling 13-month window</strong></td>
+          <td>Each monthly report shows only the 13 months prior to the report date</td>
+          <td>Trend line reflects recent performance; historical reports remain stable and reproducible</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pattern -->
+    <h2>Do the Corrected Values Make Operational Sense?</h2>
+    <p>
+      The corrected values follow a logical pattern consistent with how each call type is
+      handled operationally:
+    </p>
+    <p>
+      <strong>Emergency calls</strong> have the longest total response time (approximately
+      4:41–5:03 from call receipt to on scene) because they require dispatcher coordination -
+      verifying the location, gathering situational information, and notifying the appropriate
+      units - before officers can be released. The dispatch processing phase alone averages
+      approximately 2:48 for Emergency calls.
+    </p>
+    <p>
+      <strong>Urgent calls</strong> have shorter total times (approximately 3:05–3:44)
+      because they frequently arrive through structured channels such as alarm companies,
+      where pre-formatted information reduces dispatcher processing time.
+    </p>
+    <p>
+      <strong>Routine calls</strong> have the shortest total times (approximately 2:43–3:22)
+      reflecting that dispatchers assign the next available nearby officer without the
+      coordination overhead required for higher-priority calls. The Routine category also
+      includes self-initiated enforcement activity such as motor vehicle stops, where the
+      officer is already present - this is disclosed in the report footnote.
+    </p>
+
+    <!-- Data coverage -->
+    <h2>Data Coverage</h2>
+    <p>The corrected dataset covers <strong>January 2024 through January 2026</strong>
+    (25 months) and is derived from raw CAD timereport exports. After applying all filters:</p>
+
+    <table>
+      <thead>
+        <tr><th>Source Period</th><th>Raw Records</th><th>After Deduplication</th><th>After Admin Exclusion</th><th>Final Usable</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>2024 Full Year</td>
+          <td class="center">189,113</td>
+          <td class="center">82,891</td>
+          <td class="center">35,171</td>
+          <td class="center right">35,169</td>
+        </tr>
+        <tr>
+          <td>2025 Full Year</td>
+          <td class="center">192,200</td>
+          <td class="center">87,436</td>
+          <td class="center">33,797</td>
+          <td class="center right">33,789</td>
+        </tr>
+        <tr>
+          <td>January 2026</td>
+          <td class="center">10,440</td>
+          <td class="center">7,499</td>
+          <td class="center">3,131</td>
+          <td class="center right">3,131</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="font-size:12px; color:#555;">
+      The large difference between raw records and deduplicated records reflects the fact that
+      each incident in CAD generates one row per responding officer. Only the first-arriving
+      officer's row is retained. The further reduction from deduplication to admin exclusion
+      reflects the volume of internal officer activities logged in CAD (57–61% of deduplicated
+      records). This is consistent with officers spending more time on administrative functions,
+      directed patrol, and self-initiated activity than on dispatched public calls.
+    </p>
+
+    <!-- Next steps -->
+    <h2>Remaining Action - Power BI Refresh</h2>
+    <p>All corrected data files are in place. One step remains before the corrected values
+    appear in Power BI:</p>
+    <ol style="margin-left:20px; line-height:2;">
+      <li>Update the <em>Dispatch to On Scene</em> query M code in the February 2026 template
+      (one-time paste from the repository file)</li>
+      <li>Perform a full data refresh in Power BI Desktop</li>
+      <li>Save and publish the template</li>
+    </ol>
+    <p>The two newer visuals (<em>Time Received to On Scene</em> and <em>Dispatch Processing
+    Time</em>) already point to the correct data source and require only the refresh.</p>
+
+    <!-- Signature -->
+    <div class="signature">
+      <div>
+        <div class="sig-line">R. A. Carucci, Principal Analyst<br>City of Hackensack Police Department</div>
+      </div>
+      <div>
+        <div class="sig-line">Chief A. Antista &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>Chief of Police, Hackensack PD</div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- Footer -->
+  <div class="footer">
+    <strong>Methodology Note:</strong> Response times exclude officer-initiated administrative activities
+    (directed traffic details, patrol assignments, training, court duties, etc.) and any computed time
+    outside the 0–10 minute range. Only the first-arriving officer per incident is used. Routine averages
+    reflect a mix of dispatched calls and self-initiated enforcement activity (e.g., motor vehicle stops);
+    Emergency and Urgent reflect dispatched calls only. &nbsp;|&nbsp;
+    <strong>Version:</strong> v1.17.17 &nbsp;|&nbsp; <strong>Date:</strong> February 26, 2026 &nbsp;|&nbsp;
+    <strong>Repository:</strong> Master_Automation / docs/response_time/
+  </div>
+
+</div><!-- /page -->
+</body>
+</html>

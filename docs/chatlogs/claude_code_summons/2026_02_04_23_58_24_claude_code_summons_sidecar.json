@@ -1,0 +1,109 @@
+{
+  "source_file": "claude_code_summons.md",
+  "source_path": "C:\\_chunker\\02_data\\claude_code_summons.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\claude_code_summons\\2026_02_04_23_58_24_claude_code_summons.origin.json",
+  "created_at": "2026_02_04_23_58_24",
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "wg2",
+      "data",
+      "queries",
+      "columns",
+      "power",
+      "text"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Summons Data Troubleshooting & Fix Guide\n\n**Purpose:** Comprehensive guide for troubleshooting and fixing Summons data issues in Power BI, including ETL processing, M code queries, DAX measures, and visual errors. ---\n\n## ✅ Executive S...",
+    "first_line": "# Summons Data Troubleshooting & Fix Guide"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-04T23:58:24+00:00_claude_code_summons_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "code",
+        "columns",
+        "conversation",
+        "data",
+        "docs",
+        "excel",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "power",
+        "python",
+        "queries",
+        "sql",
+        "text"
+      ],
+      "key_terms": [
+        "wg2",
+        "data",
+        "text",
+        "power",
+        "queries",
+        "columns"
+      ],
+      "summary": "# Summons Data Troubleshooting & Fix Guide\n\n**Purpose:** Comprehensive guide for troubleshooting and fixing Summons data issues in Power BI, including ETL processing, M code queries, DAX measures, and visual errors.",
+      "char_length": 29753,
+      "byte_length": 30664
+    },
+    {
+      "chunk_id": "2026-02-04T23:58:24+00:00_claude_code_summons_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "ai",
+        "code",
+        "columns",
+        "conversation",
+        "data",
+        "docs",
+        "excel",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "priority",
+        "python",
+        "should",
+        "sql"
+      ],
+      "key_terms": [
+        "data",
+        "priority",
+        "should",
+        "columns",
+        "code",
+        "wg2"
+      ],
+      "summary": "I've read the initial files:\n\n1.",
+      "char_length": 1065,
+      "byte_length": 1090
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

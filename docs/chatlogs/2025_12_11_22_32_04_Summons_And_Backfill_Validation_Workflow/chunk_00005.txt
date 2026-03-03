@@ -1,0 +1,762 @@
+Time"
+                 else if Text.StartsWith([Time_Category], "Accrued Overtime")
+                 then "Accrued Overtime"
+                 else null,
+            type text
+        ),
+
+    /* =========================
+       Optional anchor: use last published summary to force exact totals
+       ========================= */
+    Candidates = Table.SelectRows(AFiles,
+                    each Text.Contains([Name], "Monthly_Accrual_and_Usage_Summary")
+                      and Text.EndsWith([Name], ".csv")),
+
+    // Function to test if a file is the correct prior anchor (has 08-25, not 09-25)
+    IsPriorFile = (content as binary) as logical =>
+        let
+            Raw  = Csv.Document(content,[Delimiter=",",Encoding=65001,QuoteStyle=QuoteStyle.Csv]),
+            T    = Table.PromoteHeaders(Raw, [PromoteAllScalars=true]),
+            Cols = List.RemoveItems(Table.ColumnNames(T), {"Time Category"})
+        in List.Contains(Cols, "08-25") and not List.Contains(Cols, "09-25"),
+
+    // Add flag and select the most recent prior file
+    WithFlag = Table.AddColumn(Candidates, "IsPrior", each IsPriorFile([Content]), type logical),
+    Filtered = Table.SelectRows(WithFlag, each [IsPrior]=true),
+    PriorSorted = Table.Sort(Filtered, {{"Date modified", Order.Descending}}),
+    PriorCont  = if Table.RowCount(PriorSorted)>0 then PriorSorted{0}[Content] else null,
+    PriorCsvRaw = if PriorCont<>null then Csv.Document(PriorCont, [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]) else #table({},{}),
+    PriorCsv    = Table.PromoteHeaders(PriorCsvRaw, [PromoteAllScalars=true]),
+    HasTimeCategory = List.Contains(Table.ColumnNames(PriorCsv), "Time Category"),
+
+    PriorAccruals =
+        if HasTimeCategory then
+            let
+                Keep = Table.SelectRows(PriorCsv, each [#"Time Category"] = "Accrued Comp. Time" or [#"Time Category"] = "Accrued Overtime"),
+                Unp  = Table.UnpivotOtherColumns(Keep, {"Time Category"}, "Period", "Total"),
+                Ren  = Table.RenameColumns(Unp, {{"Time Category","Metric"}}),
+                Typ  = Table.TransformColumnTypes(Ren, {{"Total", type number}})
+            in Typ
+        else
+#table({"Metric", "Period", "Total"}, {}),
+
+    // Normalize prior file period to a date-driven label "MM-yy"
+    // (eliminates whitespace and formatting issues)
+    PriorAccrualsNorm =
+        let
+            Trimmed = Table.TransformColumns(PriorAccruals, {{"Metric", Text.Trim, type text}, {"Period", Text.Trim, type text}}),
+            WithLabel = Table.AddColumn(
+                Trimmed, "PeriodLabel",
+                each let
+                        // Expect prior Period like "10-24"
+                        mm = Text.Start([Period], 2),
+                        yy = Text.End([Period], 2),
+                        y  = Number.FromText("20" & yy),
+                        m  = Number.FromText(mm),
+                        d  = #date(y, m, 1)
+                     in Date.ToText(d, "MM-yy"),
+                type text
+            ),
+            KeepCols = Table.SelectColumns(WithLabel, {"Metric","PeriodLabel","Total"})
+        in
+            KeepCols,
+
+    // Use ONLY the rows that participate in anchoring (the two accrual metrics)
+    ForScaleOnly = Table.SelectRows(WithBaseMetric, each [BaseMetric] <> null),
+
+    // Sum current (Sworn + Non) by BaseMetric + PeriodLabel
+    NewTotals =
+        Table.Group(
+            ForScaleOnly,
+            {"BaseMetric","PeriodLabel"},
+            {{"NewTotal", each List.Sum([Hours]), type number}}
+        ),
+
+    PriorJoin = Table.NestedJoin(NewTotals, {"BaseMetric","PeriodLabel"}, PriorAccrualsNorm, {"Metric","PeriodLabel"}, "Prior", JoinKind.LeftOuter),
+    
+    // Compute the Scale with cutover guard (date-based comparison)
+    WithFactor =
+        Table.AddColumn(
+            PriorJoin, "Scale",
+            each let
+                // Build a real date from "MM-yy" PeriodLabel
+                pYear  = Number.FromText("20" & Text.End([PeriodLabel], 2)),
+                pMonth = Number.FromText(Text.Start([PeriodLabel], 2)),
+                pDate  = #date(pYear, pMonth, 1),
+
+                apply = UseAnchoring and pDate < CutoverDate,
+
+                has   = [Prior] <> null and Table.RowCount([Prior]) > 0,
+                prior = if has then [Prior]{0}[Total] else null,
+                newv  = [NewTotal]
+            in
+                if apply and has and newv <> null and newv <> 0
+                then prior / newv
+                else 1.0,
+            type number
+        ),
+
+    // Bring Scale onto every split row via (BaseMetric, PeriodLabel)
+    MBJoin =
+        Table.NestedJoin(
+            WithBaseMetric, {"BaseMetric","PeriodLabel"},
+            WithFactor,     {"BaseMetric","PeriodLabel"},
+            "F", JoinKind.LeftOuter
+        ),
+
+    // Apply scaling ONLY to rows that belong to those two metrics; others pass through
+    MBScaled =
+        Table.AddColumn(
+            MBJoin, "Value",
+            each let
+                isAccrual = [BaseMetric] <> null,
+                ftable    = [F]
+            in  if isAccrual then
+                    [Hours] * (
+                        if ftable <> null and Table.RowCount(ftable) > 0 and Value.Is(ftable{0}[Scale], Number.Type)
+                        then ftable{0}[Scale] else 1.0
+                    )
+                else [Hours],
+            type number
+        ),
+
+    MBFinal = Table.SelectColumns(MBScaled, {"PeriodLabel","Time_Category","Value"}),
+
+    /* =========================
+       DEBUG: Verify scale factors are being calculated correctly
+       ========================= */
+    // 1) Confirm MBJoin is using THIS WithFactor
+    Dbg_Scales_Raw =
+        Table.SelectColumns(WithFactor, {"BaseMetric","PeriodLabel","NewTotal","Prior","Scale"}),
+
+    Dbg_PriorTotal =
+        Table.AddColumn(Dbg_Scales_Raw, "PriorTotal",
+            each if [Prior] <> null and Table.RowCount([Prior]) > 0
+                 then try [Prior]{0}[Total] otherwise null
+                 else null, type number),
+
+    Dbg_Scales = Table.SelectColumns(Dbg_PriorTotal,
+        {"BaseMetric","PeriodLabel","NewTotal","PriorTotal","Scale"}),
+
+    // 2) LIMIT to the anchored window and just the two accrual metrics
+    Dbg_Filter =
+        Table.SelectRows(Dbg_Scales, each
+            ([BaseMetric] = "Accrued Comp. Time" or [BaseMetric] = "Accrued Overtime")
+            and List.Contains({"09-24","10-24","11-24","12-24","01-25","02-25","03-25",
+                               "04-25","05-25","06-25","07-25","08-25"}, [PeriodLabel])),
+
+    // 3) See if Scale is 1 when it should NOT be (anchor apply check)
+    Dbg_WithApply =
+        Table.AddColumn(Dbg_Filter, "ShouldApply",
+            each let
+                pYear  = Number.FromText("20" & Text.End([PeriodLabel], 2)),
+                pMonth = Number.FromText(Text.Start([PeriodLabel], 2)),
+                pDate  = #date(pYear, pMonth, 1)
+            in  pDate < CutoverDate, type logical),
+
+    // 4) MATERIALIZE this so you can eyeball it in the preview
+    Dbg_View = Dbg_WithApply,
+
+    /* =========================
+       Combine long tables
+       ========================= */
+    LegacyLong = Table.SelectColumns(LegacyWithLabel, {"PeriodLabel","Time_Category","Value"}),
+    
+    // Optional: remove Vacation (Hours) if not used (all zeros)
+    LegacyLongFiltered = Table.SelectRows(LegacyLong, each [Time_Category] <> "Vacation (Hours)"),
+    
+    CombinedLong = Table.Combine({LegacyLongFiltered, MBFinal}),
+
+    /* =========================
+       Pivot with the FULL 13-month label list
+       ========================= */
+    // Ensure column order is the entire 13-month window
+    Pivoted = Table.Pivot(CombinedLong, List.Distinct(CombinedLong[PeriodLabel]), "PeriodLabel", "Value"),
+    // Add any missing month columns as null, then reorder to full 13-month list
+    WithAllCols =
+        List.Accumulate(
+            PeriodLabelsMMYY,
+            Pivoted,
+            (state, col) => if List.Contains(Table.ColumnNames(state), col)
+                            then state
+                            else Table.AddColumn(state, col, each null, type number)
+        ),
+    Reordered = Table.ReorderColumns(WithAllCols, List.Combine({{"Time_Category"}, PeriodLabelsMMYY})),
+
+    /* Optional: replace null with 0 for cleaner visuals */
+    ZeroFilled = Table.ReplaceValue(Reordered, null, 0, Replacer.ReplaceValue, PeriodLabelsMMYY)
+in
+    ZeroFilled
+
+---
+
+**Cursor**
+
+Got it — we’ll trace where those “legacy” rows (Comp/Sick/IOD/Military/SAT) are coming from, inspect the actual `FIXED_monthly_breakdown*.csv` being loaded, and then either (a) fix the file-generation pipeline or (b) adjust the M query to select the correct source so 11-24→09-25 and 11-25 populate correctly. ---
+
+**User**
+
+the previous months should be imported from the backfill C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\Backfill\2025_10\vcs_time_report\2025_10_Monthly Accrual and Usage Summary.csv
+
+---
+
+**Cursor**
+
+Nice — the root cause is already visible: your M query’s “legacy” categories come from the latest `output\FIXED_monthly_breakdown_*.csv`, and the newest one (`FIXED_monthly_breakdown_2024-11_2025-11.csv`) currently has **0.0 for every legacy field across all 13 rows**, which is why Power BI shows null/0 for 11-24→09-25 (and 11-25). Next I’ll (1) inspect the latest backfill visual export(s) in `PowerBI_Date\Backfill\...\vcs_time_report\` (and your `00_dev` path) to confirm they contain the correct history, then (2) update the `overtime_timeoff.m` query to pull legacy categories from that backfill CSV (instead of the broken FIXED file) so the visual repopulates correctly. Plan: (1) create a small “restore FIXED from backfill” helper in `02_ETL_Scripts/Overtime_TimeOff/` that overwrites the legacy columns in the latest `FIXED_monthly_breakdown_2024-11_2025-11.csv` using your backfill export CSV, (2) run it and verify the FIXED file now has non-zero values for 2024-11…2025-10, and (3) confirm what’s missing for 2025-11 (11-25) so you know the next data export needed. ```python
+#!/usr/bin/env python3
+"""
+restore_fixed_from_backfill.py
+
+Goal
+----
+Populate (or restore) the historical months in a FIXED_monthly_breakdown_*.csv
+using a Power BI visual export "Monthly Accrual and Usage Summary" backfill CSV. Why
+---
+Power BI's Overtime/TimeDue M query uses FIXED_monthly_breakdown for NON-accrual
+categories (Comp, Sick, SAT, Military, IOD). If FIXED has zeros for historical
+months, those rows show as 0/null in the visual. This script overwrites (by month) the following columns in the FIXED file:
+  - Accrued_Comp_Time
+  - Accrued_Overtime_Paid
+  - Employee_Sick_Time_Hours
+  - Used_SAT_Time_Hours
+  - Used_Comp_Time
+  - Military_Leave_Hours
+  - Injured_on_Duty_Hours
+  - Vacation_Hours (if present in backfill, else 0)
+
+It uses the backfill export where rows are Time_Category and columns are month
+labels like "10-24", "11-24", ... and sometimes "Sum of 11-25". Usage
+-----
+python restore_fixed_from_backfill.py ^
+  --fixed "C:\...\output\FIXED_monthly_breakdown_2024-11_2025-11.csv" ^
+  --backfill "C:\...\PowerBI_Date\Backfill\2025_10\vcs_time_report\2025_10_Monthly Accrual and Usage Summary.csv" ^
+  --inplace
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import os
+import shutil
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, Iterable, List, Optional, Tuple
+
+
+def _norm_month_label(label: str) -> str:
+    """Normalize labels like 'Sum of 11-25' -> '11-25' and trim whitespace.""" s = (label or "").strip()
+    if not s:
+        return s
+    s_lower = s.lower()
+    if s_lower.startswith("sum of "):
+        s = s[7:].strip()
+    return s
+
+
+def _period_to_mmyy(period_yyyy_mm: str) -> str:
+    """Convert 'YYYY-MM' -> 'MM-YY'.""" yyyy, mm = period_yyyy_mm.split("-")
+    return f"{mm}-{yyyy[2:]}"
+
+
+@dataclass(frozen=True)
+class BackfillValues:
+    """Backfill values keyed by Time_Category then month label (MM-YY).""" by_category: Dict[str, Dict[str, float]]
+
+    def get(self, category: str, label: str) -> Optional[float]:
+        d = self.by_category.get(category)
+        if not d:
+            return None
+        return d.get(label)
+
+
+def load_backfill_csv(path: Path) -> BackfillValues:
+    if not path.exists():
+        raise FileNotFoundError(f"Backfill CSV not found: {path}")
+
+    with path.open("r", newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        if not reader.fieldnames:
+            raise ValueError("Backfill CSV has no headers")
+
+        # Detect Time_Category column name
+        time_col = None
+        for candidate in ("Time_Category", "Time Category", "TimeCategory"):
+            if candidate in reader.fieldnames:
+                time_col = candidate
+                break
+        if not time_col:
+            raise ValueError(
+                f"Backfill CSV missing Time Category column. Found: {reader.fieldnames}"
+            )
+
+        # Normalize month columns
+        month_cols: List[Tuple[str, str]] = []
+        for col in reader.fieldnames:
+            if col == time_col:
+                continue
+            norm = _norm_month_label(col)
+            month_cols.append((col, norm))
+
+        by_cat: Dict[str, Dict[str, float]] = {}
+        for row in reader:
+            cat = (row.get(time_col) or "").strip()
+            if not cat:
+                continue
+            out: Dict[str, float] = {}
+            for raw_col, norm_col in month_cols:
+                raw_val = (row.get(raw_col) or "").strip()
+                if raw_val == "":
+                    continue
+                try:
+                    out[norm_col] = float(raw_val)
+                except ValueError:
+                    # Leave as missing; we only care about numeric values. continue
+            by_cat[cat] = out
+
+    return BackfillValues(by_category=by_cat)
+
+
+def read_fixed_rows(path: Path) -> Tuple[List[str], List[Dict[str, str]]]:
+    if not path.exists():
+        raise FileNotFoundError(f"FIXED CSV not found: {path}")
+    with path.open("r", newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        if not reader.fieldnames:
+            raise ValueError("FIXED CSV has no headers")
+        rows = list(reader)
+        return list(reader.fieldnames), rows
+
+
+def write_fixed_rows(path: Path, fieldnames: List[str], rows: List[Dict[str, str]]) -> None:
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        for r in rows:
+            writer.writerow(r)
+
+
+def restore_fixed_from_backfill(
+    fixed_path: Path,
+    backfill_path: Path,
+    inplace: bool,
+) -> Path:
+    backfill = load_backfill_csv(backfill_path)
+    fieldnames, rows = read_fixed_rows(fixed_path)
+
+    required_fixed_cols = [
+        "Period",
+        "Accrued_Comp_Time",
+        "Accrued_Overtime_Paid",
+        "Employee_Sick_Time_Hours",
+        "Used_SAT_Time_Hours",
+        "Used_Comp_Time",
+        "Military_Leave_Hours",
+        "Injured_on_Duty_Hours",
+        "Vacation_Hours",
+    ]
+    missing_fixed = [c for c in required_fixed_cols if c not in fieldnames]
+    if missing_fixed:
+        raise ValueError(f"FIXED CSV missing required columns: {missing_fixed}")
+
+    # Map from backfill row labels -> fixed columns
+    legacy_map = {
+        "Employee Sick Time (Hours)": "Employee_Sick_Time_Hours",
+        "Used SAT Time (Hours)": "Used_SAT_Time_Hours",
+        "Comp (Hours)": "Used_Comp_Time",
+        "Military Leave (Hours)": "Military_Leave_Hours",
+        "Injured on Duty (Hours)": "Injured_on_Duty_Hours",
+        "Vacation (Hours)": "Vacation_Hours",
+    }
+
+    # Accrual totals (sum sworn/non-sworn)
+    accrual_pairs = {
+        "Accrued_Comp_Time": (
+            "Accrued Comp. Time - Non-Sworn",
+            "Accrued Comp. Time - Sworn",
+        ),
+        "Accrued_Overtime_Paid": (
+            "Accrued Overtime - Non-Sworn",
+            "Accrued Overtime - Sworn",
+        ),
+    }
+
+    updated = 0
+    skipped_missing_label = 0
+    for r in rows:
+        period = (r.get("Period") or "").strip()
+        if not period:
+            continue
+        label = _period_to_mmyy(period)
+
+        # If the backfill file does not have this month label (e.g., 11-25),
+        # we cannot restore it from this backfill export. # Keep whatever the fixed file already has. label_exists = any(
+            backfill.get(cat, label) is not None
+            for cat in list(legacy_map.keys()) + [p for pair in accrual_pairs.values() for p in pair]
+        )
+        if not label_exists:
+            skipped_missing_label += 1
+            continue
+
+        # Restore legacy (non-accrual) categories
+        for backfill_cat, fixed_col in legacy_map.items():
+            val = backfill.get(backfill_cat, label)
+            if val is None:
+                # If the backfill file is missing the row, keep existing. continue
+            r[fixed_col] = f"{val}"
+
+        # Restore accrual totals
+        for fixed_col, (cat_a, cat_b) in accrual_pairs.items():
+            a = backfill.get(cat_a, label)
+            b = backfill.get(cat_b, label)
+            if a is None or b is None:
+                continue
+            r[fixed_col] = f"{(a + b)}"
+
+        updated += 1
+
+    # Output: inplace or write new file
+    if inplace:
+        backup = fixed_path.with_suffix(fixed_path.suffix + ".bak")
+        shutil.copy2(fixed_path, backup)
+        out_path = fixed_path
+    else:
+        out_path = fixed_path.with_name(fixed_path.stem + "_RESTORED.csv")
+        backup = None
+
+    write_fixed_rows(out_path, fieldnames, rows)
+
+    print(f"[OK] Backfill used: {backfill_path}")
+    if backup:
+        print(f"[OK] Backup created: {backup}")
+    print(f"[OK] FIXED written: {out_path}")
+    print(f"[OK] Rows updated (month label present in backfill): {updated}/{len(rows)}")
+    if skipped_missing_label:
+        print(
+            f"[WARN] Rows skipped (month label not present in backfill export): {skipped_missing_label} "
+            f"(e.g., current window month not in that backfill file)"
+        )
+
+    return out_path
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--fixed", required=True, help="Path to FIXED_monthly_breakdown_*.csv")
+    parser.add_argument("--backfill", required=True, help="Path to backfill visual export CSV")
+    parser.add_argument(
+        "--inplace",
+        action="store_true",
+        help="Overwrite the FIXED file (creates a .bak backup first)",
+    )
+    args = parser.parse_args()
+
+    fixed_path = Path(args.fixed)
+    backfill_path = Path(args.backfill)
+
+    restore_fixed_from_backfill(
+        fixed_path=fixed_path,
+        backfill_path=backfill_path,
+        inplace=bool(args.inplace),
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+```
+
+Good catch: I accidentally created the helper under `Master_Automation/02_ETL_Scripts/...` (inside this repo), but your real `02_ETL_Scripts` folder is **outside** the repo, so Python couldn’t find it. I’m going to move the helper into `Master_Automation/scripts/` and then run it against the real FIXED/backfill paths you provided. ```python
+#!/usr/bin/env python3
+"""
+restore_fixed_from_backfill.py
+
+Populates historical months in a FIXED_monthly_breakdown_*.csv using a Power BI
+visual export "Monthly Accrual and Usage Summary" backfill CSV. Why this fixes your Power BI issue
+----------------------------------
+Your Overtime/TimeDue M query uses FIXED_monthly_breakdown for NON-accrual rows:
+  - Comp (Hours)
+  - Employee Sick Time (Hours)
+  - Injured on Duty (Hours)
+  - Military Leave (Hours)
+  - Used SAT Time (Hours)
+
+If FIXED has zeros for historical months (11-24 .. 09-25), those rows show as
+0/null in the visual. This script overwrites those FIXED columns for any month
+label present in the backfill export (e.g., 10-24 .. 10-25). Usage (PowerShell)
+------------------
+python .\\scripts\\restore_fixed_from_backfill.py `
+  --fixed \"C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\output\\FIXED_monthly_breakdown_2024-11_2025-11.csv\" `
+  --backfill \"C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\00_dev\\PowerBI_Date\\Backfill\\2025_10\\vcs_time_report\\2025_10_Monthly Accrual and Usage Summary.csv\" `
+  --inplace
+
+Notes
+-----
+- Creates a `.bak` backup alongside the FIXED file when using `--inplace`. - If the backfill export does NOT contain a month label (e.g. "11-25"), that
+  row is skipped (you need the newer backfill export that includes that month).
+""" from __future__ import annotations
+
+import argparse
+import csv
+import shutil
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+
+def _norm_month_label(label: str) -> str:
+    """Normalize labels like 'Sum of 11-25' -> '11-25' and trim whitespace.""" s = (label or "").strip()
+    if not s:
+        return s
+    s_lower = s.lower()
+    if s_lower.startswith("sum of "):
+        s = s[7:].strip()
+    return s
+
+
+def _period_to_mmyy(period_yyyy_mm: str) -> str:
+    """Convert 'YYYY-MM' -> 'MM-YY'.""" yyyy, mm = period_yyyy_mm.split("-")
+    return f"{mm}-{yyyy[2:]}"
+
+
+@dataclass(frozen=True)
+class BackfillValues:
+    by_category: Dict[str, Dict[str, float]]
+
+    def get(self, category: str, label: str) -> Optional[float]:
+        d = self.by_category.get(category)
+        if not d:
+            return None
+        return d.get(label)
+
+
+def load_backfill_csv(path: Path) -> BackfillValues:
+    if not path.exists():
+        raise FileNotFoundError(f"Backfill CSV not found: {path}")
+
+    with path.open("r", newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        if not reader.fieldnames:
+            raise ValueError("Backfill CSV has no headers")
+
+        # Detect Time_Category column name
+        time_col = None
+        for candidate in ("Time_Category", "Time Category", "TimeCategory"):
+            if candidate in reader.fieldnames:
+                time_col = candidate
+                break
+        if not time_col:
+            raise ValueError(
+                f"Backfill CSV missing Time Category column. Found: {reader.fieldnames}"
+            )
+
+        month_cols: List[Tuple[str, str]] = []
+        for col in reader.fieldnames:
+            if col == time_col:
+                continue
+            month_cols.append((col, _norm_month_label(col)))
+
+        by_cat: Dict[str, Dict[str, float]] = {}
+        for row in reader:
+            cat = (row.get(time_col) or "").strip()
+            if not cat:
+                continue
+            out: Dict[str, float] = {}
+            for raw_col, norm_col in month_cols:
+                raw_val = (row.get(raw_col) or "").strip()
+                if raw_val == "":
+                    continue
+                try:
+                    out[norm_col] = float(raw_val)
+                except ValueError:
+                    continue
+            by_cat[cat] = out
+
+    return BackfillValues(by_category=by_cat)
+
+
+def read_fixed_rows(path: Path) -> Tuple[List[str], List[Dict[str, str]]]:
+    if not path.exists():
+        raise FileNotFoundError(f"FIXED CSV not found: {path}")
+    with path.open("r", newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        if not reader.fieldnames:
+            raise ValueError("FIXED CSV has no headers")
+        rows = list(reader)
+        return list(reader.fieldnames), rows
+
+
+def write_fixed_rows(path: Path, fieldnames: List[str], rows: List[Dict[str, str]]) -> None:
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        for r in rows:
+            writer.writerow(r)
+
+
+def restore_fixed_from_backfill(fixed_path: Path, backfill_path: Path, inplace: bool) -> Path:
+    backfill = load_backfill_csv(backfill_path)
+    fieldnames, rows = read_fixed_rows(fixed_path)
+
+    required_fixed_cols = [
+        "Period",
+        "Accrued_Comp_Time",
+        "Accrued_Overtime_Paid",
+        "Employee_Sick_Time_Hours",
+        "Used_SAT_Time_Hours",
+        "Used_Comp_Time",
+        "Military_Leave_Hours",
+        "Injured_on_Duty_Hours",
+        "Vacation_Hours",
+    ]
+    missing_fixed = [c for c in required_fixed_cols if c not in fieldnames]
+    if missing_fixed:
+        raise ValueError(f"FIXED CSV missing required columns: {missing_fixed}")
+
+    legacy_map = {
+        "Employee Sick Time (Hours)": "Employee_Sick_Time_Hours",
+        "Used SAT Time (Hours)": "Used_SAT_Time_Hours",
+        "Comp (Hours)": "Used_Comp_Time",
+        "Military Leave (Hours)": "Military_Leave_Hours",
+        "Injured on Duty (Hours)": "Injured_on_Duty_Hours",
+        "Vacation (Hours)": "Vacation_Hours",
+    }
+
+    accrual_pairs = {
+        "Accrued_Comp_Time": (
+            "Accrued Comp. Time - Non-Sworn",
+            "Accrued Comp. Time - Sworn",
+        ),
+        "Accrued_Overtime_Paid": (
+            "Accrued Overtime - Non-Sworn",
+            "Accrued Overtime - Sworn",
+        ),
+    }
+
+    updated = 0
+    skipped_missing_label = 0
+    for r in rows:
+        period = (r.get("Period") or "").strip()
+        if not period:
+            continue
+        label = _period_to_mmyy(period)
+
+        # If this month label is not in the backfill export (e.g. 11-25),
+        # we cannot restore it from this file. label_exists = any(
+            backfill.get(cat, label) is not None
+            for cat in list(legacy_map.keys())
+            + [p for pair in accrual_pairs.values() for p in pair]
+        )
+        if not label_exists:
+            skipped_missing_label += 1
+            continue
+
+        for backfill_cat, fixed_col in legacy_map.items():
+            val = backfill.get(backfill_cat, label)
+            if val is None:
+                continue
+            r[fixed_col] = f"{val}"
+
+        for fixed_col, (cat_a, cat_b) in accrual_pairs.items():
+            a = backfill.get(cat_a, label)
+            b = backfill.get(cat_b, label)
+            if a is None or b is None:
+                continue
+            r[fixed_col] = f"{(a + b)}"
+
+        updated += 1
+
+    if inplace:
+        backup = fixed_path.with_suffix(fixed_path.suffix + ".bak")
+        shutil.copy2(fixed_path, backup)
+        out_path = fixed_path
+    else:
+        out_path = fixed_path.with_name(fixed_path.stem + "_RESTORED.csv")
+        backup = None
+
+    write_fixed_rows(out_path, fieldnames, rows)
+
+    print(f"[OK] Backfill used: {backfill_path}")
+    if backup:
+        print(f"[OK] Backup created: {backup}")
+    print(f"[OK] FIXED written: {out_path}")
+    print(f"[OK] Rows updated (month label present in backfill): {updated}/{len(rows)}")
+    if skipped_missing_label:
+        print(
+            f"[WARN] Rows skipped (month label not present in backfill export): {skipped_missing_label} "
+            f\"(e.g., 11-25 isn't present in a 2025_10 export)\"
+        )
+
+    return out_path
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--fixed", required=True, help="Path to FIXED_monthly_breakdown_*.csv")
+    parser.add_argument("--backfill", required=True, help="Path to backfill visual export CSV")
+    parser.add_argument("--inplace", action="store_true", help="Overwrite FIXED file (creates .bak)")
+    args = parser.parse_args()
+
+    restore_fixed_from_backfill(Path(args.fixed), Path(args.backfill), bool(args.inplace))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+```
+
+Fixing a small syntax error in the helper script (bad escaped f-string), then I’ll rerun it so the FIXED file actually gets restored from your `2025_10_Monthly Accrual and Usage Summary.csv` backfill. ```python
+#!/usr/bin/env python3
+"""
+restore_fixed_from_backfill.py
+
+Populates historical months in a FIXED_monthly_breakdown_*.csv using a Power BI
+visual export "Monthly Accrual and Usage Summary" backfill CSV. Why this fixes your Power BI issue
+----------------------------------
+Your Overtime/TimeDue M query uses FIXED_monthly_breakdown for NON-accrual rows:
+  - Comp (Hours)
+  - Employee Sick Time (Hours)
+  - Injured on Duty (Hours)
+  - Military Leave (Hours)
+  - Used SAT Time (Hours)
+
+If FIXED has zeros for historical months (11-24 .. 09-25), those rows show as
+0/null in the visual. This script overwrites those FIXED columns for any month
+label present in the backfill export (e.g., 10-24 .. 10-25). Usage (PowerShell)
+------------------
+python .\\scripts\\restore_fixed_from_backfill.py `
+  --fixed \"C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\output\\FIXED_monthly_breakdown_2024-11_2025-11.csv\" `
+  --backfill \"C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\00_dev\\PowerBI_Date\\Backfill\\2025_10\\vcs_time_report\\2025_10_Monthly Accrual and Usage Summary.csv\" `
+  --inplace
+
+Notes
+-----
+- Creates a `.bak` backup alongside the FIXED file when using `--inplace`. - If the backfill export does NOT contain a month label (e.g. "11-25"), that
+  row is skipped (you need the newer backfill export that includes that month).
+""" from __future__ import annotations
+
+import argparse
+import csv
+import shutil
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+
+def _norm_month_label(label: str) -> str:
+    """Normalize labels like 'Sum of 11-25' -> '11-25' and trim whitespace.""" s = (label or "").strip()
+    if not s:
+        return s
+    s_lower = s.lower()
+    if s_lower.startswith("sum of "):
+        s = s[7:].strip()
+    return s
+
+
+def _period_to_mmyy(period_yyyy_mm: str) -> str:
+    """Convert 'YYYY-MM' -> 'MM-YY'."""

@@ -1,0 +1,725 @@
+$process.WaitForExit()
+        
+        $scriptDuration = (Get-Date) - $scriptStartTime
+        
+        $exitCode = $process.ExitCode
+        if ($exitCode -eq 0) {
+            Write-Success "  Completed in $([math]::Round($scriptDuration.TotalSeconds, 2)) seconds"
+            Write-Log "  SUCCESS: Exit code 0"
+            
+            # Find output files
+            # Supports:
+            # - Simple patterns like "*.csv" (searched in script root)
+            # - Relative subpaths like "output\FIXED_*.csv" (joined to script root)
+            $outputFiles = @()
+            foreach ($pattern in $scriptConfig.output_patterns) {
+                if ([string]::IsNullOrWhiteSpace($pattern)) { continue }
+
+                $isAbsolute = ($pattern -match '^[A-Za-z]:\\' -or $pattern -match '^\\\\')
+                $hasSeparator = ($pattern -like "*\*" -or $pattern -like "*/*")
+
+                if ($isAbsolute) {
+                    $globPath = $pattern
+                    $found = Get-ChildItem -Path $globPath -File -ErrorAction SilentlyContinue
+                }
+                elseif ($hasSeparator) {
+                    $globPath = Join-Path $scriptPath $pattern
+                    $found = Get-ChildItem -Path $globPath -File -ErrorAction SilentlyContinue
+                }
+                else {
+                    $found = Get-ChildItem -Path $scriptPath -Filter $pattern -File -ErrorAction SilentlyContinue
+                }
+
+                if ($found) { $outputFiles += $found }
+            }
+            
+            Write-Log "  Output files found: $($outputFiles.Count)"
+            
+            # Copy to Power BI drop folder if enabled
+            if ($scriptConfig.output_to_powerbi -and -not $SkipPowerBI) {
+                $dropPath = $settings.powerbi_drop_path
+                if (-not (Test-Path $dropPath)) {
+                    Write-Warn "  Power BI drop folder not found: $dropPath"
+                    Write-Log "  WARNING: Power BI drop folder not found"
+                }
+                else {
+                    foreach ($file in $outputFiles) {
+                        $destPath = Join-Path $dropPath $file.Name
+                        Copy-Item -Path $file.FullName -Destination $destPath -Force
+                        Write-Log "  Copied to Power BI: $($file.Name)"
+                    }
+                    Write-Success "  Copied $($outputFiles.Count) file(s) to Power BI drop folder"
+                }
+            }
+            
+            $results += [pscustomobject]@{
+                Name        = $scriptName
+                Status      = "Success"
+                Error       = $null
+                Duration    = $scriptDuration.TotalSeconds
+                OutputFiles = $outputFiles.Count
+            }
+        }
+        else {
+            throw "Script exited with code $exitCode"
+        }
+        
+    }
+    catch {
+        $scriptDuration = (Get-Date) - $scriptStartTime
+        Write-Fail "  Error: $_"
+        Write-Log "  ERROR: $_"
+        
+        $results += [pscustomobject]@{
+            Name     = $scriptName
+            Status   = "Failed"
+            Error    = $_.Exception.Message
+            Duration = $scriptDuration.TotalSeconds
+        }
+        
+        if (-not $settings.continue_on_error) {
+            Write-Fail "Stopping due to error (continue_on_error = false)"
+            break
+        }
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+# Summary
+$totalDuration = (Get-Date) - $startTime
+$successCount = ($results | Where-Object { $_.Status -eq "Success" }).Count
+$failCount = ($results | Where-Object { $_.Status -eq "Failed" }).Count
+
+Write-Log ""
+Write-Log "=== Execution Summary ==="
+Write-Log "Total duration: $([math]::Round($totalDuration.TotalMinutes, 2)) minutes"
+Write-Log "Success: $successCount"
+Write-Log "Failed: $failCount"
+Write-Log ""
+
+Write-Host ""
+Write-Host "=== Execution Summary ===" -ForegroundColor Cyan
+Write-Host "Total duration: $([math]::Round($totalDuration.TotalMinutes, 2)) minutes" -ForegroundColor Cyan
+Write-Host ""
+
+Write-Host "Results:" -ForegroundColor Yellow
+foreach ($result in $results) {
+    if ($result.Status -eq "Success") {
+        Write-Success "$($result.Name): Success ($([math]::Round($result.Duration, 2))s, $($result.OutputFiles) file(s))"
+    }
+    else {
+        Write-Fail "$($result.Name): Failed - $($result.Error)"
+    }
+}
+
+Write-Log "=== Master ETL Orchestrator Completed ==="
+Write-Host ""
+Write-Host "Full log: $logFile" -ForegroundColor Gray
+
+if ($successCount -eq $results.Count) {
+    Write-Success "All scripts completed successfully!" if (-not $SkipPowerBI) {
+        Write-Host ""
+        Write-Host "Next step: Run Power BI organization script" -ForegroundColor Cyan
+        Write-Host "  cd `"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date`"" -ForegroundColor Gray
+        Write-Host "  .\tools\organize_backfill_exports.ps1" -ForegroundColor Gray
+    }
+    exit 0
+}
+else {
+    Write-Warn "Some scripts failed. Check logs for details." exit 1
+}
+
+
+```
+
+```powershell
+# Master ETL Orchestrator
+# Runs all configured Python ETL scripts in order
+
+param(
+    [string[]]$ScriptNames = @(),  # Run only specified scripts (empty = all)
+    [switch]$DryRun,  # Preview what would run
+    [switch]$SkipPowerBI  # Skip Power BI integration step
+)
+
+$ErrorActionPreference = 'Stop'
+
+# Get script directory
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$automationDir = Split-Path -Parent $scriptDir
+$configPath = Join-Path $automationDir "config\scripts.json"
+
+# Colors
+# PowerShell 7+ supports ANSI escape sequences; Windows PowerShell 5.1 typically does not. $useAnsi = $false
+try {
+    $useAnsi = ($PSVersionTable.PSVersion.Major -ge 7) -and ($Host.UI -and $Host.UI.SupportsVirtualTerminal)
+} catch { $useAnsi = $false }
+
+if ($useAnsi) {
+    $Green = "`e[32m"
+    $Yellow = "`e[33m"
+    $Red = "`e[31m"
+    $Cyan = "`e[34m"
+    $Reset = "`e[0m"
+} else {
+    $Green = ""
+    $Yellow = ""
+    $Red = ""
+    $Cyan = ""
+    $Reset = ""
+}
+
+function Write-Step([string]$msg) { Write-Host "$Cyan>> $msg$Reset" }
+function Write-Success([string]$msg) { Write-Host "$Green[OK] $msg$Reset" }
+function Write-Warn([string]$msg) { Write-Host "$Yellow[WARN] $msg$Reset" }
+function Write-Fail([string]$msg) { Write-Host "$Red[FAIL] $msg$Reset" }
+
+# Load configuration
+if (-not (Test-Path $configPath)) {
+    Write-Fail "Configuration file not found: $configPath"
+    exit 1
+}
+
+$config = Get-Content $configPath | ConvertFrom-Json
+$settings = $config.settings
+$scripts = $config.scripts | Where-Object { $_.enabled -eq $true } | Sort-Object order
+
+# Filter to specific scripts if requested
+if ($ScriptNames.Count -gt 0) {
+    $scripts = $scripts | Where-Object { $_.name -in $ScriptNames }
+    if ($scripts.Count -eq 0) {
+        Write-Fail "No matching enabled scripts found"
+        exit 1
+    }
+}
+
+# Create log directory
+$logDir = Join-Path $automationDir $settings.log_directory
+if (-not (Test-Path $logDir)) {
+    New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+}
+
+# Create timestamp
+$timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+$logFile = Join-Path $logDir "${timestamp}_ETL_Run.log"
+
+function Write-Log([string]$message) {
+    $logMessage = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - $message"
+    Add-Content -Path $logFile -Value $logMessage
+    Write-Host $message
+}
+
+Write-Log "=== Master ETL Orchestrator Started ==="
+Write-Log "Timestamp: $timestamp"
+Write-Log "Scripts to run: $($scripts.Count)"
+Write-Log ""
+
+if ($DryRun) {
+    Write-Warn "DRY RUN MODE - No scripts will execute"
+    Write-Log "DRY RUN MODE"
+}
+
+# Track results
+$results = @()
+$startTime = Get-Date
+
+foreach ($scriptConfig in $scripts) {
+    $scriptName = $scriptConfig.name
+    $scriptPath = $scriptConfig.path
+    $scriptFile = $scriptConfig.script
+    $fullScriptPath = Join-Path $scriptPath $scriptFile
+    
+    Write-Log ""
+    Write-Step "Processing: $scriptName"
+    Write-Log "  Script: $fullScriptPath"
+    Write-Log "  Order: $($scriptConfig.order)"
+    
+    if ($DryRun) {
+        Write-Host "  [DRY RUN] Would execute: $fullScriptPath" -ForegroundColor Gray
+        continue
+    }
+    
+    # Check if script exists
+    if (-not (Test-Path $fullScriptPath)) {
+        Write-Fail "  Script not found: $fullScriptPath"
+        Write-Log "  ERROR: Script file not found"
+        $results += [pscustomobject]@{
+            Name     = $scriptName
+            Status   = "Failed"
+            Error    = "Script file not found"
+            Duration = 0
+        }
+        if (-not $settings.continue_on_error) {
+            Write-Fail "Stopping due to error (continue_on_error = false)"
+            break
+        }
+        continue
+    }
+    
+    # Change to script directory
+    Push-Location $scriptPath
+    
+    try {
+        $scriptStartTime = Get-Date
+        $scriptLogFile = Join-Path $logDir "${timestamp}_${scriptName}.log"
+        
+        Write-Log "  Executing Python script..."
+        Write-Log "  Log: $scriptLogFile"
+        
+        # Run Python script (cross-version reliable exit codes + stdout/stderr capture)
+        $pythonCmd = $settings.python_executable
+        $timeoutSeconds = [int]($scriptConfig.timeout_minutes * 60)
+
+        $psi = New-Object System.Diagnostics.ProcessStartInfo
+        $psi.FileName = $pythonCmd
+        $psi.Arguments = $scriptFile
+        $psi.WorkingDirectory = $scriptPath
+        $psi.UseShellExecute = $false
+        $psi.RedirectStandardOutput = $true
+        $psi.RedirectStandardError = $true
+        $psi.CreateNoWindow = $true
+
+        $process = New-Object System.Diagnostics.Process
+        $process.StartInfo = $psi
+
+        $null = $process.Start()
+        $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+        $stderrTask = $process.StandardError.ReadToEndAsync()
+
+        if (-not $process.WaitForExit($timeoutSeconds * 1000)) {
+            try { $process.Kill() } catch {}
+            throw "Script exceeded timeout of $($scriptConfig.timeout_minutes) minutes"
+        }
+        $process.WaitForExit()
+
+        # Write logs after completion
+        $stdoutTask.Result | Out-File -FilePath $scriptLogFile -Encoding utf8
+        $stderrTask.Result | Out-File -FilePath "$scriptLogFile.err" -Encoding utf8
+
+        $scriptDuration = (Get-Date) - $scriptStartTime
+        $exitCode = $process.ExitCode
+        if ($exitCode -eq 0) {
+            Write-Success "  Completed in $([math]::Round($scriptDuration.TotalSeconds, 2)) seconds"
+            Write-Log "  SUCCESS: Exit code 0"
+            
+            # Find output files
+            # Supports:
+            # - Simple patterns like "*.csv" (searched in script root)
+            # - Relative subpaths like "output\FIXED_*.csv" (joined to script root)
+            $outputFiles = @()
+            foreach ($pattern in $scriptConfig.output_patterns) {
+                if ([string]::IsNullOrWhiteSpace($pattern)) { continue }
+
+                $isAbsolute = ($pattern -match '^[A-Za-z]:\\' -or $pattern -match '^\\\\')
+                $hasSeparator = ($pattern -like "*\*" -or $pattern -like "*/*")
+
+                if ($isAbsolute) {
+                    $globPath = $pattern
+                    $found = Get-ChildItem -Path $globPath -File -ErrorAction SilentlyContinue
+                }
+                elseif ($hasSeparator) {
+                    $globPath = Join-Path $scriptPath $pattern
+                    $found = Get-ChildItem -Path $globPath -File -ErrorAction SilentlyContinue
+                }
+                else {
+                    $found = Get-ChildItem -Path $scriptPath -Filter $pattern -File -ErrorAction SilentlyContinue
+                }
+
+                if ($found) { $outputFiles += $found }
+            }
+            
+            Write-Log "  Output files found: $($outputFiles.Count)"
+            
+            # Copy to Power BI drop folder if enabled
+            if ($scriptConfig.output_to_powerbi -and -not $SkipPowerBI) {
+                $dropPath = $settings.powerbi_drop_path
+                if (-not (Test-Path $dropPath)) {
+                    Write-Warn "  Power BI drop folder not found: $dropPath"
+                    Write-Log "  WARNING: Power BI drop folder not found"
+                }
+                else {
+                    foreach ($file in $outputFiles) {
+                        $destPath = Join-Path $dropPath $file.Name
+                        Copy-Item -Path $file.FullName -Destination $destPath -Force
+                        Write-Log "  Copied to Power BI: $($file.Name)"
+                    }
+                    Write-Success "  Copied $($outputFiles.Count) file(s) to Power BI drop folder"
+                }
+            }
+            
+            $results += [pscustomobject]@{
+                Name        = $scriptName
+                Status      = "Success"
+                Error       = $null
+                Duration    = $scriptDuration.TotalSeconds
+                OutputFiles = $outputFiles.Count
+            }
+        }
+        else {
+            throw "Script exited with code $exitCode"
+        }
+        
+    }
+    catch {
+        $scriptDuration = (Get-Date) - $scriptStartTime
+        Write-Fail "  Error: $_"
+        Write-Log "  ERROR: $_"
+        
+        $results += [pscustomobject]@{
+            Name     = $scriptName
+            Status   = "Failed"
+            Error    = $_.Exception.Message
+            Duration = $scriptDuration.TotalSeconds
+        }
+        
+        if (-not $settings.continue_on_error) {
+            Write-Fail "Stopping due to error (continue_on_error = false)"
+            break
+        }
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+# Summary
+$totalDuration = (Get-Date) - $startTime
+$successCount = ($results | Where-Object { $_.Status -eq "Success" }).Count
+$failCount = ($results | Where-Object { $_.Status -eq "Failed" }).Count
+
+Write-Log ""
+Write-Log "=== Execution Summary ==="
+Write-Log "Total duration: $([math]::Round($totalDuration.TotalMinutes, 2)) minutes"
+Write-Log "Success: $successCount"
+Write-Log "Failed: $failCount"
+Write-Log ""
+
+Write-Host ""
+Write-Host "=== Execution Summary ===" -ForegroundColor Cyan
+Write-Host "Total duration: $([math]::Round($totalDuration.TotalMinutes, 2)) minutes" -ForegroundColor Cyan
+Write-Host ""
+
+Write-Host "Results:" -ForegroundColor Yellow
+foreach ($result in $results) {
+    if ($result.Status -eq "Success") {
+        Write-Success "$($result.Name): Success ($([math]::Round($result.Duration, 2))s, $($result.OutputFiles) file(s))"
+    }
+    else {
+        Write-Fail "$($result.Name): Failed - $($result.Error)"
+    }
+}
+
+Write-Log "=== Master ETL Orchestrator Completed ==="
+Write-Host ""
+Write-Host "Full log: $logFile" -ForegroundColor Gray
+
+if ($successCount -eq $results.Count) {
+    Write-Success "All scripts completed successfully!" if (-not $SkipPowerBI) {
+        Write-Host ""
+        Write-Host "Next step: Run Power BI organization script" -ForegroundColor Cyan
+        Write-Host "  cd `"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date`"" -ForegroundColor Gray
+        Write-Host "  .\tools\organize_backfill_exports.ps1" -ForegroundColor Gray
+    }
+    exit 0
+}
+else {
+    Write-Warn "Some scripts failed. Check logs for details." exit 1
+}
+
+
+```
+
+Your run failed earlier because **Windows PowerShell 5.1 can’t reliably read `ExitCode` from `Start-Process` when stdout/stderr are redirected**, so it showed blank exit codes and marked everything failed even though scripts succeeded. I fixed `scripts/run_all_etl.ps1` to use a .NET `System.Diagnostics.Process` runner (reliable exit codes + captures logs), and then reran the batch wrapper. ### Result: it now runs cleanly in Windows PowerShell
+`scripts\run_all_etl.bat` completed with:
+
+- **Success: 5**
+- **Failed: 0**
+
+And it copied outputs into:
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\`
+
+### What you should do now
+1) **Refresh Power BI** (this is the step that makes the visuals update). 2) After refresh, if you want the exported outputs organized into Backfill folders, run:
+```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date"
+.\tools\organize_backfill_exports.ps1
+```
+
+If you paste a screenshot of the Overtime “Monthly Accrual and Usage Summary” after refresh, I’ll confirm the 12-month backfill + 11‑25 current month are both correct. ```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date"
+.\tools\organize_backfill_exports.ps1
+```
+
+---
+
+**User**
+
+@___Overtime_Timeoff_v3.m  this is the new m code for ___Overtime_Timeoff query. I refreshed the query and 11-24 through 10-25 values are null
+
+---
+
+**Cursor**
+
+### Plan
+- **Confirm what the query is actually reading**: inspect the latest `FIXED_monthly_breakdown_*.csv` in `02_ETL_Scripts\Overtime_TimeOff\output` and see whether 11-24…10-25 are really zeros/nulls there. - **If the FIXED file is wrong**: fix the backfill restore workflow (`overtime_timeoff_with_backfill.py` / `restore_fixed_from_backfill.py`) so it reliably writes those historical months back into the FIXED file. - **Re-run just Overtime TimeOff** and re-check the FIXED output, then your Power BI refresh should light up those months. I’m going to pull the latest FIXED CSV and the wrapper/backfill scripts now. Nice, I found a likely root cause: the wrapper `scripts/overtime_timeoff_with_backfill.py` is still defaulting to the **old backfill root** under `...\00_dev\PowerBI_Date\Backfill`, so it won’t use the updated OneDrive backfill exports you’re saving now. Next I’ll (1) confirm what the latest `FIXED_monthly_breakdown_*.csv` actually contains, then (2) patch the wrapper to point at `...\PowerBI_Date\Backfill`, and (3) rerun just the Overtime TimeOff pipeline. Got it — your new OneDrive backfill file is present under `PowerBI_Date\Backfill\2025_10\...`, but the wrapper is still defaulting to `00_dev\PowerBI_Date\Backfill`. Next I’ll inspect the current `FIXED_monthly_breakdown_2024-11_2025-11.csv` to confirm it still has zeros for 11-24…10-25, then I’ll patch the wrapper default and rerun the Overtime TimeOff pipeline to regenerate a FIXED file with the restored history. Aha — the FIXED file you’re loading in Power BI really does have **0.0 for every month 11-24 through 10-25** (only 11-25 has values). Your **new backfill export** in `PowerBI_Date\Backfill\2025_10\...` *does* contain the correct historical values, but the wrapper currently defaults to the **old `00_dev` backfill root**, whose CSV uses `24-Oct` style headers that don’t match what the restore script expects—so nothing gets written. Next I’ll patch the wrapper default to the new OneDrive backfill location and rerun the Overtime TimeOff pipeline to regenerate the FIXED file with history restored. ```python
+#!/usr/bin/env python3
+"""
+Overtime TimeOff monthly pipeline wrapper
+
+What this does (automates the correct workflow)
+-----------------------------------------------
+1) Ensure current month exports are readable by v10:
+   - v10 reads *.xlsx and *.csv (NOT *.xls)
+   - If only *.xls exist for the month, we convert using the existing
+     xls_to_xlsx_archiver_com_multi.py (Excel COM) and verify *.xlsx exists. 2) Run the production script:
+   - overtime_timeoff_13month_sworn_breakdown_v10.py
+   - Produces output/FIXED_monthly_breakdown_{start}_{end}.csv (13 months)
+
+3) Re-apply prior-month backfill to pin historical months:
+   - Uses previous-month visual export (e.g., 2025_10 Monthly Accrual and Usage Summary)
+   - Overwrites months present in that backfill (typically the prior 12 months)
+   - Keeps the new month (e.g., 11-25) from the v10 run
+
+This yields a FIXED file that Power Query can load with:
+  - History from backfill (11-24 .. 10-25)
+  - Current month from processing (11-25)
+"""
+
+from __future__ import annotations
+
+import argparse
+import subprocess
+import sys
+from dataclasses import dataclass
+from datetime import date, timedelta
+from pathlib import Path
+from typing import Optional
+
+
+@dataclass(frozen=True)
+class Paths:
+    overtime_timeoff_dir: Path
+    overtime_dir: Path
+    time_off_dir: Path
+    backfill_root: Path
+    v10_script: Path
+    xls_to_xlsx_multi: Path
+    restore_script: Path
+
+
+def prev_month(d: date) -> date:
+    """Return a date in the previous month (day=1).""" first = d.replace(day=1)
+    last_prev = first - timedelta(days=1)
+    return last_prev.replace(day=1)
+
+
+def month_key_yyyy_mm(d: date) -> str:
+    return f"{d.year:04d}_{d.month:02d}"
+
+
+def month_key_yyyy_mm_dash(d: date) -> str:
+    return f"{d.year:04d}-{d.month:02d}"
+
+
+def expected_fixed_filename(start_month: date, end_month: date) -> str:
+    return f"FIXED_monthly_breakdown_{month_key_yyyy_mm_dash(start_month)}_{month_key_yyyy_mm_dash(end_month)}.csv"
+
+
+def find_backfill_csv(backfill_root: Path, month: date) -> Path:
+    """Find the prior-month backfill visual export for vcs_time_report.""" folder = backfill_root / month_key_yyyy_mm(month) / "vcs_time_report"
+    if not folder.exists():
+        raise FileNotFoundError(f"Backfill folder not found: {folder}")
+
+    preferred = [
+        folder / f"{month_key_yyyy_mm(month)}_Monthly Accrual and Usage Summary.csv",
+        folder / "Monthly Accrual and Usage Summary.csv",
+    ]
+    for p in preferred:
+        if p.exists():
+            return p
+
+    # Fallback: any similarly named file in the folder
+    candidates = sorted(folder.glob("*Monthly Accrual and Usage Summary*.csv"), key=lambda p: p.stat().st_mtime, reverse=True)
+    if candidates:
+        return candidates[0]
+
+    raise FileNotFoundError(f"No 'Monthly Accrual and Usage Summary' CSV found in {folder}")
+
+
+def ensure_month_exports_are_xlsx(paths: Paths, run_month: date, dry_run: bool) -> None:
+    """Ensure the month exports exist as .xlsx (convert .xls if necessary).""" yyyymm = month_key_yyyy_mm(run_month)
+    ot_xlsx = paths.overtime_dir / f"{yyyymm}_OTActivity.xlsx"
+    to_xlsx = paths.time_off_dir / f"{yyyymm}_TimeOffActivity.xlsx"
+    ot_xls = paths.overtime_dir / f"{yyyymm}_OTActivity.xls"
+    to_xls = paths.time_off_dir / f"{yyyymm}_TimeOffActivity.xls"
+
+    if ot_xlsx.exists() and to_xlsx.exists():
+        return
+
+    # If xlsx missing but xls present, convert using existing helper (Excel COM)
+    if (ot_xlsx.exists() or ot_xls.exists()) and (to_xlsx.exists() or to_xls.exists()):
+        if dry_run:
+            print(f"[DRY RUN] Would convert .xls -> .xlsx for month {yyyymm} (if needed).") return
+
+        if not paths.xls_to_xlsx_multi.exists():
+            raise FileNotFoundError(f"XLS->XLSX converter not found: {paths.xls_to_xlsx_multi}")
+
+        # Convert only when .xlsx missing
+        if (not ot_xlsx.exists()) or (not to_xlsx.exists()):
+            print(f"[INFO] Converting exports to .xlsx for {yyyymm} (Excel COM)...")
+            subprocess.check_call([sys.executable, str(paths.xls_to_xlsx_multi), str(paths.overtime_dir), str(paths.time_off_dir)])
+
+        if not ot_xlsx.exists() or not to_xlsx.exists():
+            raise FileNotFoundError(
+                "After conversion, expected .xlsx exports are still missing:\n"
+                f"  {ot_xlsx} exists={ot_xlsx.exists()}\n"
+                f"  {to_xlsx} exists={to_xlsx.exists()}\n"
+            )
+        return
+
+    raise FileNotFoundError(
+        "Could not locate required exports for the month in either .xlsx or .xls form:\n"
+        f"  {ot_xlsx} / {ot_xls}\n"
+        f"  {to_xlsx} / {to_xls}\n"
+    )
+
+
+def run_v10(paths: Paths, dry_run: bool) -> None:
+    if dry_run:
+        print(f"[DRY RUN] Would run v10: {paths.v10_script}")
+        return
+    subprocess.check_call([sys.executable, str(paths.v10_script)], cwd=str(paths.overtime_timeoff_dir))
+
+
+def restore_fixed(paths: Paths, fixed_path: Path, backfill_csv: Path, dry_run: bool) -> None:
+    if dry_run:
+        print(f"[DRY RUN] Would restore FIXED from backfill:\n  FIXED={fixed_path}\n  Backfill={backfill_csv}")
+        return
+    subprocess.check_call(
+        [sys.executable, str(paths.restore_script), "--fixed", str(fixed_path), "--backfill", str(backfill_csv), "--inplace"],
+        cwd=str(paths.restore_script.parent),
+    )
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--backfill-root",
+        default=r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill",
+        help="Root folder containing Backfill\\YYYY_MM\\vcs_time_report\\... CSVs",
+    )
+    parser.add_argument("--dry-run", action="store_true", help="Show what would happen without executing.") args = parser.parse_args()
+
+    overtime_timeoff_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff")
+    overtime_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime")
+    time_off_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off")
+    backfill_root = Path(args.backfill_root)
+
+    paths = Paths(
+        overtime_timeoff_dir=overtime_timeoff_dir,
+        overtime_dir=overtime_dir,
+        time_off_dir=time_off_dir,
+        backfill_root=backfill_root,
+        v10_script=overtime_timeoff_dir / "overtime_timeoff_13month_sworn_breakdown_v10.py",
+        xls_to_xlsx_multi=overtime_dir / "xls_to_xlsx_archiver_com_multi.py",
+        restore_script=Path(__file__).resolve().parent / "restore_fixed_from_backfill.py",
+    )
+
+    today = date.today()
+    # v10 window ends on previous month
+    end_month = prev_month(today)
+    start_month = end_month.replace(year=end_month.year - 1)  # 13-month window start month
+
+    # Backfill should come from the month BEFORE end_month (e.g., if end is 2025_11, backfill is 2025_10)
+    backfill_month = prev_month(end_month)
+
+    fixed_path = paths.overtime_timeoff_dir / "output" / expected_fixed_filename(start_month, end_month)
+
+    print(f"[INFO] Window end month: {month_key_yyyy_mm_dash(end_month)}")
+    print(f"[INFO] Expected FIXED: {fixed_path}")
+    print(f"[INFO] Backfill month: {month_key_yyyy_mm(backfill_month)}")
+
+    ensure_month_exports_are_xlsx(paths, end_month, dry_run=bool(args.dry_run))
+    run_v10(paths, dry_run=bool(args.dry_run))
+
+    if not fixed_path.exists() and not args.dry_run:
+        # Fallback: pick newest FIXED file if name differs for any reason
+        out_dir = paths.overtime_timeoff_dir / "output"
+        candidates = sorted(out_dir.glob("FIXED_monthly_breakdown_*.csv"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if not candidates:
+            raise FileNotFoundError(f"No FIXED_monthly_breakdown_*.csv found in {out_dir}")
+        fixed_path = candidates[0]
+        print(f"[WARN] Expected FIXED not found; using newest: {fixed_path}")
+
+    backfill_csv = find_backfill_csv(paths.backfill_root, backfill_month)
+    print(f"[INFO] Using backfill CSV: {backfill_csv}")
+
+    restore_fixed(paths, fixed_path=fixed_path, backfill_csv=backfill_csv, dry_run=bool(args.dry_run))
+
+    print("[OK] Pipeline complete.") return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+
+```
+
+### What happened
+Your Power BI query is reading `...\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_2024-11_2025-11.csv`. That file **really was all zeros for 11-24 through 10-25**, which is why your visual showed those months as null/0. The reason the “restore from backfill” step didn’t work is the wrapper script was still defaulting to the **old backfill root**:
+
+- Old (wrong default): `...\00_dev\PowerBI_Date\Backfill`
+- New (correct): `...\PowerBI_Date\Backfill`
+
+The old backfill CSV also had month headers like `24-Oct`, which don’t match the restore logic, so nothing got applied. ### Fix applied
+- Updated `scripts/overtime_timeoff_with_backfill.py` default `--backfill-root` to:
+
+```146:154:scripts/overtime_timeoff_with_backfill.py
+    parser.add_argument(
+        "--backfill-root",
+        default=r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill",
+        help="Root folder containing Backfill\\YYYY_MM\\vcs_time_report\\... CSVs",
+    )
+```
+
+- Re-ran the wrapper successfully. It reported: **Rows updated: 12/13** (it correctly skipped 11-25 because the 2025_10 backfill export won’t contain 11-25). ### Verified result (this is what Power BI is loading now)
+Your FIXED file now has real historical values for 11-24 through 10-25:
+
+```2:14:C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_2024-11_2025-11.csv
+2024,11,November,2024-11,2024-11-01,261.75,864.0,730.0,560.0,0.0,218.25,168.0,216.0
+...
+2025,10,October,2025-10,2025-10-01,313.75,650.5,1006.5,720.5,0.0,376.0,72.0,80.0
+2025,11,November,2025-11,2025-11-01,253.25,493.25,946.5,580.5,0.0,389.0,12.0,24.0
+```
+
+### What you should do now
+- **Refresh `___Overtime_Timeoff` again** in Power BI. The 11-24 through 10-25 values should populate immediately (no M-code change needed). ```python
+    parser.add_argument(
+        "--backfill-root",
+        default=r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill",
+        help="Root folder containing Backfill\\YYYY_MM\\vcs_time_report\\... CSVs",
+    )
+```
+
+```plaintext
+2024,11,November,2024-11,2024-11-01,261.75,864.0,730.0,560.0,0.0,218.25,168.0,216.0
+...
+2025,10,October,2025-10,2025-10-01,313.75,650.5,1006.5,720.5,0.0,376.0,72.0,80.0
+2025,11,November,2025-11,2025-11-01,253.25,493.25,946.5,580.5,0.0,389.0,12.0,24.0
+```
+
+---
+
+**User**
+
+@Monthly Accrual and Usage Summary.csv attached is the export of the visual
+
+---
+
+**Cursor**
+
+### Plan
+- **Make the backfill restore script accept your attached export format** (`Time_Category`, `Sum of Value`, `PeriodLabel`) in addition to the old “wide” month-column format. - **Prevent accidental zeroing of accruals**: your export has accrual rows showing 0 for history (because the visual was broken), so we’ll default to restoring **legacy categories only** unless explicitly enabled. - Then I’ll do a quick local run of the restore step against the current FIXED file to confirm it doesn’t regress anything.

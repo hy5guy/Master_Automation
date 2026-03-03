@@ -1,0 +1,327 @@
+Time" or [Metric] = "Accrued Overtime"),
+    MBWithLabel = Table.AddColumn(MBAccrual, "PeriodLabel", each Date.ToText(Date.FromText([YearMonth] & "-01"), "MM-yy"), type text),
+    MBWithCat   = Table.AddColumn(MBWithLabel, "Time_Category", each if [Metric] = "Accrued Comp. Time" then "Accrued Comp. Time - " & (if [Class] = "Sworn" then "Sworn" else "Non-Sworn") else "Accrued Overtime - " & (if [Class] = "Sworn" then "Sworn" else "Non-Sworn"), type text),
+    WithBaseMetric = Table.AddColumn(MBWithCat, "BaseMetric", each if Text.StartsWith([Time_Category], "Accrued Comp. Time") then "Accrued Comp. Time" else if Text.StartsWith([Time_Category], "Accrued Overtime") then "Accrued Overtime" else null, type text),
+
+    // Scaling Logic
+    ForScaleOnly = Table.SelectRows(WithBaseMetric, each [BaseMetric] <> null),
+    NewTotals    = Table.Group(ForScaleOnly, {"BaseMetric", "PeriodLabel"}, {{"NewTotal", each List.Sum([Hours]), type number}}),
+    PriorJoin    = Table.NestedJoin(NewTotals, {"BaseMetric", "PeriodLabel"}, OT_Prior, {"Metric", "PeriodLabel"}, "Prior", JoinKind.LeftOuter),
+    WithFactor   = Table.AddColumn(PriorJoin, "Scale", each let pYear = Number.FromText("20" & Text.End([PeriodLabel], 2)), pMonth = Number.FromText(Text.Start([PeriodLabel], 2)), pDate = #date(pYear, pMonth, 1), apply = UseAnchoring and pDate < CutoverDate, has = [Prior] <> null and Table.RowCount([Prior]) > 0, prior = if has then [Prior]{0}[Total] else null, newv = [NewTotal] in if apply and has and newv <> null and newv <> 0 then prior / newv else 1.0, type number),
+    MBJoin       = Table.NestedJoin(WithBaseMetric, {"BaseMetric", "PeriodLabel"}, WithFactor, {"BaseMetric", "PeriodLabel"}, "F", JoinKind.LeftOuter),
+    MBScaled     = Table.AddColumn(MBJoin, "Value", each let isAccrual = [BaseMetric] <> null, ftable = [F] in if isAccrual then [Hours] * (if ftable <> null and Table.RowCount(ftable) > 0 and Value.Is(ftable{0}[Scale], Number.Type) then ftable{0}[Scale] else 1.0) else [Hours], type number),
+    MBFinal      = Table.SelectColumns(MBScaled, {"PeriodLabel", "Time_Category", "Value"}),
+
+    // Combine and Finalize
+    LegacyLong = Table.SelectColumns(LegacyWithLabel, {"PeriodLabel", "Time_Category", "Value"}),
+    LegacyLongFiltered = Table.SelectRows(LegacyLong, each [Time_Category] <> "Vacation (Hours)"),
+    CombinedLong = Table.Combine({LegacyLongFiltered, MBFinal}),
+
+    PeriodDim = let T0 = Table.FromList(PeriodLabelsMMYY, Splitter.SplitByNothing(), {"PeriodLabel"}, null, ExtraValues.Error), T1 = Table.AddColumn(T0, "PeriodDate", each #date(2000 + Number.FromText(Text.End([PeriodLabel], 2)), Number.FromText(Text.Start([PeriodLabel], 2)), 1), type date), T2 = Table.AddColumn(T1, "PeriodKey", each Date.ToText([PeriodDate], "yyyy-MM"), type text), T3 = Table.AddColumn(T2, "DateSortKey", each Number.FromText(Date.ToText([PeriodDate], "yyyyMMdd")), Int64.Type) in T3,
+    Categories = Table.Distinct(Table.SelectColumns(CombinedLong, {"Time_Category"})),
+    Grid = Table.AddColumn(Categories, "Periods", each PeriodDim, type table),
+    ExpandedGrid = Table.ExpandTableColumn(Grid, "Periods", {"PeriodLabel", "PeriodDate", "PeriodKey", "DateSortKey"}, {"PeriodLabel", "PeriodDate", "PeriodKey", "DateSortKey"}),
+    FinalJoined = Table.NestedJoin(ExpandedGrid, {"Time_Category", "PeriodLabel"}, CombinedLong, {"Time_Category", "PeriodLabel"}, "J", JoinKind.LeftOuter),
+    WithValue = Table.AddColumn(FinalJoined, "Value", each if [J] <> null and Table.RowCount([J]) > 0 then [J]{0}[Value] else 0, type number),
+    RemovedJoin = Table.RemoveColumns(WithValue, {"J"}),
+    Reordered = Table.ReorderColumns(RemovedJoin, {"Time_Category", "PeriodLabel", "PeriodDate", "PeriodKey", "DateSortKey", "Value"}),
+    RenamedForVisual = Table.RenameColumns(Reordered, {{"Time_Category", "Time Category"}}),
+    Sorted = Table.Sort(RenamedForVisual, {{"DateSortKey", Order.Ascending}, {"Time Category", Order.Ascending}})
+in
+    Sorted
+
+---
+
+**Cursor**
+
+
+Creating a consolidated single-query version (avoids "matches no exports") and ensuring the output column is "Time Category" so the visual can use it. Creating the consolidated single-query version and adding the header. It should fix the "matches no exports" issue; we'll address the Time_Category visual fix. Fixing the visual: the error references `Time_Category` (underscore), but the script renames to `Time Category` (space). Keeping the column as `Time_Category` so the existing visual binding works. Summary of what’s in place:
+
+**1. Consolidated script**
+
+- **File:** `m_code/2026_02_10_Overtime_Timeoff_v3_CONSOLIDATED.m`
+- Single query: OT_FIXED, OT_MB, and OT_Prior are inlined in one `let`, so there are no separate staging queries and no “matches no exports” from missing references. - You may still see a Formula Firewall warning when combining data from different sources in one query. If it appears, choose **Ignore Privacy** for this query (or add a Privacy directive) and continue. **2. Visual fix (Time_Category)**
+
+- The “Fields that need to be fixed: (___Overtime_Timeoff_v3) Time_Category” message means the visual is bound to the **Time_Category** field. - Gemini’s version renamed the column to **"Time Category"** (with a space), so the visual lost its field and broke. - In the consolidated file the final column is **Time_Category** (no rename). The existing visual binding should work again after you use this query. **What to do in Power BI**
+
+1. Open the **___Overtime_Timeoff_v3** query in Power Query. 2. Replace its entire M code with the contents of `2026_02_10_Overtime_Timeoff_v3_CONSOLIDATED.m` (from the first `let` through the final `Sorted`). 3. Close & Apply. 4. If a Formula Firewall message appears, choose **Ignore Privacy** (or the option that allows the combination) so the query can run. 5. Check the report: the visual should use **Time_Category** again and the “Fields that need to be fixed” error should go away. So yes: the consolidated M can fix both the “matches no exports” issue (by removing staging references) and the broken visual (by keeping the **Time_Category** column name). The version in the repo is the one with the visual fix applied. ---
+
+**User**
+
+@data/visual_export/2026_12/2026_02_10_18_24_36_Monthly Accrual and Usage Summary.csv this is the data from the visual check against backfill data and/or attached image of last months visual
+
+---
+
+**Cursor**
+
+
+Checking the other visual export and any backfill CSVs for comparison:
+
+
+
+Writing a comparison of the 18_24_36 export to the earlier export and the last-month visual. Summary of the check:
+
+**1. 18_24_36 export vs last month’s visual (11-25)**  
+For **November 2025 (11-25)** the 18_24_36 export matches the image:
+
+- **Exact:** Comp (389), Employee Sick Time (946.5), Injured on Duty (24), Military Leave (12), Used SAT Time (580.5), Accrued Overtime - Sworn (281.75). - **Very close:** Accrued Comp Non-Sworn (31 vs 29), Sworn (220.75 vs 224.25), Accrued Overtime Non-Sworn (208.5 vs 211.5). Small differences are consistent with prior-anchor scaling/rounding in the M code. So the new export is consistent with the previous visual for 11-25. **2. 18_24_36 vs earlier same-day export (01-26)**  
+The earlier file `2026_02_10_Monthly Accrual and Usage Summary.csv` had **0** for 01-26 usage (Comp, Sick, IOD, Military, SAT). In **18_24_36** those 01-26 usage values are filled (e.g. Comp 318, Sick 1635, IOD 269, Military 66, SAT 497.5). So the 18_24_36 export reflects a refresh after 01-26 was fixed (correct Time Off export or backfill). **3. Backfill data**  
+No backfill CSV for this visual was found under the repo; backfill is expected under `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\` (outside this workspace). The comparison used the two visual exports and the image only. A short comparison note is in **`docs/VISUAL_EXPORT_COMPARISON_2026_02_10.md`** with the table for 11-25 and the 01-26 comparison. Bottom line: the **2026_02_10_18_24_36** export aligns with last month’s visual for 11-25 and shows 01-26 usage correctly populated. ---
+
+**User**
+
+if the backfill is off can you extract the values from the image and replace the backfill with the extracted data? ---
+
+**Cursor**
+
+
+Checking the backfill location and the format the restore script expects:
+
+
+
+Checking the full restore logic and where the script expects the backfill file:
+
+
+
+Checking the restore script's legacy and accrual mapping:
+
+
+
+Creating a backfill CSV from the image-extracted 11-25 values and saving it in the repo and to the Backfill path if it exists. Creating the image-extracted backfill CSV and a full backfill from the 18_24_36 export. Building a full backfill from the 18_24_36 export and overwriting 11-25 with the image-extracted values. Creating the full backfill with 11-25 replaced by image values and adding a short README. Copying the full backfill into the PowerBI_Date Backfill folder so the pipeline uses it. Creating `2025_11\vcs_time_report` and writing the image-corrected backfill so the pipeline can use it. Summary of what’s in place:
+
+**1. Image-extracted values (11-25 only)**  
+From the “last month’s visual” image, these **November 2025 (11-25)** values were used:
+
+| Time Category | Value |
+|---------------|-------|
+| Accrued Comp. Time - Non-Sworn | 29 |
+| Accrued Comp. Time - Sworn | 224.25 |
+| Accrued Overtime - Non-Sworn | 211.5 |
+| Accrued Overtime - Sworn | 281.75 |
+| Comp (Hours) | 389 |
+| Employee Sick Time (Hours) | 946.5 |
+| Injured on Duty (Hours) | 24 |
+| Military Leave (Hours) | 12 |
+| Used SAT Time (Hours) | 580.5 |
+
+The image only had 11-25; the other 12 months were taken from your 18_24_36 export. **2. Files created in the repo**
+
+- **`data/backfill/backfill_from_image_11-25_only.csv`** – 9 rows for 11-25 only (for patching a single month). - **`data/backfill/Monthly_Accrual_and_Usage_Summary_backfill_from_image.csv`** – Full LONG backfill: 01-25 through 12-25 plus 01-26, with **11-25 overwritten** by the image values above. Compatible with `restore_fixed_from_backfill.py`. - **`data/backfill/README.md`** – Describes both files and how to use them. **3. Backfill replaced in PowerBI_Date**
+
+The full backfill file was copied to:
+
+- **`PowerBI_Date\Backfill\2025_11\vcs_time_report\2025_11_Monthly Accrual and Usage Summary.csv`**
+
+So the November 2025 backfill now uses the image-extracted 11-25 data. When you run the Overtime/TimeOff pipeline with backfill for 2025_11, or run `restore_fixed_from_backfill.py` with that backfill path, it will use this file. **Next step:** Run the pipeline (or restore) as usual; no extra copy is needed for 2025_11. For other months (e.g. 2025_12), copy the full backfill CSV from `data/backfill/` into the right `Backfill\YYYY_MM\vcs_time_report\` folder and name it `YYYY_MM_Monthly Accrual and Usage Summary.csv` if you want the same corrected data there. ---
+
+**User**
+
+i found a more uptodate export @data/visual_export/2026_12/2025_12_Monthly Accrual and Usage Summary.csv lets uses this one
+
+---
+
+**Cursor**
+
+
+Using the 2025_12 export (12-24 through 12-25). Updating the backfill to use it and deploying it to the December backfill folder. Setting the 2025_12 export as the primary backfill: adding a copy in `data/backfill`, deploying to the December backfill folder, and updating the README. Summary of changes:
+
+**1. Primary backfill set to the 2025_12 export**
+- **Source:** `data/visual_export/2026_12/2025_12_Monthly Accrual and Usage Summary.csv`
+- **Content:** 13 months (12-24 through 12-25), LONG format, matches the screenshot you shared. **2. Repo copy**
+- **`data/backfill/2025_12_Monthly_Accrual_and_Usage_Summary.csv`**  
+  Same content as the 2025_12 visual export for version control and reuse. **3. Deployment to PowerBI_Date**
+- **`PowerBI_Date\Backfill\2025_12\vcs_time_report\2025_12_Monthly Accrual and Usage Summary.csv`**  
+  Overwritten with the 2025_12 export. When you run the Overtime/TimeOff pipeline or restore for **December 2025**, this file is used. **4. README**
+- **`data/backfill/README.md`**  
+  Updated so the 2025_12 export is the main backfill, with the 2025_11 and 2025_12 deployed paths and restore steps documented. The 2025_12 export (12-24 → 12-25) is now the backfill used for December; no extra copy step is needed for 2025_12. ---
+
+**User**
+
+what do i need to do? re-run the pipeline if need be
+
+---
+
+**Cursor**
+
+
+Checking how the pipeline picks the backfill month and the exact run steps:
+
+
+
+Checking the usual run command and default backfill root:
+
+
+
+Re-running the pipeline is required so the new 2025_12 backfill is applied to the FIXED file and `monthly_breakdown.csv`. Here’s what to do:
+
+
+
+You only need to do two things:
+
+---
+
+### 1. Re-run the pipeline
+
+From **Master_Automation**:
+
+```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+python scripts\overtime_timeoff_with_backfill.py
+```
+
+This run will use the 2025_12 backfill we deployed (it looks for that when the “end month” backfill folder isn’t present). It will:
+
+- Run v10 to build the 13‑month FIXED and `monthly_breakdown`
+- Restore **FIXED** from `PowerBI_Date\Backfill\2025_12\vcs_time_report\2025_12_Monthly Accrual and Usage Summary.csv`
+- Backfill **monthly_breakdown** from that same file for history months
+
+---
+
+### 2. Refresh Power BI
+
+After the pipeline finishes, refresh the report (e.g. Refresh All or refresh the **___Overtime_Timeoff_v3** query). The Monthly Accrual and Usage Summary visual will then use the updated data (12-24 through 12-25 from the 2025_12 export). ---
+
+Optional: to see what would run without changing files:
+
+```powershell
+python scripts\overtime_timeoff_with_backfill.py --dry-run
+```
+
+Steps are also documented in **`docs/OVERTIME_TIMEOFF_RERUN_AFTER_BACKFILL.md`**. ---
+
+**User**
+
+does this look ok:
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved. Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS U:\> cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation> python scripts\overtime_timeoff_with_backfill.py
+[INFO] Current month backfill not found, using previous month: 2025_12
+[INFO] Window end month: 2026-01
+[INFO] Expected FIXED: C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_2025-01_2026-01.csv
+[INFO] Backfill month: 2025_12
+[INFO] Found export files:
+  Overtime: C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\export\month\2026\2026_01_otactivity.xlsx
+  Time Off: C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\month\2026\2026_01_timeoffactivity.xlsx
+[INFO] Excluding 101 comp time records (389.00 hours) from _Time_Off:2025_11_TimeOffActivity.xlsx
+[INFO] Excluding 822 comp time records (3147.37 hours) from _Time_Off:2024_09_2025_09_OTActivityTimeOffActivity.xlsx
+[INFO] Excluding 809 comp time records (3125.12 hours) from _Time_Off:24_09 to_25_09_25_17_17_00.xlsx
+[INFO] Excluding 104 comp time records (376.00 hours) from _Time_Off:25_10_TimeOffActivity.xlsx
+[INFO] Excluding 1 comp time records (4.00 hours) from _Time_Off:2022_all_timeoffactivity.xlsx
+[INFO] Excluding 656 comp time records (2552.50 hours) from _Time_Off:2023_all_timeoffactivity.xlsx
+[INFO] Excluding 695 comp time records (2928.62 hours) from _Time_Off:2024_all_timeoffactivity.xlsx
+[INFO] Excluding 922 comp time records (3399.50 hours) from _Time_Off:2025_all_timeoffactivity.xlsx
+[INFO] Excluding 49 comp time records (218.25 hours) from _Time_Off:2024_11_timeoffactivity.xlsx
+[INFO] Excluding 50 comp time records (236.00 hours) from _Time_Off:2024_12_timeoffactivity.xlsx
+[INFO] Excluding 50 comp time records (193.00 hours) from _Time_Off:2025_01_timeoffactivity.xlsx
+[INFO] Excluding 50 comp time records (166.50 hours) from _Time_Off:2025_02_timeoffactivity.xlsx
+[INFO] Excluding 55 comp time records (236.75 hours) from _Time_Off:2025_03_timeoffactivity.xlsx
+[INFO] Excluding 55 comp time records (176.00 hours) from _Time_Off:2025_04_timeoffactivity.xlsx
+[INFO] Excluding 73 comp time records (231.00 hours) from _Time_Off:2025_05_timeoffactivity.xlsx
+[INFO] Excluding 77 comp time records (272.75 hours) from _Time_Off:2025_06_timeoffactivity.xlsx
+[INFO] Excluding 80 comp time records (278.25 hours) from _Time_Off:2025_07_timeoffactivity.xlsx
+[INFO] Excluding 64 comp time records (241.25 hours) from _Time_Off:2025_08_timeoffactivity.xlsx
+[INFO] Excluding 91 comp time records (351.25 hours) from _Time_Off:2025_09_timeoffactivity.xlsx
+[INFO] Excluding 104 comp time records (377.50 hours) from _Time_Off:2025_10_timeoffactivity.xlsx
+[INFO] Excluding 74 comp time records (245.75 hours) from _Time_Off:2025_12_timeoffactivity.xlsx
+[INFO] Excluding 82 comp time records (318.00 hours) from _Time_Off:2026_01_timeoffactivity.xlsx
+[INFO] Excluding 792 comp time records (3071.37 hours) from _Time_Off:24_all_25_07_timeoff.xlsx
+[INFO] Raw Time Off deduplication: Removed 16100 duplicate records (37384 -> 21284 rows)
+[INFO] Rows loaded. Overtime=25758 TimeOff=31528 Combined=57286
+[INFO] Deduplication: Removed 28465 duplicate records (57286 -> 28821 rows)
+[INFO] Unique statuses before filter: 4
+[INFO] Rows after approved filter: 28552
+[INFO] Rows in 13-month window 2025-01-01 to 2026-01-31: 10060
+[INFO] Building FIXED_monthly_breakdown for window 2025-01-01 to 2026-01-31...
+[INFO] Raw Time Off status filter: 7981 -> 7816 rows (removed 165 non-approved)
+[INFO] Built usage metrics from 7816 raw Time-Off rows -> 13 monthly records
+[OK]   Usage January 2026: Sick=1635.00, SAT=497.50, Vac=905.50, CompUsed=318.00, Mil=66.00, IOD=269.00
+[OK]   FIXED_monthly_breakdown rows=13 periods=2025-01->2026-01 -> C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_2025-01_2026-01.csv
+Window: 2025-01-01 -> 2026-01-31
+Accrued Comp. Time: Total=3612.75
+Accrued Overtime:   Total=7691.75
+[OK]   Comp (window): 3612.75 reconciles
+[OK]   Overtime (window): 7691.75 reconciles
+[INFO] Using backfill CSV: C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_12\vcs_time_report\2025_12_Monthly Accrual and Usage Summary.csv
+[OK] Backfill used: C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_12\vcs_time_report\2025_12_Monthly Accrual and Usage Summary.csv
+[OK] Backup created: C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_2025-01_2026-01.csv.bak
+[OK] FIXED written: C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_2025-01_2026-01.csv
+[OK] Rows updated: 12/13
+[OK] Cells updated: 60
+[INFO] Accrual totals were NOT restored from backfill (legacy categories only). [OK] monthly_breakdown.csv backfilled: C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\analytics_output\monthly_breakdown.csv
+[OK] Pipeline complete. PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation>
+
+---
+
+**Cursor**
+
+
+Yes, that run looks correct. **What the output shows**
+
+| Item | Status |
+|------|--------|
+| Backfill | Correctly used **2025_12** (current month 2026_01 not found, so fallback is right). |
+| Window | 13-month window **2025-01 → 2026-01** and expected FIXED file path are correct. |
+| Exports | Jan 2026 Overtime and Time Off `.xlsx` files were found and used. |
+| Jan 2026 usage | **Sick=1635, SAT=497.5, CompUsed=318, Mil=66, IOD=269** — real values, not zeros. |
+| Backfill applied | Your **2025_12** backfill CSV was used; backup created, FIXED and monthly_breakdown written. |
+| Rows updated | **12/13** is expected: backfill has 12-24 through 12-25 (12 periods); the 13th period (01-26) comes from v10, not from the backfill. |
+| Accruals | “Accrual totals were NOT restored from backfill” is the default (usage-only restore); v10’s accruals are kept. |
+
+**Next step**
+
+Refresh Power BI (e.g. Refresh All or refresh the **___Overtime_Timeoff_v3** query). The Monthly Accrual and Usage Summary visual should then show the updated data, including history from the 2025_12 export and January 2026 from this run. ---
+
+**User**
+
+refreshed data is attach
+
+also gemini assisted with the following logic to clean the exported visual data to be used as a backfill. Yes, **scripts (specifically Power Query M or Python) should absolutely be used** to make default visual exports usable. Manually reformatting these exports every month is counter-productive to an automated workflow, especially since Power BI's "default" export structure often conflicts with the data structures required by advanced analytical models. Based on the structure of the files you provided, here is why a script is the correct solution for making these exports usable:
+
+### 1. Bridging the "Long" vs. "Wide" Gap
+
+* **The Problem**: When you export data from a Power BI visual, it typically defaults to a **Long** format (e.g., one row for every category-month combination). * **The Conflict**: Most legacy reports and your current "FIXED" logic expect a **Wide** format (e.g., months as column headers). * **The Script Solution**: A script can automatically "Pivot" the `PeriodLabel` column from your visual export to create the headers your master query expects, ensuring the backfill logic functions without manual intervention. ### 2. Handling Aggregation Mismatches
+
+* **The Problem**: Visual exports often include prefixes like "Sum of..." in the headers (e.g., `Sum of Value`). * **The Conflict**: Your M script looks for specific internal field names like `Total` or `Hours`. * **The Script Solution**: A script can dynamically rename `Sum of Value` to `Total` during the ingestion process, preventing the "The column 'Total' of the table wasn't found" error. ### 3. Solving the "Firewall" and "Naming" Issues
+
+* **The Problem**: The default name for a visual export (e.g., `2025_12_Monthly Accrual and Usage Summary.csv`) does not match the strict naming conventions used in your `OT_Prior` logic. * **The Script Solution**: Your `watchdog_service.py` script is already designed to normalize these filenames. By adding a specific rule for visual exports, you can ensure they are moved to the correct folder and renamed so the Power Query M code "sees" them automatically. ### Recommendation
+
+Instead of changing how you export data, **update your scripts to accommodate the "default" export structure. ** * **In Python (`watchdog_service.py`)**: Add a new rule to detect "Monthly Accrual and Usage Summary" in the filename and move it to a `backfill_source` folder. * **In M Code**: Update the `OT_Prior` staging query to check if the file is "Long" or "Wide." If it is "Long" (containing a `PeriodLabel` column), have the script pivot it automatically before passing it to the main logic. This approach ensures that your "Master Automation" remains **truly automated**, regardless of how the source data is formatted by the system. ---
+
+**Cursor**
+
+
+Confirming the refreshed visual shows 01-26 populated. Implementing automation to normalize visual exports for backfill and checking the watchdog setup. Checking how the pipeline parses the backfill for column names:
+
+
+
+Adding a normalizer script and documentation. Restore and pipeline already accept Long and "Sum of Value"; we'll add automation so default exports are moved and normalized without manual steps. Summary of what’s in place to match Gemini’s approach and your refreshed visual:
+
+---
+
+**Refreshed visual**  
+The screenshot matches what we expect: 13 months (01-25 through 12-25 plus 01-26), with 01-26 filled (e.g. Comp 318, Sick 1635, IOD 269). Column order in the visual (e.g. 01-26 after 01-25) is a display choice; the M query and pipeline work with the underlying Long data. ---
+
+**1. Script: `scripts/normalize_visual_export_for_backfill.py`**
+
+- **Long (default export):** Keeps Long, normalizes:
+  - Column names: `Time Category`, `Sum of Value`, `PeriodLabel`
+  - Period labels: e.g. `Sum of 11-25` → `11-25`
+- **Optional Wide:** Use `--wide` to pivot Long → Wide (months as columns). - **Output:** Writes to  
+  `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\YYYY_MM_Monthly Accrual and Usage Summary.csv`  
+  so the next pipeline run uses it automatically. - **Backfill month:** Inferred from the filename (e.g. `2025_12_...`) or set with `--backfill-month`. Example:
+
+```powershell
+python scripts\normalize_visual_export_for_backfill.py --input "U:\path\to\2025_12_Monthly Accrual and Usage Summary.csv"
+```
+
+---
+
+**2. Doc: `docs/VISUAL_EXPORT_NORMALIZE_AND_BACKFILL.md`**
+
+- Explains **Long vs Wide** and why the pipeline already accepts default (Long) exports. - Describes **column naming** (`Sum of Value`, etc.) and that restore/pipeline accept current export names. - Documents the **normalizer** (usage, options, output path). - Suggests **watchdog/organize**: detect `*Monthly Accrual and Usage Summary*.csv` and either move it to the backfill folder or run the normalizer so the file is ready for the pipeline. ---
+
+**3. `data/backfill/README.md`**
+
+- Short section added on “Automating default exports” with the normalizer one-liner and a pointer to the full doc.

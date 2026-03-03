@@ -1,0 +1,26 @@
+I've read the initial files:
+
+1. all_summons_m_code.txt - Current Power BI M code
+2. summons_powerbi_latest.xlsx - Actual data structure
+3. config/scripts.json - ETL configuration
+
+Key Issues to Check:
+- WG2 Column status (should be populated from WG2_ASSIGN)
+- TICKET_COUNT and ASSIGNMENT_FOUND columns (should NOT exist)
+- DAX measure ___Total Tickets (should use COUNTROWS)
+- Top 5 queries (should return data)
+
+Please:
+1. First, verify the current data state (confirm missing columns, WG2 status)
+2. Compare M code column references vs actual columns in Excel
+3. If WG2 is null, fix by copying from WG2_ASSIGN (Priority 1)
+4. Verify M code handles missing columns correctly (Priority 2)
+5. Verify Top 5 queries return data (Priority 3)
+6. Provide corrected DAX measure for ___Total Tickets (Priority 4)
+7. Create a validation report showing what was found/fixed
+
+Start with Phase 1 diagnostics, then proceed through the fixes in priority order. ```
+
+---
+
+**Ready for troubleshooting! ** Use this guide to systematically identify and fix all Summons data issues.

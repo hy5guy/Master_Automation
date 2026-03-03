@@ -1,0 +1,647 @@
+Verifying the file is clean:
+
+
+## Backslashes removed
+
+**Fixed lines 75-76:**
+- Before: Had backslashes `\` for line continuation (which M Code doesn't support)
+- After: Single-line `#table` statement (no backslashes)
+
+**Fixed line 64:**
+- Also cleaned up the indentation for consistency
+
+### Current state
+
+The file now matches the clean version:
+- No backslashes (except in file paths, which is correct)
+- Single-line `#table` statements
+- Proper indentation
+- Ready for Power BI
+
+### Verification
+
+The file is clean and should compile without the "Culture" error. The `#table` statements are now on single lines:
+
+```m
+#table({"Name", "Age", "Address", "Charge", "Arrest Date", "Home_Category_Final"}, {})
+```
+
+### Next steps
+
+1. Copy the updated M code from `m_code/___Arrest_Categories_FIXED.m` into Power BI
+2. Refresh the query — it should load without errors
+3. The query should now display December 2025 data
+
+The backslash issue is resolved. The query should work now. ```plaintext
+#table({"Name", "Age", "Address", "Charge", "Arrest Date", "Home_Category_Final"}, {})
+```
+
+---
+
+**User**
+
+@c:\Users\carucci_r\Downloads\Claude-Fixing M code syntax errors in Power Query.md @c:\Users\carucci_r\Downloads\CULTURE_ERROR_GUIDE.md @c:\Users\carucci_r\Downloads\___Arrest_Categories_MANUAL_TYPES.m @c:\Users\carucci_r\Downloads\___Arrest_Categories_NO_TYPE_CONVERSION.m 
+
+---
+
+**Cursor**
+
+Backslashes were reintroduced. Applying the fix from the documentation: removing backslashes and using the NO_TYPE_CONVERSION approach to avoid Culture errors. Applying the NO_TYPE_CONVERSION fix: removing backslashes and skipping type conversion to avoid Culture errors. ```objective-c
+// ___Arrest_Categories
+// 🕒 2025-01-05-15-15-00
+// Project: Arrest_Analysis/Arrest_Categories
+// Author: R. A. Carucci
+// Purpose: Simplified M Code with defensive type handling to avoid Culture errors
+
+let
+    // ═══ A) Load latest Power BI ready file ═══════════════════════
+    FolderFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"),
+    
+    PowerBIFiles = Table.SelectRows(
+        FolderFiles,
+        each [Extension] = ".xlsx" and Text.Contains([Name], "PowerBI_Ready")
+    ),
+    
+    Sorted = Table.Sort(PowerBIFiles, {{"Date modified", Order.Descending}}),
+    
+    // Load the latest file
+    Source = if Table.RowCount(Sorted) > 0 then
+        Excel.Workbook(Sorted{0}[Content], null, true){0}[Data]
+    else
+        error "No Power BI ready files found",
+
+    // ═══ B) Basic data cleaning ═══════════════════════════════════
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+    
+    // Filter to previous month - handle multiple date column name variations
+    // Handle Excel serial dates, actual dates, and text dates
+    ToDate = (x) => 
+        if x = null or x = "" then
+            null
+        else
+            // Try Date.From first (handles Excel serial numbers and dates)
+            try Date.From(x) otherwise
+            // Try converting number to Excel serial date
+            try if Number.From(x) > 0 and Number.From(x) < 1000000 then
+                Date.From(Number.From(x))
+            else
+                null
+            otherwise
+            // Try Date.FromText for text dates
+            try Date.FromText(Text.From(x)) otherwise null,
+    
+    // December 2025 data is now available
+    Prev = Date.AddMonths(Date.From(DateTime.LocalNow()), -1),
+    PrevY = Date.Year(Prev),
+    PrevM = Date.Month(Prev),
+    
+    // Find the date column (handle variations)
+    DateColumnName = if Table.HasColumns(Headers, "Arrest Date") then
+        "Arrest Date"
+    else if Table.HasColumns(Headers, "Arrest_Date") then
+        "Arrest_Date"
+    else if Table.HasColumns(Headers, "ArrestDate") then
+        "ArrestDate"
+    else if Table.HasColumns(Headers, "Date") then
+        "Date"
+    else
+        null,
+    
+    DateFiltered = if DateColumnName = null then
+        #table({"Name", "Age", "Address", "Charge", "Arrest Date"}, {})
+    else
+        Table.SelectRows(
+            Headers,
+            each let d = ToDate(Record.Field(_, DateColumnName)) in d <> null and Date.Year(d) = PrevY and Date.Month(d) = PrevM
+        ),
+
+    // ═══ C) Handle empty results gracefully ═══════════════════════
+    HasData = Table.RowCount(DateFiltered) > 0,
+    
+    // Use Python-processed geographic data directly
+    WithHomeCategory = if not HasData then
+        #table({"Name", "Age", "Address", "Charge", "Arrest Date", "Home_Category_Final"}, {})
+    else
+        Table.AddColumn(
+            DateFiltered,
+            "Home_Category_Final",
+            each
+                // Use Python's Home_Category if available, otherwise fallback
+                if Table.HasColumns(DateFiltered, "Home_Category") then
+                    [Home_Category]
+                else if Text.Contains(Text.Upper([Address] ? ? ""), "HACKENSACK") then
+                    "Local"
+                else
+                    "Check Data",
+            type text
+        ),
+
+    // ═══ D) Simple charge categorization ═══════════════════════════
+    AddChargeCategory = if not HasData then
+        WithHomeCategory
+    else
+        Table.AddColumn(
+            WithHomeCategory,
+            "ChargeCategory",
+            each
+                let charge = Text.Upper([Charge] ? ? "") in
+                if Text.Contains(charge, "ASSAULT") then "Assault"
+                else if Text.Contains(charge, "SHOPLIFTING") then "Theft"
+                else if Text.Contains(charge, "BURGLARY") then "Burglary"
+                else if Text.Contains(charge, "ROBBERY") then "Robbery"
+                else if Text.Contains(charge, "WARRANT") then "Warrant"
+                else if Text.Contains(charge, "DWI") then "DWI"
+                else if Text.Contains(charge, "DRUG") then "Drug Related"
+                else if Text.Contains(charge, "WEAPON") then "Weapons"
+                else "Other",
+            type text
+        ),
+
+    // ═══ E) Data quality indicators ═══════════════════════════════
+    AddDataQuality = if not HasData then
+        Table.AddColumn(AddChargeCategory, "DataQualityScore", each 0, type number)
+    else if Table.HasColumns(AddChargeCategory, "DataQualityScore") then
+        AddChargeCategory
+    else
+        Table.AddColumn(
+            AddChargeCategory,
+            "DataQualityScore",
+            each
+                (if [Name] <> null and [Name] <> "" then 1 else 0) +
+                (if [Age] <> null and Number.From([Age] ? ? 0) > 0 then 1 else 0) +
+                (if [Address] <> null and [Address] <> "" then 1 else 0) +
+                (if [Charge] <> null and [Charge] <> "" then 1 else 0) +
+                (if Table.HasColumns(AddChargeCategory, "ZIP") and [ZIP] <> null then 1 else 0),
+            type number
+        ),
+
+    // ═══ F) NO TYPE CONVERSION - Avoid Culture errors ═════════════
+    // Skip all type conversions to prevent Culture errors
+    // Power BI will auto-detect types from the Excel source
+    TypedData = AddDataQuality,
+
+    // ═══ G) Add source tracking ═══════════════════════════════════
+    WithSourceInfo = Table.AddColumn(
+        TypedData,
+        "SourceFile",
+        each if Table.RowCount(Sorted) > 0 then Sorted{0}[Name] else "Unknown",
+        type text
+    )
+
+in
+    WithSourceInfo
+
+```
+
+Applied the fix from the documentation. The linter errors are false positives (it's parsing M code as C/C++). The file is now correct. ## Fixes applied
+
+### 1. Removed backslashes (lines 75-78)
+- Before: Had `\` line continuation characters
+- After: Single-line `#table` statement (no backslashes)
+
+### 2. Removed type conversion (lines 133-150)
+- Before: Used `Table.TransformColumnTypes()` which caused Culture errors
+- After: `TypedData = AddDataQuality` (no conversion, avoids Culture errors)
+
+## What changed
+
+The file now uses the NO_TYPE_CONVERSION approach:
+- No backslashes — all `#table` statements are single-line
+- No type conversion — Power BI auto-detects types from Excel
+- Avoids Culture errors — no `Table.TransformColumnTypes()` calls
+
+## Ready to use
+
+The file is ready to copy into Power BI. It should:
+- Load without syntax errors
+- Avoid Culture errors
+- Display December 2025 data (if available)
+
+Copy the code from `m_code/___Arrest_Categories_FIXED.m` into Power BI and refresh. It should work now. ---
+
+**User**
+
+all queries work now
+**Goal**
+- Update CHANGELOG.md, README.md, SUMMARY.md
+- Sync version fields
+- Commit and push to GitHub
+- Optional tag and PR
+
+**Auto-detect or infer**
+- repo_root: current working directory or git root
+- version: increment from last tag or VERSION file
+- change_scope: summarize recent commits
+- commit_to: default to new branch unless specified
+- tag_release: default no
+- open_pr: default yes if branch != main
+- docs_subdir: optional, auto-detect if present
+- dry_run: default no
+
+**Rules**
+- Work only inside repo_root
+- No edits outside repo_root
+- Short sentences. No em dashes
+- Conventional Commits
+- UTC dates in YYYY-MM-DD
+- Respect .editorconfig and existing style
+
+**Tasks**
+
+1. Preflight: Verify git repo, print branch/remote, git status (stop if unrelated changes), print user.name/email, confirm auth. If dry_run, print planned steps and wait for approval. 2. Branch: If commit_to=main, checkout main and `git pull --ff-only`. Else create and switch to `docs/update-{YYYYMMDD-HHMM}` from main. 3. Version sync: Update version in VERSION, package.json, pyproject.toml, setup.cfg, or `**/__init__.py`. List changed files. 4. CHANGELOG.md: Create if missing. Keep "Unreleased" at top. Move "Unreleased" to v{version} with today's UTC date. Auto-build notes from Conventional Commits since last tag. Group by feat, fix, docs, refactor, perf, chore. Add compare link last_tag…v{version}. Add fresh "Unreleased" stub at top. 5. README.md: Update commands, paths, badges, version pins. Add "What changed in v{version}" with changelog link. Rebuild TOC if marker exists. 6. SUMMARY.md: Ensure concise project summary. List key directories and entry points. Add 3–6 bullets for changes in v{version}. 7. Formatting and lint: Enforce LF endings. Run markdownlint if present (apply safe fixes). Run prettier or mdformat if present. 8. Links: Check internal links and anchors across the three files. Fix or report broken links. 9. Git commit: Stage only edited docs and version files. Commit message: `docs: update CHANGELOG, README, SUMMARY for v{version} - {change_scope}`. Add footer lines: Refs (issue/PR links if any), Affects (list of files/dirs). Sign commit if GPG configured. 10. Tag and push: If tag_release=yes, create annotated tag v{version} with release notes from changelog (sign if possible). Push current branch. Push tags. 11. Pull request: If open_pr=yes and branch != main, create PR with title `docs: v{version} docs update - {change_scope}`. PR body includes changelog excerpt and checklist. Print PR URL. 12. CI: Print CI run URL if available. Poll once. Report status. 13. Report: Print branch, commit hash, tag, PR URL, CI status. Print JSON block: `{ "version": "...", "branch": "...", "commit": "...", "tag": "...", "pr_url": "...", "ci_status": "...", "files_changed": [...] }`
+
+**Rollbacks**
+- If staged only: `git restore --staged .` and restore backups
+- If committed only: `git reset --soft HEAD~1`
+- If pushed on branch: force push only after approval
+
+Begin by auto-detecting parameters, then proceed with the workflow. ---
+
+**Cursor**
+
+Starting the documentation update workflow. Checking the repository status and locating the relevant files. Reviewing the documentation files and recent changes to determine what to update:
+
+
+Analyzing recent changes and updating the documentation. Summarizing changes since v1.1.0:
+
+
+Proceeding with the documentation update workflow. Summarizing changes since v1.1.0:
+
+
+Creating a branch for the documentation update and proceeding with the workflow:
+
+
+```json
+{
+  "directory": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation",
+  "documentation": {
+    "QUICK_START": "QUICK_START.md",
+    "CHANGELOG": "CHANGELOG.md",
+    "SUMMARY": "SUMMARY.md",
+    "BACKFILL_LOCATIONS": "BACKFILL_LOCATIONS.md",
+    "VERIFICATION_REPORT": "VERIFICATION_REPORT.md",
+    "README": "README.md"
+  },
+  "execution_stats": {
+    "script_logs": 10,
+    "total_log_files": 27,
+    "error_logs": 10,
+    "most_recent_execution": "2025-12-09T23:33:35",
+    "orchestrator_logs": 7,
+    "recent_logs_summary": [
+      {
+        "file": "2025-12-09_23-33-32_ETL_Run.log",
+        "modified": "2025-12-09T23:33:35",
+        "size_bytes": 3331,
+        "type": "orchestrator"
+      },
+      {
+        "file": "2025-12-09_23-33-32_Overtime TimeOff.log",
+        "modified": "2025-12-09T23:33:33",
+        "size_bytes": 945,
+        "type": "script"
+      },
+      {
+        "file": "2025-12-09_23-33-32_Overtime TimeOff.log.err",
+        "modified": "2025-12-09T23:33:32",
+        "size_bytes": 0,
+        "type": "error"
+      },
+      {
+        "file": "2025-12-09_23-32-40_ETL_Run.log",
+        "modified": "2025-12-09T23:32:42",
+        "size_bytes": 971,
+        "type": "orchestrator"
+      },
+      {
+        "file": "2025-12-09_23-32-40_Overtime TimeOff.log",
+        "modified": "2025-12-09T23:32:42",
+        "size_bytes": 945,
+        "type": "script"
+      },
+      {
+        "file": "2025-12-09_23-32-40_Overtime TimeOff.log.err",
+        "modified": "2025-12-09T23:32:40",
+        "size_bytes": 0,
+        "type": "error"
+      },
+      {
+        "file": "2025-12-09_23-28-25_ETL_Run.log",
+        "modified": "2025-12-09T23:28:27",
+        "size_bytes": 964,
+        "type": "orchestrator"
+      },
+      {
+        "file": "2025-12-09_23-28-25_Arrest Data Source.log",
+        "modified": "2025-12-09T23:28:27",
+        "size_bytes": 717,
+        "type": "script"
+      },
+      {
+        "file": "2025-12-09_23-28-25_Arrest Data Source.log.err",
+        "modified": "2025-12-09T23:28:27",
+        "size_bytes": 12543,
+        "type": "error"
+      },
+      {
+        "file": "2025-12-09_23-22-36_ETL_Run.log",
+        "modified": "2025-12-09T23:28:21",
+        "size_bytes": 1205,
+        "type": "orchestrator"
+      }
+    ]
+  },
+  "structure": {
+    "logs": {
+      "note": "Logs are timestamped and include orchestrator, script, and error logs",
+      "path": "logs",
+      "description": "Execution logs (auto-generated)"
+    },
+    "outputs": {
+      "note": "Currently empty, scripts copy outputs directly to Power BI drop folder",
+      "path": "outputs",
+      "description": "Reserved for future use (optional staging area)"
+    },
+    "scripts": {
+      "files": [
+        "run_all_etl.ps1",
+        "run_all_etl.bat",
+        "run_etl_script.ps1"
+      ],
+      "path": "scripts",
+      "description": "Orchestration scripts"
+    },
+    "config": {
+      "files": [
+        "scripts.json"
+      ],
+      "path": "config",
+      "description": "Configuration files"
+    }
+  },
+  "config": {
+    "settings": {
+      "cleanup_temp_files": true,
+      "python_executable": "python",
+      "log_directory": "logs",
+      "powerbi_drop_path": "C:\\Dev\\PowerBI_Date\\_DropExports",
+      "continue_on_error": true
+    },
+    "file": "config\\scripts.json",
+    "enabled_scripts": 7,
+    "disabled_scripts": 1,
+    "scripts_configured": 8
+  },
+  "last_updated": "2025-12-10T01:24:09",
+  "system": "Master ETL Automation",
+  "orchestration_scripts": [
+    {
+      "file": "run_all_etl.bat",
+      "path": "scripts/run_all_etl.bat",
+      "modified": "2025-12-09T22:06:00",
+      "size_bytes": 476,
+      "description": "Batch file wrapper - passes parameters to PowerShell orchestrator"
+    },
+    {
+      "file": "run_all_etl.ps1",
+      "path": "scripts/run_all_etl.ps1",
+      "modified": "2025-12-09T23:33:43",
+      "size_bytes": 9275,
+      "description": "Main PowerShell orchestrator - runs all ETL scripts in configured order"
+    },
+    {
+      "file": "run_etl_script.ps1",
+      "path": "scripts/run_etl_script.ps1",
+      "modified": "2025-12-09T22:06:01",
+      "size_bytes": 273,
+      "description": "Helper script to run individual ETL scripts"
+    }
+  ],
+  "etl_scripts": [
+    {
+      "script_file": "arrest_python_processor.py",
+      "keywords": [
+        "arrest",
+        "court"
+      ],
+      "name": "Arrests",
+      "execution_order": 1,
+      "enabled": true,
+      "workspace_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Arrests",
+      "output_patterns": [
+        "*.csv"
+      ],
+      "output_to_powerbi": true,
+      "timeout_minutes": 30,
+      "notes": "main.py not found; using arrest_python_processor.py"
+    },
+    {
+      "script_file": "src\\main_processor.py",
+      "keywords": [
+        "community",
+        "outreach",
+        "engagement"
+      ],
+      "name": "Community Engagement",
+      "execution_order": 2,
+      "enabled": true,
+      "workspace_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagment",
+      "output_patterns": [
+        "*.csv"
+      ],
+      "output_to_powerbi": true,
+      "timeout_minutes": 15,
+      "notes": "main.py not found; using src\\main_processor.py"
+    },
+    {
+      "script_file": "overtime_timeoff_13month_sworn_breakdown_v10.py",
+      "keywords": [
+        "vcs",
+        "time",
+        "overtime",
+        "accrual"
+      ],
+      "name": "Overtime TimeOff",
+      "execution_order": 3,
+      "enabled": true,
+      "workspace_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff",
+      "output_patterns": [
+        "output\\FIXED_monthly_breakdown_*.csv",
+        "analytics_output\\executive_summary.csv",
+        "analytics_output\\monthly_breakdown.csv"
+      ],
+      "output_to_powerbi": true,
+      "timeout_minutes": 20,
+      "notes": "v11 is template; using production-ready v10 per SUMMARY.md. Outputs in output/ and analytics_output/ subdirectories." },
+    {
+      "script_file": "src\\policy_training_etl.py",
+      "keywords": [
+        "policy",
+        "training"
+      ],
+      "name": "Policy Training Monthly",
+      "execution_order": 4,
+      "enabled": true,
+      "workspace_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Policy_Training_Monthly",
+      "output_patterns": [
+        "*.csv"
+      ],
+      "output_to_powerbi": true,
+      "timeout_minutes": 15,
+      "notes": "main.py not found; using src\\policy_training_etl.py"
+    },
+    {
+      "script_file": "scripts\\process_cad_data_for_powerbi_FINAL.py",
+      "keywords": [
+        "response",
+        "time"
+      ],
+      "name": "Response Times",
+      "execution_order": 5,
+      "enabled": true,
+      "workspace_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Response_Times",
+      "output_patterns": [
+        "*.csv"
+      ],
+      "output_to_powerbi": true,
+      "timeout_minutes": 10,
+      "notes": "main.py not found; using scripts\\process_cad_data_for_powerbi_FINAL.py (verify correct script)"
+    },
+    {
+      "script_file": "SummonsMaster.py",
+      "keywords": [
+        "summon",
+        "violation",
+        "moving",
+        "parking"
+      ],
+      "name": "Summons",
+      "execution_order": 6,
+      "enabled": true,
+      "workspace_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Summons",
+      "output_patterns": [
+        "*.csv"
+      ],
+      "output_to_powerbi": true,
+      "timeout_minutes": 15,
+      "notes": "main.py not found; using SummonsMaster.py"
+    },
+    {
+      "script_file": "Analysis_Scripts\\arrest_python_processor.py",
+      "keywords": [
+        "arrest"
+      ],
+      "name": "Arrest Data Source",
+      "execution_order": 7,
+      "enabled": true,
+      "workspace_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\01_DataSources\\ARREST_DATA",
+      "output_patterns": [
+        "*.csv"
+      ],
+      "output_to_powerbi": false,
+      "timeout_minutes": 20,
+      "notes": "main.py not found; using Analysis_Scripts\\arrest_python_processor.py"
+    },
+    {
+      "script_file": "main.py",
+      "keywords": [
+        "nibrs"
+      ],
+      "name": "NIBRS",
+      "execution_order": 8,
+      "enabled": false,
+      "workspace_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\01_DataSources\\NIBRS",
+      "output_patterns": [
+        "*.csv"
+      ],
+      "output_to_powerbi": true,
+      "timeout_minutes": 25,
+      "notes": "WARNING: No Python scripts found in this directory. Only contains .txt and .xlsx files. Script disabled." }
+  ],
+  "version": "1.2.0",
+  "description": "Centralized automation hub for running all Python ETL scripts that feed into Power BI reports"
+}
+
+```
+
+Updating CHANGELOG.md: moving Unreleased to v1.2.0 and adding the new changes:
+
+
+```markdown
+# Changelog
+
+All notable changes to the Master_Automation workspace will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). ---
+
+## [1.1.0] - 2026-01-02
+
+### Added
+- **Input Validation Feature**
+  - Added `-ValidateInputs` parameter to `run_all_etl.ps1`
+  - Automatic input validation when using `-DryRun` mode
+  - Validates required export files exist before execution:
+    - Summons: E-ticket exports in `05_EXPORTS\_Summons\E_Ticket\YYYY\YYYY_MM_eticket_export.csv`
+    - Response Times: CAD monthly exports in `05_EXPORTS\_CAD\monthly_export\YYYY\YYYY_MM_Monthly_CAD.xlsx`
+  - Shows helpful error messages with available files when expected files are missing
+
+- **Badge Normalization Diagnostics**
+  - `scripts/diagnose_badge_normalization.py` - Comprehensive badge number format validation
+  - `scripts/find_missing_badge.py` - Quick script to find badges in e-ticket not in Assignment Master
+  - `scripts/fix_assignment_master.py` - Fixes PADDED_BADGE_NUMBER format and adds missing entries
+  - `scripts/verify_assignment_fix.py` - Verifies Assignment Master fixes
+
+- **Script Archive**
+  - Created `scripts/_archive/` directory for old/unused scripts
+  - Archived `run_all_etl-PD_BCI_LTP.ps1` (old version superseded by main script)
+
+### Changed
+- **E-Ticket Export Path Structure**
+  - Updated scripts to handle new e-ticket export naming convention:
+    - Old: `YY_MM_e_ticketexport.csv` (e.g., `25_12_e_ticketexport.csv`)
+    - New: `YYYY_MM_eticket_export.csv` in year subdirectories (e.g., `2025\2025_12_eticket_export.csv`)
+  - Updated `diagnose_summons_missing_months.py` to search year subdirectories
+  - Updated `count_patrol_m_p_from_eticket.py` help text
+
+- **Response Times Validation**
+  - Fixed filename pattern from `YYYY_MM_Monthly_CAD.xlsx.xlsx` to `YYYY_MM_Monthly_CAD.xlsx`
+  - Updated validation to check correct year subdirectory structure
+
+- **Assignment Master Fix**
+  - Fixed `Assignment_Master_V2.csv` PADDED_BADGE_NUMBER column (ensured all values are 4-digit padded)
+  - Added badge 1711 entry for PEO JOHN SQUILLACE (TRAFFIC BUREAU)
+
+### Fixed
+- E-ticket export path validation now correctly searches year subdirectories
+- Response Times validation now uses correct filename format (single .xlsx extension)
+- Badge 1711 missing from Assignment Master (now added with correct bureau assignment)
+- All PADDED_BADGE_NUMBER values verified as correctly formatted (4-digit strings, no floats)
+
+### Verified
+- All e-ticket exports correctly formatted (4-digit Officer Id values)
+- Assignment Master PADDED_BADGE_NUMBER column correctly formatted
+- Badge 1711 now matches between e-ticket export and Assignment Master
+- Input validation correctly identifies missing export files
+
+## [Unreleased]
+
+### Planned
+- [ ] Enhanced error reporting and recovery
+- [ ] Performance monitoring and optimization
+- [ ] Automated testing suite
+- [ ] Integration with Power BI refresh scheduling
+
+---
+
+## [1.2.0] - 2026-01-06
+
+### Fixed
+- **Arrest M Code Queries (2026-01-05)**
+  - Fixed syntax errors in `___Top_5_Arrests_FIXED.m` and `___Arrest_Categories_FIXED.m`
+  - Removed backslash line continuations (M Code doesn't support `\` for line continuation)
+  - Fixed path string splitting issues in `Folder.Files` calls
+  - Fixed lambda syntax errors (`(x) = >` → `(x) =>`)
+  - Fixed missing operator spacing (`d<> null` → `d <> null`)
+  - Fixed malformed `let...in` block structures
+
+- **Arrest Date Parsing (2026-01-05)**
+  - Enhanced `ToDate` function to handle Excel serial dates (45962, 45963, etc.)

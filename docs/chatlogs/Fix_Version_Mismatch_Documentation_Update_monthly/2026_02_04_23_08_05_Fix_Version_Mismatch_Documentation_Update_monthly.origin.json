@@ -1,0 +1,43 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "multi",
+      "department": "admin",
+      "key_terms": [
+        "file",
+        "script",
+        "data",
+        "summary",
+        "code",
+        "2025"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Routine response time metric correction\n_Exported on 2/4/2026 at 23:06:53 EST from Cursor (2.4.28)_\n\n---\n\n**User**\n\nRead the attached files and provide a detailed prompt for Claude Code to fix, update, run the etl so I can refresh the...",
+      "first_line": "# Routine response time metric correction"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-04T23:08:05.961663",
+  "department": "admin"
+}

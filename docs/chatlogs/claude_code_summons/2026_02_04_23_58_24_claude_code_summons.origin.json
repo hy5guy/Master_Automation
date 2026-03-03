@@ -1,0 +1,40 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "wg2",
+        "data",
+        "queries",
+        "columns",
+        "power",
+        "text"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Summons Data Troubleshooting & Fix Guide\n\n**Purpose:** Comprehensive guide for troubleshooting and fixing Summons data issues in Power BI, including ETL processing, M code queries, DAX measures, and visual errors. ---\n\n## ✅ Executive S...",
+      "first_line": "# Summons Data Troubleshooting & Fix Guide"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-04T23:58:24.612075",
+  "department": "admin"
+}

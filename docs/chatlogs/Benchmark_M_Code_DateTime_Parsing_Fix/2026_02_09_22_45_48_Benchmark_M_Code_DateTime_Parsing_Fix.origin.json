@@ -1,0 +1,36 @@
+{
+  "tags": [
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "markdown",
+    "police",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "date",
+        "let",
+        "error",
+        "table",
+        "errors",
+        "now"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Visual display error\n_Exported on 2/9/2026 at 22:45:24 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\n___Benchmark M CODE\n// Benchmark Data Query - Simplified Structure\n// Updated: 2026-02-09\n// Source: 05_EXPORTS\\Benchmark\\ (simplified str...",
+      "first_line": "# Visual display error"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-09T22:45:48.610943",
+  "department": "admin"
+}

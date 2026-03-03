@@ -1,0 +1,41 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "finance",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "time",
+        "response",
+        "all",
+        "dax",
+        "docs",
+        "response_time"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Response time calculator and visualization\n_Exported on 2/27/2026 at 00:41:26 EST from Cursor (2.5.20)_\n\n---\n\n**User**\n\nread the chunks of C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\docs\\chatlogs\\Response_Time_E...",
+      "first_line": "# Response time calculator and visualization"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-27T00:41:45.827645",
+  "department": "admin"
+}

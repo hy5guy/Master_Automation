@@ -1,0 +1,417 @@
+**Correction:** Implemented the full Pandas logic to load, clean, and merge the backfill data. **Key Features:**
+
+* **Schema Normalization:** Maps "Visual Export" names (`PeriodLabel`, `Sum of Value`) to ETL names (`Month_Year`, `TICKET_COUNT`). * **Gap Filling:** Specifically targets the 4 missing months to avoid duplicating data that already exists. * **Type Safety:** Uses `low_memory=False` and explicit type casting to prevent DtypeWarnings and merge errors. ```python
+#!/usr/bin/env python3
+"""
+Logic for merging Department-Wide Summons backfill for gap months (03-25, 07-25, 10-25, 11-25).
+""" from __future__ import annotations
+
+import logging
+import os
+import pandas as pd
+from pathlib import Path
+from typing import Any
+
+# Import centralized path config
+try:
+    from path_config import get_onedrive_root
+except ImportError:
+    # Fallback if running standalone or path_config not found
+    def get_onedrive_root() -> Path:
+        base = os.environ.get("ONEDRIVE_BASE") or os.environ.get("ONEDRIVE_HACKENSACK")
+        if base: return Path(base)
+        return Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack")
+
+# Gap months identified for Department-Wide Summons
+SUMMONS_GAP_MONTHS = ["03-25", "07-25", "10-25", "11-25"]
+DEFAULT_BACKFILL_SUMMONS_LABEL = "2025_12"
+
+def _log() -> logging.Logger:
+    return logging.getLogger("summons_backfill_merge")
+
+def merge_missing_summons_months(
+    df: pd.DataFrame,
+    backfill_root: Path | None = None,
+    backfill_month_label: str = DEFAULT_BACKFILL_SUMMONS_LABEL,
+) -> pd.DataFrame:
+    """
+    Merge backfill data for gap months into the main summons dataframe.
+    """ logger = _log()
+    root = backfill_root or (get_onedrive_root() / "PowerBI_Date" / "Backfill")
+    summons_dir = root / backfill_month_label / "summons"
+
+    if not summons_dir.exists():
+        logger.warning(f"Backfill directory not found: {summons_dir}")
+        return df
+
+    backfill_dfs = []
+    
+    # Target schema columns (adjust based on your main DF structure)
+    target_cols = ["Month_Year", "WG2", "TICKET_COUNT", "TYPE"]
+
+    try:
+        # Find all CSVs in the summons backfill folder
+        all_files = list(summons_dir.glob("*.csv"))
+        
+        for gap_month in SUMMONS_GAP_MONTHS:
+            # Convert MM-YY (e.g., 03-25) to YYYY_MM (2025_03) for matching filenames
+            parts = gap_month.split("-")
+            if len(parts) == 2:
+                mm, yy = parts
+                file_pattern = f"20{yy}_{mm}"
+            else:
+                file_pattern = gap_month
+
+            # Find matching file(s)
+            matching_files = [f for f in all_files if file_pattern in f.name]
+            
+            if not matching_files:
+                logger.debug(f"No backfill file found for gap month {gap_month}")
+                continue
+
+            for file_path in matching_files:
+                try:
+                    # Read CSV with low_memory=False to handle mixed types
+                    bf_data = pd.read_csv(file_path, low_memory=False)
+                    
+                    # Normalize Column Names (Visual Export -> ETL Schema)
+                    rename_map = {
+                        "PeriodLabel": "Month_Year",
+                        "Bureau": "WG2",
+                        "Sum of Value": "TICKET_COUNT",
+                        "Value": "TICKET_COUNT",
+                        "Sum of TICKET_COUNT": "TICKET_COUNT",
+                        "Moving/Parking": "TYPE",  # Common visual export header
+                        "Type": "TYPE"
+                    }
+                    bf_data = bf_data.rename(columns=rename_map)
+
+                    # Filter for the specific gap month
+                    if "Month_Year" in bf_data.columns:
+                        bf_data = bf_data[bf_data["Month_Year"] == gap_month]
+
+                    if bf_data.empty:
+                        continue
+
+                    # Ensure required columns exist
+                    if "TICKET_COUNT" not in bf_data.columns:
+                        bf_data["TICKET_COUNT"] = 1
+                    if "WG2" not in bf_data.columns:
+                        bf_data["WG2"] = "Unknown"
+                    if "TYPE" not in bf_data.columns:
+                        bf_data["TYPE"] = "Unknown"
+
+                    # Clean numeric data
+                    bf_data["TICKET_COUNT"] = pd.to_numeric(bf_data["TICKET_COUNT"], errors='coerce').fillna(0)
+
+                    # Align columns to target schema
+                    cols_to_keep = [c for c in target_cols if c in bf_data.columns]
+                    bf_data = bf_data[cols_to_keep]
+
+                    backfill_dfs.append(bf_data)
+                    logger.info(f"Loaded {len(bf_data)} rows for {gap_month} from {file_path.name}")
+
+                except Exception as e:
+                    logger.error(f"Failed to read backfill file {file_path}: {e}")
+
+        if backfill_dfs:
+            combined_backfill = pd.concat(backfill_dfs, ignore_index=True)
+            
+            # Match data types with main DF
+            if "TICKET_COUNT" in df.columns:
+                combined_backfill["TICKET_COUNT"] = combined_backfill["TICKET_COUNT"].astype(df["TICKET_COUNT"].dtype)
+            
+            # Concatenate with main dataframe
+            merged_df = pd.concat([df, combined_backfill], ignore_index=True, sort=False)
+            logger.info(f"Merged {len(combined_backfill)} backfill rows into main dataframe.") return merged_df
+
+    except Exception as e:
+        logger.error(f"Error during summons backfill merge: {e}")
+        return df
+
+    return df
+
+```
+
+#### 3. `overtime_timeoff_with_backfill.py`
+
+**Status:** Contained hardcoded paths. **Correction:** Updated `main()` to use `get_onedrive_root` from `path_config`. ```python
+# ... imports ...
+try:
+    from path_config import get_onedrive_root
+except ImportError:
+    # Inline fallback if path_config missing
+    def get_onedrive_root() -> Path:
+        base = os.environ.get("ONEDRIVE_BASE") or os.environ.get("ONEDRIVE_HACKENSACK")
+        if base: return Path(base)
+        return Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack")
+
+# ... existing classes/functions ...
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--backfill-root", help="Root folder containing Backfill CSVs")
+    parser.add_argument("--dry-run", action="store_true", help="Show what would happen")
+    args = parser.parse_args()
+
+    # Dynamic Root
+    root = get_onedrive_root()
+
+    overtime_timeoff_dir = root / "02_ETL_Scripts" / "Overtime_TimeOff"
+    overtime_dir = root / "05_EXPORTS" / "_Overtime"
+    time_off_dir = root / "05_EXPORTS" / "_Time_Off"
+    
+    if args.backfill_root:
+        backfill_root = Path(args.backfill_root)
+    else:
+        backfill_root = root / "PowerBI_Date" / "Backfill"
+
+    paths = Paths(
+        overtime_timeoff_dir=overtime_timeoff_dir,
+        overtime_dir=overtime_dir,
+        time_off_dir=time_off_dir,
+        backfill_root=backfill_root,
+        v10_script=overtime_timeoff_dir / "overtime_timeoff_13month_sworn_breakdown_v10.py",
+        xls_to_xlsx_multi=overtime_dir / "xls_to_xlsx_archiver_com_multi.py",
+        restore_script=Path(__file__).resolve().parent / "restore_fixed_from_backfill.py",
+    )
+    
+    # ... rest of main() logic remains the same ...
+
+```
+
+#### 4. `validate_exports.py`
+
+**Status:** Used local path logic. **Correction:** Switched to `path_config`. ```python
+# ... imports ...
+try:
+    from path_config import get_onedrive_root
+except ImportError:
+    def get_onedrive_root() -> Path:
+        base = os.environ.get("ONEDRIVE_BASE") or os.environ.get("ONEDRIVE_HACKENSACK")
+        if base: return Path(base)
+        return Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack")
+
+def get_exports_base() -> Path:
+    # Uses centralized root + 05_EXPORTS
+    return get_onedrive_root() / "05_EXPORTS"
+
+# ... rest of script ...
+
+```
+
+#### 5. `validate_outputs.py`
+
+**Status:** Used local path logic. **Correction:** Switched to `path_config`. ```python
+# ... imports ...
+try:
+    from path_config import get_onedrive_root
+except ImportError:
+    def get_onedrive_root() -> Path:
+        base = os.environ.get("ONEDRIVE_BASE") or os.environ.get("ONEDRIVE_HACKENSACK")
+        if base: return Path(base)
+        return Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack")
+
+def get_overtime_timeoff_dir() -> Path:
+    return get_onedrive_root() / "02_ETL_Scripts" / "Overtime_TimeOff"
+
+# ... rest of script ...
+
+```
+
+### 🚀 Enhancements & Optimizations
+
+1. **Pandas Memory Management:** In `summons_backfill_merge.py`, I added `low_memory=False` to `pd.read_csv`. This prevents Pandas from guessing types in chunks, which often leads to `DtypeWarning` on visual export files that might contain mixed types in header rows or empty columns. 2. **Robust Path Handling:** Using `pathlib.Path` throughout ensures that Windows/Unix path separators are handled correctly. 3. **Concatenation Safety:** Used `sort=False` in `pd.concat` to suppress FutureWarning and maintain column order, which is critical when merging backfill data into a staging dataframe where column order might matter for downstream steps. ### ⚠️ Blind Spots & Potential Issues
+
+1. **Missing Dependencies:** The new `summons_backfill_merge.py` and validation scripts explicitly require `pandas`. If the environment running these scripts does not have pandas installed, they will fail immediately. * *Mitigation:* Ensure `pip install pandas openpyxl` is run in the environment. 2. **Visual Export Variability:** The `rename_map` in `summons_backfill_merge.py` assumes standard Power BI export headers ("Sum of Value", "PeriodLabel"). If a user exports a matrix visual with different row headers (e.g., "Bureau Name" instead of just "Bureau"), the map will miss those columns. * *Mitigation:* Add logging to print `bf_data.columns` if the expected columns are missing to help debug future schema drifts. 3. **OneDrive Sync Locks:** If OneDrive is actively syncing the `.xlsx` files when `validate_exports.py` runs, `pd.read_excel` might throw a `PermissionError`. * *Mitigation:* The script currently fails fast. In a fully automated production environment, a retry loop with `time.sleep` would be safer. ---
+
+**Cursor**
+
+
+Applying the review's corrections: checking the current files and applying the suggested changes. Applying the review's corrections. Updating the doc to mention the OneDrive retry and verifying there are no linter issues:
+
+
+
+Summary of the corrections applied from the review:
+
+---
+
+## 1. **`path_config.py`**
+- Added comment: `# Fallback for local dev` before the default path return so the fallback is explicit. ---
+
+## 2. **`summons_backfill_merge.py`**
+- **RENAME_MAP:** Added `"Moving/Parking": "TYPE"` and `"Type": "TYPE"` so common visual-export headers map to the ETL `TYPE` column. - **TYPE default:** Backfill rows without a type now get `"Unknown"` instead of `""`. - **Schema-drift logging:** After renaming, if `Month_Year` or `TICKET_COUNT` is still missing, the backfill file name and its columns are logged at **debug** (`logger.debug(...)`) so you can see actual headers when the export format changes. ---
+
+## 3. **`validate_exports.py`**
+- **`get_exports_base()`:** New helper that returns `get_onedrive_root() / "05_EXPORTS"`. Base path is now `args.exports_base or get_exports_base()` so it matches the ETL and the review’s “centralized root + 05_EXPORTS” approach. - **OneDrive retry:** `validate_excel_columns` now retries **3 times** with a **2 second** delay when `PermissionError` or `OSError` occurs (e.g. OneDrive sync lock). After the third failure it raises with a message that mentions a possible sync lock. ---
+
+## 4. **Docs**
+- **`SUMMONS_BACKFILL_INJECTION_POINT.md`:** OneDrive sync bullet updated to state that `validate_exports.py` uses the 3x/2s retry and that other scripts can use a similar retry in production. ---
+
+**Already in place (unchanged):**  
+`overtime_timeoff_with_backfill.py` and `validate_outputs.py` already use `get_onedrive_root()` and the same path pattern; no code changes were made there. `summons_backfill_merge` already used `low_memory=False`, `sort=False` in `pd.concat`, and pathlib; the review’s extra RENAME_MAP entries, TYPE default, debug logging, and validation retry are now applied. ---
+
+**User**
+
+✅ **Summary of Findings**
+
+The provided code (`path_config.py`, `validate_exports.py`, `summons_backfill_merge.py`) is well-structured, modular, and addresses the "Immediate Stabilization Plan" effectively. * **Strengths**: Centralized path management via `path_config.py` is a major improvement for portability. The `validate_exports.py` script implements robust retry logic for OneDrive sync locks. `summons_backfill_merge.py` correctly handles the gap-filling logic with safe Pandas patterns (explicit dtypes, low_memory mode). * **Integration Risks**: The `run_all_etl.ps1` script (from previous context) still contains hardcoded user paths which conflicts with the new dynamic path strategy. Additionally, `overtime_timeoff_with_backfill.py` needs to be explicitly updated to import `path_config` rather than just relying on the logic described in the summary. * **Runtime Dependency**: The scripts assume `path_config.py` is located in the same directory as the executing scripts. ---
+
+### 🛠️ Corrections (with Explanations)
+
+#### 1. `run_all_etl.ps1`: Standardize Paths
+
+**Issue**: The PowerShell script uses hardcoded paths (e.g., `$eticketBase = "C:\Users\carucci_r..."`), ignoring the new environment variable strategy used by the Python scripts. **Fix**: Update PowerShell to respect `ONEDRIVE_BASE` if set, defaulting to the specific user path only as a fallback. ```powershell
+# In run_all_etl.ps1, add this near the top:
+$OneDriveBase = $env:ONEDRIVE_BASE
+if (-not $OneDriveBase) {
+    $OneDriveBase = $env:ONEDRIVE_HACKENSACK
+}
+if (-not $OneDriveBase) {
+    $OneDriveBase = "C:\Users\carucci_r\OneDrive - City of Hackensack"
+}
+
+# Then update paths to use $OneDriveBase
+# Example:
+# Old: $eticketBase = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket"
+# New:
+$eticketBase = Join-Path $OneDriveBase "05_EXPORTS\_Summons\E_Ticket"
+
+```
+
+#### 2. `overtime_timeoff_with_backfill.py`: Import `path_config`
+
+**Issue**: The previous iteration of this file defined paths inside `main()` with hardcoded strings. It must be updated to use the shared configuration. **Fix**: Add the import and usage. ```python
+# In overtime_timeoff_with_backfill.py
+
+# ... imports ...
+try:
+    from path_config import get_onedrive_root
+except ImportError:
+    # Fallback to local default if path_config not found (e.g. running outside scripts dir)
+    def get_onedrive_root() -> Path:
+        return Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack")
+
+def main() -> int:
+    # ... args parsing ...
+    
+    # REPLACE hardcoded paths with:
+    root = get_onedrive_root()
+    overtime_timeoff_dir = root / "02_ETL_Scripts" / "Overtime_TimeOff"
+    overtime_dir = root / "05_EXPORTS" / "_Overtime"
+    time_off_dir = root / "05_EXPORTS" / "_Time_Off"
+    
+    # ... rest of script ...
+
+```
+
+---
+
+### 🚀 Enhancements & Optimizations
+
+#### 1. `summons_backfill_merge.py`: Defensive DataFrame Aligning
+
+When concatenating the backfill data, relying on `reindex` based on `df.columns` works well, but if `df` is empty (e.g., first run of a new year), `df.columns` might be missing or minimal. **Optimization**: Ensure target columns exist before reindexing. ```python
+# In summons_backfill_merge.py
+
+# ... inside merge_missing_summons_months ...
+    if not backfill_dfs:
+        return df
+
+    combined_backfill = pd.concat(backfill_dfs, ignore_index=True)
+
+    # ENHANCEMENT: Explicitly ensure target schema exists in result even if main df is empty
+    # This ensures the output always has the columns the ETL expects. for col in TARGET_COLUMNS:
+        if col not in combined_backfill.columns:
+            combined_backfill[col] = pd.NA
+
+    # Align to main df columns if valid
+    if hasattr(df, "columns") and len(df.columns) > 0:
+        for col in df.columns:
+            if col not in combined_backfill.columns:
+                combined_backfill[col] = pd.NA
+        combined_backfill = combined_backfill.reindex(columns=df.columns, copy=False)
+
+```
+
+#### 2. `validate_exports.py`: Add "Year-Month" Auto-Detection Logging
+
+The default behavior infers the "previous month". It is helpful to explicitly log *why* a specific month was chosen to avoid confusion during debugging. ```python
+# In validate_exports.py inside main():
+    if args.year_month:
+        # ... existing logic ...
+        log(f"Target month specified via argument: {yyyy_mm}")
+    else:
+        # ... existing date logic ...
+        log(f"Target month inferred (previous month): {yyyy_mm}")
+
+```
+
+---
+
+### ⚠️ Blind Spots & Potential Issues
+
+1. **Date Parsing Ambiguity:**
+* **Risk**: `SUMMONS_GAP_MONTHS` uses "MM-YY" (`03-25`). The split `mm, yy = gap_month.split("-")` assumes this format. If a user manually adds "2025-03" to this tuple in the future, the code will break or produce incorrect filenames (e.g., `2003_20`). * **Mitigation**: Add a regex validation or simple length check on the elements of `SUMMONS_GAP_MONTHS`. 2. **Visual Export Format (Wide vs. Long):**
+* **Risk**: `summons_backfill_merge.py` assumes the "Long" format (rows with `PeriodLabel`). If the visual export is "Wide" (months as columns), the `RENAME_MAP` will fail to find `PeriodLabel`, and the script will yield 0 rows. * **Mitigation**: Add a check. If `PeriodLabel` is missing but columns look like dates (e.g., `03-25`, `04-25`), log a warning that "Wide format is not currently supported for Summons backfill." 3. **Module Resolution (PYTHONPATH):**
+* **Risk**: If `run_all_etl.ps1` calls python scripts from the root directory (e.g. `python scripts/validate_exports.py`), Python adds `scripts/` to the path, so `import path_config` works. However, if these scripts are moved or called from a different context (e.g. `cd scripts; python validate_exports.py`), imports might behave differently depending on `sys.path`. * **Mitigation**: The current setup relies on the scripts being colocated. This is acceptable for this project structure but brittle if refactored. ---
+
+### 📘 Best Practices
+
+* **Type Hinting**: The use of `from __future__ import annotations` and `TYPE_CHECKING` blocks in `summons_backfill_merge.py` is excellent for performance (lazy import of Pandas typing) while maintaining developer tooling support. * **Fail Fast**: `validate_exports.py` correctly uses exit codes (`EXIT_MISSING`, `EXIT_INVALID`) which allows the orchestrator (`test_pipeline.bat`) to stop execution immediately, preventing cascading errors in the ETL. * **Environment Abstraction**: Moving hardcoded paths to `path_config.py` significantly improves the "Bus Factor" of the project—it is no longer tied solely to user `carucci_r`. ---
+
+**Cursor**
+
+
+Applying the review's corrections: checking run_all_etl.ps1 and the other files for hardcoded paths and the listed updates. Applying the corrections. Adding the review's comment to the overtime script's fallback and checking for linter issues:
+
+
+
+Summary of changes applied from the review:
+
+---
+
+## 1. **`run_all_etl.ps1` – OneDrive base and path usage**
+
+- **OneDrive base** is set once after `$configPath`:
+  - `$OneDriveBase = $env:ONEDRIVE_BASE`
+  - If not set: `$env:ONEDRIVE_HACKENSACK`
+  - If still not set: `"C:\Users\carucci_r\OneDrive - City of Hackensack"`
+
+- **Paths now use `Join-Path $OneDriveBase "..."`:**
+  - **Save-MonthlyReport:** `15_Templates`, `Shared Folder\Compstat\Monthly Reports`
+  - **Summons validation:** `05_EXPORTS\_Summons\E_Ticket`
+  - **Response Times (both cases):** `05_EXPORTS\_CAD\timereport`
+  - **Overtime TimeOff validation:** `05_EXPORTS` (then `_VCS_Time_Report`)
+  - **Next-step hint:** `PowerBI_Date` directory shown as `$OneDriveBase\PowerBI_Date`
+
+So the orchestrator uses the same env-based base as the Python `path_config` when `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) is set. ---
+
+## 2. **`overtime_timeoff_with_backfill.py`**
+
+- Added comment in the `ImportError` fallback:  
+  `# Fallback if path_config not found (e.g. running outside scripts dir)`  
+- The script already imports and uses `get_onedrive_root()` and builds paths from it; no logic change. ---
+
+## 3. **`summons_backfill_merge.py` – Defensive behavior and validation**
+
+- **Target columns before reindex:** After `pd.concat(backfill_dfs)`, every `TARGET_COLUMNS` column is added as `pd.NA` if missing so the result always has the expected schema, even with an empty or minimal main df. - **Reindex only when main df has columns:** Condition is now `len(df.columns) > 0` so we only reindex to `df.columns` when the main dataframe actually has columns. - **MM-YY validation for gap months:** For each `gap_month` we check:
+  - `split("-")` gives exactly two parts, each length 2. - Both parts are numeric. - If not, a warning is logged and that gap month is skipped (avoids misparsing e.g. `2025-03` as `2003_20`). - **Wide vs Long (visual export):** Before renaming, if there is no `PeriodLabel` or `Month_Year` but there are month-like column names (e.g. `03-25`, `04-25`), we log a warning that the file looks like Wide format and that Long format (with `PeriodLabel`) is required, then skip that file. ---
+
+## 4. **`validate_exports.py` – Month source logging**
+
+- After computing `yyyy_mm`:
+  - If `args.year_month` was provided:  
+    `Target month specified via argument: {yyyy_mm}`
+  - Otherwise:  
+    `Target month inferred (previous month): {yyyy_mm}`  
+- This makes it clear in logs whether the month came from the CLI or from “previous month” logic. ---
+
+**Blind spots (addressed in code or docs):**  
+MM-YY validation and Wide-format detection are in `summons_backfill_merge.py`. The PYTHONPATH/module resolution note still applies: scripts assume `path_config.py` lives next to them (or that the run context has it on the path); that’s the intended setup for this repo. ---
+
+**User**
+
+✅ **Summary of Findings**
+
+The code provided (`run_all_etl.ps1`, `overtime_timeoff_with_backfill.py`, `validate_exports.py`, `summons_backfill_merge.py`) successfully implements the hardening measures and new features discussed. * **Paths are Centralized:** All scripts now consistently rely on `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) environment variables via `path_config.py` (Python) or inline logic (PowerShell), ensuring portability between users/machines. * **File Discovery is Strict:** The fragile "try 12 variations" loop in Overtime/TimeOff has been replaced with a strict expectation of `YYYY_MM_*.xlsx`, with a distinct conversion step for `.xls` legacy files. * **Summons Backfill is Robust:** The new `summons_backfill_merge.py` module includes defensive logic against schema drift (detecting Wide vs. Long formats), invalid date strings, and missing columns, filling gaps with sane defaults ("Unknown"). * **Validation is Unified:** The pre-flight check (`validate_exports.py`) and the output schema check (`validate_fixed_schema` inside the wrapper) ensure data integrity before and after the ETL run.

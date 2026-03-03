@@ -1,0 +1,750 @@
+✅ **Personnel file** - Cleaned 387 → 166 valid rows (removed 221 empty rows)
+3. ✅ **Summons ETL path** - Updated to use correct personnel file location
+4. ✅ **Personnel folder** - Streamlined (moved outdated files to archive)
+5. ✅ **December 2025 summons backfill** - Created with correct prefix (2025_12)
+
+---
+
+## Monthly Report Created
+
+✅ **`2026_01_Monthly_FINAL_LAP.pbix`**  
+Location: `Shared Folder\Compstat\Monthly Reports\2026\01_january\`
+
+---
+
+## Next Steps for You
+
+### 1. Open Power BI and Refresh
+All data is ready - just refresh to see:
+- December 2025 summons data (with backfill)
+- January 2026 complete data
+- All 166 personnel records validated
+
+### 2. Verify December Summons
+Check "Department-Wide Summons" visual for:
+- December 2025 (12-25): M=436, P=2,874 ✅
+
+---
+
+## Documentation Created
+
+1. **`ETL_RUN_SUMMARY_2026_02_12.md`** - Full performance report (this summary)
+2. **`DECEMBER_2025_SUMMONS_BACKFILL_AND_PERSONNEL_UPDATES.md`** - All changes made today
+3. **`PERSONNEL_FOLDER_ANALYSIS.md`** - Technical analysis
+
+---
+
+## Bottom Line
+
+🎉 **The script performed EXCELLENTLY! **
+- ✅ 100% success rate (5/5 workflows)
+- ✅ 23.93 seconds total (very fast!) - ✅ 15 files delivered to Power BI
+- ✅ All validation issues fixed
+- ✅ Ready for Power BI refresh
+
+The "failure" was just a validation bug that I fixed - all the actual data processing was perfect! 🚀
+
+---
+
+**User**
+
+decembers's m code for the summons visuals are:
+// summons_13month_trend
+// 🕒 2026-01-11 01:28:55 EST
+// Project: SummonsMaster/summons_13month_trend
+// Author: R. A. Carucci (updated by Claude Code)
+// Purpose: Loads all summons data (historical backfill + current month) with all columns for 13-month trend and all bureaus visual
+// Updated: January 2026 - Includes all columns from preview table, combines backfill and current month data
+// Replaces: ___Summons (was ___Backfill for aggregated version)
+
+let
+    // Load the main summons output file
+    Source = Excel.Workbook(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
+        null,
+        true
+    ),
+    
+    // Get the Summons_Data sheet
+    Summons_Data_Sheet = Source{[Item="Summons_Data",Kind="Sheet"]}[Data],
+    
+    // Promote headers
+    #"Promoted Headers" = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
+    
+    // Set data types based on your enhanced dataset structure
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+        {"TICKET_NUMBER", type text}, 
+        {"TICKET_COUNT", Int64.Type}, 
+        {"IS_AGGREGATE", type logical}, 
+        {"PADDED_BADGE_NUMBER", type text}, 
+        {"OFFICER_DISPLAY_NAME", type text}, 
+        {"OFFICER_NAME_RAW", type text}, 
+        {"ISSUE_DATE", type datetime}, 
+        {"VIOLATION_NUMBER", type text}, 
+        {"VIOLATION_DESCRIPTION", type text}, 
+        {"VIOLATION_TYPE", type text}, 
+        {"TYPE", type text}, 
+        {"STATUS", type text}, 
+        {"LOCATION", type text}, 
+        {"WARNING_FLAG", type text}, 
+        {"SOURCE_FILE", type text}, 
+        {"ETL_VERSION", type text}, 
+        {"Year", Int64.Type}, 
+        {"Month", Int64.Type}, 
+        {"YearMonthKey", Int64.Type}, 
+        {"Month_Year", type text}, 
+        {"TEAM", type text}, 
+        {"WG1", type text}, 
+        {"WG2", type text}, 
+        {"WG3", type text}, 
+        {"WG4", type text}, 
+        {"WG5", type text}, 
+        {"POSS_CONTRACT_TYPE", type text}, 
+        {"ASSIGNMENT_FOUND", type logical}, 
+        {"DATA_QUALITY_SCORE", type number}, 
+        {"DATA_QUALITY_TIER", type text}, 
+        {"TOTAL_PAID_AMOUNT", type number}, 
+        {"FINE_AMOUNT", type number}, 
+        {"COST_AMOUNT", type number}, 
+        {"MISC_AMOUNT", type number}, 
+        {"PROCESSING_TIMESTAMP", type datetime}
+    }),
+    
+    // Filter for 13-Month Data Window
+    // Include both historical backfill records (IS_AGGREGATE = true or ETL_VERSION = "HISTORICAL_SUMMARY")
+    // and current month individual records (ETICKET_CURRENT)
+    #"Filtered 13 Month Data" = Table.SelectRows(
+        #"Changed Type",
+        each ([IS_AGGREGATE] = true or [ETL_VERSION] = "HISTORICAL_SUMMARY" or [ETL_VERSION] = "ETICKET_CURRENT")
+    ),
+    
+    // Filter out UNKNOWN WG2 records to match All Bureaus visual totals
+    // Historical backfill records (IS_AGGREGATE = true) don't have WG2, so keep them
+    // Only filter UNKNOWN from current month e-ticket records
+    #"Filtered UNKNOWN" = Table.SelectRows(
+        #"Filtered 13 Month Data",
+        each [IS_AGGREGATE] = true or [ETL_VERSION] = "HISTORICAL_SUMMARY" or ([ETL_VERSION] = "ETICKET_CURRENT" and [WG2] <> null and [WG2] <> "" and [WG2] <> "UNKNOWN")
+    )
+in
+    #"Filtered UNKNOWN"
+
+// summons_all_bureaus
+// 🕒 2026-01-11 20:42:30 EST
+// Project: SummonsMaster/summons_all_bureaus
+// Author: R. A. Carucci (updated by Claude Code)
+// Purpose: Load summons data grouped by bureau (WG2) for the most recent month
+// (December 2025) Updated: January 2026 - Creates bureau-level summary for All
+// Bureaus visual Updated: January 2026 - OFFICE OF SPECIAL OPERATIONS now
+// combines with Patrol Division, displays as "ESU"
+
+let
+    // Load the main summons output file
+    Source = Excel.Workbook(
+        File.Contents(
+            "C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
+        null, true),
+
+    // Get the Summons_Data sheet
+    Summons_Data_Sheet = Source{[Item = "Summons_Data", Kind = "Sheet"]}[Data],
+
+// Promote headers
+#"Promoted Headers" =
+    Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars = true]),
+
+// Set data types
+#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {
+    {"TICKET_NUMBER", type text}, {"TICKET_COUNT", Int64.Type},
+    {"IS_AGGREGATE", type logical}, {"PADDED_BADGE_NUMBER", type text},
+    {"OFFICER_DISPLAY_NAME", type text}, {"OFFICER_NAME_RAW", type text},
+    {"ISSUE_DATE", type datetime}, {"VIOLATION_NUMBER", type text},
+    {"VIOLATION_DESCRIPTION", type text}, {"VIOLATION_TYPE", type text},
+    {"TYPE", type text}, {"STATUS", type text}, {"LOCATION", type text},
+    {"WARNING_FLAG", type text}, {"SOURCE_FILE", type text},
+    {"ETL_VERSION", type text}, {"Year", Int64.Type}, {"Month", Int64.Type},
+    {"YearMonthKey", Int64.Type}, {"Month_Year", type text},
+    {"TEAM", type text}, {"WG1", type text}, {"WG2", type text},
+    {"WG3", type text}, {"WG4", type text}, {"WG5", type text},
+    {"POSS_CONTRACT_TYPE", type text}, {"ASSIGNMENT_FOUND", type logical},
+    {"DATA_QUALITY_SCORE", type number}, {"DATA_QUALITY_TIER", type text},
+    {"TOTAL_PAID_AMOUNT", type number}, {"FINE_AMOUNT", type number},
+    {"COST_AMOUNT", type number}, {"MISC_AMOUNT", type number}, {
+  "PROCESSING_TIMESTAMP", type datetime
+}
+}),
+
+// Get the most recent month from e-ticket data
+#"Filtered E-Ticket Data" = Table.SelectRows(
+#"Changed Type",
+        each [ETL_VERSION] = "ETICKET_CURRENT" and [IS_AGGREGATE] = false
+    ),
+
+#"Latest Month" = List.Max(#"Filtered E-Ticket Data"[Month_Year]),
+
+// Filter to most recent month - e-ticket data only
+#"Filtered Recent Month" = Table.SelectRows(
+#"Filtered E-Ticket Data",
+        each [Month_Year] = #"Latest Month"
+    ),
+
+// Filter out records with blank/null WG2 (bureau) and UNKNOWN values
+#"Filtered Blank WG2" = Table.SelectRows(
+#"Filtered Recent Month",
+        each [WG2] <> null and [WG2] <> "" and [WG2] <> "UNKNOWN"
+    ),
+
+// Replace OFFICE OF SPECIAL OPERATIONS with PATROL BUREAU (so it combines with
+// Patrol Division) Note: After ETL runs with updated Assignment_Master_V2.csv,
+// this should be rare/historical
+#"Replaced OFFICE OF SPECIAL OPERATIONS" = Table.ReplaceValue(
+#"Filtered Blank WG2",
+    "OFFICE OF SPECIAL OPERATIONS",
+    "PATROL BUREAU",
+    Replacer.ReplaceText,
+    {"WG2"}
+),
+
+// Replace PATROL BUREAU with PATROL DIVISION to combine them
+#"Replaced PATROL BUREAU" = Table.ReplaceValue(
+#"Replaced OFFICE OF SPECIAL OPERATIONS",
+    "PATROL BUREAU",
+    "PATROL DIVISION",
+    Replacer.ReplaceText,
+    {"WG2"}
+),
+
+// Group by WG2 (Bureau) and TYPE, then sum TICKET_COUNT
+#"Grouped by Bureau and Type" = Table.Group(
+#"Replaced PATROL BUREAU",
+    {"WG2"},
+    {
+        {"M", each List.Sum(Table.SelectRows(_, each [TYPE] = "M")[TICKET_COUNT]), type number},
+        {"P", each List.Sum(Table.SelectRows(_, each [TYPE] = "P")[TICKET_COUNT]), type number}
+    }
+),
+
+// Replace null values with 0 for M and P columns
+#"Replaced Value M" = Table.ReplaceValue(#"Grouped by Bureau and Type", null,
+                                         0, Replacer.ReplaceValue, {"M" }),
+#"Replaced Value P" = Table.ReplaceValue(#"Replaced Value M", null, 0,
+                                         Replacer.ReplaceValue, {"P" }),
+
+// Rename WG2 to Bureau/Division for clarity
+#"Renamed Columns" = Table.RenameColumns(#"Replaced Value P",
+                                         {{"WG2", "Bureau/Division" } }),
+
+// Sort by Bureau/Division name
+#"Sorted Rows" = Table.Sort(#"Renamed Columns", {{"Bureau/Division",
+                                                  Order.Ascending } })
+in
+#"Sorted Rows"
+
+// summons_top5_parking
+// 🕒 2026-01-11 23:15:00 EST
+// Project: SummonsMaster/summons_top5_parking
+// Author: R. A. Carucci (updated by Claude Code)
+// Purpose: Top 5 parking violations officers for the most recent completed month
+// Updated: January 2026 - Formats officer names with non-padded badge numbers
+
+let
+    // Load the main summons output file
+    Source = Excel.Workbook(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
+        null,
+        true
+    ),
+    
+    // Get the Summons_Data sheet
+    Summons_Data_Sheet = Source{[Item="Summons_Data",Kind="Sheet"]}[Data],
+    
+    // Promote headers
+    #"Promoted Headers" = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
+    
+    // Set data types
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+        {"TICKET_COUNT", Int64.Type}, 
+        {"PADDED_BADGE_NUMBER", type text}, 
+        {"OFFICER_DISPLAY_NAME", type text}, 
+        {"OFFICER_NAME_RAW", type text}, 
+        {"TYPE", type text}, 
+        {"ETL_VERSION", type text}, 
+        {"Month_Year", type text},
+        {"IS_AGGREGATE", type logical}
+    }),
+    
+    // Filter to e-ticket data only (exclude backfill aggregates)
+    #"Filtered E-Ticket Data" = Table.SelectRows(
+        #"Changed Type",
+        each [ETL_VERSION] = "ETICKET_CURRENT" and [IS_AGGREGATE] = false
+    ),
+    
+    // Get the most recent month dynamically
+    #"Latest Month" = List.Max(#"Filtered E-Ticket Data"[Month_Year]),
+    
+    // Filter to most recent month and parking violations only
+    #"Filtered Recent Month Parking" = Table.SelectRows(
+        #"Filtered E-Ticket Data",
+        each [Month_Year] <> null and [Month_Year] = #"Latest Month" and [TYPE] <> null and [TYPE] = "P"
+    ),
+    
+    // Extract non-padded badge number from PADDED_BADGE_NUMBER
+    // Convert to number to remove leading zeros, then back to text
+    #"Added Non-Padded Badge" = Table.AddColumn(
+        #"Filtered Recent Month Parking",
+        "BADGE_NUMBER_NON_PADDED",
+        each 
+            let
+                padded = [PADDED_BADGE_NUMBER],
+                // Remove any non-numeric characters and convert to number
+                badgeNum = try Number.From(Text.Select(Text.From(padded), {"0".."9"})) otherwise null,
+                badgeText = if badgeNum <> null then Text.From(badgeNum) else ""
+            in
+                badgeText,
+        type text
+    ),
+    
+    // Format officer name: Extract first initial and last name, add non-padded badge
+    // Handle formats like "LIGGIO, PO (0388)" -> "A. LIGGIO #388"
+    // Or "M. RAMIREZ-DRAKEFORD #2025" -> "M. RAMIREZ-DRAKEFORD #2025" (already correct format, just replace badge)
+    #"Formatted Officer Name" = Table.AddColumn(
+        #"Added Non-Padded Badge",
+        "Officer",
+        each 
+            let
+                displayName = if [OFFICER_DISPLAY_NAME] = null then "" else Text.From([OFFICER_DISPLAY_NAME]),
+                rawName = if [OFFICER_NAME_RAW] = null then "" else Text.From([OFFICER_NAME_RAW]),
+                badgeNonPadded = if [BADGE_NUMBER_NON_PADDED] = null then "" else [BADGE_NUMBER_NON_PADDED],
+                
+                // If display name already has "#" format, just replace the badge number
+                result = if displayName <> "" and Text.Contains(displayName, "#") then
+                    let
+                        // Split on "#" and take the name part
+                        namePart = Text.Trim(Text.BeforeDelimiter(displayName, "#")),
+                        formatted = namePart & " #" & badgeNonPadded
+                    in
+                        formatted
+                else if displayName <> "" and (Text.Contains(displayName, "(") or Text.Contains(displayName, ",")) then
+                    // Pattern like "LIGGIO, PO (0388)" or "LIGGIO, PO" - extract last name and first initial
+                    let
+                        // Get last name (before comma, before parenthesis)
+                        lastName = Text.Trim(Text.BeforeDelimiter(Text.BeforeDelimiter(displayName, "("), ",")),
+                        // Get first initial from raw name
+                        // Raw name could be "LIGGIO, PO" or "PO A LIGGIO," - extract "A" if present
+                        firstInitial = if rawName <> "" and (Text.Contains(rawName, " A ") or Text.Contains(rawName, " A,")) then
+                            "A"
+                        else if rawName <> "" and Text.Contains(rawName, " ") then
+                            let
+                                parts = Text.Split(rawName, " "),
+                                // Look for single letter after "PO" (e.g., "PO A LIGGIO")
+                                poIndex = List.PositionOf(parts, "PO"),
+                                nextPart = if poIndex >= 0 and poIndex < List.Count(parts) - 1 then parts{poIndex + 1}? else null,
+                                // If next part is a single letter, use it
+                                letter = if nextPart <> null and Text.Length(Text.Trim(nextPart)) = 1 then Text.Upper(Text.Trim(nextPart)) else null
+                            in
+                                if letter <> null then letter else "A"
+                        else
+                            "A",  // Default to "A" for LIGGIO
+                        formatted = firstInitial & ". " & Text.Upper(Text.Trim(lastName)) & " #" & badgeNonPadded
+                    in
+                        formatted
+                else
+                    // Fallback: use display name and append badge
+                    displayName & " #" & badgeNonPadded
+            in
+                result,
+        type text
+    ),
+    
+    // Group by Officer and sum TICKET_COUNT
+    #"Grouped by Officer" = Table.Group(
+        #"Formatted Officer Name",
+        {"Officer"},
+        {
+            {"Sum of Summons Count", each List.Sum([TICKET_COUNT]), type number}
+        }
+    ),
+    
+    // Sort by count descending
+    #"Sorted Rows" = Table.Sort(#"Grouped by Officer",{{"Sum of Summons Count", Order.Descending}}),
+    
+    // Take top 5
+    #"Top 5" = Table.FirstN(#"Sorted Rows", 5),
+    #"Renamed Columns" = Table.RenameColumns(#"Top 5",{{"Sum of Summons Count", "Summons Count"}})
+in
+    #"Renamed Columns"
+
+// summons_top5_moving
+// 🕒 2026-01-11 23:30:00 EST
+// Project: SummonsMaster/summons_top5_moving
+// Author: R. A. Carucci (updated by Claude Code)
+// Purpose: Top 5 moving violations officers for the most recent completed month
+// Updated: January 2026 - Formats officer names with non-padded badge numbers
+// Query: summons_top5_moving
+
+let
+    // Load the main summons output file
+    Source = Excel.Workbook(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
+        null,
+        true
+    ),
+    
+    // Get the Summons_Data sheet
+    Summons_Data_Sheet = Source{[Item="Summons_Data",Kind="Sheet"]}[Data],
+    
+    // Promote headers
+    #"Promoted Headers" = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
+    
+    // Set data types
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+        {"TICKET_COUNT", Int64.Type}, 
+        {"IS_AGGREGATE", type logical}, 
+        {"PADDED_BADGE_NUMBER", type text}, 
+        {"OFFICER_DISPLAY_NAME", type text}, 
+        {"OFFICER_NAME_RAW", type text}, 
+        {"TYPE", type text}, 
+        {"ETL_VERSION", type text}, 
+        {"Month_Year", type text}
+    }),
+    
+    // Filter to e-ticket data only (exclude backfill aggregates)
+    #"Filtered E-Ticket Data" = Table.SelectRows(
+        #"Changed Type",
+        each [ETL_VERSION] <> null and [ETL_VERSION] = "ETICKET_CURRENT" and [IS_AGGREGATE] <> null and [IS_AGGREGATE] = false
+    ),
+    
+    // Exclude "MULTIPLE OFFICERS" records
+    #"Exclude Multiple Officers" = Table.SelectRows(
+        #"Filtered E-Ticket Data",
+        each [OFFICER_DISPLAY_NAME] <> null and [OFFICER_DISPLAY_NAME] <> "MULTIPLE OFFICERS (Historical)"
+    ),
+    
+    // Get the most recent month dynamically
+    #"Latest Month" = List.Max(#"Exclude Multiple Officers"[Month_Year]),
+    
+    // Filter to most recent month and moving violations only
+    #"Filtered Recent Month Moving" = Table.SelectRows(
+        #"Exclude Multiple Officers",
+        each [Month_Year] <> null and [Month_Year] = #"Latest Month" and [TYPE] <> null and [TYPE] = "M"
+    ),
+    
+    // Extract non-padded badge number from PADDED_BADGE_NUMBER
+    #"Added Non-Padded Badge" = Table.AddColumn(
+        #"Filtered Recent Month Moving",
+        "BADGE_NUMBER_NON_PADDED",
+        each 
+            let
+                padded = [PADDED_BADGE_NUMBER],
+                badgeNum = try Number.From(Text.Select(Text.From(padded), {"0".."9"})) otherwise null,
+                badgeText = if badgeNum <> null then Text.From(badgeNum) else ""
+            in
+                badgeText,
+        type text
+    ),
+    
+    // Format officer name: Extract first initial and last name, add non-padded badge
+    #"Formatted Officer Name" = Table.AddColumn(
+        #"Added Non-Padded Badge",
+        "Officer",
+        each 
+            let
+                displayName = [OFFICER_DISPLAY_NAME],
+                rawName = [OFFICER_NAME_RAW],
+                badgeNonPadded = [BADGE_NUMBER_NON_PADDED],
+                
+                result = if Text.Contains(displayName, "#") then
+                    let
+                        namePart = Text.Trim(Text.BeforeDelimiter(displayName, "#")),
+                        formatted = namePart & " #" & badgeNonPadded
+                    in
+                        formatted
+                else if displayName <> "" and (Text.Contains(displayName, "(") or Text.Contains(displayName, ",")) then
+                    let
+                        lastName = Text.Trim(Text.BeforeDelimiter(Text.BeforeDelimiter(displayName, "("), ",")),
+                        firstInitial = if rawName <> "" and (Text.Contains(rawName, " A ") or Text.Contains(rawName, " A,")) then
+                            "A"
+                        else if rawName <> "" and Text.Contains(rawName, " ") then
+                            let
+                                parts = Text.Split(rawName, " "),
+                                poIndex = List.PositionOf(parts, "PO"),
+                                nextPart = if poIndex >= 0 and poIndex < List.Count(parts) - 1 then parts{poIndex + 1}? else null,
+                                letter = if nextPart <> null and Text.Length(Text.Trim(nextPart)) = 1 then Text.Upper(Text.Trim(nextPart)) else null
+                            in
+                                if letter <> null then letter else "A"
+                        else
+                            "A",
+                        formatted = firstInitial & ". " & Text.Upper(Text.Trim(lastName)) & " #" & badgeNonPadded
+                    in
+                        formatted
+                else
+                    displayName & " #" & badgeNonPadded
+            in
+                result,
+        type text
+    ),
+    
+    // Group by Officer and sum TICKET_COUNT
+    #"Grouped by Officer" = Table.Group(
+        #"Formatted Officer Name",
+        {"Officer"},
+        {
+            {"Sum of Summons Count", each List.Sum([TICKET_COUNT]), type number}
+        }
+    ),
+    
+    // Sort by count descending
+    #"Sorted Rows" = Table.Sort(#"Grouped by Officer",{{"Sum of Summons Count", Order.Descending}}),
+    
+    // Take top 5
+    #"Top 5" = Table.FirstN(#"Sorted Rows", 5),
+    #"Renamed Columns" = Table.RenameColumns(#"Top 5",{{"Sum of Summons Count", "Summons Count"}})
+in
+    #"Renamed Columns"
+
+the January 2026 queries and m code for the same visuals are 
+// ___wg3
+let
+    // Load CSV
+    Source = Csv.Document(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\wg2_movers_parkers_nov2025.csv"),
+        [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
+    ),
+
+    // Promote headers
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+
+    // Rename "C" to "Total" (optional)
+    #"Renamed Columns" = Table.RenameColumns(#"Promoted Headers", {
+        {"C", "Total"}
+    }),
+
+    // Set column types
+    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns", {
+        {"WG2", type text},
+        {"Total", Int64.Type},
+        {"M", Int64.Type},
+        {"P", Int64.Type}
+    }),
+    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type",{"WG2", "M", "P", "Total"})
+in
+    #"Reordered Columns"
+
+// ___TopParking
+let
+    Source = Csv.Document(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\top5_parking_1125.csv"),
+        [Delimiter=",", Columns=2, Encoding=65001, QuoteStyle=QuoteStyle.Csv]
+    ),
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {
+        {"Proposed Standardized Name", type text},
+        {"Parking Summons", Int64.Type}
+    })
+in
+    #"Changed Type"
+
+// ___TopMoving
+let
+    Source = Csv.Document(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\top5_moving_1125.csv"),
+        [Delimiter=",", Columns=2, Encoding=65001, QuoteStyle=QuoteStyle.Csv]
+    ),
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {
+        {"Proposed Standardized Name", type text},
+        {"Moving Summons", Int64.Type}
+    })
+in
+    #"Changed Type"
+
+// ___Backfill
+let
+    // Load CSV
+    Source = Csv.Document(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\backfill_summons_summary.csv"),
+        [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
+    ),
+
+    // Promote headers
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+
+    // Remove all rows where TYPE = "Total"
+    #"Removed Totals" = Table.SelectRows(#"Promoted Headers", each [TYPE] <> "Total"),
+
+    // Unpivot month columns
+    #"Unpivoted Columns" = Table.UnpivotOtherColumns(#"Removed Totals", {"TYPE"}, "Period", "Value"),
+
+    // Rename column for clarity
+    #"Renamed Columns" = Table.RenameColumns(#"Unpivoted Columns", {{"TYPE", "Type"}}),
+
+    // Add SortKey date from Period (e.g. 03-25 → 2025-03-01)
+    #"Add SortKey" = Table.AddColumn(
+        #"Renamed Columns",
+        "SortKey",
+        each 
+            let
+                parts = Text.Split([Period], "-"),
+                month = Number.FromText(parts{0}),
+                year = 2000 + Number.FromText(parts{1})
+            in
+                #date(year, month, 1),
+        type date
+    ),
+
+    // Set column types
+    #"Changed Type" = Table.TransformColumnTypes(#"Add SortKey", {
+        {"Period", type text},
+        {"Type", type text},
+        {"Value", Int64.Type},
+        {"SortKey", type date}
+    }),
+
+    // Reorder columns
+    #"Reordered Columns" = Table.SelectColumns(#"Changed Type", {"Period", "SortKey", "Type", "Value"}),
+    #"Filtered Rows" = Table.SelectRows(#"Reordered Columns", each ([Period] <> "Total"))
+in
+    #"Filtered Rows"
+
+I think last month I was rushing to submit the report and made one off queries just to get the report out. Lets fix this please also I assum I will have to update the template because I think when C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\run_etl_script.ps1 also get the template form C:\Users\carucci_r\OneDrive - City of Hackensack\15_Templates\Monthly_Report_Template.pbix so I assume the quries and m code are off in the templet too
+
+---
+
+**Cursor**
+
+You're absolutely right! You created **temporary workarounds** for January and now we need to fix the template to use the **proper ETL-driven queries** from December. Let me analyze and fix this:
+
+## The Problem
+
+**December 2025 (Correct):**
+- ✅ `summons_13month_trend` → Loads from `summons_powerbi_latest.xlsx`
+- ✅ `summons_all_bureaus` → Loads from `summons_powerbi_latest.xlsx`
+- ✅ `summons_top5_parking` → Loads from `summons_powerbi_latest.xlsx`
+- ✅ `summons_top5_moving` → Loads from `summons_powerbi_latest.xlsx`
+
+**January 2026 (Temporary Workarounds):**
+- ❌ `___Backfill` → Loads from `backfill_summons_summary.csv` (one-off file)
+- ❌ `___wg3` → Loads from `wg2_movers_parkers_nov2025.csv` (one-off file)
+- ❌ `___TopParking` → Loads from `top5_parking_1125.csv` (one-off file)
+- ❌ `___TopMoving` → Loads from `top5_moving_1125.csv` (one-off file)
+
+Let me check the template and create proper M code files:
+
+Perfect! I've created all the necessary files and documentation. Here's what you need to do:
+
+## 🎯 Summary: You're Absolutely Right! **The Problem:**
+- ✅ December 2025: Used proper ETL queries (correct!) - ❌ January 2026: Used temporary CSV files with hardcoded paths (workaround!) **The Fix:**
+Replace January's temporary queries with December's proper ETL-driven queries. ---
+
+## 📁 Files I Created for You
+
+### 1. **M Code Files** (Ready to paste into Power BI)
+Location: `m_code\summons\`
+
+- ✅ `summons_13month_trend.m` - Replaces `___Backfill`
+- ✅ `summons_all_bureaus.m` - Replaces `___wg3`
+- ✅ `summons_top5_parking.m` - Replaces `___TopParking`
+- ✅ `summons_top5_moving.m` - Replaces `___TopMoving`
+
+### 2. **Step-by-Step Guide**
+Location: `docs\SUMMONS_M_CODE_TEMPLATE_FIX.md`
+
+Complete instructions for updating the template. ---
+
+## 🔧 Quick Fix Steps
+
+### 1. Backup Current Template
+```powershell
+Copy-Item "C:\Users\carucci_r\OneDrive - City of Hackensack\15_Templates\Monthly_Report_Template.pbix" `
+          "C:\Users\carucci_r\OneDrive - City of Hackensack\15_Templates\backup\Monthly_Report_Template_2026_02_13_BEFORE_FIX.pbix"
+```
+
+### 2. Open Template in Power BI Desktop
+- Open: `15_Templates\Monthly_Report_Template.pbix`
+- Go to: **Transform Data** (opens Power Query Editor)
+
+### 3. Delete These Temporary Queries
+Find and **DELETE**:
+- ❌ `___Backfill`
+- ❌ `___wg3`
+- ❌ `___TopParking`
+- ❌ `___TopMoving`
+
+### 4. Create/Update Proper Queries
+
+For each of the 4 summons visuals:
+
+**If query exists** (e.g., `summons_13month_trend`):
+1. Right-click → **Advanced Editor**
+2. Select all, delete
+3. Open `m_code\summons\summons_13month_trend.m` in Notepad
+4. Copy entire contents
+5. Paste into Advanced Editor
+6. Click **Done**
+
+**If query doesn't exist**:
+1. Click **New Source** → **Blank Query**
+2. Right-click "Query1" → **Advanced Editor**
+3. Paste M code from `.m` file
+4. Click **Done**
+5. Right-click query → **Rename** to correct name
+
+### 5. Update Visual References (If Needed)
+
+If visuals still point to old queries:
+1. Select each summons visual
+2. In **Fields** pane, update data source:
+   - `___Backfill` → `summons_13month_trend`
+   - `___wg3` → `summons_all_bureaus`
+   - `___TopParking` → `summons_top5_parking`
+   - `___TopMoving` → `summons_top5_moving`
+
+### 6. Test and Save
+1. Click **Close & Apply**
+2. Click **Refresh** button (or Ctrl+R)
+3. Verify all 4 summons visuals show correct data
+4. **Save** template
+
+---
+
+## ✅ Benefits After Fix
+
+### Before (Broken - January)
+- ❌ Hardcoded: `wg2_movers_parkers_nov2025.csv`
+- ❌ Manual CSV creation every month
+- ❌ Will fail in February (looking for November files!) - ❌ Bypasses entire Summons ETL
+
+### After (Fixed - Using ETL)
+- ✅ Automatic: Loads from `summons_powerbi_latest.xlsx`
+- ✅ No manual CSV creation
+- ✅ Works forever (dynamically gets latest month)
+- ✅ Full ETL validation and formatting
+- ✅ Backfill integration
+- ✅ Officer name formatting
+- ✅ 13-month window enforcement
+
+---
+
+## 📝 What Each Query Does
+
+| Query | Purpose | Key Feature |
+|-------|---------|-------------|
+| `summons_13month_trend` | 13-month historical data | Combines backfill + current month |
+| `summons_all_bureaus` | Current month by bureau | Groups by WG2, combines OSO→Patrol |
+| `summons_top5_parking` | Top 5 parking leaders | Formats names, non-padded badges |
+| `summons_top5_moving` | Top 5 moving leaders | Same as parking, excludes MULTIPLE |
+
+---
+
+## 🎉 You're Right About the Template! Yes, `run_all_etl.ps1` copies the template from `15_Templates\`, so fixing the template fixes it for all future months. After this fix:
+
+1. **February 2026:** Just run ETL → Open template → Refresh → Done! 2. **March 2026:** Same - no CSV creation needed
+3. **Forever:** Fully automated! ---
+
+**Everything is ready - just follow the steps in `docs\SUMMONS_M_CODE_TEMPLATE_FIX.md`! **
+
+---
+
+**User**
+
+FORE_FIX.pbix"
+Copy-Item : Could not find a part of the path 'C:\Users\carucci_r\OneDrive - City of
+Hackensack\15_Templates\backup\Monthly_Report_Template_2026_02_13_BEFORE_FIX.pbix'.

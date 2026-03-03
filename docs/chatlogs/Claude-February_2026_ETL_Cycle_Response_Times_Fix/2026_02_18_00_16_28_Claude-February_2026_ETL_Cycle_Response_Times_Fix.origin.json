@@ -1,0 +1,44 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "dataset",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "data",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "time",
+        "2026",
+        "response",
+        "onedrive",
+        "users",
+        "file"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "{\n  \"metadata\": {\n    \"title\": \"February 2026 reporting cycle run controller setup\",\n    \"dates\": {\n      \"created\": \"2/17/2026 20:14:45\",\n      \"updated\": \"2/18/2026 0:13:34\",\n      \"exported\": \"2/18/2026 0:15:42\"\n    },\n    \"link\": \"ht...",
+      "first_line": "{"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-18T00:16:28.564916",
+  "department": "admin"
+}

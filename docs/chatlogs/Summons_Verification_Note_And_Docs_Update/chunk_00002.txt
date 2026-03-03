@@ -1,0 +1,425 @@
+Fixed numeric: DATA_QUALITY_SCORE
+  Fixed date: VIOLATION_DATE
+  Fixed date: ISSUE_DATE
+  Fixed date: PROCESSED_TIMESTAMP
+Data type fixes complete
+
+---
+
+**Cursor**
+
+
+Here’s how the Summons ETL and M code tend to break each month and how to avoid it. ## ETL – What Can Break Each Month
+
+| Cause | What Happens | When |
+|-------|--------------|------|
+| **Report window shifts** | 13‑month window is based on `datetime.now()`. Each month it moves forward (e.g. Feb 2026 report → 2025_02–2026_02; Mar 2026 report → 2025_03–2026_03). | Every run |
+| **Missing new month file** | ETL expects `YYYY_MM_eticket_export.csv`. If you run early in the month before the new export exists, that month is missing. | Early in each month |
+| **New unmatched badges** | New officers or temp assignments not in Assignment Master → WG2 = UNKNOWN. | When new people write tickets |
+| **E-ticket export changes** | Column renames or new columns in the export can break parsing. | When the source system changes |
+
+## M Code – What Can Break Each Month
+
+| Cause | What Happens | When |
+|-------|--------------|------|
+| **Stale `pReportMonth`** | If the report uses `pReportMonth` and it isn’t updated, filters show the wrong month. | Each new report month |
+| **`DateTime.LocalNow()`** | Any M code using “today” instead of `pReportMonth` will shift the window as the calendar changes. | Every refresh |
+| **Schema drift** | ETL adds/renames columns (e.g. `TICKET_COUNT`) → M code errors if it assumes the old schema. | After ETL changes |
+| **Hardcoded paths** | Paths like `C:\Users\carucci_r\...` fail on another machine or user. | When running elsewhere |
+
+## Your Current Run
+
+The run completed successfully (48,006 records). The backfill messages:
+
+```
+No backfill file found for gap month 03-25 (looked for 2025_03 at start of name)
+...
+```
+
+are from the per‑month backfill path. Because the ETL now loads e-ticket for 03‑25, 07‑25, 10‑25, 11‑25, backfill is not needed and those months are not double-counted. ## How to Reduce Monthly Breakage
+
+1. **Run ETL after the new month’s export exists** – e.g. run the March report after `2026_03_eticket_export.csv` is in place. 2. **Update `pReportMonth` each cycle** – e.g. set to `#date(2026, 3, 1)` for the March 2026 report. 3. **Avoid `DateTime.LocalNow()` in M code** – use `pReportMonth` (or similar) for date logic. 4. **Keep Assignment Master current** – add new officers and temp assignments (e.g. 0378, 0380, 9110) to avoid UNKNOWN WG2. 5. **Document the monthly sequence** – e.g. “1) Export e-ticket; 2) Run ETL; 3) Update pReportMonth; 4) Refresh report.”
+
+I can draft a short “Summons monthly checklist” doc or suggest concrete changes to the ETL/M code to make it more robust if you want to go that route. ---
+
+**User**
+
+do I have to update pReportMonth is set to 02/010/2026 which is correct? @m_code/2026_03_03_00_47_00_all_mcode_summons_queries.txt  These are the preview tables:
+@data/preview_table/___Summons_Diagnostic.xlsx @data/preview_table/summons_top5_parking.xlsx @data/preview_table/summons_top5_moving.xlsx @data/preview_table/summons_all_bureaus.xlsx @data/preview_table/summons_13month_trend.xlsx 
+___Summons has error Expression.Error: The field 'TICKET_COUNT' already exists in the record. Details:
+    Name=TICKET_COUNT
+    Value=
+
+---
+
+**Cursor**
+
+
+Confirming pReportMonth = 02/01/2026 — no update needed for the February report. Creating a fixed `___Summons` query that conditionally adds `TICKET_COUNT`:
+
+
+
+Summary:
+
+## pReportMonth
+
+**No change needed. ** 02/01/2026 is correct for the February 2026 report. ## ___Summons TICKET_COUNT error
+
+The ETL now writes `TICKET_COUNT` to the staging workbook, but the `___Summons` query was still adding it with `Table.AddColumn`, which caused the error. **Fix:** A new `___Summons.m` was added at `m_code/summons/___Summons.m` that:
+
+1. **TICKET_COUNT** – Uses the column from the source if it exists (and sets its type); otherwise adds it with value 1. 2. **ASSIGNMENT_FOUND** – Adds it only if it does not already exist. ## Applying the fix in Power BI
+
+1. Open Power BI Desktop and go to **Transform data** (Power Query Editor). 2. Select the **___Summons** query. 3. Replace the step that adds `TICKET_COUNT` with:
+
+```m
+// TICKET_COUNT: use from source if present (ETL v2.1+); else add 1 per row
+WithTicketCount = if Table.HasColumns(#"Changed Type", "TICKET_COUNT")
+    then Table.TransformColumnTypes(#"Changed Type", {{"TICKET_COUNT", Int64.Type}})
+    else Table.AddColumn(#"Changed Type", "TICKET_COUNT", each 1, Int64.Type),
+```
+
+4. If you also add `ASSIGNMENT_FOUND`, make it conditional:
+
+```m
+WithAssignmentFound = if Table.HasColumns(WithTicketCount, "ASSIGNMENT_FOUND")
+    then WithTicketCount
+    else Table.AddColumn(WithTicketCount, "ASSIGNMENT_FOUND", each true, type logical)
+```
+
+Or copy the full query from `m_code/summons/___Summons.m` into the PBIX. ---
+
+**User**
+
+I updated the ___Summons.m
+the department-Wide visual is broken still 02-25 has no header and the values are wrong
+for some reason 03-26 is in the visua;l
+attachment 2 is last months visual 
+
+---
+
+**Cursor**
+
+
+Checking Month_Year format and how the visual builds columns:
+
+
+
+Applying fixes to `summons_13month_trend`:
+
+
+
+Checking attachment 2: it shows 01-25 through 01-26, so the window ends with 01-26 (previous month). Updating the logic. Here’s what was wrong and what was changed:
+
+## Root causes
+
+1. **03-26 in the visual** – `summons_13month_trend` did not filter by date, so it used all months in the staging file, including 03-26. 2. **02-25 with no header / wrong values** – Rows with blank or invalid `Month_Year` (e.g. `""`, `"NaT"`, or malformed values) were creating an extra column and wrong totals. 3. **No `pReportMonth` usage** – The query ignored the report month and showed every month in the data. ## Fixes in `summons_13month_trend.m`
+
+1. **13‑month window from `pReportMonth`**
+   - End month = previous month before `pReportMonth` (e.g. `pReportMonth` = 02/01/2026 → end = 01/26). - Start month = 12 months before that. - Window: 02-25 through 01-26 (matches attachment 2). - 03-26 and 02-26 are excluded. 2. **Stricter `Month_Year` filter**
+   - Only keep rows where `Month_Year` is valid MM-YY (5 chars, hyphen, month 1–12). - Excludes blank, `"NaT"`, and other invalid values that caused the bad column and totals. ## Applying the fix in Power BI
+
+1. Open **Power Query Editor**. 2. Select the **summons_13month_trend** query. 3. Replace the query with the contents of `m_code/summons/summons_13month_trend.m`, or add the new steps:
+   - Compute `EndDate`, `StartDate`, `EndYM`, `StartYM` from `pReportMonth`. - Add `ValidMonthYear` to keep only valid MM-YY values. - Add `FilteredMonthYear` to keep only rows in the 13‑month window. 4. Ensure **summons_13month_trend** references the **pReportMonth** parameter. 5. Click **Close & Apply**. The visual should then show 02-25 through 01-26 with correct headers and values, and 03-26 will no longer appear. ---
+
+**User**
+
+the m code has an error at line 44
+
+---
+
+**Cursor**
+
+
+Updated the query to use `YearMonthKey` instead of parsing `Month_Year` with `Text.Split`, which was causing the error. `YearMonthKey` is already in the data (e.g. 202502 for Feb 2025, 202601 for Jan 2026), so the filter is simpler and more reliable. ---
+
+**User**
+
+now the error is on line (around) 39 Token Literal expected. ---
+
+**Cursor**
+
+
+Simplifying the ValidMonthYear step — the `try...otherwise` expression may be causing the parse error:
+
+
+
+Removed the `try...otherwise` block that was causing the parse error. The query now filters directly on `YearMonthKey`:
+
+- `YearMonthKey <> null` — drops rows with missing or invalid dates (which caused the blank header)
+- `YearMonthKey >= StartYM and YearMonthKey <= EndYM` — keeps only the 13‑month window
+
+This keeps the logic simpler and avoids the M syntax issue. ---
+
+**User**
+
+now the visual is missing 02-25 and 02-26 and the script is not using the backfill because the values in 01-25 are different in the current power bi project vs last months report
+
+---
+
+**Cursor**
+
+
+Checking the ETL date range and backfill logic:
+
+
+
+Applying fixes:
+
+
+
+Adding YearMonthKey to backfill rows so they pass the M code filter. Verifying the M code window logic and checking for other issues:
+
+
+
+Adding the M-code filter so we prefer backfill (WG2="Department-Wide") for months that have backfill, and expanding the merge to include 01-25 and 02-25. Adding an M-code filter to prefer backfill rows (WG2="Department-Wide") for months that have backfill, and expanding the merge to include 01-25 and 02-25. Adding the M code filter to prefer backfill rows for those months:
+
+
+
+Checking whether the consolidated backfill includes 02-25 — if not, filtering for it would remove all rows. Summary of changes:
+
+## Summary of Fixes
+
+### 1. **M code window** (`summons_13month_trend.m`)
+- **EndDate** changed from `pReportMonth - 1` to `pReportMonth` so the report month (02-26) is included. - Window for `pReportMonth = 02/01/2026` is now **02-25 through 02-26** (13 months). ### 2. **YearMonthKey for backfill rows** (`summons_backfill_merge.py`)
+- Backfill rows now get `YearMonthKey` from `Month_Year` (e.g. `"02-25"` → `202502`). - They pass the M code filter `YearMonthKey >= StartYM and YearMonthKey <= EndYM`. ### 3. **Backfill for 01-25 and 02-25** (`summons_backfill_merge.py`)
+- Added `SUMMONS_BACKFILL_PREFER_MONTHS = ("01-25", "02-25")`. - These months are always merged from the consolidated backfill file, even when e-ticket has data. - The consolidated file (`2025_12_department_wide_summons.csv`) includes 01-25 and 02-25. ### 4. **Prefer backfill in M code** (`summons_13month_trend.m`)
+- For months with backfill (01-25, 02-25, 03-25, 07-25, 10-25, 11-25), rows are filtered to `WG2 = "Department-Wide"` only. - Avoids double-counting when both e-ticket and backfill exist. - Uses validated totals from the prior report for those months. **Next steps:**
+1. Re-run the Summons ETL so the staging workbook includes the backfill merge. 2. Copy the updated `summons_13month_trend.m` into the Power BI template. 3. Refresh Power BI and confirm 02-25, 02-26, and the correct 01-25 values appear. ---
+
+**User**
+
+provide the command to run the etl
+
+---
+
+**Cursor**
+
+
+Use these commands:
+
+**Summons ETL only:**
+```powershell
+.\scripts\run_etl_script.ps1 -ScriptName "Summons"
+```
+
+**All ETL scripts:**
+```powershell
+.\scripts\run_all_etl.ps1
+```
+
+Run them from the `Master_Automation` directory. ---
+
+**User**
+
+provide the full command with cd
+
+---
+
+**Cursor**
+
+
+```powershell
+cd "c:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"; .\scripts\run_etl_script.ps1 -ScriptName "Summons"
+```
+
+For all ETL scripts:
+
+```powershell
+cd "c:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"; .\scripts\run_all_etl.ps1
+```
+
+---
+
+**User**
+
+
+C:\Users\carucci_r>cd "c:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"; .\scripts\run_etl_script.ps1 -ScriptName "Summons"
+The system cannot find the path specified. C:\Users\carucci_r>cd "c:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"; .\scripts\run_etl_script.ps1 -ScriptName "Summons"
+The system cannot find the path specified. C:\Users\carucci_r>cd c:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation
+
+its not working
+
+---
+
+**Cursor**
+
+
+Checking where `Master_Automation` is located:
+
+
+---
+
+**User**
+
+what's the results
+
+---
+
+**Cursor**
+
+
+Here’s what the latest Summons ETL run shows:
+
+## Summons ETL results (2026-03-03 00:22:14)
+
+**Status:** SUCCESS (exit code 0)
+
+**Processing:**
+- 6,968 records processed
+- 74 unique officers
+- E-ticket files loaded: `2026_01_eticket_export.csv` (4,136 records), `2026_02_eticket_export.csv` (2,832 records)
+- Output: `summons_powerbi_latest.xlsx` saved to `03_Staging\Summons\`
+- 7 files copied to Power BI drop folder
+- Duration: ~29 seconds
+
+**Warnings:**
+- Unmatched badges: 0738 (4 records), 9110 (2 records) — not in Assignment Master
+- Fuzzy name match: 281 rows with score &lt; 70
+- Monthly report save failed: PBIX file was in use by another process
+
+**Important:** The ETL only loaded **2026_01 and 2026_02** e-ticket data. There is no log line for the backfill merge (e.g. “Merged X backfill rows”), so the backfill for 01-25, 02-25, 03-25, 07-25, 10-25, 11-25 may not have run. The 13‑month window (2025_02 through 2026_02) and backfill merge need to be confirmed in `summons_etl_enhanced.py`. ---
+
+**User**
+
+how did everything break. Investigate to fix this
+
+---
+
+**Cursor**
+
+
+Implementing fixes:
+
+
+
+Expanding the backfill to merge all 2025 months from the consolidated file. Running the Summons ETL to verify the fixes:
+
+
+
+Confirming file discovery works. Running the full Summons ETL:
+
+
+---
+
+**User**
+
+what's the status
+
+---
+
+**Cursor**
+
+
+## Status
+
+### Root causes
+
+1. **E-ticket discovery** – Only 2026_01 and 2026_02 were found. Possible causes:
+   - OneDrive Files On-Demand (2025 files not downloaded locally)
+   - Different working directory when run by the orchestrator
+
+2. **Backfill merge** – Only merged 01-25, 02-25, 03-25, 07-25, 10-25, 11-25. When e-ticket had almost no data, 2025 months were missing. 3. **M code window** – `EndDate` used `pReportMonth - 1`, so 02-26 was excluded. ---
+
+### Fixes applied
+
+| Component | Change |
+|-----------|--------|
+| **summons_etl_enhanced.py** | Uses `path_config.get_onedrive_root()` for base path; Assignment Master prefers `09_Reference/Personnel/Assignment_Master_V2.csv`; warning when fewer than 5 e-ticket files are found |
+| **summons_backfill_merge.py** | If main df has fewer than 5 months, merges all 2025 months (01-25 through 12-25) from consolidated backfill; adds `YearMonthKey` to backfill rows |
+| **summons_13month_trend.m** | `EndDate = pReportMonth` (includes 02-26); `BackfillMonths` includes all 2025 months; prefers `WG2="Department-Wide"` for backfill months |
+
+---
+
+### Next steps
+
+1. **Run the Summons ETL**:
+   ```powershell
+   cd "c:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+   .\scripts\run_etl_script.ps1 -ScriptName "Summons"
+   ```
+
+2. **Update Power BI** – Copy the updated `summons_13month_trend.m` into the template and refresh. 3. **Confirm visuals** – Department-Wide Summons should show 02-25, 02-26, and correct 01-25 values. ---
+
+### Files modified
+
+- `02_ETL_Scripts/Summons/summons_etl_enhanced.py`
+- `Master_Automation/scripts/summons_backfill_merge.py`
+- `Master_Automation/m_code/summons/summons_13month_trend.m`
+
+---
+
+**User**
+
+you need to find the backfill for last months report
+C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\projects\PowerBI_Date\Backfill\2026_01\summons\2026_01_Department-Wide Summons  Moving and Parking.csv@c:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\projects\PowerBI_Date\Backfill\2026_01\summons\2026_01_Department-Wide Summons  Moving and Parking.csv 
+
+---
+
+**Cursor**
+
+
+Updating the backfill merge to use the 2026_01 backfill and handle its schema. The backfill merge is updated to use last month’s report. Summary of changes:
+
+## Updates
+
+1. **Backfill source**
+   - Default label: `2026_01` (was `2025_12`)
+   - Fallback: `2025_12` if `2026_01` is missing
+
+2. **Backfill roots**
+   - Primary: `00_dev/projects/PowerBI_Date/Backfill`
+   - Fallback: `PowerBI_Date/Backfill`
+
+3. **Schema**
+   - `"Period"` → `"Month_Year"` (for 2026_01 export)
+   - Filename match: `"Department-Wide Summons"` in addition to `"department_wide_summons"`
+
+4. **Search order**
+   - Tries each root, then each label, and uses the first valid backfill directory. **Test result:** Merge loads 22 rows (11 months × M/P) from `2026_01_Department-Wide Summons  Moving and Parking.csv` with months 01-25 through 11-25. ---
+
+**User**
+
+what do I need to do now refresh the query? ---
+
+**Cursor**
+
+
+Here’s what to do next:
+
+## 1. Run the Summons ETL
+
+Regenerate the staging workbook with the new backfill:
+
+```powershell
+cd "c:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+.\scripts\run_etl_script.ps1 -ScriptName "Summons"
+```
+
+This updates `03_Staging\Summons\summons_powerbi_latest.xlsx` with the 2026_01 backfill. ## 2. Update the M code in Power BI (if needed)
+
+If the template still has the old `summons_13month_trend` query, replace it with the updated version from:
+
+`Master_Automation\m_code\summons\summons_13month_trend.m`
+
+Changes in that query:
+- `EndDate = pReportMonth` (includes 02-26)
+- `BackfillMonths` includes all 2025 months
+- Prefers `WG2="Department-Wide"` for backfill months
+
+## 3. Refresh Power BI
+
+In Power BI Desktop:
+
+1. **Home → Transform data** (or **Transform data**)
+2. Right‑click the **summons_13month_trend** query (or the query that uses it)
+3. Choose **Refresh**
+4. Or use **Home → Refresh** to refresh all queries
+
+If the template is already using the updated M code, you only need to run the ETL and then refresh in Power BI. ---
+
+**User**
+
+PS U:\> cd "c:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation> .\scripts\run_etl_script.ps1 -ScriptName "Summons"
+.\scripts\run_etl_script.ps1 : File C:\Users\carucci_r\OneDrive - City of
+Hackensack\Master_Automation\scripts\run_etl_script.ps1 cannot be loaded.

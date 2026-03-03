@@ -1,0 +1,166 @@
+Adding the `--format` argument and dispatching in `main()`:
+
+
+
+Updating the processor to pass `--format` to the normalizer. Fixing the Summons Wide path: when only one of bureau/type is present, ensure the other gets a default. Checking for a backfill sample to test the normalizers:
+
+
+
+Updating the Standards README to document the new schema and `normalizer_format`. Summary of what was implemented:
+
+---
+
+### 1. Schema updates (`Standards/config/powerbi_visuals/visual_export_mapping.json`)
+
+- **Department-Wide Summons  Moving and Parking**
+  - `requires_normalization`: **true**
+  - **`normalizer_format`**: **"summons"**
+  - `is_backfill_required`: true  
+  - Target folder: Summons
+
+- **Training Cost by Delivery Method**
+  - `requires_normalization`: **true**
+  - **`normalizer_format`**: **"training_cost"**
+  - `is_backfill_required`: true  
+  - Target folder: Training
+
+So both visuals are normalized before being written to Processed_Exports and Backfill, giving downstream scripts a consistent structure. ---
+
+### 2. Normalizer behavior (`scripts/normalize_visual_export_for_backfill.py`)
+
+- **`--format` / `-f`** added with choices: `monthly_accrual` (default), `summons`, `training_cost`. - **Summons (`--format summons`):**
+  - Reads the export (Long or Wide). - Long: expects columns like PeriodLabel/Month_Year, Bureau/WG2, Sum of Value/Value/Sum of TICKET_COUNT, Moving/Parking/Type. - Wide: month columns (e.g. 01-25, 02-25) are unpivoted to Long. - Normalizes period labels (`"Sum of MM-YY"` → `"MM-YY"`). - Writes CSV with: **Month_Year, WG2, TICKET_COUNT, TYPE** (aligned with `summons_backfill_merge.TARGET_COLUMNS`). - **Training cost (`--format training_cost`):**
+  - Reads the export (Long or Wide). - Long: expects Period/PeriodLabel, Delivery_Type/Delivery Method, Sum of Cost/Cost. - Wide: month columns unpivoted to Long. - Normalizes period labels. - Writes CSV with: **Period, Delivery_Type, Sum of Cost** (for Policy Training / backfill loaders). ---
+
+### 3. Processor integration (`scripts/process_powerbi_exports.py`)
+
+- When a mapping has **`requires_normalization`: true**, the script calls the normalizer with **`--format <normalizer_format>`** when **`normalizer_format`** is set (e.g. `summons`, `training_cost`). - Monthly Accrual stays default (`monthly_accrual`); no `normalizer_format` in its mapping. ---
+
+### 4. Docs
+
+- **`Standards/config/powerbi_visuals/README.md`** updated to describe `normalizer_format` and the normalized backfill schemas (summons, training_cost, monthly_accrual). ---
+
+**Result:** Exports for Department-Wide Summons and Training Cost by Delivery Method are normalized to the expected columns and period format before being moved to Processed_Exports and Backfill, so Summons and Policy Training scripts get consistent backfill CSVs and no longer hit missing values from “poor structure.” Re-run `process_powerbi_exports.py` on new exports (or re-drop the same files into `_DropExports`) to generate the updated backfill files. ---
+
+**User**
+
+The implementation provided in the scripts and summarized by Cursor AI is technically sound and logically consistent with the goal of standardizing Power BI exports. However, there are a few **specific edge cases and safety checks** that Cursor should address to make the pipeline more resilient. ### 1. `normalize_visual_export_for_backfill.py` Refinements
+
+* **Pandas Dependency Safety:** The script uses `import csv` for the default `monthly_accrual` format but switches to `import pandas as pd` inside the functions for `summons` and `training_cost`. * **Advice:** Cursor should ensure `pandas` is added to the project's `requirements.txt` or environment setup. Also, it's safer to move the `import pandas` to the top of the file to catch missing dependencies early rather than failing mid-process. * **Column Case-Insensitivity:** The `_find_column` helper is excellent, but the `month_like` regex in `normalize_summons` and `normalize_training_cost` (which looks for `01-25`) could fail if the export is "Sum of 01-25" (Wide format). * **Advice:** The "Wide" detection should use the `_norm_month_label` logic to strip "Sum of" before checking the `XX-XX` pattern, similar to how `detect_format` does it for the monthly accrual logic. ### 2. `process_powerbi_exports.py` Logic Improvements
+
+* **Handling Normalization Failures:** Currently, if `run_normalize` fails, it logs an error and `continues`. * **Advice:** Because the source file is NOT moved or deleted when normalization fails, the next run will try to process it again. This is good for "retry" logic, but Cursor should ensure that the script doesn't accidentally move a "half-baked" or empty file to the `Processed_Exports` folder. * **Date Inference Logic:** `infer_yyyymm_from_path` defaults to the *previous month* if no date is in the filename. * **Advice:** If a user drops a file today for the *current* month (e.g., mid-month check), the script will incorrectly label it as the previous month. Cursor should perhaps add a "Warning" log when the default date is used so the user knows to verify the `YYYY_MM` prefix. ### 3. Verification & Dry Run Enhancements
+
+* **Dry Run Consistency:** In `process_powerbi_exports.py`, the `dry_run` block for normalization prints that it *would* normalize, but it doesn't show the user the *actual* command that would be run. * **Advice:** Have Cursor update the print statement to include the full `subprocess` command list for better debugging. ---
+
+### Suggested Action Items for Cursor:
+
+1. **Standardize Pandas Imports:** Move `import pandas as pd` to the top of `normalize_visual_export_for_backfill.py`. 2. **Robust Wide Detection:** Update the `month_like` list comprehension in the Summons/Training functions to handle the "Sum of " prefix:
+```python
+# Example logic update
+month_like = [c for c in cols if _period_label_to_year_month(c)]
+
+```
+
+
+3. **Explicit Path Handling:** In `process_powerbi_exports.py`, ensure that if `requires_normalization` is true, the `dest_path` is strictly created by the normalizer, and the source is only unlinked if `ok` is true (the current script does this, but adding a check for `dest_path.exists()` after the call adds an extra layer of safety). **Overall Status:** The logic is 95% there. If you apply the Pandas and Wide-regex fixes, the system will be very robust for production use. To implement these refinements, you can use the following prompt for Cursor AI. It is designed to be direct and references the specific logic improvements needed for the scripts you shared. ---
+
+### **Prompt for Cursor AI**
+
+"Please update the Power BI export pipeline with the following logic improvements to increase reliability and handle edge cases:
+
+**1. Update `normalize_visual_export_for_backfill.py`:**
+
+* Move `import pandas as pd` to the top of the script so dependencies are checked immediately. * In `normalize_summons` and `normalize_training_cost`, replace the manual `month_like` regex with a call to the existing `_period_label_to_year_month()` helper. This ensures that "Wide" format columns are correctly detected even if they still contain the "Sum of" prefix. * Update the logic: `month_like = [c for c in cols if _period_label_to_year_month(c) is not None]`. **2. Update `process_powerbi_exports.py`:**
+
+* Modify `run_normalize` to print the full `subprocess` command string (e.g., `python scripts/...`) when running, especially during `--dry-run`, to make debugging easier. * Improve error handling in `run_normalize` by capturing and printing `e.stderr` from `subprocess.CalledProcessError` so we can see why a normalization failed. * Add a `print` warning inside `infer_yyyymm_from_path` that triggers when no date is found in a filename, explicitly stating which `YYYY_MM` value is being used as a fallback. **3. Safety Check:**
+
+* Ensure that in `process_exports`, if `requires_normalization` is true, the source file is only unlinked if the normalization script returns a success code." ---
+"Please update the Power BI export pipeline with the following logic improvements to increase reliability and handle edge cases:
+
+1. Update normalize_visual_export_for_backfill.py:
+
+Move import pandas as pd to the top of the script so dependencies are checked immediately. In normalize_summons and normalize_training_cost, replace the manual month_like regex with a call to the existing _period_label_to_year_month() helper. This ensures that "Wide" format columns are correctly detected even if they still contain the "Sum of" prefix. Update the logic: month_like = [c for c in cols if _period_label_to_year_month(c) is not None]. 2. Update process_powerbi_exports.py:
+
+Modify run_normalize to print the full subprocess command string (e.g., python scripts/...) when running, especially during --dry-run, to make debugging easier. Improve error handling in run_normalize by capturing and printing e.stderr from subprocess.CalledProcessError so we can see why a normalization failed. Add a print warning inside infer_yyyymm_from_path that triggers when no date is found in a filename, explicitly stating which YYYY_MM value is being used as a fallback. 3. Safety Check:
+
+Ensure that in process_exports, if requires_normalization is true, the source file is only unlinked if the normalization script returns a success code." Is there anything else you'd like me to add to this prompt, or shall we move forward with these changes? ---
+
+**Cursor**
+
+
+Implementing the refinements: applying changes to both scripts. Applying the changes. Showing the full normalizer command in the dry-run branch (we currently skip calling run_normalize). Summary of the refinements applied:
+
+---
+
+### 1. `normalize_visual_export_for_backfill.py`
+
+- **Pandas at top level:** `import pandas as pd` is at the top of the file (after the other stdlib/typing imports). Summons and training_cost no longer use a local `import pandas`; missing pandas is reported as soon as the script loads. - **Wide detection:** In both `normalize_summons` and `normalize_training_cost`, the manual `month_like` check was replaced with:
+  - `month_like = [c for c in cols if isinstance(c, str) and _period_label_to_year_month(c) is not None]`
+  - So column headers like `"Sum of 01-25"` are treated as month columns (via `_norm_month_label` inside `_period_label_to_year_month`). ---
+
+### 2. `process_powerbi_exports.py`
+
+- **Full command when normalizing:**  
+  - When actually running: `[RUN] <full command>`. - When `--dry-run`: the dry-run branch builds the same normalizer command and prints `[DRY RUN] Would run: <full command>` (including `--input`, `--output`, `--format` when used, and `--dry-run`). - **Normalizer errors:** On `subprocess.CalledProcessError`, the script now prints exit code and, when present, `stderr` and `stdout` so normalization failures are visible. - **Date fallback warning:** If no `YYYY_MM` is found in the filename, `infer_yyyymm_from_path` prints:
+  - `[WARN] No date in filename '<name>'; using fallback YYYY_MM=<yyyy_mm>. Verify prefix if this is for the current month.`
+
+---
+
+### 3. Safety after normalization
+
+- Source is unlinked only when:
+  1. `run_normalize` returns success, and  
+  2. `dest_path.exists()`, and  
+  3. `dest_path.stat().st_size > 0` (avoids deleting source when output is empty). - If the output is missing or empty, an error is appended to `stats.errors`, the source is left in place, and the loop continues (no unlink). ---
+
+### 4. `requirements.txt`
+
+- Comment updated to note that the visual export normalizer (summons/training_cost) also uses pandas; `pandas>=1.3.0` was already listed. ---
+
+No further changes were requested in your prompt. If you want, we can add tests or one more safeguard (e.g. max output size or a content check) next. ---
+
+**User**
+
+The test run of the Power BI export pipeline was successful for Training and Accruals, but revealed two minor issues with the Summons mapping and fallback naming. Please apply the following adjustments:1. Update visual_export_mapping.json:Broaden the Summons Mapping: Update the entry for "Department-Wide Summons Moving and Parking" so that the visual_name is simply "Department-Wide Summons".Add Alias: Move the longer name ("Department-Wide Summons Moving and Parking") into the match_aliases list. This ensures that even if the export filename is truncated, it still matches the summons normalizer.2. Update process_powerbi_exports.py:Fix Double-Dating: In the process_exports function, if no mapping is found and the script falls back to _safe_filename_from_stem, ensure it strips any existing YYYY_MM_ prefix from the file stem before generating the new name.Implementation Note: This prevents files from being renamed to redundant patterns like 2026_01_2026_01_filename.csv.3. Final Verification Check:Confirm that run_normalize is correctly passing the --format summons flag now that the mapping name is shortened.Ensure the script continues to skip Administrative Commander and Text Box patterns as defined in the skip_patterns config.What these changes will achieve:Issue IdentifiedFix ImplementedExpected ResultSummons Mapping FailureShortened visual_name to "Department-Wide Summons".The export will correctly trigger the summons normalization schema.Redundant FilenamesRegex used to strip dates from stem during fallback.Clean filenames (e.g., 2026_01_summons_test.csv) even for unmapped files.Pipeline ReliabilityStrict validation of normalization success before source deletion.Zero risk of losing raw data if a normalization subprocess fails. Then 
+Please update the Power BI export pipeline to resolve the mapping and naming issues identified during the last test run.1. Update Standards/config/powerbi_visuals/visual_export_mapping.jsonReplace the existing "Summons" entry with this more flexible version to ensure shorter filenames are captured:JSON{
+  "visual_name": "Department-Wide Summons",
+  "match_aliases": [
+    "Department-Wide Summons Moving and Parking",
+    "Summons Moving and Parking"
+  ],
+  "standardized_filename": "department_wide_summons",
+  "requires_normalization": true,
+  "normalizer_format": "summons",
+  "is_backfill_required": true,
+  "target_folder": "Summons"
+}
+2. Update process_powerbi_exports.pyFix Fallback Renaming: In the process_exports function (specifically the fallback logic when mapping is None), update the code to strip any existing YYYY_MM_ date prefix from the file_path.stem before passing it to _safe_filename_from_stem.Example logic:Pythonstem_no_date = re.sub(r"^\d{4}_\d{2}_? ", "", file_path.stem)
+standardized_base = _safe_filename_from_stem(stem_no_date)
+This ensures that unmapped files are named 2026_01_filename.csv instead of 2026_01_2026_01_filename.csv.3. Safety VerificationConfirm that run_normalize successfully passes the --format summons argument for the updated mapping.Ensure the script still strictly validates that the normalization output exists and is non-empty before deleting the source file from _DropExports.Summary of Final Pipeline LogicIssueResolutionSummons MappingShortened visual_name and added aliases to handle truncated Power BI filenames.Double-DatingAdded regex to process_powerbi_exports.py to strip dates from the stem during fallback naming.Wide-to-LongUsing _period_label_to_year_month ensures "Sum of 01-26" is correctly unpivoted to "01-26". ---
+
+**Cursor**
+
+
+Applying the mapping and fallback-naming changes, then verifying run_normalize and safety checks. Adding `skip_patterns` back so we still skip "Text Box" and "Administrative Commander". Summary of what was applied and verified:
+
+---
+
+### 1. **visual_export_mapping.json**
+
+- **Summons entry updated:**
+  - `visual_name`: **"Department-Wide Summons"**
+  - **match_aliases**: `["Department-Wide Summons Moving and Parking", "Summons Moving and Parking"]`
+  - `standardized_filename`: **"department_wide_summons"**
+  - `requires_normalization`, `normalizer_format`: **"summons"**, `is_backfill_required`, `target_folder`: **"Summons"** (unchanged). - **skip_patterns** kept so the script still skips: **"Text Box"**, **"Administrative Commander"**. ---
+
+### 2. **process_powerbi_exports.py – fallback naming**
+
+- When **no mapping** is found, the stem is cleaned of any leading **YYYY_MM_** before building the safe name:
+  - `stem_no_date = re.sub(r"^\d{4}_\d{2}_? ", "", file_path.stem)`
+  - `standardized_base = _safe_filename_from_stem(stem_no_date)`
+- Prevents double-dating (e.g. `2026_01_2026_01_filename.csv` → `2026_01_filename.csv`). ---
+
+### 3. **Verification**
+
+- **run_normalize and `--format summons`:**  
+  `fmt = mapping.get("normalizer_format")` is still used when calling `run_normalize(..., normalizer_format=fmt)`.

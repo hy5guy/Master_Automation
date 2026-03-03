@@ -1,0 +1,13 @@
+Requirements:
+• 4-8 words
+• Title Case (capitalize major words)
+• Replace spaces with underscores
+• Include .md extension
+• No dates or special characters
+
+Output only the filename, with the suffix .md and nothing else. ---
+
+**Cursor**
+
+
+Visual_Export_Mapping_Response_Time_ESU.md

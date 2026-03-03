@@ -1,0 +1,725 @@
+Open:  
+   `C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_V2.csv`
+2. Find the row where **PADDED_BADGE_NUMBER** = **0329** (or **329**). 3. Set **WG2** to **TRAFFIC BUREAU** (replace PATROL DIVISION). 4. Save the file. Then re-run the ETL so the state data reflects the fix:
+
+```powershell
+python run_summons_etl.py
+```
+
+After that, FRANCAVILLA’s ~208 tickets will move from PATROL DIVISION to TRAFFIC BUREAU in your summons visuals, and the Traffic Division numbers should align much closer with the manual audit for the state data. ---
+
+**User**
+
+Correct D. FRANCAVILLA (Badge 329) is in traffic as is J. Mora #057  he may have to be updated i ALSO UPDATED S. TOVBIN #0344 TO TRAFFIC
+
+---
+
+**Cursor**
+
+
+Verifying the three officers are set to TRAFFIC BUREAU in the Assignment Master:
+
+
+
+Checking for J. MORA in the master (badge may be 57, 057, or 0057):
+
+
+
+Summary and next steps:
+
+---
+
+## Verification result
+
+| Badge | Name            | Current WG2        | Action |
+|-------|------------------|--------------------|--------|
+| **329** | D. FRANCAVILLA  | PATROL DIVISION    | Set **WG2 = TRAFFIC BUREAU** (you said corrected – confirm and save) |
+| **344** | S. TOVBIN       | PATROL DIVISION    | Set **WG2 = TRAFFIC BUREAU** (you said updated – confirm and save) |
+| **57**  | J. MORA         | **Not in master**  | Add new row for J. MORA, badge 0057, WG2 = TRAFFIC BUREAU |
+
+**Note:** The only “MORA” in the master is **JOHN MORA, badge 257** (Detective Bureau). There is no badge **57** or **057** in the file, so **J. MORA #057** must be added if they are Traffic. ---
+
+## What to do
+
+**1. Confirm and save FRANCAVILLA and TOVBIN**
+
+- Open `09_Reference\Personnel\Assignment_Master_V2.csv`. - For **PADDED_BADGE_NUMBER** = **0329** (D. FRANCAVILLA): set **WG2** = **TRAFFIC BUREAU**. - For **PADDED_BADGE_NUMBER** = **0344** (S. TOVBIN): set **WG2** = **TRAFFIC BUREAU**. - Save the file. **2. Add J. MORA #057 if they are in Traffic**
+
+- Add one new row with at least:
+  - **PADDED_BADGE_NUMBER** = **0057**
+  - **BADGE_NUMBER** = **57**
+  - **FULL_NAME** = e.g. **MORA J** (or whatever format you use)
+  - **WG2** = **TRAFFIC BUREAU**
+  - **TEAM** = **TRAFFIC**
+  - **STATUS** = **ACTIVE**
+- Match other columns to your existing format (you can copy a row from another Traffic officer and edit badge/name). **3. Re-run verification**
+
+```powershell
+python scripts\verify_traffic_updates.py
+```
+
+**4. Re-run ETL**
+
+```powershell
+python run_summons_etl.py
+```
+
+After that, FRANCAVILLA and TOVBIN (and J. MORA if added) will count under TRAFFIC BUREAU in your summons data. ---
+
+**User**
+
+ALSO THE LOGIC SHOULD STATE IF TITLE =  Parking Enforcement Officer OR PEO THEN THEY ARE IN TRAFFIC
+
+---
+
+**Cursor**
+
+
+Adding logic to assign WG2 = TRAFFIC BUREAU when TITLE is "Parking Enforcement Officer" or "PEO". Checking the script and Assignment Master for the TITLE column:
+
+
+
+Adding TITLE to the join and applying the rule: if TITLE is "Parking Enforcement Officer" or "PEO", set WG2 = "TRAFFIC BUREAU". Allowing both "ENFORCEMENT" and "ENFORCEMENT" spellings for the TITLE check:
+
+
+
+Fixing the duplicate: one spelling is "ENFORCEMENT" (correct), the other "ENFORCEMENT" (common typo). Checking the exact spelling in the file:
+
+
+
+Fixing the typo variant: use "ENFORCEMENT" (missing 'e'). Checking the Assignment Master for the exact TITLE values used for PEOs:
+
+
+
+Confirming the master uses "Parking Enforcement Officer" and "PEO". Simplifying the title check to those two and fixing the override so we always set PEO titles to TRAFFIC and only count/log when we change a row:
+
+
+
+Removing the incorrect "changed" count logic. Updating the function docstring and the logic guide to document the TITLE rule:
+
+
+
+Summary of what was implemented:
+
+**1. ETL (`scripts/summons_etl_normalize.py`)**
+- **TITLE in the join:** `TITLE` is now included in the columns pulled from Assignment Master so it’s available after the join. - **TITLE-based override (Rule 0):** In `apply_hard_coded_overrides()`, right after the join:
+  - If **TITLE** (from Assignment Master) is **"Parking Enforcement Officer"** or **"PEO"** (case-insensitive, trimmed), then:
+    - `WG2` is set to **"TRAFFIC BUREAU"**
+    - `TEAM` is set to **"TRAFFIC"**
+  - This runs for every row that has one of those titles, so PEOs are always counted in Traffic even if their WG2 in the master is different. **2. Docs**
+- **`apply_hard_coded_overrides` docstring** updated to describe Rule 0 (TITLE = PEO → TRAFFIC BUREAU). - **`docs/SUMMONS_DATA_IMPORT_LOGIC_GUIDE.md`** updated in **Bureau Assignment Logic**: new step 2 **“TITLE Override”** states that if TITLE = Parking Enforcement Officer or PEO, then WG2 = TRAFFIC BUREAU and TEAM = TRAFFIC, applied after the join. So the logic is: **if TITLE = Parking Enforcement Officer or PEO, they are in Traffic** (WG2 = TRAFFIC BUREAU, TEAM = TRAFFIC). Re-run the ETL with `python run_summons_etl.py` to apply it to the latest data. ---
+
+**User**
+
+do i need to run anything? ---
+
+**Cursor**
+
+
+Yes. To apply the new TITLE → Traffic logic to your data you need to:
+
+1. **Re-run the summons ETL** so it rebuilds the output file with the PEO/TITLE override:
+   ```bash
+   python run_summons_etl.py
+   ```
+   (From your `Master_Automation` project root.) 2. **Refresh Power BI** (if you use the summons report) so it reloads `summons_powerbi_latest.xlsx` from the staging folder. No other scripts or steps are required for this change. ---
+
+**User**
+
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation>    python run_summons_etl.py
+============================================================
+SUMMONS DATA NORMALIZATION - ETL PIPELINE
+============================================================
+
+[1/9] Loading source data...
+  ✓ Loaded 3,615 summons records
+  ✓ Loaded 172 personnel records
+
+[2/9] Cleaning officer names (removing tabs/extra spaces)...
+  ✓ Names cleaned
+
+[3/9] Normalizing badge numbers to 4-digit format...
+  ✓ Badge numbers normalized
+  ✓ Unique badges in summons: 59
+
+[4/9] Creating formatted officer names...
+  ✓ Display names created
+
+[5/9] Parsing dates and creating time dimensions...
+  ✓ Date range: 2026-01-02 00:25:53.860000 to 2026-01-31 21:50:39.656000
+  ✓ Unique months: 2
+
+[6/9] Adding ETL metadata columns...
+  ✓ Metadata added
+
+[7/9] Filtering Assignment Master to ACTIVE personnel...
+  ✓ Active personnel: 163 of 172
+
+[8/9] Joining summons to Assignment Master on PADDED_BADGE_NUMBER...
+  ✓ Matched: 3,606 records (99.8%)
+  ✓ Unmatched: 9 records (0.2%)
+
+[8.5/9] Applying hard-coded badge overrides...
+  ✓ TITLE override: 1771 PEO records → TRAFFIC BUREAU
+  ✓ Override log written to: logs\summons_badge_overrides.txt
+  ⚠ REMINDER: Update Assignment_Master_V2.csv with these badges! ✓ After overrides: 3,606 matched (99.8%)
+
+[9/9] Applying bureau consolidation and cleanup rules...
+  ✓ Bureau consolidation applied
+  ✓ Columns renamed to Power BI schema
+
+============================================================
+BUREAU ASSIGNMENT SUMMARY
+============================================================
+                       TICKET_COUNT  Officer_Count
+WG2              TYPE
+DETECTIVE BUREAU P               61              2
+HOUSING          P                2              1
+PATROL DIVISION  M               15              7
+                 P              614             38
+TRAFFIC BUREAU   C               83              3
+                 M               14              2
+                 P             2744             10
+UNKNOWN          C                2              1
+                 M                6              3
+                 P               74              7
+
+⚠ UNKNOWN BADGES (need investigation): ['0383', '0387', '0389', '0390', '0391', '0839', '0844', '9110']
+
+============================================================
+EXPORTING TO EXCEL
+============================================================
+
+✓ SUCCESS! Output saved to: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+✓ File size: 0.96 MB
+✓ Total records: 3,615
+✓ Columns: 129
+
+============================================================
+ETL COMPLETE! ============================================================
+
+Output saved to: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+
+Next step: Run verification script
+  python scripts/verify_summons_remediation.py
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation>
+
+---
+
+**Cursor**
+
+
+The ETL ran successfully and the new logic is in effect. **TITLE override:** 1,771 PEO records were set to TRAFFIC BUREAU, so Parking Enforcement Officers are now attributed to Traffic as intended. **Summary:**
+- 3,615 records processed, 3,606 matched (99.8%)
+- TRAFFIC BUREAU: 2,841 tickets (P/M/C) across 10 officers
+- Output written to: `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx`
+
+**Next steps:**
+1. **Refresh your Power BI report** so it uses the updated file. 2. **Optional:** Run the verification script:  
+   `python scripts/verify_summons_remediation.py`
+3. **Optional:** Review the 8 UNKNOWN badges (`0383`, `0387`, `0389`, `0390`, `0391`, `0839`, `0844`, `9110`) and add or correct them in Assignment_Master_V2.csv if those people should be in the master. No further ETL run is needed unless you get new e-ticket data or change the logic again. ---
+
+**User**
+
+// summons_13month_trend
+// 🕒 2026-01-11 01:28:55 EST
+// Project: SummonsMaster/summons_13month_trend
+// Author: R. A. Carucci (updated by Claude Code)
+// Purpose: Loads all summons data (historical backfill + current month) with all columns for 13-month trend and all bureaus visual
+// Updated: January 2026 - Includes all columns from preview table, combines backfill and current month data
+// Replaces: ___Summons (was ___Backfill for aggregated version)
+
+let
+    // Load the main summons output file
+    Source = Excel.Workbook(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
+        null,
+        true
+    ),
+    
+    // Get the Summons_Data sheet
+    Summons_Data_Sheet = Source{[Item="Summons_Data",Kind="Sheet"]}[Data],
+    
+    // Promote headers
+    #"Promoted Headers" = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
+    
+    // Set data types based on your enhanced dataset structure
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+        {"TICKET_NUMBER", type text}, 
+        {"TICKET_COUNT", Int64.Type}, 
+        {"IS_AGGREGATE", type logical}, 
+        {"PADDED_BADGE_NUMBER", type text}, 
+        {"OFFICER_DISPLAY_NAME", type text}, 
+        {"OFFICER_NAME_RAW", type text}, 
+        {"ISSUE_DATE", type datetime}, 
+        {"VIOLATION_NUMBER", type text}, 
+        {"VIOLATION_DESCRIPTION", type text}, 
+        {"VIOLATION_TYPE", type text}, 
+        {"TYPE", type text}, 
+        {"STATUS", type text}, 
+        {"LOCATION", type text}, 
+        {"WARNING_FLAG", type text}, 
+        {"SOURCE_FILE", type text}, 
+        {"ETL_VERSION", type text}, 
+        {"Year", Int64.Type}, 
+        {"Month", Int64.Type}, 
+        {"YearMonthKey", Int64.Type}, 
+        {"Month_Year", type text}, 
+        {"TEAM", type text}, 
+        {"WG1", type text}, 
+        {"WG2", type text}, 
+        {"WG3", type text}, 
+        {"WG4", type text}, 
+        {"WG5", type text}, 
+        {"POSS_CONTRACT_TYPE", type text}, 
+        {"ASSIGNMENT_FOUND", type logical}, 
+        {"DATA_QUALITY_SCORE", type number}, 
+        {"DATA_QUALITY_TIER", type text}, 
+        {"TOTAL_PAID_AMOUNT", type number}, 
+        {"FINE_AMOUNT", type number}, 
+        {"COST_AMOUNT", type number}, 
+        {"MISC_AMOUNT", type number}, 
+        {"PROCESSING_TIMESTAMP", type datetime}
+    }),
+    
+    // Filter for 13-Month Data Window
+    // Include both historical backfill records (IS_AGGREGATE = true or ETL_VERSION = "HISTORICAL_SUMMARY")
+    // and current month individual records (ETICKET_CURRENT)
+    #"Filtered 13 Month Data" = Table.SelectRows(
+        #"Changed Type",
+        each ([IS_AGGREGATE] = true or [ETL_VERSION] = "HISTORICAL_SUMMARY" or [ETL_VERSION] = "ETICKET_CURRENT")
+    ),
+    
+    // Filter out UNKNOWN WG2 records to match All Bureaus visual totals
+    // Historical backfill records (IS_AGGREGATE = true) don't have WG2, so keep them
+    // Only filter UNKNOWN from current month e-ticket records
+    #"Filtered UNKNOWN" = Table.SelectRows(
+        #"Filtered 13 Month Data",
+        each [IS_AGGREGATE] = true or [ETL_VERSION] = "HISTORICAL_SUMMARY" or ([ETL_VERSION] = "ETICKET_CURRENT" and [WG2] <> null and [WG2] <> "" and [WG2] <> "UNKNOWN")
+    )
+in
+    #"Filtered UNKNOWN"
+
+---
+
+**Cursor**
+
+
+Checking which columns the ETL exports and whether the source includes a violation-type field:
+
+
+
+Checking the e-ticket source columns and the full ETL column list:
+
+
+
+Checking the logic guide and adding a derived `VIOLATION_TYPE` to the ETL. Adding a derived `VIOLATION_TYPE` column to the ETL so the export matches the Power Query schema. Deriving VIOLATION_TYPE after the renames so we use the final 'TYPE' column. Summary of what was wrong and what was changed:
+
+**Cause:** The Power Query for `summons_13month_trend` expects a column named `VIOLATION_TYPE`. The ETL was not creating it, so the Excel file had no `VIOLATION_TYPE` and the refresh failed. **Change:** The ETL now adds a **derived** `VIOLATION_TYPE` column after the schema renames, based on `TYPE`:
+- **M** → `"Moving"`
+- **P** → `"Parking"`
+- **C** → `"Court"`
+- Anything else → the original `TYPE` value (or blank). **What you need to do:**
+
+1. **Re-run the ETL** so the Excel file includes `VIOLATION_TYPE`:
+   ```bash
+   python run_summons_etl.py
+   ```
+2. **Refresh the report in Power BI** so it uses the updated `summons_powerbi_latest.xlsx`. After that, the “column 'VIOLATION_TYPE' of the table wasn't found” error should be resolved. ---
+
+**User**
+
+Expression.Error: The column 'WARNING_FLAG' of the table wasn't found. Details:
+    WARNING_FLAG
+
+ python scripts/verify_summons_remediation.py
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation>    python run_summons_etl.py
+============================================================
+SUMMONS DATA NORMALIZATION - ETL PIPELINE
+============================================================
+
+[1/9] Loading source data...
+  ✓ Loaded 3,615 summons records
+  ✓ Loaded 172 personnel records
+
+[2/9] Cleaning officer names (removing tabs/extra spaces)...
+  ✓ Names cleaned
+
+[3/9] Normalizing badge numbers to 4-digit format...
+  ✓ Badge numbers normalized
+  ✓ Unique badges in summons: 59
+
+[4/9] Creating formatted officer names...
+  ✓ Display names created
+
+[5/9] Parsing dates and creating time dimensions...
+  ✓ Date range: 2026-01-02 00:25:53.860000 to 2026-01-31 21:50:39.656000
+  ✓ Unique months: 2
+
+[6/9] Adding ETL metadata columns...
+  ✓ Metadata added
+
+[7/9] Filtering Assignment Master to ACTIVE personnel...
+  ✓ Active personnel: 163 of 172
+
+[8/9] Joining summons to Assignment Master on PADDED_BADGE_NUMBER...
+  ✓ Matched: 3,606 records (99.8%)
+  ✓ Unmatched: 9 records (0.2%)
+
+[8.5/9] Applying hard-coded badge overrides...
+  ✓ TITLE override: 1771 PEO records → TRAFFIC BUREAU
+  ✓ Override log written to: logs\summons_badge_overrides.txt
+  ⚠ REMINDER: Update Assignment_Master_V2.csv with these badges! ✓ After overrides: 3,606 matched (99.8%)
+
+[9/9] Applying bureau consolidation and cleanup rules...
+  ✓ Bureau consolidation applied
+  ✓ Columns renamed to Power BI schema
+
+============================================================
+BUREAU ASSIGNMENT SUMMARY
+============================================================
+                       TICKET_COUNT  Officer_Count
+WG2              TYPE
+DETECTIVE BUREAU P                1              1
+HOUSING          P                2              1
+PATROL DIVISION  M               16              8
+                 P              439             40
+TRAFFIC BUREAU   C               83              3
+                 M               17              3
+                 P             3030             13
+UNKNOWN          C                2              1
+                 M                2              1
+                 P               23              3
+
+⚠ UNKNOWN BADGES (need investigation): ['0387', '0839', '0844', '9110']
+
+============================================================
+EXPORTING TO EXCEL
+============================================================
+
+✓ SUCCESS! Output saved to: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+✓ File size: 0.97 MB
+✓ Total records: 3,615
+✓ Columns: 130
+
+============================================================
+ETL COMPLETE! ============================================================
+
+Output saved to: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+
+Next step: Run verification script
+  python scripts/verify_summons_remediation.py
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation>
+
+---
+
+**Cursor**
+
+
+Adding a `WARNING_FLAG` column to the ETL so the Power Query finds it. Checking where we added `VIOLATION_TYPE` and adding `WARNING_FLAG` there. Adding `WARNING_FLAG` to the ETL (default empty or "N" — not in the e-ticket export). Checking whether the other Power Query columns (DATA_QUALITY_SCORE, TOTAL_PAID_AMOUNT, etc.) are present in the ETL:
+
+
+
+`WARNING_FLAG` is now added in the ETL. The guide says it’s not in the current e-ticket export, so the script creates it and fills it with empty strings so Power Query always sees the column. **What to do:**
+
+1. **Re-run the ETL**
+   ```bash
+   python run_summons_etl.py
+   ```
+
+2. **Refresh the report in Power BI** so it uses the updated file. If another “column … wasn’t found” appears, we can add that column the same way (either from source data or as a placeholder). ---
+
+**User**
+
+  python scripts/verify_summons_remediation.py
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation>    python run_summons_etl.py
+============================================================
+SUMMONS DATA NORMALIZATION - ETL PIPELINE
+============================================================
+
+[1/9] Loading source data...
+  ✓ Loaded 3,615 summons records
+  ✓ Loaded 172 personnel records
+
+[2/9] Cleaning officer names (removing tabs/extra spaces)...
+  ✓ Names cleaned
+
+[3/9] Normalizing badge numbers to 4-digit format...
+  ✓ Badge numbers normalized
+  ✓ Unique badges in summons: 59
+
+[4/9] Creating formatted officer names...
+  ✓ Display names created
+
+[5/9] Parsing dates and creating time dimensions...
+  ✓ Date range: 2026-01-02 00:25:53.860000 to 2026-01-31 21:50:39.656000
+  ✓ Unique months: 2
+
+[6/9] Adding ETL metadata columns...
+  ✓ Metadata added
+
+[7/9] Filtering Assignment Master to ACTIVE personnel...
+  ✓ Active personnel: 163 of 172
+
+[8/9] Joining summons to Assignment Master on PADDED_BADGE_NUMBER...
+  ✓ Matched: 3,606 records (99.8%)
+  ✓ Unmatched: 9 records (0.2%)
+
+[8.5/9] Applying hard-coded badge overrides...
+  ✓ TITLE override: 1771 PEO records → TRAFFIC BUREAU
+  ✓ Override log written to: logs\summons_badge_overrides.txt
+  ⚠ REMINDER: Update Assignment_Master_V2.csv with these badges! ✓ After overrides: 3,606 matched (99.8%)
+
+[9/9] Applying bureau consolidation and cleanup rules...
+  ✓ Bureau consolidation applied
+  ✓ Columns renamed to Power BI schema
+
+============================================================
+BUREAU ASSIGNMENT SUMMARY
+============================================================
+                       TICKET_COUNT  Officer_Count
+WG2              TYPE
+DETECTIVE BUREAU P                1              1
+HOUSING          P                2              1
+PATROL DIVISION  M               16              8
+                 P              439             40
+TRAFFIC BUREAU   C               83              3
+                 M               17              3
+                 P             3030             13
+UNKNOWN          C                2              1
+                 M                2              1
+                 P               23              3
+
+⚠ UNKNOWN BADGES (need investigation): ['0387', '0839', '0844', '9110']
+
+============================================================
+EXPORTING TO EXCEL
+============================================================
+
+✓ SUCCESS! Output saved to: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+✓ File size: 0.97 MB
+✓ Total records: 3,615
+✓ Columns: 131
+
+============================================================
+ETL COMPLETE! ============================================================
+
+Output saved to: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+
+Next step: Run verification script
+  python scripts/verify_summons_remediation.py
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation>
+
+
+---
+
+**Cursor**
+
+
+ETL run looks good: 131 columns (including `WARNING_FLAG` and `VIOLATION_TYPE`), and the bureau summary matches what you’d expect. **Next steps:**
+
+1. **Refresh Power BI** so the report uses the new `summons_powerbi_latest.xlsx`. The “column not found” errors should be gone. 2. **Optional:** Run the verification script:
+   ```bash
+   python scripts/verify_summons_remediation.py
+   ```
+   It will check Traffic Bureau totals and officer counts against expectations. No further ETL or code changes are needed unless you hit another missing column or want to fix the 4 UNKNOWN badges (0387, 0839, 0844, 9110) in the Assignment Master. ---
+
+**User**
+
+Expression.Error: The column 'DATA_QUALITY_SCORE' of the table wasn't found. Details:
+    DATA_QUALITY_SCORE
+at step Changeed Type
+
+---
+
+**Cursor**
+
+
+Adding `DATA_QUALITY_SCORE` and `DATA_QUALITY_TIER` to the ETL so Power Query finds them. `DATA_QUALITY_SCORE` and `DATA_QUALITY_TIER` are now added in the ETL. The score is set to `0` and the tier to empty (`''`) because scoring isn’t implemented yet; this just satisfies the Power Query schema. **What to do:**
+
+1. Re-run the ETL:
+   ```bash
+   python run_summons_etl.py
+   ```
+2. Refresh the report in Power BI. If you get an error for another column (e.g. `TOTAL_PAID_AMOUNT`, `COST_AMOUNT`, `MISC_AMOUNT`), say which one and we can add it the same way. ---
+
+**User**
+
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation>    python run_summons_etl.py
+============================================================
+SUMMONS DATA NORMALIZATION - ETL PIPELINE
+============================================================
+
+[1/9] Loading source data...
+  ✓ Loaded 3,615 summons records
+  ✓ Loaded 172 personnel records
+
+[2/9] Cleaning officer names (removing tabs/extra spaces)...
+  ✓ Names cleaned
+
+[3/9] Normalizing badge numbers to 4-digit format...
+  ✓ Badge numbers normalized
+  ✓ Unique badges in summons: 59
+
+[4/9] Creating formatted officer names...
+  ✓ Display names created
+
+[5/9] Parsing dates and creating time dimensions...
+  ✓ Date range: 2026-01-02 00:25:53.860000 to 2026-01-31 21:50:39.656000
+  ✓ Unique months: 2
+
+[6/9] Adding ETL metadata columns...
+  ✓ Metadata added
+
+[7/9] Filtering Assignment Master to ACTIVE personnel...
+  ✓ Active personnel: 163 of 172
+
+[8/9] Joining summons to Assignment Master on PADDED_BADGE_NUMBER...
+  ✓ Matched: 3,606 records (99.8%)
+  ✓ Unmatched: 9 records (0.2%)
+
+[8.5/9] Applying hard-coded badge overrides...
+  ✓ TITLE override: 1771 PEO records → TRAFFIC BUREAU
+  ✓ Override log written to: logs\summons_badge_overrides.txt
+  ⚠ REMINDER: Update Assignment_Master_V2.csv with these badges! ✓ After overrides: 3,606 matched (99.8%)
+
+[9/9] Applying bureau consolidation and cleanup rules...
+  ✓ Bureau consolidation applied
+  ✓ Columns renamed to Power BI schema
+
+============================================================
+BUREAU ASSIGNMENT SUMMARY
+============================================================
+                       TICKET_COUNT  Officer_Count
+WG2              TYPE
+DETECTIVE BUREAU P                1              1
+HOUSING          P                2              1
+PATROL DIVISION  M               16              8
+                 P              439             40
+TRAFFIC BUREAU   C               83              3
+                 M               17              3
+                 P             3030             13
+UNKNOWN          C                2              1
+                 M                2              1
+                 P               23              3
+
+⚠ UNKNOWN BADGES (need investigation): ['0387', '0839', '0844', '9110']
+
+============================================================
+EXPORTING TO EXCEL
+============================================================
+
+✓ SUCCESS! Output saved to: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+✓ File size: 0.98 MB
+✓ Total records: 3,615
+✓ Columns: 133
+
+============================================================
+ETL COMPLETE! ============================================================
+
+Output saved to: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+
+Next step: Run verification script
+  python scripts/verify_summons_remediation.py
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation>
+
+anoter error Expression.Error: The column 'TOTAL_PAID_AMOUNT' of the table wasn't found. Details:
+    TOTAL_PAID_AMOUNT
+
+
+---
+
+**Cursor**
+
+
+Adding `TOTAL_PAID_AMOUNT` and the other financial columns the Power Query expects: `COST_AMOUNT` and `MISC_AMOUNT`. Updates made:
+
+- **TOTAL_PAID_AMOUNT** – Filled from **FINE_AMOUNT** when it exists (we don’t have a separate “total paid” in the export), otherwise 0. - **COST_AMOUNT** – Added as 0 (not in current export). - **MISC_AMOUNT** – Added as 0 (not in current export). Re-run the ETL and refresh Power BI:
+
+```bash
+python run_summons_etl.py
+```
+
+That should clear the `TOTAL_PAID_AMOUNT` error and prevent similar errors for `COST_AMOUNT` and `MISC_AMOUNT`. ---
+
+**User**
+
+============================================================
+BUREAU ASSIGNMENT SUMMARY
+============================================================
+                       TICKET_COUNT  Officer_Count
+WG2              TYPE
+DETECTIVE BUREAU P                1              1
+HOUSING          P                2              1
+PATROL DIVISION  M               16              8
+                 P              439             40
+TRAFFIC BUREAU   C               83              3
+                 M               17              3
+                 P             3030             13
+UNKNOWN          C                2              1
+                 M                2              1
+                 P               23              3
+
+⚠ UNKNOWN BADGES (need investigation): ['0387', '0839', '0844', '9110']
+
+============================================================
+EXPORTING TO EXCEL
+============================================================
+
+✓ SUCCESS! Output saved to: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+✓ File size: 1.02 MB
+✓ Total records: 3,615
+✓ Columns: 136
+
+============================================================
+ETL COMPLETE! ============================================================
+
+Output saved to: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+
+Next step: Run verification script
+  python scripts/verify_summons_remediation.py
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation>
+
+all tables loaded
+
+---
+
+**Cursor**
+
+
+Good to hear that all tables loaded and the Power BI refresh is working. You now have:
+- **136 columns** in the export (including the added Power BI columns: VIOLATION_TYPE, WARNING_FLAG, DATA_QUALITY_*, TOTAL_PAID_AMOUNT, COST_AMOUNT, MISC_AMOUNT)
+- **PEO → TRAFFIC BUREAU** via the TITLE override
+- **3,615 records** with bureau assignment and type breakdown
+
+Whenever you get new e-ticket data, run `python run_summons_etl.py` and refresh the report. If you want to clean up the 4 UNKNOWN badges (0387, 0839, 0844, 9110), add or correct them in Assignment_Master_V2.csv and re-run the ETL. ---
+
+**User**
+
+you didn't add the backfill and the column header should be 01-26
+
+---
+
+**Cursor**
+
+
+Checking how backfill is merged into the summons pipeline and which month format (e.g. Month_Year) is used:
+
+
+
+Checking how backfill is merged and how the runner works:
+
+
+
+Reading the rest of the backfill merge to see how it concatenates and which columns it expects:
+
+
+
+Implementing both changes:
+1. Use Month_Year format "01-26" (MM-YY) instead of "January 2026". 2. Merge backfill into the output in the runner and set IS_AGGREGATE/ETL_VERSION on backfill rows. Updating scripts that filter by Month_Year so they use the new format:
+
+
+
+Summary of what was implemented:
+
+**1.

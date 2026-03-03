@@ -1,0 +1,282 @@
+# Firezone violation summons for SSOCC
+_Exported on 3/3/2026 at 02:14:02 EST from Cursor (2.5.26)_
+
+---
+
+**User**
+
+Read the following for context:
+@Claude.md @CHANGELOG.md @SUMMARY.md @README.md 
+In February 2026 we began to use the Drone to write firezone violations. In the attached cad export in col "DispatcherNew" where the values are: iannacone_a or polson_r@c:\Users\carucci_r\OneDrive - City of Hackensack\Desktop\2026_02_traffic_enforcement_save.xlsx @c:\Users\carucci_r\Downloads\2026_02_0738_ticketsexport.csv @c:\Users\carucci_r\Downloads\2026_02_2025_ticketsexport.csv 
+the attached .csv are the summons written by the drone operatior badge 0738 and traffic personnel that was on a temp assignment badge 2025,  the summons they wrote need to reflect in the all bureas as belonging to SSOCC (Safe Streets Operations Control Center)
+
+---
+
+**Cursor**
+
+
+Reading the referenced files and project context to determine how summons are assigned to bureaus and how to re-categorize them to SSOCC. Inspecting the summons ETL flow and the structure of the provided files:
+
+
+
+Verifying SummonsMaster_Simple's Assignment Master columns and whether it uses V2 or V3:
+
+
+
+Creating a plan and implementing the fix:
+
+
+
+Implementing the fix: badge 0738 (Ronald Polson) is already SSOCC in Assignment Master. Badge 2025 (Mariah Ramirez) is TRAFFIC BUREAU but was on a temp SSOCC assignment for firezone/drone work. Adding an ASSIGNMENT_OVERRIDE for badge 2025 and ensuring both scripts apply it. Adding ASSIGNMENT_OVERRIDES support to `summons_etl_enhanced.py` (production script). Summary of changes:
+
+## Summary: Firezone Summons → SSOCC Bureau Assignment
+
+### What was done
+
+1. **Badge 0738 (Ronald Polson)**  
+   Already in Assignment Master with WG2 = **SAFE STREETS OPERATIONS CONTROL CENTER**. No change. 2. **Badge 2025 (Mariah Ramirez)**  
+   Added an `ASSIGNMENT_OVERRIDES` entry so her summons map to SSOCC during her temp assignment for drone/firezone work. ### Files modified
+
+| File | Change |
+|------|--------|
+| `02_ETL_Scripts/Summons/SummonsMaster_Simple.py` | Added badge 2025 override (WG2 = SSOCC) |
+| `02_ETL_Scripts/Summons/summons_etl_enhanced.py` | Added `ASSIGNMENT_OVERRIDES` and override logic |
+| `scripts/run_summons_with_overrides.py` | Added badge 2025 override |
+| `CHANGELOG.md` | Documented the change |
+
+### Data requirement
+
+The ETL reads from:
+
+`05_EXPORTS\_Summons\E_Ticket\2026\month\2026_02_eticket_export.csv`
+
+Make sure the tickets from:
+
+- `2026_02_0738_ticketsexport.csv` (drone operator Polson)
+- `2026_02_2025_ticketsexport.csv` (PEO Ramirez, temp SSOCC)
+
+are included in that main export. If they are in separate badge-specific exports, either:
+
+1. Merge them into `2026_02_eticket_export.csv` before running the ETL, or  
+2. Confirm the main E-Ticket export already contains all February 2026 tickets. ### How to run
+
+**Option A – Standard ETL (uses `summons_etl_enhanced.py`):**
+
+```powershell
+.\scripts\run_all_etl.ps1
+# or run Summons only:
+.\scripts\run_etl_script.ps1 -ScriptName "Summons"
+```
+
+**Option B – With overrides (uses `SummonsMaster_Simple`):**
+
+```powershell
+python scripts/run_summons_with_overrides.py
+```
+
+After the ETL runs, refresh Power BI. Summons from badges 0738 and 2025 should appear under **SSOCC** in the All Bureaus visual. ---
+
+**User**
+
+badge 2025 was temp assigned for the month of February 2026.  just FYI
+
+---
+
+**Cursor**
+
+
+Thanks for the clarification. The override we added applies to **all** summons from badge 2025, not only February 2026. That’s fine for the February 2026 ETL run, but if Ramirez returns to Traffic Bureau in March 2026 and you process later months, her summons would still be mapped to SSOCC. **Recommendation:** When you start processing March 2026, remove the badge 2025 override from:
+
+- `SummonsMaster_Simple.py`
+- `summons_etl_enhanced.py`
+- `run_summons_with_overrides.py`
+
+If you’d like, we can instead add a month-specific override so it only applies to February 2026. ---
+
+**User**
+
+not alkl of 2025 summons are to show as ssocc only the ones that "Violation Description" = FIRE LANES
+
+---
+
+**Cursor**
+
+
+Applying the SSOCC override only when Violation Description = "FIRE LANES". Checking the data structure and updating the override logic. Updating override logic to apply SSOCC only when Violation Description contains "FIRE LANES". Summary of changes:
+
+## Conditional override: badge 2025 → SSOCC only for FIRE LANES
+
+The SSOCC override for badge 2025 now applies **only** when **Violation Description** contains `"FIRE LANES"`. All other violations from badge 2025 stay under **Traffic Bureau**. ### Changes made
+
+| File | Update |
+|------|--------|
+| `SummonsMaster_Simple.py` | Added `_condition` to the 2025 override and conditional logic in `enrich_with_assignments` |
+| `summons_etl_enhanced.py` | Same conditional logic and `_condition` for the 2025 override |
+| `run_summons_with_overrides.py` | Added `_condition` to the 2025 override |
+| `CHANGELOG.md` | Updated to describe the conditional override |
+
+### Logic
+
+- **Badge 2025 + Violation Description contains "FIRE LANES"** → WG2 = SSOCC  
+- **Badge 2025 + any other violation** → WG2 = Traffic Bureau (from Assignment Master)  
+- **Badge 0738** → WG2 = SSOCC (from Assignment Master; no override)
+
+---
+
+**User**
+
+run the summons script so i can refresh the visuals
+
+---
+
+**Cursor**
+
+
+Summons ETL finished successfully in about 17 seconds. Seven files were copied to the Power BI drop folder, including `summons_powerbi_latest_summons_data.csv`. You can refresh your Power BI visuals now. The staging workbook `summons_powerbi_latest.xlsx` has been updated with the latest data, including the conditional SSOCC override for badge 2025 FIRE LANES violations. ---
+
+**User**
+
+@c:\Users\carucci_r\Downloads\2026_03_03_Department-Wide Summons  Moving and Parking.csv  was visual before the resfresh attacged is after
+
+---
+
+**Cursor**
+
+
+Inspecting the summons data flow and the Department-Wide visual source:
+
+
+
+Checking the Department-Wide visual source and the summons ETL input:
+
+
+
+Identifying the issue:
+- Department-Wide Summons reads from `summons_powerbi_latest.xlsx`. - `summons_etl_enhanced` loads only `2026_01_eticket_export.csv` (hardcoded). - `2026_02_eticket_export.csv` exists but isn't loaded. - Result: February shows 12 Moving (partial Feb in Jan file) and 0 Parking (full Feb not loaded). Updating the script to load both January and February 2026. Running the summons script again to include February 2026 data:
+
+
+
+The Summons ETL has been updated and run successfully. **What changed**
+- The script was only loading January 2026 (`2026_01_eticket_export.csv`). - It now loads both January and February 2026 from `2026/month/` and `2026/`. **Results**
+- **Before:** 4,136 records (January only)
+- **After:** 6,968 records (January + February)
+
+February 2026 parking violations (including firezone/FIRE LANES) should now appear in the Department-Wide Summons visual. Refresh Power BI to see the update. ---
+
+**User**
+
+I updated the assignment master please run the summons script again
+
+---
+
+**Cursor**
+
+
+Summons ETL finished successfully in about 29 seconds. The staging workbook now uses your updated Assignment Master. Refresh your Power BI visuals to see the changes. ---
+
+**User**
+
+the script is not adding the backfill, there was confussion as to which _DropExport to use maybe the confussion bleed over to where the export data was saved to investigate
+
+---
+
+**Cursor**
+
+
+Creating a todo and implementing the fix. Adding TICKET_COUNT to the main df so backfill rows retain their counts. Verifying backfill folder contents and fixing file matching. Merge ran but loaded the wrong file:
+
+
+
+Preferring the consolidated `department_wide_summons` file — the per-month matcher matched "2025_10" in a timestamp. Updating the merge logic. Loading 8 backfill rows (03-25, 07-25, 10-25, 11-25 × M/P). Fixing the PerformanceWarning and adding documentation. Summary of what was fixed and documented:
+
+## Root cause
+
+1. **Backfill never ran** – `summons_etl_enhanced.py` (the active script) did not call `merge_missing_summons_months`. The injection point doc referenced `main_orchestrator.py`, which is not used. 2. **Wrong backfill file** – The merge logic preferred per‑month files and matched `2025_10` inside timestamps (e.g. `2025_12_2025_10_09_21_01_53_Top 5 Parking...`), so it loaded the wrong file instead of `2025_12_department_wide_summons.csv`. ## Changes made
+
+### 1. Backfill wired into Summons ETL (`summons_etl_enhanced.py`)
+
+- Added `sys.path` so `Master_Automation/scripts` is importable. - Set `TICKET_COUNT=1` for ticket-level rows before merge. - Call `merge_missing_summons_months(unified_data)` before `save_to_staging()`. ### 2. Backfill merge logic fixed (`summons_backfill_merge.py`)
+
+- **Consolidated file first** – Prefer `department_wide_summons` and load it before per‑month logic. - **Per‑month matching** – Only match files whose names start with `yyyy_mm_` (e.g. `2025_03_`) to avoid matching timestamps. - **Performance** – Replaced per‑column inserts with `reindex(columns=..., fill_value=pd.NA)`. ### 3. Path and export documentation
+
+- **`docs/SUMMONS_BACKFILL_INJECTION_POINT.md`** – Updated to describe the real script and injection point. - **`docs/SUMMONS_PATHS_AND_DROPEXPORTS.md`** – New doc clarifying:
+  - Summons writes to `03_Staging/Summons/summons_powerbi_latest.xlsx` (no `_DropExports`). - `PowerBI_Date/_DropExports` is used by other ETL scripts and visual export processing. - Backfill source: `PowerBI_Date/Backfill/2025_12/summons/`. ## Result
+
+The Summons ETL now loads **8 backfill rows** (03-25, 07-25, 10-25, 11-25 × M and P) from `2025_12_department_wide_summons.csv` and merges them into the staging workbook. After refreshing Power BI, the Department-Wide Summons visual should show the full 13‑month window, including the gap months. ---
+
+**User**
+
+now I get the attached error for query summons_13month_trend which is the department wide summons
+
+---
+
+**Cursor**
+
+
+Checking the M code structure: the staging workbook now includes `TICKET_COUNT` (added by the ETL), but the query still adds it. The conflict came from the staging workbook now including `TICKET_COUNT` (from the ETL and backfill), while the M code was still adding it again. **Change made:** The query now checks for `TICKET_COUNT` before adding it:
+- If it exists → use it and set its type to `Int64`
+- If it doesn’t → add it with value `1` (for older data)
+
+**Apply this in Power BI**
+
+1. Open the report in Power BI Desktop. 2. Open **Power Query Editor** (Transform data). 3. Select the `summons_13month_trend` query. 4. Replace the step that adds `TICKET_COUNT` with:
+
+```m
+// TICKET_COUNT: use from source if present (ETL v2.1+ and backfill); else add 1 per row
+WithTicketCount = if Table.HasColumns(FilteredClean, "TICKET_COUNT")
+    then Table.TransformColumnTypes(FilteredClean, {{"TICKET_COUNT", Int64.Type}})
+    else Table.AddColumn(FilteredClean, "TICKET_COUNT", each 1, Int64.Type),
+```
+
+Or copy the updated query from `m_code/summons/summons_13month_trend.m` into the PBIX. Then refresh again; the error should be gone. ---
+
+**User**
+
+@c:\Users\carucci_r\Downloads\Department-Wide Summons  Moving and Parking.csv what is going on with the visual? It is totaly off! We worked on this template for days so this would not be an issue, yet here we are. @c:\Users\carucci_r\Downloads\Summons  Moving & Parking  All Bureaus.csv  I updated the assignment master so there is no reason why Safe Streets Operations Control Center is showing it should be SSOCC and it should have the correct summs totals
+@c:\Users\carucci_r\Downloads\Top 5 Moving Violations - Department Wide.csv is not updating and is showing the values from last months report@c:\Users\carucci_r\Downloads\Top 5 Parking Violations - Department Wide.csv  updated from last months but I can't trust the values as all the other visuals are off 
+
+---
+
+**Cursor**
+
+
+Implementing fixes:
+
+
+
+Summary of changes:
+
+## Root causes
+
+1. **ETL only loaded 2026** – It was hardcoded to 2026_01 and 2026_02, so 2025 data was missing for the 13‑month visuals. 2. **WG2 label** – Override used "SAFE STREETS OPERATIONS CONTROL CENTER" instead of "SSOCC". 3. **Badge 0738** – Drone operator not in Assignment Master, so WG2 stayed UNKNOWN. 4. **Blank Month_Year** – Rows with null/empty Month_Year (M,,2 and P,,2) skewed totals. 5. **Backfill double-count** – Backfill was merged even when e-ticket already had data for those months. ## Fixes applied
+
+| Fix | File | Change |
+|-----|------|--------|
+| **13‑month load** | `summons_etl_enhanced.py` | Loads all e-ticket files in the 13‑month window (e.g. 2025_02–2026_02) instead of only 2026_01 and 2026_02 |
+| **SSOCC display** | `summons_etl_enhanced.py` | Override WG2 set to "SSOCC"; all "SAFE STREETS OPERATIONS CONTROL CENTER" normalized to "SSOCC" |
+| **Badge 0738** | `summons_etl_enhanced.py` | Override added for badge 0738 (drone) with WG2 = "SSOCC" |
+| **No double-count** | `summons_backfill_merge.py` | Skips backfill for months that already have >10 e-ticket rows |
+| **Blank Month_Year** | `summons_13month_trend.m` | Added `FilteredMonthYear` to drop rows with null/empty Month_Year |
+
+## Next steps
+
+1. **Run the Summons ETL**  
+   ```powershell
+   cd "c:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Summons"
+   python summons_etl_enhanced.py
+   ```
+   Or via the orchestrator: `.\scripts\run_all_etl.ps1 -ScriptNames Summons`
+
+2. **Update Power BI** – In Power Query Editor, update the `summons_13month_trend` query to include the `FilteredMonthYear` step (see `m_code/summons/summons_13month_trend.m`). 3. **Refresh the report** – Refresh the Summons page and verify:
+   - Department-Wide: 13 months (02-25 through 02-26), no blank rows
+   - All Bureaus: SSOCC label and correct totals
+   - Top 5 Moving/Parking: current month data
+
+Documentation is in `docs/SUMMONS_VISUALS_FIX_2026_03_03.md`. ---
+
+**User**
+
+how does the etl and or the m code break every month? I ran the command 
+c:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Summons>   python summons_etl_enhanced.py
+C:\Users\carucci_r\scoop\apps\python\current\Lib\site-packages\fuzzywuzzy\fuzz.py:11: UserWarning: Using slow pure-python SequenceMatcher. Install python-Levenshtein to remove this warning
+  warnings.warn('Using slow pure-python SequenceMatcher.

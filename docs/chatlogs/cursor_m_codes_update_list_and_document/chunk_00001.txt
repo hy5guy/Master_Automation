@@ -1,0 +1,10 @@
+Now let me check git status, diff, and recent commits to prepare the commit. 5 modified files, all documentation + parameter update. Let me commit just these tracked changes (the untracked files are data/exports/backups that don't belong in this commit). PowerShell doesn't support heredoc. Let me use a different approach. All done. Here's what was updated and committed:
+
+**Files updated (5):**
+- **`Claude.md`** -- Current System Status bumped to v1.17.1, pReportMonth = Feb 2026 cycle, added v1.17.1 section with .tab conversion details and arrest ETL discovery notes, known issues (Patrol/Traffic missing columns)
+- **`SUMMARY.md`** -- Version/status updated, Phase 2 table marked COMPLETE, Recent System Status refreshed, v1.17.1 entry added, footer updated
+- **`CHANGELOG.md`** -- v1.17.1 entry added (Changed/Fixed/Documented sections), [Unreleased] cleaned up with remaining Patrol/Traffic items
+- **`README.md`** -- Overview line updated to reflect v1.17.1 and February cycle
+- **`m_code/parameters/pReportMonth.m`** -- Advanced to `#date(2026, 2, 1)`
+
+**Git commit:** `071f366` on `docs/update-20260114-1447` (1 commit ahead of remote, not pushed).

@@ -1,0 +1,59 @@
+**`type text` in `Table.TransformColumns` tuple** — PQ's type engine tries to validate/coerce original auto-typed values (Number 2.87) *alongside* your transformation lambda during lazy evaluation. Single-decimal numbers (1.3, 2.5) pass through cleanly; two-decimal numbers (2.87, 2.92) hit a precision edge case in PQ's internal scalar coercion. 2. **`Response_Time_MMSS` missing from `Typed` step** — After `Table.Combine` merges files, per-file column type metadata is lost. Without an explicit `type text` declaration in the final `Typed` step, PQ falls back to the inferred numeric type from PromoteAllScalars. ### What Changed (v2.7.1 → v2.8.0)
+
+| # | Fix | Why |
+|---|-----|-----|
+| 1 | **Removed `type text`** from Step4 `TransformColumns` tuple | Eliminates the type engine conflict — THE primary fix |
+| 2 | **Added `{"Response_Time_MMSS", type text}`** to `Typed` step | Ensures proper typing after Table.Combine |
+| 3 | **Wrapped entire Step4 lambda** in `try...otherwise "00:00"` | Safety net for any unforeseen edge cases |
+| 4 | **`Number.RoundDown(Number.Round(rawSecs, 0))`** for seconds | Guarantees integer output for Text.From (no "52.2") |
+| 5 | **AM/PM stripping** in colon branch | Handles `type time` auto-promotion ("2:39:00 AM") |
+| 6 | **`en-US` locale** on ALL Text.From calls in decimal branch | Complete locale safety |
+| 7 | **Added `Response_Time_MMSS`** to empty table schema | Prevents Table.Combine column mismatch |
+
+### Implementation Steps
+
+1. Open Power BI Desktop → your report
+2. **Duplicate** `___ResponseTimeCalculator` query (right-click → Duplicate) as backup
+3. Click `___ResponseTimeCalculator` → Advanced Editor
+4. Select All → Paste the v2.8.0 code
+5. Click **Done**
+6. Check column quality bar on `Response_Time_MMSS` → should be **100% green**
+7. Verify sample values: 2.87 → "02:52", 2.92 → "02:55"
+8. **Close & Apply**
+
+### Rollback
+
+If anything breaks, delete the modified query and rename the duplicate back to `___ResponseTimeCalculator`. @c:\Users\carucci_r\Downloads\___ResponseTimeCalculator.m al so I need only
+
+---
+
+**Cursor**
+
+I can see you're sharing Claude's root cause analysis - excellent! The fix identifies the issue with `type text` in `Table.TransformColumns` and the missing `Response_Time_MMSS` in the `Typed` step. Let me read the fixed M code file you downloaded:
+
+Perfect! I can see Claude delivered the v2.8.0 fix. Now your message got cut off - you mentioned needing "a 13month rolling tot" (rolling total?) and said "also I need only". **Can you clarify what you need? ** Are you asking for:
+
+1. **13-month rolling total calculation** for Response Times (like last 13 months)? 2. **Only the 13-month data** (filtering to most recent 13 months)? 3. **Something else related to the M code? **
+
+Meanwhile, I can help you:
+- **Apply the v2.8.0 fix** to your workspace M code file
+- **Add the 13-month rolling logic** once you clarify what calculation you need
+
+Let me know what you'd like to do next! 🎯
+
+---
+
+**User**
+
+I'm preparing to export this chat. Please generate a descriptive filename that summarizes the main topic or task of this conversation. Requirements:
+• 4-8 words
+• Title Case (capitalize major words)
+• Replace spaces with underscores
+• Include .md extension
+• No dates or special characters
+
+Output only the filename, with the suffix .md and nothing else. ---
+
+**Cursor**
+
+Power_BI_Response_Time_Type_Conversion_Fix.md

@@ -1,0 +1,67 @@
+[2026-01-12 15:24:10] ================================================================================
+[2026-01-12 15:24:10] BENCHMARK DATA ARCHITECTURE OVERHAUL
+[2026-01-12 15:24:10] Started: 2026-01-12 15:24:10
+[2026-01-12 15:24:10] ================================================================================
+[2026-01-12 15:24:10] ================================================================================
+[2026-01-12 15:24:10] PHASE 1: CREATING BACKUP
+[2026-01-12 15:24:10] ================================================================================
+[2026-01-12 15:24:10] Backup directory already exists: C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark_BACKUP_20260112
+[2026-01-12 15:24:10] Skipping backup creation
+[2026-01-12 15:24:10] ================================================================================
+[2026-01-12 15:24:10] PHASE 1: VALIDATING SOURCE DATA
+[2026-01-12 15:24:10] ================================================================================
+[2026-01-12 15:24:10] 
+Validating show_force...
+[2026-01-12 15:24:10]   [OK] Records: 37
+[2026-01-12 15:24:10]   [OK] Columns: 9
+[2026-01-12 15:24:10]   [OK] Date range: 2022-04-05 to 2025-05-02
+[2026-01-12 15:24:10] 
+Validating use_force...
+[2026-01-12 15:24:10]   [OK] Records: 340
+[2026-01-12 15:24:10]   [OK] Columns: 13
+[2026-01-12 15:24:10]   [OK] Date range: 2020-07-16 to 2025-12-29
+[2026-01-12 15:24:10] 
+Validating vehicle_pursuit...
+[2026-01-12 15:24:10]   [OK] Records: 21
+[2026-01-12 15:24:10]   [OK] Columns: 9
+[2026-01-12 15:24:10]   [OK] Date range: 2022-03-18 to 2025-12-19
+[2026-01-12 15:24:10] ================================================================================
+[2026-01-12 15:24:10] PHASE 2: CREATING MASTER COMBINED DATASET
+[2026-01-12 15:24:10] ================================================================================
+[2026-01-12 15:24:10] 
+Processing Show of Force...
+[2026-01-12 15:24:10]   [OK] Loaded 37 records
+[2026-01-12 15:24:10] 
+Processing Use of Force...
+[2026-01-12 15:24:10]   [OK] Loaded 340 records
+[2026-01-12 15:24:10] 
+Processing Vehicle Pursuit...
+[2026-01-12 15:24:10]   [OK] Loaded 21 records
+[2026-01-12 15:24:10] 
+Combining all datasets...
+[2026-01-12 15:24:10] [OK] Master combined dataset created: C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark\all_events_combined\master_combined_all_time.csv
+[2026-01-12 15:24:10] [OK] Total records: 398
+[2026-01-12 15:24:10]   - Show of Force: 37 records
+[2026-01-12 15:24:10]   - Use of Force: 340 records
+[2026-01-12 15:24:10]   - Vehicle Pursuit: 21 records
+[2026-01-12 15:24:10] [OK] Metadata saved: C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark\all_events_combined\metadata.json
+[2026-01-12 15:24:10] ================================================================================
+[2026-01-12 15:24:10] PHASE 2: GENERATING ROLLING 13-MONTH DATASETS
+[2026-01-12 15:24:10] ================================================================================
+[2026-01-12 15:24:10] Rolling 13-month window: 2024-12-01 to 2025-12-31
+[2026-01-12 15:24:10] [OK] Filtered to 81 records in rolling window
+[2026-01-12 15:24:10] [OK] Combined rolling 13-month dataset: C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark\by_time_period\rolling_13month\current_window.csv
+Traceback (most recent call last):
+  File "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\benchmark_restructure.py", line 599, in <module>
+    main()
+  File "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\benchmark_restructure.py", line 577, in main
+    rolling_df = generate_rolling_13month_datasets(combined_df)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\benchmark_restructure.py", line 232, in generate_rolling_13month_datasets
+    log(f"  [OK] {event_type}: {len(event_df)} records \u2192 {filename}")
+  File "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\benchmark_restructure.py", line 31, in log
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {message}")
+  File "C:\Users\carucci_r\AppData\Local\Programs\Python\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position 54: character maps to <undefined>

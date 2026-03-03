@@ -1,0 +1,444 @@
+# Power BI data export and benchmark update issue
+_Exported on 2/4/2026 at 23:04:46 EST from Cursor (2.4.28)_
+
+---
+
+**User**
+
+I need to varify where the data of the monthly report's visuals are exported to. The exported data servers as the backfill data for the following months report. C:\Dev\Power_BI_Data. I updated the backfill data sometime this month and Cursor AI provided a script to automatic move the exported data of the visuals to correct folders as well as rename the files. C:\Dev\Power_BI_Data.backup_20251211_124139
+C:\Dev\PowerBI_Date_Laptop
+C:\Dev\PowerBI_Date_Laptop.backup_20251211_124139
+I think one of these are correct path C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date 
+C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\projects\PowerBI_Date
+
+The arrest portion of the process was completed correctly. The Benchamrk portion failed to update this is mostlike due to the C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark folder structure was modified, I need the new structure to be investigated and dcumented, the scripts need to be updated accordingly. @c:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark\2026_01_07__Benchmark_directory_tree.json 
+Exported Data for the visuals are
+- show_force: C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark\show_force\complete_report\all_time\show-of-force-reports-01_01_2001-01_07_2026.csv
+- use_force: C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark\use_force\complete_report\all_time\use-of-force-reports-01_01_2001-01_07_2026.csv
+- vehicle_pursuit: C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark\vehicle_pursuit\complete_report\all_time\vehicle-pursuit-reports-01_01_2001-01_07_2026.csv
+the file name will remain the same as it is the default export name. The Monthly Accrual and Usage Summary, since we are using the backfill for the previous months (for this report 12/24 through 11/25) only the previous month's of data is needed this months data is
+Time_Off:  C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\month\2025\2025_12_timeoffactivity.xlsx, and next months 
+next months will be in C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\month\2026 this will be logcal as next monthsexport will have a prefix of 2026_01
+The Overtime data is C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\export\month\2025\2025_12_otactivity.xlsx, next months report will follow the time_off logic. FYI I refreshed the visualts and the the data for 12-25 was not processed also the bottom 5 fields are all zeros now. This happened last week. We need to fix this for future report. review the m code for ___Combined_Outreach_All as the visual did not update the last output file is from 12/10/25
+I received the error in attachment 2 when updating the summon 
+this page of visuals had many issues last month and we added ad hoc tables to power query just to get the project done. the queries in question are ___Backfill, ___wg3 (which was just added to get the visual to work), ___TopMoving
+
+Review the m code for Patrol as each column is a section in the fields
+I want it something like the detectives query see attachement 7. The other issue is that the Total Moving Summons and Total Parking Summons need to be added, what I have done in the past is make the visuals for the summons then go to C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Patrol\patrol_monthly.xlsm navigate to the correct table and input the data, is there an easier way where I do not have to manually enter the data? ___In_Person_Training, ___Cost_of_Training have not been updated I believe the script was not run to calculate, the ETL project is here C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Policy_Training_Monthly
+
+I need help to update ___SSOCC_Data I want to add data from excprt C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\tas\2025\2024_to_2026_01_07_TAS_and_Vitural.xlsx, the 2024 dentotes the start of the time frame searched which is 1/2024 the date after "_to_" is the date the search was run and the end of the time frame searched. I want to update C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Export_File_Watchdog watcher script to monitor for xlsx that have the TAS_and_Vitural with a prefix of YYYY_to_YYYY_MM_ to be moved to a folder based on the second date (YYYY_MM) example decembers export is named C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\tas\2025\2024_to_2025_12_TAS_and_Vitural_2026_01_07.xlsx 2024 was the start of the time frame searched, 2025_12 is the the end of the time frame and includes the entire month (12/1/25 - 12/31/25). the suffix time stamp denotes the datye the export was created I did this for version history purposes. Can the watcher also make folders if they are not present example next months export will be named 
+2024_to_2026_01_TAS_and_Vitural_2026_02_01 
+since C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\tas\2026 is made can the watcher make a folder 2026_01 (YYYY_MM) and move the file within? before the moving of the file can we convert the .xlsx to a .csv once the .csv is made then move both to the correct folder? for the logic to get data from the export only records that have a DispatcherNew value of containing Carucci_R, carucci_r, Marino_B, marino_b, iannacone_a, Iannacone_A, polson_r, Polson_R, rios_a, Rios_A, a fall back is to then also check "Squad" and to add records that have a value of SSOCC. we can add a visual that shows the breakdown of the Incident over the months in a table or in a card
+
+for cards here is some of the cards I have on the page CCTV Site Analysis Total = 
+CALCULATE(
+    SUM(___SSOCC_Data[Value]),
+    ___SSOCC_Data[Service/Product] = "CCTV Site Analysis"
+)
+
+Service Categories Total = 
+[CompStat Operations] + 
+[Crime Analysis] + 
+[Detective Operations] + 
+[Patrol Operations] + 
+[Special Operations] + 
+[Technology and Surveillance]
+
+Service Category Totals = 
+VAR SelectedCat = SELECTEDVALUE(ServiceCategory[Category])
+RETURN
+SWITCH(
+    SelectedCat,
+    "CompStat Operations", [CompStat Operations],
+    "Crime Analysis", [Crime Analysis],
+    "Detective Operations", [Detective Operations], 
+    "Patrol Operations", [Patrol Operations],
+    "Special Operations", [Special Operations],
+    "Technology and Surveillance", [Technology and Surveillance],
+    [Service Categories Total]  // Shows total when nothing selected
+)
+Service Category Value = 
+SWITCH(
+    SELECTEDVALUE(ServiceCategory[Category]),
+    "CompStat Operations", [CompStat Operations],
+    "Crime Analysis", [Crime Analysis], 
+    "Detective Operations", [Detective Operations],
+    "Patrol Operations", [Patrol Operations],
+    "Special Operations", [Special Operations],
+    "Technology and Surveillance", [Technology and Surveillance],
+    BLANK()
+)
+
+---
+
+**Cursor**
+
+Reviewing the relevant files and folder structures to understand the current setup. Gathering more details:
+
+
+Checking which Power BI repository path exists and searching for the M code files:
+
+
+Narrowing scope with a few clarifying questions:
+
+
+---
+
+**User**
+
+1. A
+2. C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\mCode\2026_01_07_all_queries.m
+3. A, C
+
+---
+
+**Cursor**
+
+Reviewing the M code and related files to create the plan:
+
+
+Searching the M code for the specific queries mentioned:
+
+
+Searching for the specific queries in the M code file:
+
+
+Reviewing specific sections of the M code to understand the structure:
+
+
+Creating the plan:
+
+
+---
+
+**User**
+
+Based on your project outline and the task breakdown Cursor generated, here's the agent assignment strategy to ensure verification and correctness:
+
+## Critical Path Agents (Priority)
+
+### **Data Validation Agent** - Phases 2, 4, 8
+- **Tasks**: Monthly Accrual zeros, Summons path errors, final validation
+- **Skills**: Data integrity testing, Python debugging, Power BI DAX/M validation
+- **Output**: Test reports confirming data accuracy, comparison logs (before/after)
+- **Why**: These are data-critical issues affecting reports command staff sees
+
+### **ETL Pipeline Agent** - Phases 2, 6, 7.2
+- **Tasks**: Overtime/TimeOff scripts, Policy Training ETL, Watchdog service updates
+- **Skills**: Python scripting, file system operations, datetime parsing, error handling
+- **Output**: Updated Python scripts with logging, test runs with sample data
+- **Why**: Your backfill restoration and new TAS monitoring depend on solid ETL logic
+
+## Path & Configuration Agents
+
+### **Infrastructure Agent** - Phases 1, 8.1
+- **Tasks**: Verify repository paths, Benchmark folder structure, documentation
+- **Skills**: File system auditing, path validation, configuration management
+- **Output**: Path configuration file, updated script references, folder structure diagram
+- **Why**: Wrong paths cascade into every other failure; fix once, fix everywhere
+
+### **Power Query Agent** - Phases 3, 4, 5, 6.2, 7.1
+- **Tasks**: M code query updates (Outreach, Summons, Patrol restructure, SSOCC)
+- **Skills**: Power Query M language, dynamic file discovery, unpivoting, date parsing
+- **Output**: Updated M code with inline comments, query refresh test logs
+- **Why**: All your Power BI visuals depend on these queries loading correctly
+
+## Feature Development Agents
+
+### **Report Enhancement Agent** - Phases 5.2, 7.3
+- **Tasks**: Summons automation for Patrol, SSOCC visual cards
+- **Skills**: Power BI measures, DAX, visual design, data model relationships
+- **Output**: New calculated columns/measures, card visuals, table layouts
+- **Why**: These eliminate manual entry and add new reporting capability
+
+### **Automation Agent** - Phase 7.2
+- **Tasks**: Export File Watchdog for TAS files
+- **Skills**: Python file monitoring, regex patterns, xlsx-to-csv conversion
+- **Output**: Updated watchdog_service.py with TAS pattern detection
+- **Why**: Automates the SSOCC data pipeline from raw export to Power BI-ready CSV
+
+## Verification & Testing Strategy
+
+### **QA Agent** - Phase 8.2 (Cross-cutting)
+- **Tasks**: Test each query individually, validate calculations, end-to-end testing
+- **Skills**: Test case design, Power BI refresh testing, data comparison
+- **Checklist**:
+  1. Path verification: All files load without errors
+  2. Data completeness: December 2025 appears in Monthly Accrual
+  3. Backfill restoration: Bottom 5 fields no longer zero
+  4. Dynamic logic: Filenames aren't hardcoded (wg3, TopMoving, TopParking)
+  5. ETL outputs: Policy Training and Community Engagement files exist and refresh
+  6. SSOCC integration: TAS files auto-move and load correctly
+  7. Patrol restructure: Matches Detectives query structure
+  8. Performance: Refresh time doesn't degrade significantly
+
+## Recommended Agent Workflow
+
+**Phase Order for Testing**:
+1. **Infrastructure Agent** → Fix paths first (Phase 1)
+2. **ETL Pipeline Agent** → Fix data generation (Phases 2, 6)
+3. **Data Validation Agent** → Verify ETL outputs are correct
+4. **Power Query Agent** → Update M code to consume fixed data (Phases 3, 4, 5, 6.2)
+5. **Automation Agent** → Add TAS monitoring (Phase 7.2)
+6. **Power Query Agent** → Add SSOCC query (Phase 7.1)
+7. **Report Enhancement Agent** → Add visuals and calculations (Phases 5.2, 7.3)
+8. **QA Agent** → Full regression testing (Phase 8.2)
+9. **Infrastructure Agent** → Final documentation (Phase 8.1)
+
+## Key Testing Checkpoints
+
+- **After Phase 1**: All existing queries refresh without path errors
+- **After Phase 2**: December 2025 data appears, bottom 5 fields populated
+- **After Phase 4**: All Summons queries load successfully
+- **After Phase 5**: Patrol query structure matches Detectives, summons totals auto-calculate
+- **After Phase 7**: SSOCC data loads and visuals display correctly
+- **After Phase 8**: Full report publishes without errors
+
+This structure ensures **every fix is validated before moving to dependent tasks**, preventing cascading failures in your monthly report. [1]
+
+[1](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/10459886/88376f25-6b5e-474e-ab72-79da411d9ad0/image.jpg?AWSAccessKeyId=ASIA2F3EMEYEX6FU274B&Signature=BUI2UfJYw1BSZe8JlLHXRNetRvI%3D&x-amz-security-token=IQoJb3JpZ2luX2VjELn%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJHMEUCIQDuogtQRttg44NrFiCiWqG3ciSf75TPDQWta8k4oRj0xQIgO4Lxt%2FHSLH3W4KHyDctkyQ9R0hYMATR9MS6ULF9uz%2FEq%2FAQIgv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARABGgw2OTk3NTMzMDk3MDUiDHvHmVIXjGbZC7rK2CrQBKDPeqLT1z4lUxQaDgJiwbnwAh1pXwuiziamI%2FSQI2rF0MKQ2IMIj%2BBfuXYc12%2Fnf11N%2Fy1wmMVC1TiI3ilwTFnG5BZr4NInI62tCj91Z6ODO93%2BdQkFySYpOZcFca9ubP1IHfkSr1BM%2BBZ5j3F08MxTcfurHuRNrLN7tpo1C6xvrCl%2FRmA0eAffAjbIJ7RuU6fv2%2B7G0%2BhnpVtf5MZ%2FGynLJv8uC%2BITI21FaNCgPUa77pqJELxNpDunTfsrPYT%2Foy01NkRPOCg0bEQcsWloHHeYd08DwlI%2FIErCcGqDaG4DyadfDzNDHyYVFNNSgLeMYXiHyZ6GIHaZsOv44l4b2DjN4sQqoIpGYjKxunolgyh%2FYA4Qg79Jn1vl16cHHLAKVTdacjmvveQdRhXj5%2FhVtdJu8b%2FLxNa%2BcUCTYopRb2L7i3lxIqAeEOTxexf9csW99BIAHWyp2F4E2gzbQzsVwus1NOQ4j6Cis2xSaLPuR7E1YSCF5Jjnr0tJNCxHegvZbImvtotO12EY0Y3MP24LcHaI%2Bunnyr%2B0ju7yaPcF52reSzqxE%2FIJ4TCBUIO%2BrqJyD3vHMFFh84yiHuI0vtCZGeh1NggA7XdaJSQKtZ6Jw%2B8XN4bigkAlQgYWL%2FeC1Bjqyv8R8NBUhGo1FMlho9VQemIu8i%2BYTPCLZeqAHUT4FMye6Z2Jb4Ta1m1O2GNExPfBymeuW2PGJOFKipc7r9j%2B6UgZq5usKCwgrZWSh97fZQZtAg3bIjgbbolKreyLZAFHcRISDMFqr6PyjMhYFQ%2BX5H4w9fv7ygY6mAHeYCYEQxaFJMn5Mmi5hk%2FbP%2BJ3LS%2FkVvbGI4aSpKd9mSXniLUTh7q5zmv5LH%2F9rlh73TtWb9I%2BHDc3IhneC0NEp9CzxFY4%2FF4TqCt%2BV3TRozn7u8WjQxU9GHlIHVxgI90eo3rDhCaPbuCzykh8bYwcLyAXjNuHSPgxoJfj3t5zMmMBO7bNdCSxsCltmAYm3rE2WbAq8wQyvA%3D%3D&Expires=1767834906)
+
+---
+
+**Cursor**
+
+Your agent assignment strategy aligns with the plan. Clarifying next steps:
+
+**Current Status:**
+- Plan created with 15 todos covering all phases
+- Your strategy maps to the plan phases
+- Recommended execution order matches the dependencies
+
+**Question:** Should I:
+1. Update the plan document to include this agent assignment strategy and workflow? 2. Begin execution following this workflow, starting with the Infrastructure Agent (Phase 1: Verify paths)? 3. Do both: incorporate the strategy into the plan, then start execution? **Note:** Since you're still in plan mode, I haven't made changes yet. Once you confirm, I'll proceed with:
+- **Phase 1 (Infrastructure)** → Verify and fix all path references first
+- **Phase 2 (ETL Pipeline)** → Fix Overtime/TimeOff data processing
+- Then continue through the remaining phases
+
+Should I start with Phase 1, or update the plan document first? ---
+
+**User**
+
+Based on Cursor AI's Plan Mode best practices, here's your response:
+
+***
+
+**Do both: Incorporate the strategy, then start execution. **
+
+Here's why this approach works best for your workflow:
+
+## Step 1: Update the Plan Document First
+
+Add a new section to your plan called **"Agent Assignment & Execution Workflow"** that includes:
+
+- Agent roles mapped to each phase
+- Testing checkpoints after critical phases
+- Dependencies between phases (e.g., Phase 2 can't start until Phase 1 paths are verified)
+- Expected outputs for each agent (test logs, updated scripts, validation reports)
+
+**Benefits**:[1]
+- Creates a permanent reference document you can commit to your repo
+- Lets you (as PM/Technical Approver) review the execution strategy before code changes begin
+- Provides clear success criteria for each phase
+- Helps Cursor maintain context across multiple agent sessions
+
+## Step 2: Execute in Sequential Order with Verification Gates
+
+Start with **Phase 1 (Infrastructure Agent)** because:[2][3]
+- Path errors cascade into every other failure
+- Sequential execution ensures dependencies are met before moving forward
+- You can start a new Cursor chat for each phase to keep context clean
+- Commit changes after each phase passes testing (your GitHub workflow)
+
+**Execution Pattern**:
+1. Infrastructure Agent fixes Phase 1 → You verify paths load correctly
+2. ETL Pipeline Agent fixes Phase 2 → Data Validation Agent confirms December 2025 data appears
+3. Power Query Agent fixes Phase 3-4 → You refresh queries without errors
+4. Continue through remaining phases with verification at each checkpoint
+
+## Why Not Jump Straight to Execution? Without documenting the strategy first:[4][5]
+- Cursor might lose track of the overall workflow across multiple sessions
+- You'll lack a reference when troubleshooting which agent should handle unexpected issues
+- Testing criteria won't be clearly defined, making it harder to verify fixes
+- Your command staff won't have documentation showing the verification process
+
+## Recommended Cursor Workflow
+
+**For the plan update**:
+```
+Shift + Tab → "Add Agent Assignment & Execution Workflow section to plan 
+document with testing checkpoints and expected outputs for each phase"
+```
+
+**For execution**:[2]
+- Use Agent mode for each phase
+- Start a new chat for each phase to keep context focused
+- Commit after each successful phase verification
+- Use background agents only for documentation tasks (Phase 8.1)
+
+**Your role**: Project Manager reviewing each phase's output before approving the next phase to start. [6]
+
+This approach mirrors your law enforcement workflow: document the plan, execute systematically, verify at each checkpoint, then move forward. [1]
+
+[1](https://cursor.com/blog/plan-mode)
+[2](https://ryanocm.substack.com/p/137-10-ways-to-10x-your-cursor-workflow)
+[3](https://docs.crewai.com/en/concepts/tasks)
+[4](https://nmn.gl/blog/cursor-guide)
+[5](https://github.com/digitalchild/cursor-best-practices)
+[6](https://www.reddit.com/r/cursor/comments/1iga00x/refined_workflow_for_cursor_composer_agent_mode/)
+[7](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/10459886/88376f25-6b5e-474e-ab72-79da411d9ad0/image.jpg)
+[8](https://cursor.com/learn/agents)
+[9](https://forum.cursor.com/t/add-the-best-practices-section-to-the-documentation/129131)
+[10](https://forum.cursor.com/t/my-plan-template/43568)
+[11](https://www.tencentcloud.com/techpedia/126570)
+
+---
+
+**Cursor**
+
+Updating the plan document to incorporate the agent assignment strategy and execution workflow, then starting execution. Reading the plan file:
+
+
+Adding the Agent Assignment & Execution Workflow section to the plan, then starting execution. ```markdown
+---
+name: Power BI Visual Export Verification and Fixes
+overview: Comprehensive plan to verify Power BI visual export locations, fix Benchmark folder structure issues, resolve Monthly Accrual data processing problems, update multiple M code queries, enhance Patrol query structure, update Policy Training queries, and implement SSOCC data integration with automated file watching. todos:
+  - id: verify_powerbi_path
+    content: Verify correct Power BI repository path and update all path references
+    status: pending
+  - id: fix_benchmark_structure
+    content: Update Benchmark scripts and M code queries to use new all_time folder structure
+    status: pending
+  - id: fix_accrual_12_25
+    content: Fix Monthly Accrual query to process December 2025 correctly
+    status: pending
+  - id: fix_accrual_zeros
+    content: Fix bottom 5 fields showing zeros by ensuring proper backfill restoration
+    status: pending
+    dependencies:
+      - fix_accrual_12_25
+  - id: fix_combined_outreach
+    content: Debug and fix ___Combined_Outreach_All query not updating
+    status: pending
+  - id: fix_summons_backfill
+    content: Fix ___Backfill query path error for backfill_summons_summary.csv
+    status: pending
+    dependencies:
+      - verify_powerbi_path
+  - id: fix_summons_wg3
+    content: Fix ___wg3 query path error and make filename dynamic
+    status: pending
+    dependencies:
+      - verify_powerbi_path
+  - id: fix_summons_top_queries
+    content: Fix ___TopMoving and ___TopParking queries with correct paths and dynamic filenames
+    status: pending
+    dependencies:
+      - verify_powerbi_path
+  - id: restructure_patrol_query
+    content: Restructure ___Patrol query to match Detectives query structure with unpivoted months
+    status: pending
+  - id: add_patrol_summons_totals
+    content: Add Total Moving and Parking Summons calculation to Patrol query from summons data
+    status: pending
+    dependencies:
+      - restructure_patrol_query
+  - id: run_policy_training_etl
+    content: Verify and run Policy Training ETL script to generate output files
+    status: pending
+  - id: verify_policy_training_queries
+    content: Verify ___In_Person_Training and ___Cost_of_Training queries load latest ETL output
+    status: pending
+    dependencies:
+      - run_policy_training_etl
+  - id: update_ssocc_query
+    content: Update ___SSOCC_Data query to load from TAS exports with filtering logic
+    status: pending
+  - id: update_watchdog_tas
+    content: Add TAS file monitoring to Export File Watchdog with folder creation and CSV conversion
+    status: pending
+  - id: create_ssocc_visuals
+    content: Create SSOCC card and table visuals for incident breakdown by month
+    status: pending
+    dependencies:
+      - update_ssocc_query
+---
+
+# Power BI Visual Export Verification and Fixes
+
+## Overview
+
+This plan addresses multiple issues across Power BI visuals, ETL scripts, and data export workflows. Priority is given to critical data issues (Monthly Accrual zeros, Summons errors) while ensuring all other updates are completed. ## Agent Assignment & Execution Workflow
+
+### Agent Roles and Phase Assignments
+
+#### **Infrastructure Agent** - Phases 1, 8.1
+- **Tasks**: Verify repository paths, Benchmark folder structure, documentation
+- **Skills**: File system auditing, path validation, configuration management
+- **Expected Outputs**: 
+  - Path configuration file documenting correct paths
+  - Updated script references with correct paths
+  - Folder structure diagram for Benchmark exports
+  - Updated M code comments explaining path changes
+
+#### **ETL Pipeline Agent** - Phases 2, 6, 7.2
+- **Tasks**: Overtime/TimeOff scripts, Policy Training ETL, Watchdog service updates
+- **Skills**: Python scripting, file system operations, datetime parsing, error handling
+- **Expected Outputs**: 
+  - Updated Python scripts with enhanced logging
+  - Test runs with sample data confirming December 2025 processing
+  - Backfill restoration verification logs
+  - Watchdog service update with TAS pattern detection
+
+#### **Data Validation Agent** - Phases 2, 4, 8.2
+- **Tasks**: Monthly Accrual zeros, Summons path errors, final validation
+- **Skills**: Data integrity testing, Python debugging, Power BI DAX/M validation
+- **Expected Outputs**: 
+  - Test reports confirming data accuracy
+  - Comparison logs (before/after) for Monthly Accrual fixes
+  - Path error resolution verification
+  - End-to-end validation checklist results
+
+#### **Power Query Agent** - Phases 3, 4, 5, 6.2, 7.1
+- **Tasks**: M code query updates (Outreach, Summons, Patrol restructure, SSOCC)
+- **Skills**: Power Query M language, dynamic file discovery, unpivoting, date parsing
+- **Expected Outputs**: 
+  - Updated M code with inline comments explaining logic
+  - Query refresh test logs confirming all queries load
+  - Dynamic file discovery implementation
+  - Patrol query restructured to match Detectives pattern
+
+#### **Report Enhancement Agent** - Phases 5.2, 7.3
+- **Tasks**: Summons automation for Patrol, SSOCC visual cards
+- **Skills**: Power BI measures, DAX, visual design, data model relationships
+- **Expected Outputs**: 
+  - New calculated columns/measures for Total Moving/Parking Summons
+  - SSOCC card visuals for service categories
+  - Table visual for monthly incident breakdown
+  - Documentation of measure formulas
+
+#### **Automation Agent** - Phase 7.2
+- **Tasks**: Export File Watchdog for TAS files
+- **Skills**: Python file monitoring, regex patterns, xlsx-to-csv conversion
+- **Expected Outputs**: 
+  - Updated `watchdog_service.py` with TAS pattern detection
+  - Folder auto-creation logic for YYYY_MM structure
+  - CSV conversion verification
+  - Test logs showing successful file processing
+
+### Execution Workflow and Dependencies
+
+**Phase Execution Order**:
+1. **Infrastructure Agent** (Phase 1) → Fix paths first - **CRITICAL GATE**
+2. **ETL Pipeline Agent** (Phase 2) → Fix data generation - **CRITICAL GATE**
+3. **Data Validation Agent** → Verify ETL outputs are correct
+4. **Power Query Agent** (Phases 3, 4, 6.2) → Update M code to consume fixed data
+5. **Power Query Agent** (Phase 5.1) → Restructure Patrol query
+6. **Report Enhancement Agent** (Phase 5.2) → Add Patrol summons automation
+7. **ETL Pipeline Agent** (Phase 6) → Run Policy Training ETL
+8. **Power Query Agent** (Phase 6.2) → Verify Policy Training queries
+9. **Automation Agent** (Phase 7.2) → Add TAS monitoring
+10. **Power Query Agent** (Phase 7.1) → Add SSOCC query
+11. **Report Enhancement Agent** (Phase 7.3) → Add SSOCC visuals
+12. **Infrastructure Agent** (Phase 8.1) → Final documentation
+13.

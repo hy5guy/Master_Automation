@@ -1,0 +1,533 @@
+42 -     BackfillWithAvg = Table.AddColumn(
+       43 -         BackfillWithMMYY,
+       44 -         "Average_Response_Time",
+       45 -         each let
+       46 -             timeStr = Text.Trim(Text.From([Response_Time_MMSS])),
+       47 -             parts = Text.Split(timeStr, ":"),
+       48 -             minutes = if List.Count(parts) >= 2 then
+       49 -                 let
+       50 -                     mins = Number.From(parts{0}),
+       51 -                     secs = Number.From(parts{1}),
+       52 -                     totalMins = mins + (secs / 60.0)
+       53 -                 in
+       54 -                     totalMins
+       55 -             else
+       56 -                 null
+       57 -         in
+       58 -             minutes,
+       59 -         type number
+       60 -     ),
+       61 -
+       62 -     // Add YearMonth from MM-YY (e.g., "11-24" -> "2024-11")
+       63 -     BackfillWithYearMonth = Table.AddColumn(
+       64 -         BackfillWithAvg,
+       65 -         "YearMonth",
+       66 -         each let
+       67 -             mmYY = Text.Trim(Text.From([#"MM-YY"])),
+       68 -             parts = Text.Split(mmYY, "-"),
+       69 -             yearMonth = if List.Count(parts) >= 2 then
+       70 -                 let
+       71 -                     mm = parts{0},
+       72 -                     yy = "20" & parts{1},
+       73 -                     yearMonthStr = yy & "-" & Text.PadStart(mm, 2, "0")
+       74 -                 in
+       75 -                     yearMonthStr
+       76 -             else
+       77 -                 null
+       78 -         in
+       79 -             yearMonth,
+       80 -         type text
+       81 -     ),
+       82 -
+       83 -     // Add Date_Sort_Key - proper date format (yyyy-mm-dd) for sorting
+       84 -     // For monthly data, use first day of month (yyyy-mm-01)
+       85 -     BackfillWithDateKey = Table.AddColumn(
+       86 -         BackfillWithYearMonth,
+       87 -         "Date_Sort_Key",
+       88 -         each let
+       89 -             yearMonth = [YearMonth],
+       90 -             // Convert "2024-11" to proper Date format "2024-11-01"
+       91 -             dateValue = try
+       92 -                 let
+       93 -                     // Ensure format is yyyy-mm-dd
+       94 -                     dateStr = yearMonth & "-01",
+       95 -                     parsed = Date.FromText(dateStr)
+       96 -                 in
+       97 -                     parsed
+       98 -             otherwise null
+       99 -         in
+      100 -             dateValue,
+      101 -         type date
+      102 -     ),
+      103 -
+      104 -     // ========================================================================
+      105 -     // LOAD NOVEMBER 2025 DATA (ETL Output)
+      106 -     // ========================================================================
+      107 -
+      108 -     Nov2025Raw = Csv.Document(
+      109 -         File.Contents("C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\2025_12_Average_Response_T
+          -imes__Values_are_in_mmss.csv"),
+      110 -         [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]
+      111 -     ),
+      112 -     Nov2025Headers = Table.PromoteHeaders(Nov2025Raw, [PromoteAllScalars=true]),
+      113 -
+      114 -     // Rename columns
+      115 -     Nov2025Renamed = Table.RenameColumns(
+      116 -         Nov2025Headers,
+      117 -         {
+      118 -             {"Response Type", "Response_Type"},
+      119 -             {"First Response_Time_MMSS", "Response_Time_MMSS"},
+      120 -             {"MM-YY", "MM-YY"}
+      121 -         },
+      122 -         MissingField.Ignore
+      123 -     ),
+      124 -
+      125 -     // Ensure MM-YY column exists
+      126 -     Nov2025WithMMYY = if Table.HasColumns(Nov2025Renamed, "MM-YY") then
+      127 -         Nov2025Renamed
+      128 -     else if Table.HasColumns(Nov2025Renamed, "MM_YY") then
+      129 -         Table.RenameColumns(Nov2025Renamed, {{"MM_YY", "MM-YY"}})
+      130 -     else
+      131 -         Nov2025Renamed,
+      132 -
+      133 -     // Calculate Average_Response_Time (CRITICAL - measures need this!) 134 -     Nov2025WithAvg = Table.AddColumn(
+      135 -         Nov2025WithMMYY,
+      136 -         "Average_Response_Time",
+      137 -         each let
+      138 -             timeStr = Text.Trim(Text.From([Response_Time_MMSS])),
+      139 -             parts = Text.Split(timeStr, ":"),
+      140 -             minutes = if List.Count(parts) >= 2 then
+      141 -                 let
+      142 -                     mins = Number.From(parts{0}),
+      143 -                     secs = Number.From(parts{1}),
+      144 -                     totalMins = mins + (secs / 60.0)
+      145 -                 in
+      146 -                     totalMins
+      147 -             else
+      148 -                 null
+      149 -         in
+      150 -             minutes,
+      151 -         type number
+      152 -     ),
+      153 -
+      154 -     // Add YearMonth
+      155 -     Nov2025WithYearMonth = Table.AddColumn(
+      156 -         Nov2025WithAvg,
+      157 -         "YearMonth",
+      158 -         each let
+      159 -             mmYY = Text.Trim(Text.From([#"MM-YY"])),
+      160 -             parts = Text.Split(mmYY, "-"),
+      161 -             yearMonth = if List.Count(parts) >= 2 then
+      162 -                 let
+      163 -                     mm = parts{0},
+      164 -                     yy = "20" & parts{1},
+      165 -                     yearMonthStr = yy & "-" & Text.PadStart(mm, 2, "0")
+      166 -                 in
+      167 -                     yearMonthStr
+      168 -             else
+      169 -                 null
+      170 -         in
+      171 -             yearMonth,
+      172 -         type text
+      173 -     ),
+      174 -
+      175 -     // Add Date_Sort_Key - proper date format (yyyy-mm-dd) for sorting
+      176 -     // For monthly data, use first day of month (yyyy-mm-01)
+      177 -     Nov2025WithDateKey = Table.AddColumn(
+      178 -         Nov2025WithYearMonth,
+      179 -         "Date_Sort_Key",
+      180 -         each let
+      181 -             yearMonth = [YearMonth],
+      182 -             // Convert "2025-11" to proper Date format "2025-11-01"
+      183 -             dateValue = try
+      184 -                 let
+      185 -                     // Ensure format is yyyy-mm-dd
+      186 -                     dateStr = yearMonth & "-01",
+      187 -                     parsed = Date.FromText(dateStr)
+      188 -                 in
+      189 -                     parsed
+      190 -             otherwise null
+      191 -         in
+      192 -             dateValue,
+      193 -         type date
+      194 -     ),
+      195 -
+      196 -     // ========================================================================
+      197 -     // COMBINE DATASETS
+      198 -     // ========================================================================
+      199 -
+      200 -     Combined = Table.Combine({BackfillWithDateKey, Nov2025WithDateKey}),
+      201 -
+      202 -     // ========================================================================
+      203 -     // ENSURE ALL REQUIRED COLUMNS EXIST AND ARE CORRECT TYPE
+      204 -     // ========================================================================
+      205 -
+      206 -     // Verify Average_Response_Time exists (this fixes the measure errors)
+      207 -     Verified = if Table.HasColumns(Combined, "Average_Response_Time") then
+      208 -         // Ensure it's numeric type
+      209 -         Table.TransformColumnTypes(
+      210 -             Combined,
+      211 -             {{"Average_Response_Time", type number}},
+      212 -             "en-US"
+      213 -         )
+      214 -     else
+      215 -         // If somehow missing, add it (shouldn't happen but safety check)
+      216 -         Table.AddColumn(Combined, "Average_Response_Time", each null, type number),
+      217 -
+      218 -     // Ensure Response_Type is text and Average_Response_Time is number
+      219 -     Typed = Table.TransformColumnTypes(
+      220 -         Verified,
+      221 -         {
+      222 -             {"Response_Type", type text},
+      223 -             {"Response_Time_MMSS", type text},
+      224 -             {"MM-YY", type text},
+      225 -             {"YearMonth", type text},
+      226 -             {"Date_Sort_Key", type date},
+      227 -             {"Average_Response_Time", type number}  // Explicitly ensure type is set
+      228 -         },
+      229 -         "en-US"
+      230 -     ),
+      231 -
+      232 -     // ========================================================================
+      233 -     // ADD COLUMNS THAT DAX MEASURES EXPECT (Summary_Type, Category, Date)
+      234 -     // ========================================================================
+      235 -
+      236 -     // Add Summary_Type and Category columns (for DAX compatibility)
+      237 -     WithDAXColumns = Table.AddColumn(
+      238 -         Table.AddColumn(
+      239 -             Typed,
+      240 -             "Summary_Type",
+      241 -             each "Response_Type",
+      242 -             type text
+      243 -         ),
+      244 -         "Category",
+      245 -         each [Response_Type],
+      246 -         type text
+      247 -     ),
+      248 -
+      249 -     // Add Date column (alias for Date_Sort_Key for DAX compatibility)
+      250 -     WithDateColumn = Table.AddColumn(
+      251 -         WithDAXColumns,
+      252 -         "Date",
+      253 -         each [Date_Sort_Key],
+      254 -         type date
+      255 -     ),
+      256 -
+      257 -     // ========================================================================
+      258 -     // SELECT FINAL COLUMNS IN CORRECT ORDER
+      259 -     // ========================================================================
+      260 -
+      261 -     // Final verification: Ensure Average_Response_Time exists before selecting
+      262 -     FinalVerified = if Table.HasColumns(WithDateColumn, "Average_Response_Time") then
+      263 -         WithDateColumn
+      264 -     else
+      265 -         // Emergency fallback: Add the column if missing
+      266 -         Table.AddColumn(
+      267 -             WithDateColumn,
+      268 -             "Average_Response_Time",
+      269 -             each null,
+      270 -             type number
+      271 -         ),
+      272 -
+      273 -     // Select columns - include all columns needed for DAX measures
+      274 -     Result = Table.SelectColumns(
+      275 -         FinalVerified,
+      276 -         {
+      277 -             "YearMonth",
+      278 -             "Date_Sort_Key",      // Date sort key for chronological sorting
+      279 -             "Date",               // Date column (alias) for DAX measures
+      280 -             "Response_Type",
+      281 -             "Summary_Type",       // For DAX compatibility
+      282 -             "Category",           // For DAX compatibility (matches Response_Type)
+      283 -             "Average_Response_Time",  // ← THIS COLUMN FIXES THE MEASURE ERRORS! 284 -             "Response_Time_MMSS",
+      285 -             "MM-YY"
+      286 -         }
+      287 -     )
+      288 -
+      289 - in
+      290 -     Result
+      291 -
+      292 - // ==============================================================================
+      293 - // KEY POINTS:
+      294 - // 1. Average_Response_Time column is CREATED and VERIFIED to exist
+      295 - // 2. Date_Sort_Key added as proper Date type in yyyy-mm-dd format
+      296 - //    - For monthly aggregated data, uses first day of month (yyyy-mm-01)
+      297 - //    - Example: "2024-11" becomes Date(2024-11-01)
+      298 - // 3. Date column added as alias to Date_Sort_Key (for DAX measure compatibility)
+      299 - // 4. Summary_Type and Category columns added (for DAX measure compatibility)
+      300 - // 5. Column types are explicitly set to ensure compatibility
+      301 - // 6. All required columns are selected in final output
+      302 - // ==============================================================================
+        1  \ No newline at end of file
+        2 + // ==============================================================================
+        3 + // RESPONSE TIMES M CODE - UPDATED FOR DECEMBER 2024 - DECEMBER 2025
+        4 + // Query Name: response_time_calculator
+        5 + // ==============================================================================
+        6 + // VERSION: 2.0.0
+        7 + // UPDATED: 2026-01-14
+        8 + //
+        9 + // CHANGES FROM PREVIOUS VERSION:
+       10 + // 1. Updated file paths from C:\Dev\PowerBI_Date\ to OneDrive location
+       11 + // 2. Loads data covering December 2024 through November 2025 (12 months)
+       12 + // 3. December 2025 will be added when CAD data is processed
+       13 + // 4. Filters data to only include target date range
+       14 + // 5. Improved error handling and code structure
+       15 + //
+       16 + // DATA SOURCES:
+       17 + // - Backfill (Dec 2024 - Oct 2025): 2025_10 folder
+       18 + // - November 2025: 2025_12 folder
+       19 + // ==============================================================================
+       20 +
+       21 + let
+       22 +     // ========================================================================
+       23 +     // CONFIGURATION - Update these paths if needed
+       24 +     // ========================================================================
+       25 +
+       26 +     BasePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\",
+       27 +
+       28 +     // Target date range (MM-YY format for filtering)
+       29 +     TargetMonths = {
+       30 +         "12-24", "01-25", "02-25", "03-25", "04-25", "05-25",
+       31 +         "06-25", "07-25", "08-25", "09-25", "10-25", "11-25", "12-25"
+       32 +     },
+       33 +
+       34 +     // ========================================================================
+       35 +     // HELPER FUNCTION: Process a CSV file
+       36 +     // ========================================================================
+       37 +
+       38 +     ProcessCSV = (filePath as text) as table =>
+       39 +         let
+       40 +             // Load CSV
+       41 +             RawData = Csv.Document(
+       42 +                 File.Contents(filePath),
+       43 +                 [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.None]
+       44 +             ),
+       45 +             WithHeaders = Table.PromoteHeaders(RawData, [PromoteAllScalars=true]),
+       46 +
+       47 +             // Standardize column names
+       48 +             Renamed = Table.RenameColumns(
+       49 +                 WithHeaders,
+       50 +                 {
+       51 +                     {"Response Type", "Response_Type"},
+       52 +                     {"First Response_Time_MMSS", "Response_Time_MMSS"}
+       53 +                 },
+       54 +                 MissingField.Ignore
+       55 +             ),
+       56 +
+       57 +             // Ensure MM-YY column exists
+       58 +             WithMMYY = if Table.HasColumns(Renamed, "MM-YY") then
+       59 +                 Renamed
+       60 +             else if Table.HasColumns(Renamed, "MM_YY") then
+       61 +                 Table.RenameColumns(Renamed, {{"MM_YY", "MM-YY"}})
+       62 +             else
+       63 +                 Renamed
+       64 +         in
+       65 +             WithMMYY,
+       66 +
+       67 +     // ========================================================================
+       68 +     // LOAD DATA SOURCES
+       69 +     // ========================================================================
+       70 +
+       71 +     // Source 1: Backfill data (Dec 2024 - Oct 2025)
+       72 +     BackfillPath = BasePath & "2025_10\response_time\2025_10_Average Response Times  Values are in
+          +mmss.csv",
+       73 +     BackfillData = ProcessCSV(BackfillPath),
+       74 +
+       75 +     // Source 2: November 2025 data
+       76 +     Nov2025Path = BasePath &
+          +"2025_12\response_time\2025_11_Average_Response_Times__Values_are_in_mmss.csv",
+       77 +     Nov2025Data = try ProcessCSV(Nov2025Path) otherwise #table({"Response_Type", "MM-YY",
+          +"Response_Time_MMSS"}, {}),
+       78 +
+       79 +     // Source 3: December 2025 data (if available)
+       80 +     Dec2025Path = BasePath & "2025_12\response_time\2025_12_response_times_current.csv",
+       81 +     Dec2025Data = try ProcessCSV(Dec2025Path) otherwise #table({"Response_Type", "MM-YY",
+          +"Response_Time_MMSS"}, {}),
+       82 +
+       83 +     // ========================================================================
+       84 +     // COMBINE ALL DATA SOURCES
+       85 +     // ========================================================================
+       86 +
+       87 +     Combined = Table.Combine({BackfillData, Nov2025Data, Dec2025Data}),
+       88 +
+       89 +     // ========================================================================
+       90 +     // FILTER TO TARGET DATE RANGE (Dec 2024 - Dec 2025)
+       91 +     // ========================================================================
+       92 +
+       93 +     Filtered = Table.SelectRows(Combined, each List.Contains(TargetMonths, [#"MM-YY"])),
+       94 +
+       95 +     // ========================================================================
+       96 +     // REMOVE DUPLICATES (keep latest for each month/response type)
+       97 +     // ========================================================================
+       98 +
+       99 +     // Sort to get most recent data first, then remove duplicates
+      100 +     Sorted = Table.Sort(Filtered, {{"MM-YY", Order.Descending}, {"Response_Type",
+          +Order.Ascending}}),
+      101 +     Deduplicated = Table.Distinct(Sorted, {"MM-YY", "Response_Type"}),
+      102 +
+      103 +     // ========================================================================
+      104 +     // ADD CALCULATED COLUMNS
+      105 +     // ========================================================================
+      106 +
+      107 +     // Calculate Average_Response_Time from MM:SS format
+      108 +     WithAvgTime = Table.AddColumn(
+      109 +         Deduplicated,
+      110 +         "Average_Response_Time",
+      111 +         each let
+      112 +             timeStr = Text.Trim(Text.From([Response_Time_MMSS])),
+      113 +             parts = Text.Split(timeStr, ":"),
+      114 +             minutes = if List.Count(parts) >= 2 then
+      115 +                 let
+      116 +                     mins = try Number.From(parts{0}) otherwise 0,
+      117 +                     secs = try Number.From(parts{1}) otherwise 0,
+      118 +                     totalMins = mins + (secs / 60.0)
+      119 +                 in
+      120 +                     totalMins
+      121 +             else
+      122 +                 null
+      123 +         in
+      124 +             minutes,
+      125 +         type number
+      126 +     ),
+      127 +
+      128 +     // Add YearMonth from MM-YY (e.g., "12-24" -> "2024-12")
+      129 +     WithYearMonth = Table.AddColumn(
+      130 +         WithAvgTime,
+      131 +         "YearMonth",
+      132 +         each let
+      133 +             mmYY = Text.Trim(Text.From([#"MM-YY"])),
+      134 +             parts = Text.Split(mmYY, "-"),
+      135 +             yearMonth = if List.Count(parts) >= 2 then
+      136 +                 let
+      137 +                     mm = parts{0},
+      138 +                     yy = "20" & parts{1},
+      139 +                     yearMonthStr = yy & "-" & Text.PadStart(mm, 2, "0")
+      140 +                 in
+      141 +                     yearMonthStr
+      142 +             else
+      143 +                 null
+      144 +         in
+      145 +             yearMonth,
+      146 +         type text
+      147 +     ),
+      148 +
+      149 +     // Add Date_Sort_Key - proper date type for sorting (first day of month)
+      150 +     WithDateKey = Table.AddColumn(
+      151 +         WithYearMonth,
+      152 +         "Date_Sort_Key",
+      153 +         each let
+      154 +             yearMonth = [YearMonth],
+      155 +             dateValue = try
+      156 +                 Date.FromText(yearMonth & "-01")
+      157 +             otherwise null
+      158 +         in
+      159 +             dateValue,
+      160 +         type date
+      161 +     ),
+      162 +
+      163 +     // ========================================================================
+      164 +     // ADD DAX COMPATIBILITY COLUMNS
+      165 +     // ========================================================================
+      166 +
+      167 +     // Add Summary_Type column
+      168 +     WithSummaryType = Table.AddColumn(
+      169 +         WithDateKey,
+      170 +         "Summary_Type",
+      171 +         each "Response_Type",
+      172 +         type text
+      173 +     ),
+      174 +
+      175 +     // Add Category column (same as Response_Type for compatibility)
+      176 +     WithCategory = Table.AddColumn(
+      177 +         WithSummaryType,
+      178 +         "Category",
+      179 +         each [Response_Type],
+      180 +         type text
+      181 +     ),
+      182 +
+      183 +     // Add Date column (alias for Date_Sort_Key)
+      184 +     WithDate = Table.AddColumn(
+      185 +         WithCategory,
+      186 +         "Date",
+      187 +         each [Date_Sort_Key],
+      188 +         type date
+      189 +     ),
+      190 +
+      191 +     // ========================================================================
+      192 +     // SET COLUMN TYPES
+      193 +     // ========================================================================
+      194 +
+      195 +     Typed = Table.TransformColumnTypes(
+      196 +         WithDate,
+      197 +         {
+      198 +             {"Response_Type", type text},
+      199 +             {"Response_Time_MMSS", type text},
+      200 +             {"MM-YY", type text},
+      201 +             {"YearMonth", type text},
+      202 +             {"Date_Sort_Key", type date},
+      203 +             {"Date", type date},
+      204 +             {"Average_Response_Time", type number},
+      205 +             {"Summary_Type", type text},
+      206 +             {"Category", type text}
+      207 +         },
+      208 +         "en-US"
+      209 +     ),
+      210 +
+      211 +     // ========================================================================
+      212 +     // SELECT AND ORDER FINAL COLUMNS
+      213 +     // ========================================================================
+      214 +
+      215 +     Result = Table.SelectColumns(
+      216 +         Typed,
+      217 +         {
+      218 +             "YearMonth",
+      219 +             "Date_Sort_Key",
+      220 +             "Date",
+      221 +             "Response_Type",
+      222 +             "Summary_Type",
+      223 +             "Category",
+      224 +             "Average_Response_Time",
+      225 +             "Response_Time_MMSS",
+      226 +             "MM-YY"
+      227 +         }
+      228 +     ),
+      229 +
+      230 +     // Sort by date and response type for clean output
+      231 +     FinalSorted = Table.Sort(Result, {{"Date_Sort_Key", Order.Ascending}, {"Response_Type",
+          +Order.Ascending}})
+      232 +
+      233 + in
+      234 +     FinalSorted
+      235 +
+      236 + // ==============================================================================
+      237 + // OUTPUT COLUMNS:
+      238 + // - YearMonth (text): "2024-12", "2025-01", etc. 239 + // - Date_Sort_Key (date): Date type for sorting (first day of month)
+      240 + // - Date (date): Alias for Date_Sort_Key (DAX compatibility)
+      241 + // - Response_Type (text): "Emergency", "Routine", "Urgent"
+      242 + // - Summary_Type (text): "Response_Type" (DAX compatibility)
+      243 + // - Category (text): Same as Response_Type (DAX compatibility)
+      244 + // - Average_Response_Time (number): Decimal minutes (e.g., 3.28 = 3:17)
+      245 + // - Response_Time_MMSS (text): Original MM:SS format (e.g., "3:17")
+      246 + // - MM-YY (text): Month-Year format (e.g., "12-24")
+      247 + //
+      248 + // DATA COVERAGE:
+      249 + // - December 2024 through November 2025 (12 months currently)
+      250 + // - December 2025 will be added when ETL generates the data
+      251 + //
+      252 + // TO ADD DECEMBER 2025:
+      253 + // 1. Sync the CAD source file from OneDrive
+      254 + // 2. Run the ETL script: response_time_monthly_generator.py
+      255 + // 3. Refresh this Power BI query
+      256 + // ==============================================================================
+
+● Now let me create the ETL script that will generate monthly CSV files once the CAD file is synced. ● Write(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\response_time_monthly_generator.py)
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ Create file ..\02_ETL_Scripts\Response_Times\response_time_monthly_generator.py
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+ #!/usr/bin/env python3
+ """
+ Response Time Monthly CSV Generator
+
+ Processes consolidated CAD export file and generates monthly average response time
+ CSV files for Power BI integration.

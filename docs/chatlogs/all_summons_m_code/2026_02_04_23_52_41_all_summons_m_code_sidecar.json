@@ -1,0 +1,66 @@
+{
+  "source_file": "all_summons_m_code.txt",
+  "source_path": "C:\\_chunker\\02_data\\all_summons_m_code.txt",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\all_summons_m_code\\2026_02_04_23_52_41_all_summons_m_code.origin.json",
+  "created_at": "2026_02_04_23_52_41",
+  "tags": [
+    "data",
+    "excel",
+    "json",
+    "legal",
+    "police",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "notes",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "type",
+      "text",
+      "table",
+      "null",
+      "each",
+      "then"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "// ___Summons\n// ___Summons\n// 🕒 2025-09-08-15-45-00\n// Summons_Analytics/ATS_Court_Data_Enhanced\n// Author: R. A.",
+    "first_line": "// ___Summons"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-04T23:52:41+00:00_all_summons_m_code_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "data",
+        "each",
+        "excel",
+        "json",
+        "legal",
+        "null",
+        "police",
+        "sql",
+        "table",
+        "text",
+        "then",
+        "type"
+      ],
+      "key_terms": [
+        "type",
+        "text",
+        "table",
+        "null",
+        "each",
+        "then"
+      ],
+      "summary": "// ___Summons\n// ___Summons\n// 🕒 2025-09-08-15-45-00\n// Summons_Analytics/ATS_Court_Data_Enhanced\n// Author: R.",
+      "char_length": 15524,
+      "byte_length": 15948
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

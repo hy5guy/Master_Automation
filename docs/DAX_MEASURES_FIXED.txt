@@ -1,0 +1,45 @@
+// Fixed DAX Measures for ___Summons
+
+// ISSUE: Simple COUNTROWS doesn't respect visual context (TYPE and Month_Year filters)
+
+// FIXED VERSION 1: Count rows respecting current context (RECOMMENDED)
+___Total Tickets = 
+    COUNTROWS('___Summons')
+
+// This will automatically respect filters from:
+// - Visual row context (TYPE, Month_Year)
+// - Slicers
+// - Other filters applied to the visual
+
+// If the above doesn't work, try this explicit version:
+___Total Tickets = 
+    CALCULATE(
+        COUNTROWS('___Summons'),
+        ALLSELECTED('___Summons')
+    )
+
+// FIXED VERSION 2: Explicit context (if Version 1 doesn't work)
+___Total Tickets = 
+    VAR CurrentType = SELECTEDVALUE('___Summons'[TYPE])
+    VAR CurrentMonth = SELECTEDVALUE('___Summons'[Month_Year])
+    RETURN
+        IF(
+            NOT(ISBLANK(CurrentType)) && NOT(ISBLANK(CurrentMonth)),
+            CALCULATE(
+                COUNTROWS('___Summons'),
+                '___Summons'[TYPE] = CurrentType,
+                '___Summons'[Month_Year] = CurrentMonth
+            ),
+            COUNTROWS('___Summons')
+        )
+
+// FIXED VERSION 3: For matrix/table visuals with TYPE and Month_Year (BEST FOR YOUR VISUAL)
+___Total Tickets = 
+    CALCULATE(
+        COUNTROWS('___Summons'),
+        VALUES('___Summons'[TYPE]),
+        VALUES('___Summons'[Month_Year])
+    )
+
+// RECOMMENDED: Try Version 1 first (simplest)
+// If that doesn't work, use Version 3 for matrix/table visuals

@@ -1,0 +1,40 @@
+// Fixed DAX Measure for ___Total Tickets
+// Works in both detail context (TYPE + Month_Year) and total context
+
+___Total Tickets = 
+    COUNTROWS('___Summons')
+
+// If the above doesn't work for totals, use this version:
+
+___Total Tickets = 
+    CALCULATE(
+        COUNTROWS('___Summons'),
+        ALLEXCEPT('___Summons', '___Summons'[TYPE], '___Summons'[Month_Year])
+    )
+
+// BEST VERSION - Handles all contexts (detail, totals, cards):
+___Total Tickets = 
+    VAR HasTypeContext = HASONEVALUE('___Summons'[TYPE])
+    VAR HasMonthContext = HASONEVALUE('___Summons'[Month_Year])
+    RETURN
+        IF(
+            HasTypeContext && HasMonthContext,
+            // Detail level: count rows for specific TYPE and Month_Year
+            COUNTROWS('___Summons'),
+            IF(
+                HasTypeContext || HasMonthContext,
+                // Partial context: count rows for TYPE or Month_Year
+                COUNTROWS('___Summons'),
+                // Total context: count all rows
+                COUNTROWS('___Summons')
+            )
+        )
+
+// SIMPLEST VERSION (should work for everything):
+___Total Tickets = COUNTROWS('___Summons')
+
+// If totals are still blank, the issue might be:
+// 1. Blank values in TYPE or Month_Year columns
+// 2. Filters applied to the visual
+// 3. The visual needs to show blank() for empty combinations
+

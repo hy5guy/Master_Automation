@@ -1,0 +1,680 @@
+---
+
+## 1) Fix `___Top_5_Parking_Violations`
+### What changes
+- Add `TICKET_COUNT` to `Changed Type`
+- Use **`List.Sum([TICKET_COUNT])`** instead of `Table.RowCount(_)`
+- Use an **Officer_Effective** fallback (display name → raw name)
+
+### Drop-in M code (replace your parking query)
+```powerquery
+let
+    ExcelPath = "C:/Users/carucci_r/OneDrive - City of Hackensack/03_Staging/Summons/summons_powerbi_latest.xlsx",
+
+    Source = Excel.Workbook(File.Contents(ExcelPath), null, true),
+    Sheet  = Source{[Item="Summons_Data", Kind="Sheet"]}[Data],
+    Hdr    = Table.PromoteHeaders(Sheet, [PromoteAllScalars=true]),
+
+    Typed = Table.TransformColumnTypes(
+        Hdr,
+        {
+            {"PADDED_BADGE_NUMBER", type text},
+            {"OFFICER_DISPLAY_NAME", type text},
+            {"OFFICER_NAME_RAW", type text},
+            {"WG1", type text}, {"WG2", type text}, {"WG3", type text},
+            {"WG4", type text}, {"WG5", type text},
+            {"TICKET_NUMBER", type text},
+            {"ISSUE_DATE", type datetime},
+            {"VIOLATION_NUMBER", type text},
+            {"VIOLATION_TYPE", type text},
+            {"TYPE", type text}, {"STATUS", type text},
+            {"Year", Int64.Type}, {"Month", Int64.Type},
+            {"YearMonthKey", Int64.Type}, {"Month_Year", type text},
+            {"ASSIGNMENT_FOUND", type logical},
+            {"SOURCE_FILE", type text},
+            {"PROCESSING_TIMESTAMP", type datetime},
+            {"ETL_VERSION", type text},
+            {"TICKET_COUNT", Int64.Type}
+        }
+    ),
+
+    MaxYMK = List.Max(Typed[YearMonthKey]),
+    Recent = Table.SelectRows(Typed, each [YearMonthKey] = MaxYMK),
+
+    Parking = Table.SelectRows(Recent, each [TYPE] = "P"),
+    Assigned = Table.SelectRows(Parking, each [WG2] <> null and [WG2] <> ""),
+
+    WithOfficer =
+        Table.AddColumn(
+            Assigned,
+            "Officer_Effective",
+            each if [OFFICER_DISPLAY_NAME] <> null and [OFFICER_DISPLAY_NAME] <> ""
+                 then [OFFICER_DISPLAY_NAME]
+                 else [OFFICER_NAME_RAW],
+            type text
+        ),
+
+    Grouped = Table.Group(
+        WithOfficer,
+        {"Officer_Effective", "WG2"},
+        {{"Summons Count", each List.Sum([TICKET_COUNT]), Int64.Type}}
+    ),
+
+    Sorted = Table.Sort(Grouped, {{"Summons Count", Order.Descending}}),
+    Top5   = Table.FirstN(Sorted, 5),
+    Ranked = Table.AddIndexColumn(Top5, "Rank", 1, 1),
+
+    Renamed = Table.RenameColumns(Ranked, {{"Officer_Effective","Officer"}, {"WG2","Bureau"}}),
+    Final   = Table.ReorderColumns(Renamed, {"Rank","Officer","Bureau","Summons Count"})
+in
+    Final
+```
+
+---
+
+## 2) Fix `___Top_5_Moving_Violations`
+### What changes
+- Add `OFFICER_NAME_RAW` and `TICKET_COUNT` to `XlType`
+- Normalize badge join key properly (strip non-digits + **pad to 4**)
+- Use **`List.Sum([TICKET_COUNT])`** instead of `Table.RowCount(_)`
+
+### Drop-in M code (replace your moving query)
+```powerquery
+let
+  ExcelPath = "C:/Users/carucci_r/OneDrive - City of Hackensack/03_Staging/Summons/summons_powerbi_latest.xlsx",
+  AMPath    = "C:/Users/carucci_r/OneDrive - City of Hackensack/09_Reference/Personnel/Assignment_Master_V2.csv",
+
+  // Load Excel
+  XlWB   = Excel.Workbook(File.Contents(ExcelPath), null, true),
+  XlRaw  = XlWB{[Item="Summons_Data", Kind="Sheet"]}[Data],
+  XlHdr  = Table.PromoteHeaders(XlRaw, [PromoteAllScalars=true]),
+  XlType = Table.TransformColumnTypes(
+             XlHdr,
+             {
+               {"PADDED_BADGE_NUMBER", type text},
+               {"OFFICER_DISPLAY_NAME", type text},
+               {"OFFICER_NAME_RAW", type text},
+               {"WG1", type text}, {"WG2", type text}, {"WG3", type text},
+               {"WG4", type text}, {"WG5", type text},
+               {"TICKET_NUMBER", type text},
+               {"ISSUE_DATE", type datetime},
+               {"VIOLATION_NUMBER", type text},
+               {"VIOLATION_TYPE", type text},
+               {"TYPE", type text}, {"STATUS", type text},
+               {"Year", Int64.Type}, {"Month", Int64.Type},
+               {"YearMonthKey", Int64.Type}, {"Month_Year", type text},
+               {"ASSIGNMENT_FOUND", type logical},
+               {"SOURCE_FILE", type text},
+               {"PROCESSING_TIMESTAMP", type datetime},
+               {"ETL_VERSION", type text},
+               {"TICKET_COUNT", Int64.Type}
+             }
+           ),
+
+  // Load Assignment Master
+  AM_Csv  = Csv.Document(File.Contents(AMPath), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+  AM_Hdr  = Table.PromoteHeaders(AM_Csv, [PromoteAllScalars=true]),
+
+  // Helper: digits-only + pad to 4
+  NormalizeBadge = (x as any) as text =>
+      let
+        s = try Text.From(x) otherwise "",
+        digits = Text.Select(s, {"0".."9"}),
+        padded = Text.PadStart(digits, 4, "0")
+      in
+        if digits = "" then "" else padded,
+
+  // Normalize join keys in AM
+  AM_KeyPrep = Table.AddColumn(AM_Hdr, "KEY_BADGE", each NormalizeBadge(Record.FieldOrDefault(_, "PADDED_BADGE_NUMBER", "")), type text),
+  AM_Slim    = Table.SelectColumns(AM_KeyPrep, {"KEY_BADGE", "WG2"}, MissingField.Ignore),
+
+  // Normalize join keys in Excel
+  Xl_KeyPrep = Table.AddColumn(XlType, "KEY_BADGE", each NormalizeBadge([PADDED_BADGE_NUMBER]), type text),
+
+  // Merge to bring WG2 from AM
+  Merged   = Table.NestedJoin(Xl_KeyPrep, {"KEY_BADGE"}, AM_Slim, {"KEY_BADGE"}, "AM", JoinKind.LeftOuter),
+  Expanded = Table.ExpandTableColumn(Merged, "AM", {"WG2"}, {"WG2_AM"}),
+
+  // Fill WG2 from AM when missing in Excel
+  WithWG2  = Table.AddColumn(
+               Expanded,
+               "WG2_Filled",
+               each if [WG2] <> null and [WG2] <> "" then [WG2] else [WG2_AM],
+               type text
+             ),
+
+  // Most recent month
+  MaxYMK   = List.Max(WithWG2[YearMonthKey]),
+  Recent   = Table.SelectRows(WithWG2, each [YearMonthKey] = MaxYMK),
+
+  // Moving only
+  Moving   = Table.SelectRows(Recent, each [TYPE] = "M"),
+
+  // Officer fallback if display is missing
+  WithOfficer = Table.AddColumn(
+                  Moving,
+                  "Officer_Effective",
+                  each if [OFFICER_DISPLAY_NAME] <> null and [OFFICER_DISPLAY_NAME] <> ""
+                       then [OFFICER_DISPLAY_NAME]
+                       else [OFFICER_NAME_RAW],
+                  type text
+                ),
+
+  Assigned = Table.SelectRows(WithOfficer, each [WG2_Filled] <> null and [WG2_Filled] <> ""),
+
+  // SUM ticket counts, don't count rows
+  Grouped  = Table.Group(
+               Assigned,
+               {"Officer_Effective", "WG2_Filled"},
+               {{"Summons Count", each List.Sum([TICKET_COUNT]), Int64.Type}}
+             ),
+
+  Sorted   = Table.Sort(Grouped, {{"Summons Count", Order.Descending}}),
+  Top5     = Table.FirstN(Sorted, 5),
+  Ranked   = Table.AddIndexColumn(Top5, "Rank", 1, 1),
+
+  Renamed  = Table.RenameColumns(Ranked, {{"Officer_Effective", "Officer"}, {"WG2_Filled", "Bureau"}}),
+  Final    = Table.ReorderColumns(Renamed, {"Rank", "Officer", "Bureau", "Summons Count"})
+in
+  Final
+```
+
+---
+
+## Why your exported Top‑5 files looked impossible
+With the current `summons_powerbi_latest.xlsx` for **11‑25**, dept-wide is **M=77** and **P=2086**. So any Top‑5 Moving number like **65** can only come from a query that’s **not reconciling** (rowcount vs sum, stale refresh, or a different workbook version). The changes above eliminate the biggest cause: **RowCount vs Sum(TICKET_COUNT)** plus **badge join failures**. If you want, send the refreshed Top‑5 exports after updating the M code and I’ll confirm they reconcile to the dept-wide totals automatically. ```plaintext
+let
+    ExcelPath = "C:/Users/carucci_r/OneDrive - City of Hackensack/03_Staging/Summons/summons_powerbi_latest.xlsx",
+
+    Source = Excel.Workbook(File.Contents(ExcelPath), null, true),
+    Sheet  = Source{[Item="Summons_Data", Kind="Sheet"]}[Data],
+    Hdr    = Table.PromoteHeaders(Sheet, [PromoteAllScalars=true]),
+
+    Typed = Table.TransformColumnTypes(
+        Hdr,
+        {
+            {"PADDED_BADGE_NUMBER", type text},
+            {"OFFICER_DISPLAY_NAME", type text},
+            {"OFFICER_NAME_RAW", type text},
+            {"WG1", type text}, {"WG2", type text}, {"WG3", type text},
+            {"WG4", type text}, {"WG5", type text},
+            {"TICKET_NUMBER", type text},
+            {"ISSUE_DATE", type datetime},
+            {"VIOLATION_NUMBER", type text},
+            {"VIOLATION_TYPE", type text},
+            {"TYPE", type text}, {"STATUS", type text},
+            {"Year", Int64.Type}, {"Month", Int64.Type},
+            {"YearMonthKey", Int64.Type}, {"Month_Year", type text},
+            {"ASSIGNMENT_FOUND", type logical},
+            {"SOURCE_FILE", type text},
+            {"PROCESSING_TIMESTAMP", type datetime},
+            {"ETL_VERSION", type text},
+            {"TICKET_COUNT", Int64.Type}
+        }
+    ),
+
+    MaxYMK = List.Max(Typed[YearMonthKey]),
+    Recent = Table.SelectRows(Typed, each [YearMonthKey] = MaxYMK),
+
+    Parking = Table.SelectRows(Recent, each [TYPE] = "P"),
+    Assigned = Table.SelectRows(Parking, each [WG2] <> null and [WG2] <> ""),
+
+    WithOfficer =
+        Table.AddColumn(
+            Assigned,
+            "Officer_Effective",
+            each if [OFFICER_DISPLAY_NAME] <> null and [OFFICER_DISPLAY_NAME] <> ""
+                 then [OFFICER_DISPLAY_NAME]
+                 else [OFFICER_NAME_RAW],
+            type text
+        ),
+
+    Grouped = Table.Group(
+        WithOfficer,
+        {"Officer_Effective", "WG2"},
+        {{"Summons Count", each List.Sum([TICKET_COUNT]), Int64.Type}}
+    ),
+
+    Sorted = Table.Sort(Grouped, {{"Summons Count", Order.Descending}}),
+    Top5   = Table.FirstN(Sorted, 5),
+    Ranked = Table.AddIndexColumn(Top5, "Rank", 1, 1),
+
+    Renamed = Table.RenameColumns(Ranked, {{"Officer_Effective","Officer"}, {"WG2","Bureau"}}),
+    Final   = Table.ReorderColumns(Renamed, {"Rank","Officer","Bureau","Summons Count"})
+in
+    Final
+```
+
+```plaintext
+let
+  ExcelPath = "C:/Users/carucci_r/OneDrive - City of Hackensack/03_Staging/Summons/summons_powerbi_latest.xlsx",
+  AMPath    = "C:/Users/carucci_r/OneDrive - City of Hackensack/09_Reference/Personnel/Assignment_Master_V2.csv",
+
+  // Load Excel
+  XlWB   = Excel.Workbook(File.Contents(ExcelPath), null, true),
+  XlRaw  = XlWB{[Item="Summons_Data", Kind="Sheet"]}[Data],
+  XlHdr  = Table.PromoteHeaders(XlRaw, [PromoteAllScalars=true]),
+  XlType = Table.TransformColumnTypes(
+             XlHdr,
+             {
+               {"PADDED_BADGE_NUMBER", type text},
+               {"OFFICER_DISPLAY_NAME", type text},
+               {"OFFICER_NAME_RAW", type text},
+               {"WG1", type text}, {"WG2", type text}, {"WG3", type text},
+               {"WG4", type text}, {"WG5", type text},
+               {"TICKET_NUMBER", type text},
+               {"ISSUE_DATE", type datetime},
+               {"VIOLATION_NUMBER", type text},
+               {"VIOLATION_TYPE", type text},
+               {"TYPE", type text}, {"STATUS", type text},
+               {"Year", Int64.Type}, {"Month", Int64.Type},
+               {"YearMonthKey", Int64.Type}, {"Month_Year", type text},
+               {"ASSIGNMENT_FOUND", type logical},
+               {"SOURCE_FILE", type text},
+               {"PROCESSING_TIMESTAMP", type datetime},
+               {"ETL_VERSION", type text},
+               {"TICKET_COUNT", Int64.Type}
+             }
+           ),
+
+  // Load Assignment Master
+  AM_Csv  = Csv.Document(File.Contents(AMPath), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+  AM_Hdr  = Table.PromoteHeaders(AM_Csv, [PromoteAllScalars=true]),
+
+  // Helper: digits-only + pad to 4
+  NormalizeBadge = (x as any) as text =>
+      let
+        s = try Text.From(x) otherwise "",
+        digits = Text.Select(s, {"0".."9"}),
+        padded = Text.PadStart(digits, 4, "0")
+      in
+        if digits = "" then "" else padded,
+
+  // Normalize join keys in AM
+  AM_KeyPrep = Table.AddColumn(AM_Hdr, "KEY_BADGE", each NormalizeBadge(Record.FieldOrDefault(_, "PADDED_BADGE_NUMBER", "")), type text),
+  AM_Slim    = Table.SelectColumns(AM_KeyPrep, {"KEY_BADGE", "WG2"}, MissingField.Ignore),
+
+  // Normalize join keys in Excel
+  Xl_KeyPrep = Table.AddColumn(XlType, "KEY_BADGE", each NormalizeBadge([PADDED_BADGE_NUMBER]), type text),
+
+  // Merge to bring WG2 from AM
+  Merged   = Table.NestedJoin(Xl_KeyPrep, {"KEY_BADGE"}, AM_Slim, {"KEY_BADGE"}, "AM", JoinKind.LeftOuter),
+  Expanded = Table.ExpandTableColumn(Merged, "AM", {"WG2"}, {"WG2_AM"}),
+
+  // Fill WG2 from AM when missing in Excel
+  WithWG2  = Table.AddColumn(
+               Expanded,
+               "WG2_Filled",
+               each if [WG2] <> null and [WG2] <> "" then [WG2] else [WG2_AM],
+               type text
+             ),
+
+  // Most recent month
+  MaxYMK   = List.Max(WithWG2[YearMonthKey]),
+  Recent   = Table.SelectRows(WithWG2, each [YearMonthKey] = MaxYMK),
+
+  // Moving only
+  Moving   = Table.SelectRows(Recent, each [TYPE] = "M"),
+
+  // Officer fallback if display is missing
+  WithOfficer = Table.AddColumn(
+                  Moving,
+                  "Officer_Effective",
+                  each if [OFFICER_DISPLAY_NAME] <> null and [OFFICER_DISPLAY_NAME] <> ""
+                       then [OFFICER_DISPLAY_NAME]
+                       else [OFFICER_NAME_RAW],
+                  type text
+                ),
+
+  Assigned = Table.SelectRows(WithOfficer, each [WG2_Filled] <> null and [WG2_Filled] <> ""),
+
+  // SUM ticket counts, don't count rows
+  Grouped  = Table.Group(
+               Assigned,
+               {"Officer_Effective", "WG2_Filled"},
+               {{"Summons Count", each List.Sum([TICKET_COUNT]), Int64.Type}}
+             ),
+
+  Sorted   = Table.Sort(Grouped, {{"Summons Count", Order.Descending}}),
+  Top5     = Table.FirstN(Sorted, 5),
+  Ranked   = Table.AddIndexColumn(Top5, "Rank", 1, 1),
+
+  Renamed  = Table.RenameColumns(Ranked, {{"Officer_Effective", "Officer"}, {"WG2_Filled", "Bureau"}}),
+  Final    = Table.ReorderColumns(Renamed, {"Rank", "Officer", "Bureau", "Summons Count"})
+in
+  Final
+```
+
+---
+
+**User**
+
+moving has an error
+Expression.Error: We cannot convert the value null to type Text. Details:
+    Value=
+    Type=[Type]
+
+---
+
+**Cursor**
+
+That error is coming from the `NormalizeBadge` helper: **`Text.Select()` can’t operate on `null`**, and your badge field can be null in some rows (especially aggregate/history rows). Fix `NormalizeBadge` so it **coerces null → "" before any text ops**. Replace your current `NormalizeBadge` with this:
+
+```powerquery
+NormalizeBadge = (x as any) as text =>
+    let
+        s0 = if x = null then "" else Text.From(x),
+        digits = Text.Select(s0, {"0".."9"}),
+        padded = Text.PadStart(digits, 4, "0")
+    in
+        if digits = "" then "" else padded,
+```
+
+That will eliminate:
+
+`Expression.Error: We cannot convert the value null to type Text.`
+
+After updating, refresh `___Top_5_Moving_Violations` and it should run cleanly. ```plaintext
+NormalizeBadge = (x as any) as text =>
+    let
+        s0 = if x = null then "" else Text.From(x),
+        digits = Text.Select(s0, {"0".."9"}),
+        padded = Text.PadStart(digits, 4, "0")
+    in
+        if digits = "" then "" else padded,
+```
+
+---
+
+**User**
+
+Provide the Final Full Script (Drop-in Ready)
+
+---
+
+**Cursor**
+
+```powerquery
+// ___Top_5_Moving_Violations (DROP-IN READY)
+// Fixes:
+// - Sums TICKET_COUNT (not RowCount)
+// - Normalizes badge join keys safely (null-safe + digits-only + pad to 4)
+// - Fills WG2 from Assignment Master when missing
+// - Uses OFFICER_NAME_RAW fallback when OFFICER_DISPLAY_NAME is blank
+
+let
+  // Paths
+  ExcelPath = "C:/Users/carucci_r/OneDrive - City of Hackensack/03_Staging/Summons/summons_powerbi_latest.xlsx",
+  AMPath    = "C:/Users/carucci_r/OneDrive - City of Hackensack/09_Reference/Personnel/Assignment_Master_V2.csv",
+
+  // Load Excel
+  XlWB   = Excel.Workbook(File.Contents(ExcelPath), null, true),
+  XlRaw  = XlWB{[Item="Summons_Data", Kind="Sheet"]}[Data],
+  XlHdr  = Table.PromoteHeaders(XlRaw, [PromoteAllScalars=true]),
+  XlType = Table.TransformColumnTypes(
+             XlHdr,
+             {
+               {"PADDED_BADGE_NUMBER", type text},
+               {"OFFICER_DISPLAY_NAME", type text},
+               {"OFFICER_NAME_RAW", type text},
+               {"WG1", type text}, {"WG2", type text}, {"WG3", type text},
+               {"WG4", type text}, {"WG5", type text},
+               {"TICKET_NUMBER", type text},
+               {"ISSUE_DATE", type datetime},
+               {"VIOLATION_NUMBER", type text},
+               {"VIOLATION_TYPE", type text},
+               {"TYPE", type text}, {"STATUS", type text},
+               {"Year", Int64.Type}, {"Month", Int64.Type},
+               {"YearMonthKey", Int64.Type}, {"Month_Year", type text},
+               {"ASSIGNMENT_FOUND", type logical},
+               {"DATA_QUALITY_SCORE", type number},
+               {"DATA_QUALITY_TIER", type text},
+               {"SOURCE_FILE", type text},
+               {"PROCESSING_TIMESTAMP", type datetime},
+               {"ETL_VERSION", type text},
+               {"TICKET_COUNT", Int64.Type}
+             }
+           ),
+
+  // Load Assignment Master
+  AM_Csv  = Csv.Document(File.Contents(AMPath), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+  AM_Hdr  = Table.PromoteHeaders(AM_Csv, [PromoteAllScalars=true]),
+
+  // Helper: digits-only + pad to 4 (NULL SAFE)
+  NormalizeBadge = (x as any) as text =>
+      let
+        s0 = if x = null then "" else Text.From(x),
+        digits = Text.Select(s0, {"0".."9"}),
+        padded = Text.PadStart(digits, 4, "0")
+      in
+        if digits = "" then "" else padded,
+
+  // Normalize join keys in AM (prefer PADDED_BADGE_NUMBER, fall back to alternates if present)
+  AM_KeyPrep1 =
+      Table.AddColumn(
+        AM_Hdr,
+        "KEY_BADGE",
+        each
+          let
+            b1 = try Record.FieldOrDefault(_, "PADDED_BADGE_NUMBER", null) otherwise null,
+            b2 = if b1 = null or b1 = "" then (try Record.FieldOrDefault(_, "BADGE_PAD", null) otherwise null) else b1,
+            b3 = if b2 = null or b2 = "" then (try Record.FieldOrDefault(_, "Badge_Padded", null) otherwise null) else b2,
+            b4 = if b3 = null or b3 = "" then (try Record.FieldOrDefault(_, "BadgeNumberPadded", null) otherwise null) else b3
+          in
+            NormalizeBadge(b4),
+        type text
+      ),
+
+  AM_Slim = Table.SelectColumns(AM_KeyPrep1, {"KEY_BADGE", "WG2"}, MissingField.Ignore),
+
+  // Normalize join keys in Excel
+  Xl_KeyPrep = Table.AddColumn(XlType, "KEY_BADGE", each NormalizeBadge([PADDED_BADGE_NUMBER]), type text),
+
+  // Merge to bring WG2 from AM
+  Merged   = Table.NestedJoin(Xl_KeyPrep, {"KEY_BADGE"}, AM_Slim, {"KEY_BADGE"}, "AM", JoinKind.LeftOuter),
+  Expanded = Table.ExpandTableColumn(Merged, "AM", {"WG2"}, {"WG2_AM"}),
+
+  // Fill WG2 from AM when missing in Excel
+  WithWG2  =
+      Table.AddColumn(
+        Expanded,
+        "WG2_Filled",
+        each if [WG2] <> null and [WG2] <> "" then [WG2] else [WG2_AM],
+        type text
+      ),
+
+  // Most recent month (by YearMonthKey)
+  MaxYMK = List.Max(WithWG2[YearMonthKey]),
+  Recent = Table.SelectRows(WithWG2, each [YearMonthKey] = MaxYMK),
+
+  // Moving only
+  Moving = Table.SelectRows(Recent, each [TYPE] = "M"),
+
+  // Officer fallback if display is missing
+  WithOfficer =
+      Table.AddColumn(
+        Moving,
+        "Officer_Effective",
+        each
+          if [OFFICER_DISPLAY_NAME] <> null and [OFFICER_DISPLAY_NAME] <> ""
+          then [OFFICER_DISPLAY_NAME]
+          else [OFFICER_NAME_RAW],
+        type text
+      ),
+
+  // Keep only rows with assignment after fill
+  Assigned = Table.SelectRows(WithOfficer, each [WG2_Filled] <> null and [WG2_Filled] <> ""),
+
+  // Group, sort, top 5, rank (SUM ticket counts!) Grouped =
+      Table.Group(
+        Assigned,
+        {"Officer_Effective", "WG2_Filled"},
+        {{"Summons Count", each List.Sum([TICKET_COUNT]), Int64.Type}}
+      ),
+
+  Sorted = Table.Sort(Grouped, {{"Summons Count", Order.Descending}}),
+  Top5   = Table.FirstN(Sorted, 5),
+  Ranked = Table.AddIndexColumn(Top5, "Rank", 1, 1),
+
+  Renamed = Table.RenameColumns(Ranked, {{"Officer_Effective", "Officer"}, {"WG2_Filled", "Bureau"}}),
+  Final   = Table.ReorderColumns(Renamed, {"Rank", "Officer", "Bureau", "Summons Count"})
+in
+  Final
+```
+
+```plaintext
+// ___Top_5_Moving_Violations (DROP-IN READY)
+// Fixes:
+// - Sums TICKET_COUNT (not RowCount)
+// - Normalizes badge join keys safely (null-safe + digits-only + pad to 4)
+// - Fills WG2 from Assignment Master when missing
+// - Uses OFFICER_NAME_RAW fallback when OFFICER_DISPLAY_NAME is blank
+
+let
+  // Paths
+  ExcelPath = "C:/Users/carucci_r/OneDrive - City of Hackensack/03_Staging/Summons/summons_powerbi_latest.xlsx",
+  AMPath    = "C:/Users/carucci_r/OneDrive - City of Hackensack/09_Reference/Personnel/Assignment_Master_V2.csv",
+
+  // Load Excel
+  XlWB   = Excel.Workbook(File.Contents(ExcelPath), null, true),
+  XlRaw  = XlWB{[Item="Summons_Data", Kind="Sheet"]}[Data],
+  XlHdr  = Table.PromoteHeaders(XlRaw, [PromoteAllScalars=true]),
+  XlType = Table.TransformColumnTypes(
+             XlHdr,
+             {
+               {"PADDED_BADGE_NUMBER", type text},
+               {"OFFICER_DISPLAY_NAME", type text},
+               {"OFFICER_NAME_RAW", type text},
+               {"WG1", type text}, {"WG2", type text}, {"WG3", type text},
+               {"WG4", type text}, {"WG5", type text},
+               {"TICKET_NUMBER", type text},
+               {"ISSUE_DATE", type datetime},
+               {"VIOLATION_NUMBER", type text},
+               {"VIOLATION_TYPE", type text},
+               {"TYPE", type text}, {"STATUS", type text},
+               {"Year", Int64.Type}, {"Month", Int64.Type},
+               {"YearMonthKey", Int64.Type}, {"Month_Year", type text},
+               {"ASSIGNMENT_FOUND", type logical},
+               {"DATA_QUALITY_SCORE", type number},
+               {"DATA_QUALITY_TIER", type text},
+               {"SOURCE_FILE", type text},
+               {"PROCESSING_TIMESTAMP", type datetime},
+               {"ETL_VERSION", type text},
+               {"TICKET_COUNT", Int64.Type}
+             }
+           ),
+
+  // Load Assignment Master
+  AM_Csv  = Csv.Document(File.Contents(AMPath), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+  AM_Hdr  = Table.PromoteHeaders(AM_Csv, [PromoteAllScalars=true]),
+
+  // Helper: digits-only + pad to 4 (NULL SAFE)
+  NormalizeBadge = (x as any) as text =>
+      let
+        s0 = if x = null then "" else Text.From(x),
+        digits = Text.Select(s0, {"0".."9"}),
+        padded = Text.PadStart(digits, 4, "0")
+      in
+        if digits = "" then "" else padded,
+
+  // Normalize join keys in AM (prefer PADDED_BADGE_NUMBER, fall back to alternates if present)
+  AM_KeyPrep1 =
+      Table.AddColumn(
+        AM_Hdr,
+        "KEY_BADGE",
+        each
+          let
+            b1 = try Record.FieldOrDefault(_, "PADDED_BADGE_NUMBER", null) otherwise null,
+            b2 = if b1 = null or b1 = "" then (try Record.FieldOrDefault(_, "BADGE_PAD", null) otherwise null) else b1,
+            b3 = if b2 = null or b2 = "" then (try Record.FieldOrDefault(_, "Badge_Padded", null) otherwise null) else b2,
+            b4 = if b3 = null or b3 = "" then (try Record.FieldOrDefault(_, "BadgeNumberPadded", null) otherwise null) else b3
+          in
+            NormalizeBadge(b4),
+        type text
+      ),
+
+  AM_Slim = Table.SelectColumns(AM_KeyPrep1, {"KEY_BADGE", "WG2"}, MissingField.Ignore),
+
+  // Normalize join keys in Excel
+  Xl_KeyPrep = Table.AddColumn(XlType, "KEY_BADGE", each NormalizeBadge([PADDED_BADGE_NUMBER]), type text),
+
+  // Merge to bring WG2 from AM
+  Merged   = Table.NestedJoin(Xl_KeyPrep, {"KEY_BADGE"}, AM_Slim, {"KEY_BADGE"}, "AM", JoinKind.LeftOuter),
+  Expanded = Table.ExpandTableColumn(Merged, "AM", {"WG2"}, {"WG2_AM"}),
+
+  // Fill WG2 from AM when missing in Excel
+  WithWG2  =
+      Table.AddColumn(
+        Expanded,
+        "WG2_Filled",
+        each if [WG2] <> null and [WG2] <> "" then [WG2] else [WG2_AM],
+        type text
+      ),
+
+  // Most recent month (by YearMonthKey)
+  MaxYMK = List.Max(WithWG2[YearMonthKey]),
+  Recent = Table.SelectRows(WithWG2, each [YearMonthKey] = MaxYMK),
+
+  // Moving only
+  Moving = Table.SelectRows(Recent, each [TYPE] = "M"),
+
+  // Officer fallback if display is missing
+  WithOfficer =
+      Table.AddColumn(
+        Moving,
+        "Officer_Effective",
+        each
+          if [OFFICER_DISPLAY_NAME] <> null and [OFFICER_DISPLAY_NAME] <> ""
+          then [OFFICER_DISPLAY_NAME]
+          else [OFFICER_NAME_RAW],
+        type text
+      ),
+
+  // Keep only rows with assignment after fill
+  Assigned = Table.SelectRows(WithOfficer, each [WG2_Filled] <> null and [WG2_Filled] <> ""),
+
+  // Group, sort, top 5, rank (SUM ticket counts!) Grouped =
+      Table.Group(
+        Assigned,
+        {"Officer_Effective", "WG2_Filled"},
+        {{"Summons Count", each List.Sum([TICKET_COUNT]), Int64.Type}}
+      ),
+
+  Sorted = Table.Sort(Grouped, {{"Summons Count", Order.Descending}}),
+  Top5   = Table.FirstN(Sorted, 5),
+  Ranked = Table.AddIndexColumn(Top5, "Rank", 1, 1),
+
+  Renamed = Table.RenameColumns(Ranked, {{"Officer_Effective", "Officer"}, {"WG2_Filled", "Bureau"}}),
+  Final   = Table.ReorderColumns(Renamed, {"Rank", "Officer", "Bureau", "Summons Count"})
+in
+  Final
+```
+
+---
+
+**User**
+
+@new_Top 5 Moving Violations - Department Wide.csv @new_Top 5 Non-Parking Violations - Department Wide.csv better
+
+---
+
+**Cursor**
+
+Yes — these new Top‑5 exports now **reconcile with the dept‑wide totals** in the current `summons_powerbi_latest.xlsx`:
+
+- **Moving (M) dept‑wide = 77** → your Top‑5 Moving values (14 + 12 + 6 + 4 + 4) are now in the right scale and match the workbook’s ranking. - Your “Non‑Parking” list now matches what we see as the highest‑volume issuers for the current month in the workbook (and the counts line up with the ETL totals we computed). If you want, paste the updated M for `___Top_5_Parking_Violations` too and I’ll give you the same drop‑in “Sum(TICKET_COUNT)” fix so Parking Top‑5 is guaranteed consistent as well. ---
+
+**User**
+
+I'm preparing to export this chat and would like a descriptive filename for the file. Please generate a concise title that summarizes the main topic or task of this conversation. Instructions:
+Use 4 to 8 words
+Apply Title Case (Capitalize Major Words)
+Replace spaces with underscores
+Do not include the .md extension — I will add it manually
+Avoid dates, special characters, or extra punctuation
+Example format: API_Integration_Debugging_Session
+Please output only the filename with the extention .md, nothing else. ---
+
+**Cursor**
+
+Summons_And_Backfill_Validation_Workflow.md

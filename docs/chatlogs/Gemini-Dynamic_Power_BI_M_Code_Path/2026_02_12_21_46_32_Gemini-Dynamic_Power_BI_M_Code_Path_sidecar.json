@@ -1,0 +1,106 @@
+{
+  "source_file": "Gemini-Dynamic Power BI M Code Path.json",
+  "source_path": "C:\\_chunker\\02_data\\Gemini-Dynamic Power BI M Code Path.json",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Gemini-Dynamic_Power_BI_M_Code_Path\\2026_02_12_21_46_32_Gemini-Dynamic_Power_BI_M_Code_Path.origin.json",
+  "created_at": "2026_02_12_21_46_32",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "dataset",
+    "docs",
+    "json",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "data",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "type",
+      "text",
+      "folder",
+      "path",
+      "csv",
+      "cycle"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "{\n  \"metadata\": {\n    \"title\": \"Dynamic Power BI M Code Path\",\n    \"user\": {\n      \"name\": \"RAC\"\n    },\n    \"dates\": {\n      \"exported\": \"2/12/2026 21:41:41\"\n    },\n    \"link\": \"https://gemini.google.com/gem/coding-partner/e0277ab4f18f1b...",
+    "first_line": "{"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-12T21:46:32+00:00_Gemini-Dynamic_Power_BI_M_Code_Path_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "code",
+        "cycle",
+        "data",
+        "dataset",
+        "docs",
+        "folder",
+        "json",
+        "markdown",
+        "path",
+        "police",
+        "python",
+        "sql",
+        "text",
+        "type"
+      ],
+      "key_terms": [
+        "type",
+        "text",
+        "csv",
+        "path",
+        "cycle",
+        "folder"
+      ],
+      "summary": "{\n  \"metadata\": {\n    \"title\": \"Dynamic Power BI M Code Path\",\n    \"user\": {\n      \"name\": \"RAC\"\n    },\n    \"dates\": {\n      \"exported\": \"2/12/2026 21:41:41\"\n    },\n    \"link\": \"https://gemini.google.com/gem/coding-partner/e0277ab4f18f1b...",
+      "char_length": 26692,
+      "byte_length": 26792
+    },
+    {
+      "chunk_id": "2026-02-12T21:46:32+00:00_Gemini-Dynamic_Power_BI_M_Code_Path_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "ai",
+        "code",
+        "cycle",
+        "data",
+        "dataset",
+        "docs",
+        "folder",
+        "json",
+        "markdown",
+        "path",
+        "police",
+        "python",
+        "sql",
+        "text",
+        "type"
+      ],
+      "key_terms": [
+        "type",
+        "text",
+        "folder",
+        "path",
+        "csv",
+        "cycle"
+      ],
+      "summary": "Open the PBIX and click Refresh - it automatically finds the correct CSV!\\n//\\n// NO MANUAL PATH EDITING REQUIRED!\\n\\nlet\\n    // ===========================================\\n    // AUTOMATIC PATH DETECTION\\n    // ======================...",
+      "char_length": 17742,
+      "byte_length": 17943
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

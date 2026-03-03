@@ -1,0 +1,77 @@
+{
+  "source_file": "ACTION_ITEMS.md",
+  "source_path": "C:\\_chunker\\02_data\\ACTION_ITEMS.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\ACTION_ITEMS\\2026_02_04_23_54_58_ACTION_ITEMS.origin.json",
+  "created_at": "2026_02_04_23_54_58",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "backfill",
+      "2025",
+      "nov",
+      "code",
+      "update",
+      "data"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Action Items - Master ETL Automation\n\n**Last Updated:** 2025-12-10  \n**Status:** Documentation Complete ✅ | Operational Items Pending\n\n---\n\n## ✅ Completed\n\n- [x] Script path verification completed\n- [x] Configuration file updated with...",
+    "first_line": "# Action Items - Master ETL Automation"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-04T23:54:58+00:00_ACTION_ITEMS_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "2025",
+        "ai",
+        "backfill",
+        "code",
+        "data",
+        "docs",
+        "excel",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "powershell",
+        "python",
+        "sql",
+        "training",
+        "update"
+      ],
+      "key_terms": [
+        "backfill",
+        "2025",
+        "nov",
+        "code",
+        "update",
+        "data"
+      ],
+      "summary": "# Action Items - Master ETL Automation\n\n**Last Updated:** 2025-12-10  \n**Status:** Documentation Complete ✅ | Operational Items Pending\n\n---\n\n## ✅ Completed\n\n- [x] Script path verification completed\n- [x] Configuration file updated with...",
+      "char_length": 11065,
+      "byte_length": 11405
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

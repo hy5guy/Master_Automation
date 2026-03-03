@@ -1,0 +1,561 @@
+**All visuals**  
+   - Click **Refresh** on the Home ribbon, or  
+   - Press **Ctrl + Shift + R**. 3. **Data only (no layout changes)**  
+   - Use **Transform data** to refresh from source, or  
+   - **Home → Transform data** → **Refresh preview** for the current query. ---
+
+**Notes**
+
+- **Refresh** reloads data from the source. - Some updates appear automatically when you change the model or relationships. - If nothing changes, use **Refresh** again or switch pages and back. ---
+
+**User**
+
+all visuals are broken 
+
+---
+
+**Cursor**
+
+
+The behavior (data only in Jan 2025, zeros elsewhere) points to a problem with how `MonthStart` is set or how dates match between `___Benchmark` and `___DimMonth`. ---
+
+## Quick check
+
+1. Create a **Table** visual. 2. Add `___Benchmark` → `MonthStart` (or `MonthLabel`). 3. Add a measure: `Count = COUNTROWS(___Benchmark)`. 4. See whether you get multiple months or mostly Jan 2025. ---
+
+## Likely causes and fixes
+
+### 1. `MonthStart` always equals Jan 2025
+
+If almost all rows have `MonthStart = 2025-01-01`, the M code is probably wrong. In the **___Benchmark** query, use this logic:
+
+```powerquery
+AddMonthStart = Table.AddColumn(IncidentDateTyped, "MonthStart", 
+    each Date.StartOfMonth(Date.From([Incident Date])), 
+    type date)
+```
+
+Check that `Incident Date` is really type `datetime` before this step. ---
+
+### 2. `Incident Date` parsing
+
+If `Incident Date` is text or the wrong locale, dates can be misread. Add this after promoting headers:
+
+```powerquery
+IncidentDateTyped = Table.TransformColumnTypes(CombinedBenchmark, {
+    {"Incident Date", type datetime},
+    {"Badge Number", Int64.Type},
+    {"# of Officers Involved", Int64.Type},
+    {"# of Subjects", Int64.Type}
+}, "en-US")
+```
+
+---
+
+### 3. Data refresh
+
+The model might be using old data. 1. **Home** → **Transform data**. 2. Right‑click the **___Benchmark** query. 3. **Refresh preview**. 4. Close Power Query, then **Home** → **Refresh** (or **Ctrl + Shift + R**). ---
+
+### 4. Relationship
+
+Confirm the relationship:
+
+- `___Benchmark[MonthStart]` → `___DimMonth[MonthStart]`  
+- Both columns type **Date**. ---
+
+## What to do next
+
+1. Run the Table visual check to see which months appear. 2. Reopen the ___Benchmark query and verify the `MonthStart` and `Incident Date` steps. 3. Share what the Table shows (which months and counts), and we can narrow it down. ---
+
+**User**
+
+@data/backfill/2026_12_compair/ben chmark test data.csv this is the table data exported 
+
+---
+
+**Cursor**
+
+
+That file is **pre-aggregated** data, not the incident-level data your ___Benchmark model uses. ---
+
+## Structure of `benchmark test data.csv`
+
+| Column     | Example   |
+|------------|-----------|
+| Year       | 2025      |
+| Quarter    | Qtr 1     |
+| Month      | January   |
+| Day        | 1         |
+| MonthLabel | 01-25     |
+| Count      | 6         |
+
+- One row per month
+- `MonthLabel` in `MM-YY` format
+- `Count` already summed by month
+- No `EventType` or incident-level detail
+
+---
+
+## Structure your ___Benchmark model expects
+
+Incident-level rows with:
+
+- `Incident Date`
+- `Report Key`
+- `EventType`
+- `Officer Name`, `Badge Number`, etc. Those come from the raw CSVs in `05_EXPORTS\Benchmark\` (use_force, show_force, vehicle_pursuit), not from this summary file. ---
+
+## How this file fits in
+
+- **Use 1 – Validation:** Check that your visuals’ monthly totals match this file (e.g. 01-25 → 6, 02-25 → 3, etc.). - **Use 2 – Simple chart:** You could load this CSV as a separate table and build a simple chart with `MonthLabel` and `Count`, but it cannot drive the Use of Force Incident Matrix or EventType breakdown. ---
+
+## For your current visuals
+
+The matrix and line chart need the incident-level ___Benchmark data. Either:
+
+1. Keep using `05_EXPORTS\Benchmark\` (use_force, show_force, vehicle_pursuit) as the source for ___Benchmark, and confirm those CSVs have the right incident dates, or  
+2. If you want to use this test file, you’d need a separate, simpler data model and visuals (e.g. MonthLabel × Count only), without EventType or incident-level detail. ---
+
+**User**
+
+format the response please
+
+---
+
+**Cursor**
+
+
+---
+
+## What `benchmark test data.csv` contains
+
+**Columns:** Year, Quarter, Month, Day, MonthLabel, Count  
+
+**Structure:** One row per month, already aggregated (no incident-level detail)
+
+---
+
+## What ___Benchmark needs
+
+**Structure:** One row per incident
+
+**Columns:** Incident Date, Report Key, EventType, Officer Name, Badge Number, etc. **Source:** Raw CSVs in `05_EXPORTS\Benchmark\` (use_force, show_force, vehicle_pursuit)
+
+---
+
+## How they differ
+
+| Item        | benchmark test data.csv | ___Benchmark model |
+|------------|-------------------------|---------------------|
+| Granularity | Monthly totals          | Individual incidents |
+| EventType  | No                      | Yes                  |
+| Source     | Pre-aggregated export   | Raw incident CSVs    |
+
+---
+
+## How to use the test data
+
+**Option A – Validate visuals**  
+Use it to check that your charts’ monthly totals match this file. **Option B – Simple chart**  
+Use it as a separate table for a basic MonthLabel × Count chart (no EventType breakdown). ---
+
+## For your current visuals
+
+The Use of Force Incident Matrix and line chart need incident-level data from `05_EXPORTS\Benchmark\`, not this summary file. ---
+
+---
+
+**User**
+
+what needs to be fixed and please make your entire response formatted 
+
+---
+
+**Cursor**
+
+
+---
+
+# Benchmark visuals – fixes needed
+
+---
+
+## 1. Power Query: ___Benchmark
+
+**Issues**
+- Uses `"Event Type"` instead of `"EventType"` (DAX expects `EventType`)
+- Missing `MonthStart`
+- Uses `"Source File"` instead of `"SourceFile"`
+- `Incident Date` may not be correctly typed
+
+**Changes**
+
+| Step | Action |
+|------|--------|
+| 1 | Rename `"Event Type"` → `EventType` |
+| 2 | Rename `"Source File"` → `SourceFile` |
+| 3 | Add `MonthStart` = `Date.StartOfMonth(Date.From([Incident Date]))` |
+| 4 | Add `MonthLabel` and `MonthSort` to match ___DimMonth |
+| 5 | Set types: `Incident Date` = datetime, numeric columns = Int64 |
+
+**Corrected ___Benchmark M code**  
+Use the version from `02_ETL_Scripts\Benchmark\___Benchmark_FIXED.m`. ---
+
+## 2. Power Query: ___DimMonth
+
+**Issue**  
+Static date range (Nov 2024–Nov 2025). **Change**  
+Make it a dynamic 13‑month rolling window (same logic as DAX). **Corrected M code**  
+Use `02_ETL_Scripts\Benchmark\___DimMonth_dynamic.m`. ---
+
+## 3. Model relationships
+
+**Required**
+
+| From (many) | To (one) | Status |
+|-------------|----------|--------|
+| ___Benchmark[MonthStart] | ___DimMonth[MonthStart] | Create |
+| ___Benchmark[EventType] | ___DimEventType[EventType] | Already exists |
+
+**Steps**
+1. In Model view, create ___Benchmark[MonthStart] → ___DimMonth[MonthStart]. 2. Set: Many to one, single cross-filter. 3. Confirm both columns are Date type. ---
+
+## 4. DAX: BM_YoY_Change
+
+**Issue**  
+`DATEADD` used with a scalar date; it expects a date column. **Change**  
+Use `EDATE` instead:
+
+```dax
+VAR PriorYearEnd = EOMONTH(TODAY(), -13)
+VAR PriorYearStart = EDATE(PriorYearEnd, -12) + 1
+```
+
+---
+
+## 5. Data source
+
+**Location**  
+`05_EXPORTS\Benchmark\use_force\`, `show_force\`, `vehicle_pursuit\`
+
+**Files**  
+- `use-of-force-reports-01_01_2001-02_06_2026.csv`
+- `show-of-force-reports-01_01_2001-02_06_2026.csv`
+- `vehicle-pursuit-reports-01_01_2001-02_06_2026.csv`
+
+**Check**
+- ___Benchmark M query points to `05_EXPORTS\Benchmark\`. - These files exist and contain incident-level rows (Incident Date, Report Key, etc.). ---
+
+## 6. Visual configuration
+
+**Use of Force Incident Matrix**
+
+| Well | Field |
+|------|-------|
+| Rows | EventType |
+| Columns | MonthLabel |
+| Values | IncidentCount |
+
+**Note**  
+If relationships are correct, `IncidentCount` will respect month and event type. Otherwise use `IncidentCount_Matrix`. ---
+
+## 7. Not a fix
+
+**`benchmark test data.csv`**  
+- Pre-aggregated monthly totals. - Not the source for ___Benchmark. - Use only for validation or simple charts. ---
+
+## 8. Action checklist
+
+| # | Task | Status |
+|---|------|--------|
+| 1 | Update ___Benchmark M query (EventType, MonthStart, types) | ⬜ |
+| 2 | Update ___DimMonth M query (dynamic 13-month window) | ⬜ |
+| 3 | Create ___Benchmark[MonthStart] → ___DimMonth[MonthStart] | ⬜ |
+| 4 | Fix BM_YoY_Change DAX (EDATE) | ⬜ |
+| 5 | Refresh queries (Power Query → Refresh preview) | ⬜ |
+| 6 | Refresh report (Home → Refresh) | ⬜ |
+| 7 | Re-check visuals | ⬜ |
+
+---
+
+## 9. If matrix still shows zeros after Feb 2025
+
+1. Add a Table visual with ___Benchmark[MonthStart] and a row count. 2. Check whether multiple months appear. 3. If only one month appears, inspect the ___Benchmark M code that builds `MonthStart` from `Incident Date`. 4. Ensure `Incident Date` is parsed as datetime and `Date.From()` is applied before `Date.StartOfMonth()`. ---
+
+---
+
+**User**
+
+provide a handoff and prompt for an AI to assist us with this issue. make the handoff detailed 
+
+---
+
+**Cursor**
+
+
+Created a handoff document at:
+
+**`docs/BENCHMARK_VISUALS_HANDOFF_PROMPT.md`**
+
+---
+
+## Contents
+
+| Section | Purpose |
+|--------|---------|
+| 1. Project context | Workspace paths and report purpose |
+| 2. Current problem | Visual behavior (matrix, donut, line chart) |
+| 3. Data model | Tables, columns, and relationships |
+| 4. Data source files | Raw CSV locations and schema |
+| 5. Fixes already attempted | What was tried and status |
+| 6. Files to review | Reference file list with paths |
+| 7. Root cause hypotheses | Likely reasons for the issue |
+| 8. Diagnostic steps | Checks to run |
+| 9. Expected behavior | Desired results for each visual |
+| 10. AI prompt | Copy-paste prompt for the next AI |
+| 11. Paths summary | Main paths in one place |
+
+---
+
+## How to use
+
+1. Open `docs/BENCHMARK_VISUALS_HANDOFF_PROMPT.md`. 2. Copy the prompt from **Section 10**. 3. Paste it into a new chat with an AI assistant. 4. Optionally attach or link the handoff file so the AI can read full context. The document is structured so another AI can continue diagnosing and fixing the Benchmark visuals without re-explaining the setup. ---
+
+**User**
+
+update local git and all docs
+
+---
+
+**Cursor**
+
+
+Summary of what was updated:
+
+---
+
+## Git commit
+
+**Branch:** `docs/update-20260114-1447`  
+**Commit:** `29d4fc9` – v1.15.6: Benchmark handoff, Overtime/TimeOff docs, Employee Sick Time
+
+---
+
+## Files updated/committed
+
+| File | Change |
+|------|--------|
+| CHANGELOG.md | v1.15.6 entry (Benchmark handoff, consolidation, DAX fix) |
+| SUMMARY.md | Version 1.15.6, Benchmark handoff doc reference |
+| CLAUDE.md | v1.15.6, Benchmark diagnostics section |
+| docs/BENCHMARK_VISUALS_HANDOFF_PROMPT.md | **New** – AI handoff |
+| docs/EMPLOYEE_SICK_TIME_CALCULATION_LOGIC.md | **New** |
+| docs/OVERTIME_TIMEOFF_JAN_2026_GENERATION_SUMMARY.md | **New** |
+| docs/OVERTIME_TIMEOFF_JAN_2026_QUICK_REF.md | **New** |
+| docs/OVERTIME_TIMEOFF_BACKFILL_COMPARISON.md | **New** |
+
+---
+
+## Left untracked
+
+- `data/backfill/2026_12_compair/ben chmark test data.csv`
+- `docs/chatlogs/` (Detective, SSOCC)
+- `docs/image/OVERTIME_TIMEOFF_JAN_2026_GENERATION_SUMMARY/`
+- `overtime_timeoff_backfill.txt`
+
+---
+
+**User**
+
+help me answer Got the Benchmark M code. I can see:
+Structure:
+
+___Benchmark - Loads latest files from 3 subdirectories (use_force, show_force, vehicle_pursuit)
+___DimMonth - Dynamic 13-month rolling window
+___DimEventType - Simple lookup table for event types
+
+Key Features:
+
+Auto-detects latest CSV/XLSX in each folder
+Adds EventType, MonthStart, MonthLabel for time-based analysis
+Fixed for DAX compatibility (EventType with no space)
+Proper error handling if files missing
+
+Relationships:
+
+___Benchmark[MonthStart] → ___DimMonth[MonthStart]
+___Benchmark[EventType] → ___DimEventType[EventType]
+
+What do you need help with? Are you troubleshooting errors, adding functionality, or documenting the system? ---
+
+**Cursor**
+
+
+You can reply with something like this:
+
+---
+
+**What I need help with: troubleshooting**
+
+The M code and relationships are in place, but the **visuals are still wrong**:
+
+1. **Use of Force Incident Matrix** (EventType × MonthLabel, Values = IncidentCount)  
+   Only **January 2025 (01-25)** has numbers; **Feb 2025–Jan 2026 are all 0**. 2. **Incident Distribution by Event Type** (donut)  
+   **Empty** – no chart. 3. **Incident Count by Date and Event Type** (line chart)  
+   **Flat at zero** for the whole period. So the issue isn’t “do I have the right M code?” but **why the model/relationships aren’t filtering correctly** (or why only Jan 2025 gets data). I have a handoff doc with full context, fixes we’ve already tried, and diagnostic steps: `docs/BENCHMARK_VISUALS_HANDOFF_PROMPT.md`. Can you use that (and the M code you have) to help me **diagnose why only Jan 2025 shows data and fix the visuals**? ---
+
+Short version you could send instead:
+
+---
+
+**Troubleshooting. ** The structure and relationships look right, but the matrix only shows data for Jan 2025; all other months are 0, and the donut and line chart are empty/flat. I have a detailed handoff in `docs/BENCHMARK_VISUALS_HANDOFF_PROMPT.md`. I need help diagnosing why only one month gets data and fixing the three visuals. ---
+
+---
+
+**User**
+
+@scripts/diagnose_benchmark_data.py @docs/BENCHMARK_VISUAL_DIAGNOSTIC.md @docs/BENCHMARK_QUICK_FIX_REFERENCE.md 
+
+---
+
+**Cursor**
+
+
+Updating the handoff doc to reference these files and fixing the markdown typo. Summary of changes:
+
+---
+
+## Updates
+
+### 1. **BENCHMARK_VISUAL_DIAGNOSTIC.md**
+- Removed stray `//` at the top
+- Tidied header formatting
+
+### 2. **BENCHMARK_QUICK_FIX_REFERENCE.md**
+- Removed `//` comment lines at the top
+
+### 3. **BENCHMARK_VISUALS_HANDOFF_PROMPT.md**
+- Added references to the diagnostic tools:
+  - `scripts/diagnose_benchmark_data.py` – Python script to analyze source CSVs
+  - `docs/BENCHMARK_VISUAL_DIAGNOSTIC.md` – 7-step troubleshooting
+  - `docs/BENCHMARK_QUICK_FIX_REFERENCE.md` – Fix #1–#5
+- Updated Section 8 so diagnostics start with the Python script
+- Updated Section 11 paths to include these files
+
+---
+
+## Benchmark troubleshooting flow
+
+| Step | Resource |
+|------|----------|
+| 1 | Run `python scripts/diagnose_benchmark_data.py` |
+| 2 | Follow `docs/BENCHMARK_VISUAL_DIAGNOSTIC.md` (7 steps) |
+| 3 | Apply fixes from `docs/BENCHMARK_QUICK_FIX_REFERENCE.md` |
+| 4 | Use `docs/BENCHMARK_VISUALS_HANDOFF_PROMPT.md` for full context |
+
+---
+
+---
+
+**User**
+
+run the script and provide an answer for claude
+
+📊 What to Report Back:
+After running diagnostics, share:
+
+Python script output (the JSON file or console summary)
+Data View test result (Do you see dates beyond Jan 2025?) Which scenario matches (A, B, or C)
+
+Then we'll create a targeted fix for your specific situation. ---
+
+**Cursor**
+
+
+Here’s the report to send to Claude:
+
+---
+
+# Benchmark diagnostic report for Claude
+
+---
+
+## 1. Python script output (console summary)
+
+**Script:** `scripts/diagnose_benchmark_data.py`  
+**Path analyzed:** `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\Benchmark`
+
+### USE_FORCE
+| Metric | Value |
+|--------|-------|
+| File | use-of-force-reports-01_01_2001-02_06_2026.csv |
+| Total rows | 345 |
+| Date range | 2020-07-16 → 2026-02-04 |
+| Months covered | 61 |
+| Jan 2025 records | 5 (1.4%) |
+| Verdict | ✅ Good distribution |
+
+### SHOW_FORCE
+| Metric | Value |
+|--------|-------|
+| File | show-of-force-reports-01_01_2001-02_06_2026.csv |
+| Total rows | 39 |
+| Date range | 2022-04-05 → 2026-01-22 |
+| Months covered | 22 |
+| Jan 2025 records | 1 (2.6%) |
+| Verdict | ✅ Good distribution |
+
+### VEHICLE_PURSUIT
+| Metric | Value |
+|--------|-------|
+| File | vehicle-pursuit-reports-01_01_2001-02_06_2026.csv |
+| Total rows | 21 |
+| Date range | 2022-03-18 → 2025-12-19 |
+| Months covered | 11 |
+| Jan 2025 records | 0 |
+| Verdict | ✅ Good distribution |
+
+### Script summary
+> ✅ All data sources look good – **issue may be in Power BI queries/relationships**
+
+*Note: JSON export failed (Period serialization). Console output is complete. *
+
+---
+
+## 2. Data View test result
+
+**Question:** Do you see dates beyond Jan 2025? **Answer:** Source CSVs contain data for many months (Jan 2025–Feb 2026 for use_force and show_force). The problem is not a lack of source data. ---
+
+## 3. Which scenario matches
+
+**Scenario B: Data exists beyond Jan 2025 – issue is in Power BI**
+
+- Source CSVs: ✅ Multiple months (including 2025 and 2026)
+- Use of Force: 5 in Jan 2025, plus Feb 2025–Feb 2026
+- Show of Force: 1 in Jan 2025, plus Mar 2025, May 2025, Jan 2026
+- Vehicle Pursuit: No Jan 2025; other months (e.g. Jul 2025, Dec 2025) present
+
+---
+
+## 4. Likely cause and next steps
+
+The source data is fine. The issue is in Power BI, likely:
+
+1. **MonthStart calculation** – Check whether `MonthStart` in `___Benchmark` is correct for all rows (not all stuck at 2025-01-01). 2. **Relationships** – Confirm `___Benchmark[MonthStart]` → `___DimMonth[MonthStart]` is active and correct. 3. **Date type** – Both `MonthStart` columns should be type Date (not DateTime or Text). **Suggested next steps (BENCHMARK_VISUAL_DIAGNOSTIC.md):**
+
+- Step 3: Verify MonthStart in Power Query
+- Step 5: Verify relationship in Model view
+- Step 7: Test with a simple measure: `Test Total Incidents = COUNTROWS(___Benchmark)` in a table with `___DimMonth[MonthLabel]` on rows
+
+---
+
+**User**
+
+use the below info to update readme, summary changelog claude.md for current directory and C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Benchmark also update local git in both directories
+
+---
+
+**Cursor**
+
+
+Updating README, SUMMARY, CHANGELOG, and CLAUDE.md in both directories and committing the changes. Checking existing files and structure.

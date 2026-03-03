@@ -6,6 +6,18 @@ logs/archive/
 # Temporary files
 _DropExports/*
 !_DropExports/.gitkeep
+tmpclaude-*-cwd
+.tmp.driveupload/
+
+# Output directories (testing/validation data)
+# Use ** (not *) so git ignores the directory recursively; negation can then
+# un-ignore .gitkeep files because the directories themselves are not ignored.
+outputs/visual_exports/**
+outputs/large_exports/**
+outputs/misc/**
+!outputs/visual_exports/.gitkeep
+!outputs/large_exports/.gitkeep
+!outputs/misc/.gitkeep
 
 # Python
 __pycache__/

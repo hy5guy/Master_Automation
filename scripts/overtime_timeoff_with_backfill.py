@@ -27,12 +27,24 @@ from __future__ import annotations
 
 import argparse
 import csv
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Optional
+
+# Centralized path resolution (avoid hardcoded user paths)
+try:
+    from path_config import get_onedrive_root
+except ImportError:
+    # Fallback if path_config not found (e.g. running outside scripts dir)
+    def get_onedrive_root() -> Path:
+        base = os.environ.get("ONEDRIVE_BASE") or os.environ.get("ONEDRIVE_HACKENSACK")
+        if base:
+            return Path(base)
+        return Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack")
 
 
 @dataclass(frozen=True)
@@ -66,65 +78,113 @@ def expected_fixed_filename(start_month: date, end_month: date) -> str:
 
 
 def find_backfill_csv(backfill_root: Path, month: date) -> Path:
-    """Find the prior-month backfill visual export for vcs_time_report."""
-    folder = backfill_root / month_key_yyyy_mm(month) / "vcs_time_report"
-    if not folder.exists():
-        raise FileNotFoundError(f"Backfill folder not found: {folder}")
+    """Find the prior-month backfill visual export. Checks Time_Off (process_powerbi_exports) then vcs_time_report (legacy)."""
+    month_key = month_key_yyyy_mm(month)
+    preferred_name = f"{month_key}_monthly_accrual_and_usage_summary.csv"
+    alt_name = "Monthly Accrual and Usage Summary.csv"
 
-    preferred = [
-        folder / f"{month_key_yyyy_mm(month)}_Monthly Accrual and Usage Summary.csv",
-        folder / "Monthly Accrual and Usage Summary.csv",
-    ]
-    for p in preferred:
-        if p.exists():
-            return p
+    for folder_name in ("Time_Off", "vcs_time_report"):
+        folder = backfill_root / month_key / folder_name
+        if not folder.exists():
+            continue
+        for name in (preferred_name, alt_name):
+            p = folder / name
+            if p.exists():
+                return p
+        candidates = sorted(folder.glob("*onthly*ccrual*.csv"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if candidates:
+            return candidates[0]
 
-    # Fallback: any similarly named file in the folder
-    candidates = sorted(folder.glob("*Monthly Accrual and Usage Summary*.csv"), key=lambda p: p.stat().st_mtime, reverse=True)
-    if candidates:
-        return candidates[0]
-
-    raise FileNotFoundError(f"No 'Monthly Accrual and Usage Summary' CSV found in {folder}")
+    raise FileNotFoundError(
+        f"No Monthly Accrual CSV found in {backfill_root / month_key} (checked Time_Off, vcs_time_report)"
+    )
 
 
 def ensure_month_exports_are_xlsx(paths: Paths, run_month: date, dry_run: bool) -> None:
-    """Ensure the month exports exist as .xlsx (convert .xls if necessary)."""
+    """Ensure the month exports exist as .xlsx at the exact path. Convert .xls if necessary (no fallback search).
+
+    Strict: only looks for YYYY_MM_otactivity.xlsx and YYYY_MM_timeoffactivity.xlsx in
+    export/month/{year}/. Conversion .xls -> .xlsx is a distinct pre-step when .xlsx is missing.
+    """
+    year = run_month.year
     yyyymm = month_key_yyyy_mm(run_month)
-    ot_xlsx = paths.overtime_dir / f"{yyyymm}_OTActivity.xlsx"
-    to_xlsx = paths.time_off_dir / f"{yyyymm}_TimeOffActivity.xlsx"
-    ot_xls = paths.overtime_dir / f"{yyyymm}_OTActivity.xls"
-    to_xls = paths.time_off_dir / f"{yyyymm}_TimeOffActivity.xls"
+    ot_subdir = paths.overtime_dir / "export" / "month" / str(year)
+    to_subdir = paths.time_off_dir / "export" / "month" / str(year)
+
+    ot_xlsx = ot_subdir / f"{yyyymm}_otactivity.xlsx"
+    to_xlsx = to_subdir / f"{yyyymm}_timeoffactivity.xlsx"
 
     if ot_xlsx.exists() and to_xlsx.exists():
+        print(f"[INFO] Found export files:\n  Overtime: {ot_xlsx}\n  Time Off: {to_xlsx}")
         return
 
-    # If xlsx missing but xls present, convert using existing helper (Excel COM)
+    # Distinct pre-step: if .xlsx missing, try .xls and convert once
+    ot_xls = ot_subdir / f"{yyyymm}_otactivity.xls"
+    to_xls = to_subdir / f"{yyyymm}_timeoffactivity.xls"
     if (ot_xlsx.exists() or ot_xls.exists()) and (to_xlsx.exists() or to_xls.exists()):
         if dry_run:
             print(f"[DRY RUN] Would convert .xls -> .xlsx for month {yyyymm} (if needed).")
             return
-
         if not paths.xls_to_xlsx_multi.exists():
             raise FileNotFoundError(f"XLS->XLSX converter not found: {paths.xls_to_xlsx_multi}")
-
-        # Convert only when .xlsx missing
-        if (not ot_xlsx.exists()) or (not to_xlsx.exists()):
-            print(f"[INFO] Converting exports to .xlsx for {yyyymm} (Excel COM)...")
-            subprocess.check_call([sys.executable, str(paths.xls_to_xlsx_multi), str(paths.overtime_dir), str(paths.time_off_dir)])
-
-        if not ot_xlsx.exists() or not to_xlsx.exists():
-            raise FileNotFoundError(
-                "After conversion, expected .xlsx exports are still missing:\n"
-                f"  {ot_xlsx} exists={ot_xlsx.exists()}\n"
-                f"  {to_xlsx} exists={to_xlsx.exists()}\n"
-            )
+        print(f"[INFO] Converting exports to .xlsx for {yyyymm} (Excel COM)...")
+        subprocess.check_call(
+            [sys.executable, str(paths.xls_to_xlsx_multi), str(paths.overtime_dir), str(paths.time_off_dir)]
+        )
+        if not ot_xlsx.exists():
+            raise FileNotFoundError(f"After conversion, Overtime .xlsx still missing: {ot_xlsx}")
+        if not to_xlsx.exists():
+            raise FileNotFoundError(f"After conversion, Time Off .xlsx still missing: {to_xlsx}")
+        print(f"[INFO] Found export files after conversion:\n  Overtime: {ot_xlsx}\n  Time Off: {to_xlsx}")
         return
 
     raise FileNotFoundError(
-        "Could not locate required exports for the month in either .xlsx or .xls form:\n"
-        f"  {ot_xlsx} / {ot_xls}\n"
-        f"  {to_xlsx} / {to_xls}\n"
+        f"Required exports not found for {yyyymm}. Expected exactly:\n"
+        f"  Overtime:   {ot_xlsx}\n"
+        f"  Time Off:   {to_xlsx}\n"
+        f"  (Or same base name with .xls for conversion.)"
     )
+
+
+REQUIRED_FIXED_COLUMNS = {"Date", "Period", "Month", "Year", "Month_Name"}
+EXPECTED_MONTH_COUNT = 13
+
+
+def validate_fixed_schema(file_path: Path) -> None:
+    """Validate FIXED CSV schema before exit. Raises ValueError if invalid (prevents bad data reaching Power BI)."""
+    if not file_path.exists():
+        raise FileNotFoundError(f"FIXED file not found: {file_path}")
+    
+    with file_path.open("r", newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        headers = set(reader.fieldnames or [])
+    
+    # Check for required columns (wide format with Date, Period, Month, etc.)
+    missing = REQUIRED_FIXED_COLUMNS - headers
+    if missing:
+        raise ValueError(f"FIXED CSV missing required columns: {sorted(missing)}. Found: {sorted(headers)}")
+    
+    # Validate row count (should be exactly 13 months)
+    row_count = 0
+    with file_path.open("r", newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            row_count += 1
+            # Validate numeric columns (optional - check if any hours columns have valid numbers)
+            for col in headers:
+                if col in REQUIRED_FIXED_COLUMNS:
+                    continue  # Skip date/period columns
+                val = (row.get(col) or "").strip()
+                if val != "" and val != "0":
+                    try:
+                        float(val)
+                    except ValueError:
+                        raise ValueError(f"FIXED CSV has non-numeric value in column {col}: {val!r}")
+    
+    if row_count != EXPECTED_MONTH_COUNT:
+        raise ValueError(
+            f"FIXED CSV must contain exactly {EXPECTED_MONTH_COUNT} rows (months); found {row_count}"
+        )
 
 
 def run_v10(paths: Paths, dry_run: bool) -> None:
@@ -306,16 +366,17 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--backfill-root",
-        default=r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill",
-        help="Root folder containing Backfill\\YYYY_MM\\vcs_time_report\\... CSVs",
+        default=None,
+        help="Root folder containing Backfill\\YYYY_MM\\vcs_time_report\\... (default: <OneDrive>\\PowerBI_Date\\Backfill)",
     )
     parser.add_argument("--dry-run", action="store_true", help="Show what would happen without executing.")
     args = parser.parse_args()
 
-    overtime_timeoff_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff")
-    overtime_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime")
-    time_off_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off")
-    backfill_root = Path(args.backfill_root)
+    root = get_onedrive_root()
+    overtime_timeoff_dir = root / "02_ETL_Scripts" / "Overtime_TimeOff"
+    overtime_dir = root / "05_EXPORTS" / "_Overtime"
+    time_off_dir = root / "05_EXPORTS" / "_Time_Off"
+    backfill_root = Path(args.backfill_root) if args.backfill_root else root / "PowerBI_Date" / "Backfill"
 
     paths = Paths(
         overtime_timeoff_dir=overtime_timeoff_dir,
@@ -332,8 +393,14 @@ def main() -> int:
     end_month = prev_month(today)
     start_month = end_month.replace(year=end_month.year - 1)  # 13-month window start month
 
-    # Backfill should come from the month BEFORE end_month (e.g., if end is 2025_11, backfill is 2025_10)
-    backfill_month = prev_month(end_month)
+    # Backfill should come from the CURRENT end_month (e.g., if end is 2025_12, backfill is 2025_12)
+    # Try current month first, then fallback to previous month if current doesn't exist
+    backfill_month = end_month
+    backfill_folder = backfill_root / month_key_yyyy_mm(backfill_month) / "vcs_time_report"
+    if not backfill_folder.exists():
+        # Fallback to previous month's backfill
+        backfill_month = prev_month(end_month)
+        print(f"[INFO] Current month backfill not found, using previous month: {month_key_yyyy_mm(backfill_month)}")
 
     fixed_path = paths.overtime_timeoff_dir / "output" / expected_fixed_filename(start_month, end_month)
 
@@ -366,6 +433,10 @@ def main() -> int:
         end_month=end_month,
         dry_run=bool(args.dry_run),
     )
+
+    if not args.dry_run and fixed_path.exists():
+        validate_fixed_schema(fixed_path)
+        print("[OK] FIXED schema validated.")
 
     print("[OK] Pipeline complete.")
     return 0

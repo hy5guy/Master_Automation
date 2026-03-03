@@ -1,0 +1,79 @@
+Time Category,Sum of Value,PeriodLabel
+Accrued Comp. Time - Non-Sworn,87.00,12-24
+Accrued Comp. Time - Non-Sworn,17.00,01-25
+Accrued Comp. Time - Non-Sworn,35.50,02-25
+Accrued Comp. Time - Non-Sworn,26.00,03-25
+Accrued Comp. Time - Non-Sworn,25.00,04-25
+Accrued Comp. Time - Non-Sworn,30.67,05-25
+Accrued Comp. Time - Non-Sworn,19.50,06-25
+Accrued Comp. Time - Non-Sworn,65.63,07-25
+Accrued Comp. Time - Non-Sworn,55.24,08-25
+Accrued Comp. Time - Non-Sworn,39.50,09-25
+Accrued Comp. Time - Non-Sworn,20.00,10-25
+Accrued Comp. Time - Non-Sworn,29.00,11-25
+Accrued Comp. Time - Non-Sworn,55.00,12-25
+Accrued Comp. Time - Sworn,274.00,12-24
+Accrued Comp. Time - Sworn,139.50,01-25
+Accrued Comp. Time - Sworn,139.50,02-25
+Accrued Comp. Time - Sworn,145.50,03-25
+Accrued Comp. Time - Sworn,132.00,04-25
+Accrued Comp. Time - Sworn,150.00,05-25
+Accrued Comp. Time - Sworn,142.50,06-25
+Accrued Comp. Time - Sworn,237.00,07-25
+Accrued Comp. Time - Sworn,121.50,08-25
+Accrued Comp. Time - Sworn,138.00,09-25
+Accrued Comp. Time - Sworn,142.50,10-25
+Accrued Comp. Time - Sworn,111.00,11-25
+Accrued Comp. Time - Sworn,111.00,12-25
+Employee Sick Time (Hours),998.00,12-24
+Employee Sick Time (Hours),996.50,01-25
+Employee Sick Time (Hours),1116.50,02-25
+Employee Sick Time (Hours),1212.00,03-25
+Employee Sick Time (Hours),1050.00,04-25
+Employee Sick Time (Hours),1276.50,05-25
+Employee Sick Time (Hours),1264.00,06-25
+Employee Sick Time (Hours),1258.50,07-25
+Employee Sick Time (Hours),860.50,08-25
+Employee Sick Time (Hours),1071.00,09-25
+Employee Sick Time (Hours),1006.50,10-25
+Employee Sick Time (Hours),946.50,11-25
+Employee Sick Time (Hours),1078.00,12-25
+Injured on Duty (Hours),204.00,12-24
+Injured on Duty (Hours),72.67,01-25
+Injured on Duty (Hours),149.50,02-25
+Injured on Duty (Hours),0.00,03-25
+Injured on Duty (Hours),0.00,04-25
+Injured on Duty (Hours),0.00,05-25
+Injured on Duty (Hours),135.00,06-25
+Injured on Duty (Hours),252.00,07-25
+Injured on Duty (Hours),180.00,08-25
+Injured on Duty (Hours),456.00,09-25
+Injured on Duty (Hours),80.00,10-25
+Injured on Duty (Hours),24.00,11-25
+Injured on Duty (Hours),32.00,12-25
+Military Leave (Hours),208.00,12-24
+Military Leave (Hours),228.00,01-25
+Military Leave (Hours),192.00,02-25
+Military Leave (Hours),36.00,03-25
+Military Leave (Hours),108.00,04-25
+Military Leave (Hours),132.00,05-25
+Military Leave (Hours),166.00,06-25
+Military Leave (Hours),92.00,07-25
+Military Leave (Hours),100.00,08-25
+Military Leave (Hours),64.00,09-25
+Military Leave (Hours),84.00,10-25
+Military Leave (Hours),24.00,11-25
+Military Leave (Hours),24.00,12-25
+Vacation Time (Hours),1396.00,12-24
+Vacation Time (Hours),754.50,01-25
+Vacation Time (Hours),1124.50,02-25
+Vacation Time (Hours),1332.00,03-25
+Vacation Time (Hours),1440.00,04-25
+Vacation Time (Hours),1682.00,05-25
+Vacation Time (Hours),2160.00,06-25
+Vacation Time (Hours),2782.50,07-25
+Vacation Time (Hours),2696.00,08-25
+Vacation Time (Hours),1637.50,09-25
+Vacation Time (Hours),1539.50,10-25
+Vacation Time (Hours),1046.50,11-25
+Vacation Time (Hours),1378.00,12-25

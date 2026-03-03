@@ -1,0 +1,704 @@
+Dynamic File Path Discovery ===
+    // Look for the most recent Python ETL output file
+    OutputFolder = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\src\output\",
+    
+    // Try to find the most recent community_engagement_data_*.csv file
+    // Pattern: community_engagement_data_YYYYMMDD_HHMMSS.csv
+    PythonETLFile = try 
+        let
+            // Get all CSV files in the output directory
+            Source = Folder.Files(OutputFolder),
+            FilteredFiles = Table.SelectRows(Source, each Text.StartsWith([Name], "community_engagement_data_") and Text.EndsWith([Name], ".csv")),
+            SortedFiles = Table.Sort(FilteredFiles, {{"Date modified", Order.Descending}}),
+            LatestFile = if Table.RowCount(SortedFiles) > 0 
+                        then OutputFolder & SortedFiles{0}[Name]
+                        else error "No Python ETL output files found"
+        in
+            LatestFile
+    otherwise
+        // Fallback to a specific filename pattern if dynamic discovery fails
+        OutputFolder & "community_engagement_combined_" & Date.ToText(DateTime.Date(DateTime.LocalNow()), "yyyy-MM-dd") & ".csv",
+
+    // === 2. Read Python ETL CSV Output ===
+    CSVSource = Csv.Document(File.Contents(PythonETLFile), [Delimiter=",", Columns=null, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+    HeadersPromoted = Table.PromoteHeaders(CSVSource, [PromoteAllScalars=true]),
+    
+    // === 3. Data Type Transformations ===
+    // Handle datetime strings from Python ETL (format: "YYYY-MM-DD HH:MM:SS")
+    DateParsed = Table.TransformColumns(HeadersPromoted, {
+        {"date", each 
+            if _ = null or _ = "" 
+            then null 
+            else try DateTime.Date(DateTime.FromText(_)) otherwise Date.FromText(Text.Start(_, 10)), 
+        type date}
+    }),
+    
+    // Handle time columns safely (may be in various formats from Python)
+    TimeParsed = Table.TransformColumns(DateParsed, {
+        {"start_time", each try Time.FromText(_) otherwise null, type time},
+        {"end_time", each try Time.FromText(_) otherwise null, type time}
+    }),
+    
+    TypedData = Table.TransformColumnTypes(TimeParsed, {
+        {"event_name", type text},
+        {"location", type text},
+        {"duration_hours", type number},
+        {"attendee_count", Int64.Type},
+        {"office", type text},
+        {"division", type text}
+    }),
+    
+    // Handle any duration_hours conversion issues (Python ETL may have NaNs)
+    SafeDuration = Table.TransformColumns(TypedData, {
+        {"duration_hours", each 
+            if _ = null or _ = "" or Text.From(_) = "nan" 
+            then 0.5 
+            else try Number.From(_) otherwise 0.5, type number}
+    }),
+    
+    // Handle any attendee_count conversion issues  
+    SafeAttendees = Table.TransformColumns(SafeDuration, {
+        {"attendee_count", each try Number.From(_) otherwise 1, Int64.Type}
+    }),
+    
+    // === 4. Column Selection and Renaming ===
+    // Select only the columns needed for Power BI
+    SelectedColumns = Table.SelectColumns(SafeAttendees, {
+        "date",
+        "duration_hours", 
+        "event_name",
+        "location",
+        "attendee_count",
+        "office"
+    }),
+    
+    // Rename columns to match exact Power BI expectations
+    RenamedColumns = Table.RenameColumns(SelectedColumns, {
+        {"date", "Date"},
+        {"duration_hours", "Event Duration (Hours)"},
+        {"event_name", "Event Name"}, 
+        {"location", "Location of Event"},
+        {"attendee_count", "Number of Police Department Attendees"},
+        {"office", "Office"}
+    }),
+    
+    // === 5. Data Quality and Filtering ===
+    // Remove rows with null dates (same as original M code)
+    FilteredData = Table.SelectRows(RenamedColumns, each [Date] <> null),
+    
+    // Ensure Event Duration is reasonable (0.1 to 24 hours)
+    ValidatedDuration = Table.TransformColumns(FilteredData, {
+        {"Event Duration (Hours)", each 
+            if _ = null or _ <= 0 then 0.5
+            else if _ > 24 then 8.0  
+            else Number.Round(_, 2), 
+        type number}
+    }),
+    
+    // Ensure attendee count is at least 1 if null/zero
+    ValidatedAttendees = Table.TransformColumns(ValidatedDuration, {
+        {"Number of Police Department Attendees", each 
+            if _ = null or _ <= 0 then 1 else _, 
+        Int64.Type}
+    }),
+    
+    // === 6. Final Sort and Output ===
+    // Sort by date ascending (same as original M code)
+    FinalData = if Table.RowCount(ValidatedAttendees) > 0 
+                then Table.Sort(ValidatedAttendees, {{"Date", Order.Ascending}}) 
+                else ValidatedAttendees
+
+in
+    FinalData
+
+// ___CSB_Monthly
+let
+    //==== Source & initial cleanup ============================================================
+    Source = Excel.Workbook(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\CSB\csb_monthly.xlsm"),
+        null, true
+    ),
+    MoM_Sheet = Source{[Item="MoM",Kind="Sheet"]}[Data],
+    PromotedHeaders = Table.PromoteHeaders(MoM_Sheet, [PromoteAllScalars=true]),
+    CleanedData = Table.SelectRows(PromotedHeaders, each [#"Tracked Items"] <> null and [#"Tracked Items"] <> ""),
+
+    //==== Column bookkeeping =================================================================
+    ColumnNames = Table.ColumnNames(CleanedData),
+    FirstColumnName = ColumnNames{0},
+    DateColumns = List.Skip(ColumnNames, 1),
+
+    //==== Rolling 13-month window logic ======================================================
+    // Today -> Current month start
+    Today = Date.From(DateTime.LocalNow()),
+    CurrentMonthStart = Date.StartOfMonth(Today),
+
+    // EndMonth: last fully completed month (exclude current month)
+    EndMonth = Date.AddMonths(CurrentMonthStart, -1),
+
+    // StartMonth: 12 months prior to EndMonth (inclusive range gives 13 total months)
+    StartMonth = Date.AddMonths(EndMonth, -12),
+
+    //==== Validate/select only date columns within the window ================================
+    // Expecting headers like "MM-YY" (e.g., "08-24")
+    ValidDateColumns =
+        List.Select(
+            DateColumns,
+            (colName as text) as logical =>
+                let
+                    parts = Text.Split(colName, "-"),
+                    MonthNum =
+                        if List.Count(parts) >= 2
+                        then try Number.FromText(parts{0}) otherwise null
+                        else null,
+                    YearTwo =
+                        if List.Count(parts) >= 2
+                        then try Number.FromText(parts{1}) otherwise null
+                        else null,
+                    FullYear =
+                        if YearTwo <> null
+                        then (if YearTwo >= 50 then 1900 + YearTwo else 2000 + YearTwo)
+                        else null,
+                    ColumnDate =
+                        if MonthNum <> null and FullYear <> null
+                        then try #date(FullYear, MonthNum, 1) otherwise null
+                        else null
+                in
+                    ColumnDate <> null and ColumnDate >= StartMonth and ColumnDate <= EndMonth
+        ),
+
+    SelectedColumns = List.Combine({ {FirstColumnName}, ValidDateColumns }),
+    Pruned = Table.SelectColumns(CleanedData, SelectedColumns),
+
+    //==== Unpivot & enrich ===================================================================
+    Unpivoted =
+        Table.UnpivotOtherColumns(
+            Pruned,
+            {FirstColumnName},
+            "Month_MM_YY",
+            "Value"
+        ),
+    Renamed = Table.RenameColumns(Unpivoted, {{FirstColumnName, "CSB_Category"}}),
+
+    // Parse "MM-YY" into a proper date at month start
+    WithDate =
+        Table.AddColumn(
+            Renamed,
+            "Date",
+            each
+                let
+                    monthText = [Month_MM_YY],
+                    parts = Text.Split(monthText, "-"),
+                    m = if List.Count(parts) >= 2 then try Number.FromText(parts{0}) otherwise 1 else 1,
+                    yy = if List.Count(parts) >= 2 then try Number.FromText(parts{1}) otherwise 25 else 25,
+                    yyyy = if yy >= 50 then 1900 + yy else 2000 + yy
+                in
+                    #date(yyyy, m, 1),
+            type date
+        ),
+
+    // Exact month index from StartMonth (1..13)
+    WithSort =
+        Table.AddColumn(
+            WithDate,
+            "Month_Sort_Order",
+            each
+                let
+                    d = [Date],
+                    months =
+                        (Date.Year(d) - Date.Year(StartMonth)) * 12
+                        + (Date.Month(d) - Date.Month(StartMonth))
+                        + 1
+                in
+                    months,
+            Int64.Type
+        ),
+
+    WithDisplay =
+        Table.AddColumn(WithSort, "Month_Display", each Date.ToText([Date], "MMM yyyy"), type text),
+
+    //==== Sort & types =======================================================================
+    Sorted = Table.Sort(WithDisplay, {{"Date", Order.Ascending}}),
+    Typed =
+        Table.TransformColumnTypes(
+            Sorted,
+            {
+                {"CSB_Category", type text},
+                {"Month_MM_YY", type text},
+                {"Value", Currency.Type},
+                {"Date", type date},
+                {"Month_Sort_Order", Int64.Type},
+                {"Month_Display", type text}
+            }
+        ),
+
+    //==== Final hygiene ======================================================================
+    Final = Table.SelectRows(Typed, each [CSB_Category] <> null and [CSB_Category] <> "")
+in
+    Final
+
+// ___Det_case_dispositions_clearance
+// Det_case_dispositions_clearance — CCD/_CCD_MOM
+// Fixed row order • Robust % normalization • Rolling 13-Month window
+
+let
+    // --- Load table ---------------------------------------------------------
+    Source = Excel.Workbook(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Detectives\detectives_monthly.xlsx"),
+        null, true
+    ),
+    CCD_Table = Source{[Item="_CCD_MOM", Kind="Table"]}[Data],
+
+    // --- Required order (exact labels) -------------------------------------
+    RequiredOrder = {
+        "Active / Administratively Closed",
+        "Arrest",
+        "Complaint Signed",
+        "Ex Cleared / Closed",
+        "Juvenile Complaint",
+        "Stationhouse Adjustment",
+        "TOT DCP&P",
+        "Unfounded / Closed",
+        "Monthly Bureau Case Clearance %"
+    },
+
+    // --- Shape & keep only the required labels -----------------------------
+    ColNames        = Table.ColumnNames(CCD_Table),
+    FirstColumnName = ColNames{0},
+    MonthColumns    = List.Skip(ColNames, 1),
+
+    KeptRows = Table.SelectRows(
+        CCD_Table,
+        (r) => List.Contains(RequiredOrder, Record.Field(r, FirstColumnName))
+    ),
+
+    // Add Row_Sort and order rows to lock display sequence
+    WithRowSort = Table.AddColumn(
+        KeptRows, "Row_Sort",
+        each List.PositionOf(RequiredOrder, Record.Field(_, FirstColumnName)),
+        Int64.Type
+    ),
+    OrderedRows = Table.Sort(WithRowSort, {{"Row_Sort", Order.Ascending}}),
+
+    // Wide types: keep months as 'any' for now (we'll normalize after unpivot)
+    TypedWide = Table.TransformColumnTypes(
+        OrderedRows,
+        {{FirstColumnName, type text}} & List.Transform(MonthColumns, each {_, type any})
+    ),
+
+    // Flag the percent row
+    MarkPercentRow = Table.AddColumn(
+        TypedWide, "Is_Percent",
+        each Record.Field(_, FirstColumnName) = "Monthly Bureau Case Clearance %",
+        type logical
+    ),
+
+    // --- Unpivot for tidy format -------------------------------------------
+    Unpivoted = Table.UnpivotOtherColumns(
+        MarkPercentRow,
+        {FirstColumnName, "Row_Sort", "Is_Percent"},
+        "Month",
+        "ValueRaw"
+    ),
+
+    // --- Robust normalization ----------------------------------------------
+    // If Is_Percent:
+    //   - "50%" -> 0.50
+    //   - 50    -> 0.50
+    //   - 0.50  -> 0.50
+    // Else:
+    //   - counts as numbers
+    Normalized = Table.AddColumn(
+        Unpivoted, "Value",
+        each
+            let v = [ValueRaw] in
+            if [Is_Percent] then
+                if Value.Is(v, type text) then
+                    let
+                        s   = Text.Trim(v),
+                        hasPct = Text.Contains(s, "%"),
+                        n0  = try Number.From(Text.Replace(s, "%", "")) otherwise null,
+                        n   = if n0 = null then null
+                              else if hasPct then n0 / 100
+                              else if n0 > 1 then n0 / 100 else n0
+                    in  n
+                else
+                    let
+                        n0 = try Number.From(v) otherwise null,
+                        n  = if n0 = null then null
+                             else if n0 > 1 then n0 / 100 else n0
+                    in  n
+            else
+                try Number.From(v) otherwise null,
+        type number
+    ),
+    Cleaned = Table.RemoveColumns(Normalized, {"ValueRaw"}),
+
+    // --- Date helpers from "MM-YY" -----------------------------------------
+    WithDate = Table.AddColumn(Cleaned, "Date", each
+        let
+            mTxt = [Month],
+            mNum = try Value.FromText(Text.Start(mTxt, 2)) otherwise null,
+            y2   = try Value.FromText(Text.End(mTxt, 2)) otherwise null,
+            y4   = if y2 = null then null else if y2 >= 50 then 1900 + y2 else 2000 + y2
+        in
+            if mNum = null or y4 = null then null else #date(y4, mNum, 1),
+        type date
+    ),
+
+    WithMonthYear = Table.AddColumn(WithDate, "Month_Year", each if [Date] = null then null else Date.MonthName([Date]) & " " & Text.From(Date.Year([Date])), type text),
+    WithSortOrder = Table.AddColumn(WithMonthYear, "Sort_Order", each if [Date] = null then null else Date.Year([Date]) * 100 + Date.Month([Date]), Int64.Type),
+    WithAbbrev    = Table.AddColumn(WithSortOrder, "Month_Abbrev", each if [Date] = null then null else Text.PadStart(Text.From(Date.Month([Date])), 2, "0") & "-" & Text.End(Text.From(Date.Year([Date])), 2), type text),
+
+    // Optional grouping
+    WithDispCat = Table.AddColumn(WithAbbrev, "Disposition_Category", each
+        let disp = Record.Field(_, FirstColumnName)
+        in
+            if Text.Contains(disp, "Active") or Text.Contains(disp, "Administratively") then "Open Cases"
+            else if Text.Contains(disp, "Arrest") or Text.Contains(disp, "Complaint") then "Prosecuted"
+            else if Text.Contains(disp, "Cleared") or Text.Contains(disp, "Unfounded") then "Cleared"
+            else if disp = "Monthly Bureau Case Clearance %" then "Performance Metric"
+            else "Other",
+        type text
+    ),
+
+    // --- Rolling 13-Month window (exclude current month) -------------------
+    CurrentDate     = Date.From(DateTime.LocalNow()),
+    EndFilterDate   = Date.AddMonths(Date.StartOfMonth(CurrentDate), -1),
+    StartFilterDate = Date.AddMonths(EndFilterDate, -12),
+
+    FilteredMonths = Table.SelectRows(
+        WithDispCat,
+        each [Date] <> null and [Date] >= StartFilterDate and [Date] <= EndFilterDate
+    ),
+
+    // --- Final types --------------------------------------------------------
+    Final = Table.TransformColumnTypes(FilteredMonths, {
+        {FirstColumnName, type text},
+        {"Month", type text},
+        {"Value", type number},
+        {"Date", type date},
+        {"Month_Year", type text},
+        {"Sort_Order", Int64.Type},
+        {"Month_Abbrev", type text},
+        {"Disposition_Category", type text},
+        {"Row_Sort", Int64.Type},
+        {"Is_Percent", type logical}
+    })
+in
+    Final
+
+// ___STACP_pt_1_2
+/* =================================================================
+   STACP HIGH ACTIVITY - ALTERNATE VERSION (ALL ITEMS, NO VALUE FILTERING)
+   Replace STACP_High_Activity query with this version
+   ================================================================= */
+
+// 🕒 2025-07-14-20-15-00
+// Project: STACP_MixedFormat/high_activity_all_items
+// Author: R. A. Carucci
+// Purpose: Alternate version showing ALL tracked items without value filtering
+
+let
+    // =================================================================
+    // ROLLING 13-MONTH WINDOW CALCULATION
+    // =================================================================
+    Today = DateTime.LocalNow(),
+    CurrentMonth = Date.Month(Today),
+    CurrentYear = Date.Year(Today),
+    
+    // Calculate end month (previous month)
+    EndMonth = if CurrentMonth = 1 then 12 else CurrentMonth - 1,
+    EndYear = if CurrentMonth = 1 then CurrentYear - 1 else CurrentYear,
+    
+    // Calculate start month (13 months back from end month)
+    // Going back 13 months means: if EndMonth is Oct (10), StartMonth is Sep (9) of previous year
+    // Formula: StartMonth = EndMonth - 1, wrapping to 12 if EndMonth = 1
+    // StartYear = EndYear - 1 (always go back one year when going back 13 months)
+    StartMonth = if EndMonth = 1 then 12 else EndMonth - 1,
+    StartYear = EndYear - 1,
+    
+    // Generate report date range
+    Report_Start_Date = Date.FromText(Text.From(StartYear) & "-" & Text.PadStart(Text.From(StartMonth), 2, "0") & "-01"),
+    Report_End_Date = Date.FromText(Text.From(EndYear) & "-" & Text.PadStart(Text.From(EndMonth), 2, "0") & "-01"),
+    
+    // =================================================================
+    // DATA SOURCE LOADING
+    // =================================================================
+    // Load the STACP MoMTotals sheet (CORRECTED)
+    Source = Excel.Workbook(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\STACP\STACP.xlsm")),
+    MoMTotals_Sheet = Source{[Item="MoMTotals",Kind="Sheet"]}[Data],
+    
+    // Promote headers
+    PromotedHeaders = Table.PromoteHeaders(MoMTotals_Sheet, [PromoteAllScalars=true]),
+    
+    // Get column names with SAFE array access
+    ColumnNames = Table.ColumnNames(PromotedHeaders),
+    
+    // SAFE: Check if we have columns before accessing
+    FirstColumnName = if List.IsEmpty(ColumnNames) then "Tracked Items " else ColumnNames{0},
+    
+    // =================================================================
+    // ROLLING WINDOW MONTH COLUMN DETECTION
+    // =================================================================
+    // ROBUST month column detection for mixed formats WITH WINDOW FILTERING
+    AllMonthColumns = List.Select(ColumnNames, each 
+        let
+            ColumnName = _,
+            // Check for month-year pattern (MM-YY or M-YY)
+            HasHyphen = Text.Contains(ColumnName, "-"),
+            // Look for year patterns (24 or 25)
+            HasYear = Text.Contains(ColumnName, "24") or Text.Contains(ColumnName, "25"),
+            // Exclude the first column (Tracked Items)
+            IsNotFirstColumn = ColumnName <> FirstColumnName,
+            // Additional validation: should be 4-5 characters (M-YY or MM-YY)
+            ValidLength = Text.Length(ColumnName) >= 4 and Text.Length(ColumnName) <= 5
+        in
+            HasHyphen and HasYear and IsNotFirstColumn and ValidLength
+    ),
+    
+    // Filter month columns to only include those within the rolling 13-month window
+    FilteredMonthColumns = List.Select(AllMonthColumns, each
+        let
+            ColumnName = _,
+            // Parse month and year from column name
+            Parts = Text.Split(ColumnName, "-"),
+            MonthPart = if List.Count(Parts) >= 2 then Parts{0} else "01",
+            YearPart = if List.Count(Parts) >= 2 then Parts{1} else "24",
+            
+            // Convert to numeric values
+            MonthNum = try Number.From(MonthPart) otherwise 1,
+            YearNum = try Number.From("20" & YearPart) otherwise 2024,
+            
+            // Create date for comparison
+            ColumnDate = Date.FromText(Text.From(YearNum) & "-" & Text.PadStart(Text.From(MonthNum), 2, "0") & "-01"),
+            
+            // Check if within rolling window
+            IsWithinWindow = ColumnDate >= Report_Start_Date and ColumnDate <= Report_End_Date
+        in
+            IsWithinWindow
+    ),
+    
+    // SAFE: Check if month columns were found, provide fallback
+    FinalMonthColumns = if List.IsEmpty(FilteredMonthColumns) then
+        // Fallback: use all month columns if none match window
+        AllMonthColumns
+    else
+        FilteredMonthColumns,
+    
+    // SAFE: Check if we have columns to select
+    ColumnsToSelect = if List.IsEmpty(FinalMonthColumns) then
+        {FirstColumnName}
+    else
+        List.Combine({{FirstColumnName}, FinalMonthColumns}),
+    
+    // Select columns with error handling
+    SelectedColumns = try Table.SelectColumns(PromotedHeaders, ColumnsToSelect)
+    otherwise PromotedHeaders,
+    
+    // Unpivot month columns with SAFE column list
+    UnpivotedData = try Table.UnpivotOtherColumns(
+        SelectedColumns,
+        {FirstColumnName},
+        "Month", "Value"
+    )
+    otherwise SelectedColumns,
+    
+    // Convert Value to number with error handling
+    ConvertedValues = Table.TransformColumns(UnpivotedData, {
+        "Value", each 
+            let
+                // Handle null values by converting to zero
+                SafeValue = if _ = null then 0 else _,
+                TextValue = if SafeValue = null then "0" else Text.From(SafeValue),
+                NumericValue = try Number.From(TextValue) otherwise 0
+            in
+                NumericValue,
+        type number
+    }),
+    
+    // Additional step: Replace any remaining null values in Value column with 0
+    ValuesWithZeros = Table.ReplaceValue(ConvertedValues, null, 0, Replacer.ReplaceValue, {"Value"}),
+    
+    // Add basic columns with null handling
+    AddedColumns = Table.AddColumn(ValuesWithZeros, "Source_Category", each "STACP Core", type text),
+    AddedActivityLevel = Table.AddColumn(AddedColumns, "Activity_Level", each "High Activity", type text),
+    
+    // =================================================================
+    // DATE PROCESSING AND SORT KEY GENERATION
+    // =================================================================
+    // Normalize month format with error handling and null conversion
+    AddedNormalizedMonth = Table.AddColumn(AddedActivityLevel, "Month_MM_YY", each
+        let
+            OriginalMonth = [Month],
+            // SAFE: Check if month column exists and has valid format, convert null to default
+            NormalizedMonth = if OriginalMonth <> null and Text.Contains(OriginalMonth, "-") then
+                let
+                    Parts = Text.Split(OriginalMonth, "-"),
+                    // SAFE: Check if we have at least 2 parts
+                    MonthPart = if List.Count(Parts) >= 2 then Parts{0} else "01",
+                    YearPart = if List.Count(Parts) >= 2 then Parts{1} else "24",
+                    // Pad month with zero if single digit
+                    PaddedMonth = Text.PadStart(MonthPart, 2, "0"),
+                    Result = PaddedMonth & "-" & YearPart
+                in
+                    Result
+            else
+                "01-24" // Default fallback for null or invalid values
+        in
+            NormalizedMonth,
+        type text
+    ),
+    
+    // Add Date Sort Key (YYYYMMDD format for sorting) with null handling
+    AddedDateSortKey = Table.AddColumn(AddedNormalizedMonth, "Date_Sort_Key", each
+        let
+            MonthText = [Month_MM_YY],
+            // Parse month and year with null safety
+            Parts = if MonthText <> null then Text.Split(MonthText, "-") else {"01", "24"},
+            MonthPart = if List.Count(Parts) >= 2 then Parts{0} else "01",
+            YearPart = if List.Count(Parts) >= 2 then Parts{1} else "24",
+            
+            // Convert to full year
+            FullYear = "20" & YearPart,
+            
+            // Create sort key (YYYYMMDD format, using 01 as day)
+            SortKey = FullYear & MonthPart & "01"
+        in
+            SortKey,
+        type text
+    ),
+    
+    // Add rolling window date columns with null handling
+    AddedReportDates = Table.AddColumn(AddedDateSortKey, "Report_Start_Date", each 
+        if Report_Start_Date <> null then Date.ToText(Report_Start_Date, "yyyy-MM-dd") else "2024-07-01", 
+        type text
+    ),
+    AddedReportEndDate = Table.AddColumn(AddedReportDates, "Report_End_Date", each 
+        if Report_End_Date <> null then Date.ToText(Report_End_Date, "yyyy-MM-dd") else "2025-07-01", 
+        type text
+    ),
+    
+    // Add window filter flag
+    AddedWindowFilter = Table.AddColumn(AddedReportEndDate, "Is_Within_Window", each true, type logical),
+    
+    // =================================================================
+    // TOTAL ACTIVITY CALCULATION (NO FILTERING)
+    // =================================================================
+    // Add total activity per item for sorting (but don't filter)
+    AddedTotalActivity = Table.AddColumn(AddedWindowFilter, "Total_Activity", each
+        let
+            CurrentItem = Record.Field(_, FirstColumnName),
+            ItemRows = Table.SelectRows(AddedWindowFilter, each Record.Field(_, FirstColumnName) = CurrentItem),
+            Total = List.Sum(Table.Column(ItemRows, "Value"))
+        in
+            Total,
+        type number
+    ),
+    
+    // Sort by total activity (descending) and then by item name for consistent ordering
+    SortedByActivity = Table.Sort(AddedTotalActivity, {
+        {"Total_Activity", Order.Descending},
+        {FirstColumnName, Order.Ascending},
+        {"Date_Sort_Key", Order.Ascending}
+    }),
+    
+    // Final column types with error handling
+    FinalTypes = try Table.TransformColumnTypes(SortedByActivity, {
+        {FirstColumnName, type text},
+        {"Month", type text},
+        {"Value", type number},
+        {"Source_Category", type text},
+        {"Activity_Level", type text},
+        {"Month_MM_YY", type text},
+        {"Date_Sort_Key", type text},
+        {"Report_Start_Date", type text},
+        {"Report_End_Date", type text},
+        {"Is_Within_Window", type logical},
+        {"Total_Activity", type number}
+    })
+    otherwise SortedByActivity,
+    
+    // =================================================================
+    // FINAL NULL VALUE REPLACEMENT
+    // =================================================================
+    // Replace any remaining null values with appropriate defaults
+    FinalNullReplacement = Table.ReplaceValue(
+        FinalTypes,
+        null,
+        0,
+        Replacer.ReplaceValue,
+        {"Value", "Total_Activity"}
+    ),
+    
+    FinalTextNullReplacement = Table.ReplaceValue(
+        FinalNullReplacement,
+        null,
+        "",
+        Replacer.ReplaceValue,
+        {FirstColumnName, "Month", "Source_Category", "Activity_Level", "Month_MM_YY", "Date_Sort_Key", "Report_Start_Date", "Report_End_Date"}
+    ),
+    
+    FinalLogicalNullReplacement = Table.ReplaceValue(
+        FinalTextNullReplacement,
+        null,
+        false,
+        Replacer.ReplaceValue,
+        {"Is_Within_Window"}
+    )
+    
+in
+    FinalLogicalNullReplacement
+
+// ___Patrol
+let
+    Source = Excel.Workbook(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Patrol\patrol_monthly.xlsm"), null, true),
+    _mom_patrol_Table = Source{[Item="_mom_patrol",Kind="Table"]}[Data],
+    #"Changed Type" = Table.TransformColumnTypes(_mom_patrol_Table,{{"Tracked Items", type text}, {"06-23", Int64.Type}, {"07-23", Int64.Type}, {"08-23", Int64.Type}, {"09-23", Int64.Type}, {"10-23", Int64.Type}, {"11-23", Int64.Type}, {"12-23", Int64.Type}, {"01-24", Int64.Type}, {"02-24", Int64.Type}, {"03-24", Int64.Type}, {"04-24", Int64.Type}, {"05-24", Int64.Type}, {"06-24", Int64.Type}, {"07-24", Int64.Type}, {"08-24", Int64.Type}, {"09-24", Int64.Type}, {"10-24", Int64.Type}, {"11-24", Int64.Type}, {"12-24", Int64.Type}, {"01-25", Int64.Type}, {"02-25", Int64.Type}, {"03-25", Int64.Type}, {"04-25", Int64.Type}, {"05-25", Int64.Type}, {"06-25", Int64.Type}, {"07-25", Int64.Type}, {"08-25", Int64.Type}, {"09-25", Int64.Type}, {"10-25", Int64.Type}, {"11-25", Int64.Type}, {"12-25", Int64.Type}})
+in
+    #"Changed Type"
+
+// ___REMU
+let
+    // 1. Load Excel & table
+    WorkbookPath  = "C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\REMU\REMU_Monthly.xlsx",
+    TableName     = "_mom_remu",
+    Source        = Excel.Workbook(File.Contents(WorkbookPath), null, true),
+    REMU_MoM      = Source{[Item=TableName,Kind="Table"]}[Data],
+
+    // 2. Clean “Tracked Items”
+    Cleaned       = Table.TransformColumns(
+                      REMU_MoM,
+                      {{"Tracked Items", each Text.Trim(Text.Clean(_)), type text}}
+                    ),
+    Filtered      = Table.SelectRows(
+                      Cleaned,
+                      each [Tracked Items] <> null and [Tracked Items] <> ""
+                    ),
+
+    // 3. Unpivot all “MM-YY” columns into [Month] & [Total]
+    MonthCols     = List.Select(
+                      Table.ColumnNames(Filtered),
+                      each Text.Length(_) = 5 and Text.Contains(_,"-")
+                    ),
+    Unpivoted     = Table.Unpivot(
+                      Filtered,
+                      MonthCols,
+                      "Month",
+                      "Total"
+                    ),
+
+    // 4. Parse “MM-YY” → first-of-month date
+    AddDate       = Table.AddColumn(
+                      Unpivoted,
+                      "PeriodDate",
+                      each Date.FromText("01-" & [Month]),
+                      type date
+                    ),
+
+    // 5. Convert Total to number
+    ChangeType    = Table.TransformColumnTypes(
+                      AddDate,
+                      {{"Total", Int64.Type}}
+                    ),
+
+    // 6.

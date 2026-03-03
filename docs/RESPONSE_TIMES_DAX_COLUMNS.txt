@@ -1,0 +1,106 @@
+// ==============================================================================
+// CALCULATED COLUMNS FOR RESPONSE TIMES TABLE
+// Add these as calculated columns in the ___ResponseTimeCalculator table
+// (Not measures - these go in the table itself)
+// ==============================================================================
+
+// These columns calculate the 13-month averages for each response type
+// They can be used in visuals directly
+
+// Column 1: Emergency_Avg_13M (Calculated Column)
+Emergency_Avg_13M = 
+VAR CurrYear = YEAR(TODAY())
+VAR CurrMonth = MONTH(TODAY())
+VAR EndMonthTemp = CurrMonth - 1
+VAR EndMonth = IF(EndMonthTemp = 0, 12, EndMonthTemp)
+VAR EndYear = IF(EndMonthTemp = 0, CurrYear - 1, CurrYear)
+VAR StartMonthTemp = EndMonth - 12
+VAR StartMonth = IF(StartMonthTemp <= 0, StartMonthTemp + 12, StartMonthTemp)
+VAR StartYear = IF(StartMonthTemp <= 0, EndYear - 1, EndYear)
+VAR StartDate = DATE(StartYear, StartMonth, 1)
+VAR EndDate = DATE(EndYear, EndMonth, 1)
+VAR IsInRange = '___ResponseTimeCalculator'[Date_Sort_Key] >= StartDate && '___ResponseTimeCalculator'[Date_Sort_Key] <= EndDate
+VAR IsEmergency = '___ResponseTimeCalculator'[Response_Type] = "Emergency"
+VAR AvgValue = CALCULATE(
+    AVERAGE('___ResponseTimeCalculator'[Average_Response_Time]),
+    FILTER(
+        '___ResponseTimeCalculator',
+        '___ResponseTimeCalculator'[Response_Type] = "Emergency" &&
+        '___ResponseTimeCalculator'[Date_Sort_Key] >= StartDate &&
+        '___ResponseTimeCalculator'[Date_Sort_Key] <= EndDate
+    )
+)
+RETURN
+    IF(IsEmergency && IsInRange, AvgValue, BLANK())
+
+
+// Column 2: Routine_Avg_13M (Calculated Column)
+Routine_Avg_13M = 
+VAR CurrYear = YEAR(TODAY())
+VAR CurrMonth = MONTH(TODAY())
+VAR EndMonthTemp = CurrMonth - 1
+VAR EndMonth = IF(EndMonthTemp = 0, 12, EndMonthTemp)
+VAR EndYear = IF(EndMonthTemp = 0, CurrYear - 1, CurrYear)
+VAR StartMonthTemp = EndMonth - 12
+VAR StartMonth = IF(StartMonthTemp <= 0, StartMonthTemp + 12, StartMonthTemp)
+VAR StartYear = IF(StartMonthTemp <= 0, EndYear - 1, EndYear)
+VAR StartDate = DATE(StartYear, StartMonth, 1)
+VAR EndDate = DATE(EndYear, EndMonth, 1)
+VAR IsInRange = '___ResponseTimeCalculator'[Date_Sort_Key] >= StartDate && '___ResponseTimeCalculator'[Date_Sort_Key] <= EndDate
+VAR IsRoutine = '___ResponseTimeCalculator'[Response_Type] = "Routine"
+VAR AvgValue = CALCULATE(
+    AVERAGE('___ResponseTimeCalculator'[Average_Response_Time]),
+    FILTER(
+        '___ResponseTimeCalculator',
+        '___ResponseTimeCalculator'[Response_Type] = "Routine" &&
+        '___ResponseTimeCalculator'[Date_Sort_Key] >= StartDate &&
+        '___ResponseTimeCalculator'[Date_Sort_Key] <= EndDate
+    )
+)
+RETURN
+    IF(IsRoutine && IsInRange, AvgValue, BLANK())
+
+
+// Column 3: Urgent_Avg_13M (Calculated Column)
+Urgent_Avg_13M = 
+VAR CurrYear = YEAR(TODAY())
+VAR CurrMonth = MONTH(TODAY())
+VAR EndMonthTemp = CurrMonth - 1
+VAR EndMonth = IF(EndMonthTemp = 0, 12, EndMonthTemp)
+VAR EndYear = IF(EndMonthTemp = 0, CurrYear - 1, CurrYear)
+VAR StartMonthTemp = EndMonth - 12
+VAR StartMonth = IF(StartMonthTemp <= 0, StartMonthTemp + 12, StartMonthTemp)
+VAR StartYear = IF(StartMonthTemp <= 0, EndYear - 1, EndYear)
+VAR StartDate = DATE(StartYear, StartMonth, 1)
+VAR EndDate = DATE(EndYear, EndMonth, 1)
+VAR IsInRange = '___ResponseTimeCalculator'[Date_Sort_Key] >= StartDate && '___ResponseTimeCalculator'[Date_Sort_Key] <= EndDate
+VAR IsUrgent = '___ResponseTimeCalculator'[Response_Type] = "Urgent"
+VAR AvgValue = CALCULATE(
+    AVERAGE('___ResponseTimeCalculator'[Average_Response_Time]),
+    FILTER(
+        '___ResponseTimeCalculator',
+        '___ResponseTimeCalculator'[Response_Type] = "Urgent" &&
+        '___ResponseTimeCalculator'[Date_Sort_Key] >= StartDate &&
+        '___ResponseTimeCalculator'[Date_Sort_Key] <= EndDate
+    )
+)
+RETURN
+    IF(IsUrgent && IsInRange, AvgValue, BLANK())
+
+
+// ==============================================================================
+// HOW TO CREATE CALCULATED COLUMNS IN POWER BI:
+// ==============================================================================
+// 1. Go to Data view (not Report view)
+// 2. Select the ___ResponseTimeCalculator table
+// 3. Click "New Column" in the ribbon
+// 4. Paste the DAX formula above
+// 5. Name the column (e.g., "Emergency_Avg_13M")
+// 6. Press Enter
+// 7. Repeat for each column
+// ==============================================================================
+// 
+// OR SIMPLER: Create columns that just reference Average_Response_Time
+// when the row matches the response type (no 13-month calculation needed)
+// ==============================================================================
+

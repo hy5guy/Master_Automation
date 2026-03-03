@@ -1,0 +1,1748 @@
+{
+  "name": "Master_Automation",
+  "path": ".",
+  "type": "directory",
+  "children": [
+    {
+      "name": ".claude",
+      "path": ".claude",
+      "type": "directory",
+      "children": [
+        {
+          "name": "settings.local.json",
+          "path": ".claude\\settings.local.json",
+          "type": "file",
+          "children": null
+        }
+      ]
+    },
+    {
+      "name": "02_ETL_Scripts",
+      "path": "02_ETL_Scripts",
+      "type": "directory",
+      "children": [
+        {
+          "name": "Overtime_TimeOff",
+          "path": "02_ETL_Scripts\\Overtime_TimeOff",
+          "type": "directory",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow",
+      "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow",
+      "type": "directory",
+      "children": [
+        {
+          "name": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow.origin.json",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow.origin.json",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow_sidecar.json",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow_sidecar.json",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow_transcript.md",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow_transcript.md",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00000.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00000.txt",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00001.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00001.txt",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00002.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00002.txt",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00003.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00003.txt",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00004.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00004.txt",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00005.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00005.txt",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00006.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00006.txt",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00007.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00007.txt",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00008.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00008.txt",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00009.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00009.txt",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00010.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00010.txt",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00011.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00011.txt",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00012.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00012.txt",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00013.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00013.txt",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00014.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00014.txt",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00015.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00015.txt",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00016.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00016.txt",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00017.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00017.txt",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "chunk_00018.txt",
+          "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow\\chunk_00018.txt",
+          "type": "file",
+          "children": null
+        }
+      ]
+    },
+    {
+      "name": "_DropExports",
+      "path": "_DropExports",
+      "type": "directory",
+      "children": [
+        {
+          "name": "___Benchmark_m_code_preview_table.txt",
+          "path": "_DropExports\\___Benchmark_m_code_preview_table.txt",
+          "type": "file",
+          "children": null
+        }
+      ]
+    },
+    {
+      "name": "chatlogs",
+      "path": "chatlogs",
+      "type": "directory",
+      "children": [
+        {
+          "name": "README.md",
+          "path": "chatlogs\\README.md",
+          "type": "file",
+          "children": null
+        }
+      ]
+    },
+    {
+      "name": "config",
+      "path": "config",
+      "type": "directory",
+      "children": [
+        {
+          "name": "scripts-PD_BCI_LTP.json",
+          "path": "config\\scripts-PD_BCI_LTP.json",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "scripts.json",
+          "path": "config\\scripts.json",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "scripts.json.bak",
+          "path": "config\\scripts.json.bak",
+          "type": "file",
+          "children": null
+        }
+      ]
+    },
+    {
+      "name": "data",
+      "path": "data",
+      "type": "directory",
+      "children": [
+        {
+          "name": "preview_table",
+          "path": "data\\preview_table",
+          "type": "directory",
+          "children": [
+            {
+              "name": "response_time.csv",
+              "path": "data\\preview_table\\response_time.csv",
+              "type": "file",
+              "children": null
+            }
+          ]
+        },
+        {
+          "name": "visual_export",
+          "path": "data\\visual_export",
+          "type": "directory",
+          "children": [
+            {
+              "name": "Average Response Times  Values are in mmss.csv",
+              "path": "data\\visual_export\\Average Response Times  Values are in mmss.csv",
+              "type": "file",
+              "children": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "docs",
+      "path": "docs",
+      "type": "directory",
+      "children": [
+        {
+          "name": "BACKFILL_COLUMN_ORDER_ISSUE.md",
+          "path": "docs\\BACKFILL_COLUMN_ORDER_ISSUE.md",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "BACKFILL_DATA_PATHS.md",
+          "path": "docs\\BACKFILL_DATA_PATHS.md",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "BACKFILL_WORKFLOW_RECOMMENDATION.md",
+          "path": "docs\\BACKFILL_WORKFLOW_RECOMMENDATION.md",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "CHANGELOG.md",
+          "path": "docs\\CHANGELOG.md",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "CURSOR_AI_PROMPT.md",
+          "path": "docs\\CURSOR_AI_PROMPT.md",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "EXPORT_ORGANIZATION_SUMMARY.md",
+          "path": "docs\\EXPORT_ORGANIZATION_SUMMARY.md",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "FOLDER_STRUCTURE_CREATED.md",
+          "path": "docs\\FOLDER_STRUCTURE_CREATED.md",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "MIGRATION_VERIFICATION.md",
+          "path": "docs\\MIGRATION_VERIFICATION.md",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "PROJECT_STRUCTURE.md",
+          "path": "docs\\PROJECT_STRUCTURE.md",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "QUICK_START.md",
+          "path": "docs\\QUICK_START.md",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "SCRIPT_FILENAME_UPDATE_SUMMARY.md",
+          "path": "docs\\SCRIPT_FILENAME_UPDATE_SUMMARY.md",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "VERIFICATION_REPORT.md",
+          "path": "docs\\VERIFICATION_REPORT.md",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "VERIFICATION_SUMMARY.md",
+          "path": "docs\\VERIFICATION_SUMMARY.md",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "VISUAL_EXPORT_CHECKLIST.md",
+          "path": "docs\\VISUAL_EXPORT_CHECKLIST.md",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "VISUAL_EXPORT_GUIDE.md",
+          "path": "docs\\VISUAL_EXPORT_GUIDE.md",
+          "type": "file",
+          "children": null
+        }
+      ]
+    },
+    {
+      "name": "logs",
+      "path": "logs",
+      "type": "directory",
+      "children": [
+        {
+          "name": "2025-12-09_22-54-01_ETL_Run.log",
+          "path": "logs\\2025-12-09_22-54-01_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-16-32_ETL_Run.log",
+          "path": "logs\\2025-12-09_23-16-32_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-16-39_Arrests.log",
+          "path": "logs\\2025-12-09_23-16-39_Arrests.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-16-39_Arrests.log.err",
+          "path": "logs\\2025-12-09_23-16-39_Arrests.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-16-39_Community Engagement.log",
+          "path": "logs\\2025-12-09_23-16-39_Community Engagement.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-16-39_Community Engagement.log.err",
+          "path": "logs\\2025-12-09_23-16-39_Community Engagement.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-16-39_ETL_Run.log",
+          "path": "logs\\2025-12-09_23-16-39_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-16-39_Overtime TimeOff.log",
+          "path": "logs\\2025-12-09_23-16-39_Overtime TimeOff.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-16-39_Overtime TimeOff.log.err",
+          "path": "logs\\2025-12-09_23-16-39_Overtime TimeOff.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-16-39_Policy Training Monthly.log",
+          "path": "logs\\2025-12-09_23-16-39_Policy Training Monthly.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-16-39_Policy Training Monthly.log.err",
+          "path": "logs\\2025-12-09_23-16-39_Policy Training Monthly.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-16-39_Response Times.log",
+          "path": "logs\\2025-12-09_23-16-39_Response Times.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-16-39_Response Times.log.err",
+          "path": "logs\\2025-12-09_23-16-39_Response Times.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-16-39_Summons.log",
+          "path": "logs\\2025-12-09_23-16-39_Summons.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-16-39_Summons.log.err",
+          "path": "logs\\2025-12-09_23-16-39_Summons.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-22-36_ETL_Run.log",
+          "path": "logs\\2025-12-09_23-22-36_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-22-36_Summons.log",
+          "path": "logs\\2025-12-09_23-22-36_Summons.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-22-36_Summons.log.err",
+          "path": "logs\\2025-12-09_23-22-36_Summons.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-28-25_Arrest Data Source.log",
+          "path": "logs\\2025-12-09_23-28-25_Arrest Data Source.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-28-25_Arrest Data Source.log.err",
+          "path": "logs\\2025-12-09_23-28-25_Arrest Data Source.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-28-25_ETL_Run.log",
+          "path": "logs\\2025-12-09_23-28-25_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-32-40_ETL_Run.log",
+          "path": "logs\\2025-12-09_23-32-40_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-32-40_Overtime TimeOff.log",
+          "path": "logs\\2025-12-09_23-32-40_Overtime TimeOff.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-32-40_Overtime TimeOff.log.err",
+          "path": "logs\\2025-12-09_23-32-40_Overtime TimeOff.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-33-32_ETL_Run.log",
+          "path": "logs\\2025-12-09_23-33-32_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-33-32_Overtime TimeOff.log",
+          "path": "logs\\2025-12-09_23-33-32_Overtime TimeOff.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-09_23-33-32_Overtime TimeOff.log.err",
+          "path": "logs\\2025-12-09_23-33-32_Overtime TimeOff.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-01-30_Arrest Data Source.log",
+          "path": "logs\\2025-12-10_02-01-30_Arrest Data Source.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-01-30_Arrest Data Source.log.err",
+          "path": "logs\\2025-12-10_02-01-30_Arrest Data Source.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-01-30_Arrests.log",
+          "path": "logs\\2025-12-10_02-01-30_Arrests.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-01-30_Arrests.log.err",
+          "path": "logs\\2025-12-10_02-01-30_Arrests.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-01-30_Community Engagement.log",
+          "path": "logs\\2025-12-10_02-01-30_Community Engagement.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-01-30_Community Engagement.log.err",
+          "path": "logs\\2025-12-10_02-01-30_Community Engagement.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-01-30_ETL_Run.log",
+          "path": "logs\\2025-12-10_02-01-30_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-01-30_Overtime TimeOff.log",
+          "path": "logs\\2025-12-10_02-01-30_Overtime TimeOff.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-01-30_Overtime TimeOff.log.err",
+          "path": "logs\\2025-12-10_02-01-30_Overtime TimeOff.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-01-30_Policy Training Monthly.log",
+          "path": "logs\\2025-12-10_02-01-30_Policy Training Monthly.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-01-30_Policy Training Monthly.log.err",
+          "path": "logs\\2025-12-10_02-01-30_Policy Training Monthly.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-01-30_Response Times.log",
+          "path": "logs\\2025-12-10_02-01-30_Response Times.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-01-30_Response Times.log.err",
+          "path": "logs\\2025-12-10_02-01-30_Response Times.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-01-30_Summons.log",
+          "path": "logs\\2025-12-10_02-01-30_Summons.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-01-30_Summons.log.err",
+          "path": "logs\\2025-12-10_02-01-30_Summons.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-37-17_Arrests.log",
+          "path": "logs\\2025-12-10_02-37-17_Arrests.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-37-17_Arrests.log.err",
+          "path": "logs\\2025-12-10_02-37-17_Arrests.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-37-17_Community Engagement.log",
+          "path": "logs\\2025-12-10_02-37-17_Community Engagement.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-37-17_Community Engagement.log.err",
+          "path": "logs\\2025-12-10_02-37-17_Community Engagement.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-37-17_ETL_Run.log",
+          "path": "logs\\2025-12-10_02-37-17_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-37-17_Overtime TimeOff.log",
+          "path": "logs\\2025-12-10_02-37-17_Overtime TimeOff.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-37-17_Overtime TimeOff.log.err",
+          "path": "logs\\2025-12-10_02-37-17_Overtime TimeOff.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-37-17_Policy Training Monthly.log",
+          "path": "logs\\2025-12-10_02-37-17_Policy Training Monthly.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-37-17_Policy Training Monthly.log.err",
+          "path": "logs\\2025-12-10_02-37-17_Policy Training Monthly.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-37-17_Response Times.log",
+          "path": "logs\\2025-12-10_02-37-17_Response Times.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-37-17_Response Times.log.err",
+          "path": "logs\\2025-12-10_02-37-17_Response Times.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-37-17_Summons.log",
+          "path": "logs\\2025-12-10_02-37-17_Summons.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-37-17_Summons.log.err",
+          "path": "logs\\2025-12-10_02-37-17_Summons.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-44-46_Arrest Data Source.log",
+          "path": "logs\\2025-12-10_02-44-46_Arrest Data Source.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-44-46_Arrest Data Source.log.err",
+          "path": "logs\\2025-12-10_02-44-46_Arrest Data Source.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-44-46_Arrests.log",
+          "path": "logs\\2025-12-10_02-44-46_Arrests.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-44-46_Arrests.log.err",
+          "path": "logs\\2025-12-10_02-44-46_Arrests.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-44-46_Community Engagement.log",
+          "path": "logs\\2025-12-10_02-44-46_Community Engagement.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-44-46_Community Engagement.log.err",
+          "path": "logs\\2025-12-10_02-44-46_Community Engagement.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-44-46_ETL_Run.log",
+          "path": "logs\\2025-12-10_02-44-46_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-44-46_Overtime TimeOff.log",
+          "path": "logs\\2025-12-10_02-44-46_Overtime TimeOff.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-44-46_Overtime TimeOff.log.err",
+          "path": "logs\\2025-12-10_02-44-46_Overtime TimeOff.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-44-46_Policy Training Monthly.log",
+          "path": "logs\\2025-12-10_02-44-46_Policy Training Monthly.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-44-46_Policy Training Monthly.log.err",
+          "path": "logs\\2025-12-10_02-44-46_Policy Training Monthly.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-44-46_Response Times.log",
+          "path": "logs\\2025-12-10_02-44-46_Response Times.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-44-46_Response Times.log.err",
+          "path": "logs\\2025-12-10_02-44-46_Response Times.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-44-46_Summons.log",
+          "path": "logs\\2025-12-10_02-44-46_Summons.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-10_02-44-46_Summons.log.err",
+          "path": "logs\\2025-12-10_02-44-46_Summons.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_13-23-55_ETL_Run.log",
+          "path": "logs\\2025-12-11_13-23-55_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_16-57-58_ETL_Run.log",
+          "path": "logs\\2025-12-11_16-57-58_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_17-31-37_ETL_Run.log",
+          "path": "logs\\2025-12-11_17-31-37_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-10-21_ETL_Run.log",
+          "path": "logs\\2025-12-11_18-10-21_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-12-20_Arrests.log",
+          "path": "logs\\2025-12-11_18-12-20_Arrests.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-12-20_Arrests.log.err",
+          "path": "logs\\2025-12-11_18-12-20_Arrests.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-12-20_Community Engagement.log",
+          "path": "logs\\2025-12-11_18-12-20_Community Engagement.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-12-20_Community Engagement.log.err",
+          "path": "logs\\2025-12-11_18-12-20_Community Engagement.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-12-20_ETL_Run.log",
+          "path": "logs\\2025-12-11_18-12-20_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-12-20_Overtime TimeOff.log",
+          "path": "logs\\2025-12-11_18-12-20_Overtime TimeOff.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-12-20_Overtime TimeOff.log.err",
+          "path": "logs\\2025-12-11_18-12-20_Overtime TimeOff.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-12-20_Response Times.log",
+          "path": "logs\\2025-12-11_18-12-20_Response Times.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-12-20_Response Times.log.err",
+          "path": "logs\\2025-12-11_18-12-20_Response Times.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-12-20_Summons.log",
+          "path": "logs\\2025-12-11_18-12-20_Summons.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-12-20_Summons.log.err",
+          "path": "logs\\2025-12-11_18-12-20_Summons.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-16-31_ETL_Run.log",
+          "path": "logs\\2025-12-11_18-16-31_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-16-31_Response Times.log",
+          "path": "logs\\2025-12-11_18-16-31_Response Times.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-16-31_Response Times.log.err",
+          "path": "logs\\2025-12-11_18-16-31_Response Times.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-18-20_ETL_Run.log",
+          "path": "logs\\2025-12-11_18-18-20_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-18-20_Response Times.log",
+          "path": "logs\\2025-12-11_18-18-20_Response Times.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-18-20_Response Times.log.err",
+          "path": "logs\\2025-12-11_18-18-20_Response Times.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-18-47_ETL_Run.log",
+          "path": "logs\\2025-12-11_18-18-47_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-23-52_Arrests.log",
+          "path": "logs\\2025-12-11_18-23-52_Arrests.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-23-52_Arrests.log.err",
+          "path": "logs\\2025-12-11_18-23-52_Arrests.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-23-52_Community Engagement.log",
+          "path": "logs\\2025-12-11_18-23-52_Community Engagement.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-23-52_Community Engagement.log.err",
+          "path": "logs\\2025-12-11_18-23-52_Community Engagement.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-23-52_ETL_Run.log",
+          "path": "logs\\2025-12-11_18-23-52_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-23-52_Overtime TimeOff.log",
+          "path": "logs\\2025-12-11_18-23-52_Overtime TimeOff.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-23-52_Overtime TimeOff.log.err",
+          "path": "logs\\2025-12-11_18-23-52_Overtime TimeOff.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-23-52_Response Times.log",
+          "path": "logs\\2025-12-11_18-23-52_Response Times.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-23-52_Response Times.log.err",
+          "path": "logs\\2025-12-11_18-23-52_Response Times.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-23-52_Summons.log",
+          "path": "logs\\2025-12-11_18-23-52_Summons.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-23-52_Summons.log.err",
+          "path": "logs\\2025-12-11_18-23-52_Summons.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-26-54_Arrests.log",
+          "path": "logs\\2025-12-11_18-26-54_Arrests.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-26-54_Arrests.log.err",
+          "path": "logs\\2025-12-11_18-26-54_Arrests.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-26-54_Community Engagement.log",
+          "path": "logs\\2025-12-11_18-26-54_Community Engagement.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-26-54_Community Engagement.log.err",
+          "path": "logs\\2025-12-11_18-26-54_Community Engagement.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-26-54_ETL_Run.log",
+          "path": "logs\\2025-12-11_18-26-54_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-26-54_Overtime TimeOff.log",
+          "path": "logs\\2025-12-11_18-26-54_Overtime TimeOff.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-26-54_Overtime TimeOff.log.err",
+          "path": "logs\\2025-12-11_18-26-54_Overtime TimeOff.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-26-54_Response Times.log",
+          "path": "logs\\2025-12-11_18-26-54_Response Times.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-26-54_Response Times.log.err",
+          "path": "logs\\2025-12-11_18-26-54_Response Times.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-26-54_Summons.log",
+          "path": "logs\\2025-12-11_18-26-54_Summons.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-26-54_Summons.log.err",
+          "path": "logs\\2025-12-11_18-26-54_Summons.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-30-06_Arrests.log",
+          "path": "logs\\2025-12-11_18-30-06_Arrests.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-30-06_Arrests.log.err",
+          "path": "logs\\2025-12-11_18-30-06_Arrests.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-30-06_Community Engagement.log",
+          "path": "logs\\2025-12-11_18-30-06_Community Engagement.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-30-06_Community Engagement.log.err",
+          "path": "logs\\2025-12-11_18-30-06_Community Engagement.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-30-06_ETL_Run.log",
+          "path": "logs\\2025-12-11_18-30-06_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-30-06_Overtime TimeOff.log",
+          "path": "logs\\2025-12-11_18-30-06_Overtime TimeOff.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-30-06_Overtime TimeOff.log.err",
+          "path": "logs\\2025-12-11_18-30-06_Overtime TimeOff.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-30-06_Response Times.log",
+          "path": "logs\\2025-12-11_18-30-06_Response Times.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-30-06_Response Times.log.err",
+          "path": "logs\\2025-12-11_18-30-06_Response Times.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-30-06_Summons.log",
+          "path": "logs\\2025-12-11_18-30-06_Summons.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_18-30-06_Summons.log.err",
+          "path": "logs\\2025-12-11_18-30-06_Summons.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_22-50-32_ETL_Run.log",
+          "path": "logs\\2025-12-11_22-50-32_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_22-50-32_Summons.log",
+          "path": "logs\\2025-12-11_22-50-32_Summons.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_22-50-32_Summons.log.err",
+          "path": "logs\\2025-12-11_22-50-32_Summons.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_22-52-53_Arrests.log",
+          "path": "logs\\2025-12-11_22-52-53_Arrests.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_22-52-53_Arrests.log.err",
+          "path": "logs\\2025-12-11_22-52-53_Arrests.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_22-52-53_Community Engagement.log",
+          "path": "logs\\2025-12-11_22-52-53_Community Engagement.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_22-52-53_Community Engagement.log.err",
+          "path": "logs\\2025-12-11_22-52-53_Community Engagement.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_22-52-53_ETL_Run.log",
+          "path": "logs\\2025-12-11_22-52-53_ETL_Run.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_22-52-53_Overtime TimeOff.log",
+          "path": "logs\\2025-12-11_22-52-53_Overtime TimeOff.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_22-52-53_Overtime TimeOff.log.err",
+          "path": "logs\\2025-12-11_22-52-53_Overtime TimeOff.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_22-52-53_Response Times.log",
+          "path": "logs\\2025-12-11_22-52-53_Response Times.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_22-52-53_Response Times.log.err",
+          "path": "logs\\2025-12-11_22-52-53_Response Times.log.err",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_22-52-53_Summons.log",
+          "path": "logs\\2025-12-11_22-52-53_Summons.log",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "2025-12-11_22-52-53_Summons.log.err",
+          "path": "logs\\2025-12-11_22-52-53_Summons.log.err",
+          "type": "file",
+          "children": null
+        }
+      ]
+    },
+    {
+      "name": "output",
+      "path": "output",
+      "type": "directory",
+      "children": [
+        {
+          "name": "cad_data_for_powerbi_final.csv",
+          "path": "output\\cad_data_for_powerbi_final.csv",
+          "type": "file",
+          "children": null
+        }
+      ]
+    },
+    {
+      "name": "outputs",
+      "path": "outputs",
+      "type": "directory",
+      "children": []
+    },
+    {
+      "name": "scripts",
+      "path": "scripts",
+      "type": "directory",
+      "children": [
+        {
+          "name": "compare_policy_training_delivery.py",
+          "path": "scripts\\compare_policy_training_delivery.py",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "compare_summons_all_bureaus.py",
+          "path": "scripts\\compare_summons_all_bureaus.py",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "compare_summons_deptwide.py",
+          "path": "scripts\\compare_summons_deptwide.py",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "compare_vcs_time_report_exports.py",
+          "path": "scripts\\compare_vcs_time_report_exports.py",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "count_patrol_m_p_from_eticket.py",
+          "path": "scripts\\count_patrol_m_p_from_eticket.py",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "diagnose_summons_assignment_mapping.py",
+          "path": "scripts\\diagnose_summons_assignment_mapping.py",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "diagnose_summons_blank_bureau.py",
+          "path": "scripts\\diagnose_summons_blank_bureau.py",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "diagnose_summons_missing_months.py",
+          "path": "scripts\\diagnose_summons_missing_months.py",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "diagnose_summons_top5_vs_deptwide.py",
+          "path": "scripts\\diagnose_summons_top5_vs_deptwide.py",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "fix_summons_wg2_from_assignment.py",
+          "path": "scripts\\fix_summons_wg2_from_assignment.py",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "overtime_timeoff_with_backfill.py",
+          "path": "scripts\\overtime_timeoff_with_backfill.py",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "restore_fixed_from_backfill.py",
+          "path": "scripts\\restore_fixed_from_backfill.py",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "run_all_etl-PD_BCI_LTP.ps1",
+          "path": "scripts\\run_all_etl-PD_BCI_LTP.ps1",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "run_all_etl.bat",
+          "path": "scripts\\run_all_etl.bat",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "run_all_etl.ps1",
+          "path": "scripts\\run_all_etl.ps1",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "run_etl_script.ps1",
+          "path": "scripts\\run_etl_script.ps1",
+          "type": "file",
+          "children": null
+        },
+        {
+          "name": "run_summons_with_overrides.py",
+          "path": "scripts\\run_summons_with_overrides.py",
+          "type": "file",
+          "children": null
+        }
+      ]
+    },
+    {
+      "name": "-PD_BCI_LTP.gitignore",
+      "path": "-PD_BCI_LTP.gitignore",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": ".gitignore",
+      "path": ".gitignore",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "2025_12_10_CLAUDE_CODE_response_time-reword.md",
+      "path": "2025_12_10_CLAUDE_CODE_response_time-reword.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow (2).zip",
+      "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow (2).zip",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow.7z",
+      "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow.7z",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow.zip",
+      "path": "2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow.zip",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "2025_12_11_Monthly Accrual and Usage Summary.csv",
+      "path": "2025_12_11_Monthly Accrual and Usage Summary.csv",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "25_11_e_ticketexport.csv",
+      "path": "25_11_e_ticketexport.csv",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "___Overtime_Timeoff_v3.m",
+      "path": "___Overtime_Timeoff_v3.m",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "___ResponseTimeCalculator.txt",
+      "path": "___ResponseTimeCalculator.txt",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "___Summons.m",
+      "path": "___Summons.m",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "___Summons_preview_table.csv",
+      "path": "___Summons_preview_table.csv",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "___Summons_preview_table.xlsx",
+      "path": "___Summons_preview_table.xlsx",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "___Summons_preview_table_latest.csv",
+      "path": "___Summons_preview_table_latest.csv",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "_summons_mcode.m",
+      "path": "_summons_mcode.m",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "ACTION_ITEMS.md",
+      "path": "ACTION_ITEMS.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "AGGREGATION_ISSUE_RESOLVED.md",
+      "path": "AGGREGATION_ISSUE_RESOLVED.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "all_summons_m_code.txt",
+      "path": "all_summons_m_code.txt",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "Assignment_Master_V2.csv",
+      "path": "Assignment_Master_V2.csv",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "BACKFILL_FILTERING_COMPARISON.md",
+      "path": "BACKFILL_FILTERING_COMPARISON.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "BACKFILL_LOCATIONS.md",
+      "path": "BACKFILL_LOCATIONS.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "CHANGELOG-PD_BCI_LTP.md",
+      "path": "CHANGELOG-PD_BCI_LTP.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "CHANGELOG.md",
+      "path": "CHANGELOG.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "claude_code_summons.md",
+      "path": "claude_code_summons.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "DAX_MEASURE_FIXED_FINAL.txt",
+      "path": "DAX_MEASURE_FIXED_FINAL.txt",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "DAX_MEASURES_FIXED.txt",
+      "path": "DAX_MEASURES_FIXED.txt",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "debug_aggregation_issue.py",
+      "path": "debug_aggregation_issue.py",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "Department-Wide Summons  Moving and Parking.csv",
+      "path": "Department-Wide Summons  Moving and Parking.csv",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "diagnostic_summons_data.m",
+      "path": "diagnostic_summons_data.m",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "DIRECTORY_STRUCTURE_RECOMMENDATION.md",
+      "path": "DIRECTORY_STRUCTURE_RECOMMENDATION.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "filter_incidents_response_types.csv",
+      "path": "filter_incidents_response_types.csv",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "FILTERING_ISSUE_ANALYSIS.md",
+      "path": "FILTERING_ISSUE_ANALYSIS.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "FIXED_DAX_MEASURES.txt",
+      "path": "FIXED_DAX_MEASURES.txt",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "INCIDENT_MAPPING_IMPLEMENTATION_SUMMARY.md",
+      "path": "INCIDENT_MAPPING_IMPLEMENTATION_SUMMARY.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "M_CODE_IMPLEMENTATION_STEPS.md",
+      "path": "M_CODE_IMPLEMENTATION_STEPS.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "M_CODE_UPDATE_GUIDE.md",
+      "path": "M_CODE_UPDATE_GUIDE.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "manifest.json",
+      "path": "manifest.json",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "Master_Automation.code-workspace",
+      "path": "Master_Automation.code-workspace",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "MISSING_DATA_EXPORTS.md",
+      "path": "MISSING_DATA_EXPORTS.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "Monthly Accrual and Usage Summary.csv",
+      "path": "Monthly Accrual and Usage Summary.csv",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "new_Department-Wide Summons  Moving and Parking.csv",
+      "path": "new_Department-Wide Summons  Moving and Parking.csv",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "new_Top 5 Moving Violations - Department Wide.csv",
+      "path": "new_Top 5 Moving Violations - Department Wide.csv",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "new_Top 5 Non-Parking Violations - Department Wide.csv",
+      "path": "new_Top 5 Non-Parking Violations - Department Wide.csv",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "POWER_BI_QUERY_REFRESH_CHECKLIST.md",
+      "path": "POWER_BI_QUERY_REFRESH_CHECKLIST.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "POWER_BI_REPORT_INFO.md",
+      "path": "POWER_BI_REPORT_INFO.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "POWER_BI_VISUAL_FIX_GUIDE.md",
+      "path": "POWER_BI_VISUAL_FIX_GUIDE.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "QUICK_START-PD_BCI_LTP.md",
+      "path": "QUICK_START-PD_BCI_LTP.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "README-PD_BCI_LTP.md",
+      "path": "README-PD_BCI_LTP.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "README.md",
+      "path": "README.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "RESPONSE_TIMES_DAX_COLUMNS.txt",
+      "path": "RESPONSE_TIMES_DAX_COLUMNS.txt",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "RESPONSE_TIMES_FILTERING_REVIEW_SUMMARY.md",
+      "path": "RESPONSE_TIMES_FILTERING_REVIEW_SUMMARY.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "RESPONSE_TIMES_M_CODE_COMPLETE_FIX.txt",
+      "path": "RESPONSE_TIMES_M_CODE_COMPLETE_FIX.txt",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "RESPONSE_TIMES_M_CODE_CORRECTED.txt",
+      "path": "RESPONSE_TIMES_M_CODE_CORRECTED.txt",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "RESPONSE_TIMES_M_CODE_FINAL.txt",
+      "path": "RESPONSE_TIMES_M_CODE_FINAL.txt",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "RESPONSE_TIMES_M_CODE_FINAL_READY.txt",
+      "path": "RESPONSE_TIMES_M_CODE_FINAL_READY.txt",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "RESPONSE_TIMES_M_CODE_FIXED.txt",
+      "path": "RESPONSE_TIMES_M_CODE_FIXED.txt",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "RESPONSE_TIMES_M_CODE_PRODUCTION.txt",
+      "path": "RESPONSE_TIMES_M_CODE_PRODUCTION.txt",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "RESPONSE_TIMES_M_CODE_SIMPLE.txt",
+      "path": "RESPONSE_TIMES_M_CODE_SIMPLE.txt",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "RESPONSE_TIMES_SIMPLE_COLUMNS.txt",
+      "path": "RESPONSE_TIMES_SIMPLE_COLUMNS.txt",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "scripts.json",
+      "path": "scripts.json",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "SUMMARY-PD_BCI_LTP.md",
+      "path": "SUMMARY-PD_BCI_LTP.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "SUMMARY.md",
+      "path": "SUMMARY.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "Summons  Moving & Parking  All Bureaus.csv",
+      "path": "Summons  Moving & Parking  All Bureaus.csv",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "SUMMONS_DAX_MEASURES_CORRECTED.txt",
+      "path": "SUMMONS_DAX_MEASURES_CORRECTED.txt",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "SUMMONS_DIAGNOSTIC_REPORT_2025_12_12.md",
+      "path": "SUMMONS_DIAGNOSTIC_REPORT_2025_12_12.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "summons_simple_processing.log",
+      "path": "summons_simple_processing.log",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "SYSTEM_STATUS.md",
+      "path": "SYSTEM_STATUS.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "Training Cost by Delivery Method.csv",
+      "path": "Training Cost by Delivery Method.csv",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "TROUBLESHOOTING_RESPONSE_TIMES.md",
+      "path": "TROUBLESHOOTING_RESPONSE_TIMES.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "VERIFICATION_REPORT-PD_BCI_LTP.md",
+      "path": "VERIFICATION_REPORT-PD_BCI_LTP.md",
+      "type": "file",
+      "children": null
+    },
+    {
+      "name": "verify_migration.ps1",
+      "path": "verify_migration.ps1",
+      "type": "file",
+      "children": null
+    }
+  ]
+}

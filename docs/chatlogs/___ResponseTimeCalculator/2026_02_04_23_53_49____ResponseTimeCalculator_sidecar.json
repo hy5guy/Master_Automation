@@ -1,0 +1,62 @@
+{
+  "source_file": "___ResponseTimeCalculator.txt",
+  "source_path": "C:\\_chunker\\02_data\\___ResponseTimeCalculator.txt",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\___ResponseTimeCalculator\\2026_02_04_23_53_49____ResponseTimeCalculator.origin.json",
+  "created_at": "2026_02_04_23_53_49",
+  "tags": [
+    "ai",
+    "data",
+    "json",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "notes",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "table",
+      "type",
+      "text",
+      "date",
+      "average_response_time",
+      "parts"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "// ___ResponseTimeCalculator\n// ==============================================================================\n// RESPONSE TIMES M CODE - COMPLETE FIX WITH DATE SORT KEY\n// Query Name: ___ResponseTimeCalculator\n// =======================...",
+    "first_line": "// ___ResponseTimeCalculator"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-04T23:53:49+00:00____ResponseTimeCalculator_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "average_response_time",
+        "data",
+        "date",
+        "json",
+        "parts",
+        "sql",
+        "table",
+        "text",
+        "type"
+      ],
+      "key_terms": [
+        "table",
+        "type",
+        "text",
+        "date",
+        "average_response_time",
+        "parts"
+      ],
+      "summary": "// ___ResponseTimeCalculator\n// ==============================================================================\n// RESPONSE TIMES M CODE - COMPLETE FIX WITH DATE SORT KEY\n// Query Name: ___ResponseTimeCalculator\n// =======================...",
+      "char_length": 11390,
+      "byte_length": 11694
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

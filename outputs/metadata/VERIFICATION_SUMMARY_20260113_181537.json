@@ -1,0 +1,65 @@
+{
+  "current_month": "2025_12",
+  "backfill_month": "2025_11",
+  "start_time": "2026-01-13T18:15:37.677239",
+  "end_time": "2026-01-13T18:15:37.702250",
+  "duration_seconds": 0.025011,
+  "total_verifications": 2,
+  "passed": 0,
+  "failed": 0,
+  "skipped": 1,
+  "errors": 0,
+  "overall_pass_rate": 0.0,
+  "verifications": [
+    {
+      "name": "Overtime & Time Off",
+      "priority": 1,
+      "start_time": "2026-01-13 18:15:37.677239",
+      "status": "SKIPPED",
+      "pass_rate": 0.0,
+      "issues": [
+        "Missing export files: Monthly Accrual and Usage Summary.csv"
+      ],
+      "report_path": null,
+      "end_time": "2026-01-13 18:15:37.678241",
+      "duration": 0.001002
+    },
+    {
+      "name": "Arrests",
+      "priority": 2,
+      "start_time": "2026-01-13 18:15:37.678241",
+      "status": "FAIL",
+      "pass_rate": 0,
+      "issues": [
+        {
+          "severity": "ERROR",
+          "category": "File Missing",
+          "description": "Current export not found: C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\outputs\\Arrest Categories by Type and Gender.csv"
+        },
+        {
+          "severity": "ERROR",
+          "category": "File Missing",
+          "description": "Current export not found: C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\outputs\\Arrest Distribution by Local, State & Out of State.csv"
+        },
+        {
+          "severity": "ERROR",
+          "category": "File Parsing",
+          "description": "Failed to parse C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\00_dev\\projects\\PowerBI_Date\\Backfill\\2025_11\\arrest\\2025_11_Arrest Distribution by Local, State & Out of State.csv: 3 columns passed, passed data had 4 columns"
+        },
+        {
+          "severity": "ERROR",
+          "category": "File Loading",
+          "description": "Both current and backfill missing for Arrest Distribution by Local, State & Out of State.csv"
+        },
+        {
+          "severity": "ERROR",
+          "category": "File Missing",
+          "description": "Current export not found: C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\outputs\\TOP 5 ARREST LEADERS.csv"
+        }
+      ],
+      "report_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\verification_reports\\ARRESTS_MONTHLY_VERIFICATION_REPORT.md",
+      "end_time": "2026-01-13 18:15:37.702250",
+      "duration": 0.024009
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "table",
+        "date",
+        "text",
+        "type",
+        "service",
+        "each"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Excel formula display issue\n_Exported on 2/14/2026 at 01:40:47 EST from Cursor (2.4.37)_\n\n---\n\n**User**\n\nread C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\docs\\chatlogs\\Detective_Queries_Excel_Structure_Mismatch_F...",
+      "first_line": "# Excel formula display issue"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-14T01:46:01.228594",
+  "department": "admin"
+}

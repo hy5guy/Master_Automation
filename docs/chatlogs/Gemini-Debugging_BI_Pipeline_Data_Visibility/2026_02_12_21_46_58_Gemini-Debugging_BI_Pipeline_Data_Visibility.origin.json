@@ -1,0 +1,43 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "dataset",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "data",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "path",
+        "backfill",
+        "month",
+        "scripts",
+        "columns",
+        "file"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "{\n  \"metadata\": {\n    \"title\": \"Debugging BI Pipeline Data Visibility\",\n    \"user\": {\n      \"name\": \"RAC\"\n    },\n    \"dates\": {\n      \"exported\": \"2/12/2026 21:40:52\"\n    },\n    \"link\": \"https://gemini.google.com/app/5dd396c897b4200e\",...",
+      "first_line": "{"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-12T21:46:58.188605",
+  "department": "admin"
+}

@@ -1,0 +1,32 @@
+{
+  "tags": [
+    "code",
+    "docs",
+    "markdown",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "github",
+        "repository",
+        "project",
+        "directory",
+        "master_automation",
+        "git"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Claude.md file generation\n_Exported on 2/4/2026 at 23:00:43 EST from Cursor (2.4.28)_\n\n---\n\n**User**\n\n@c:\\_chunker\\Claude.md the attached Claude.md was made for another project please use it as an example to create a Claude.md for this...",
+      "first_line": "# Claude.md file generation"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-04T23:03:52.965754",
+  "department": "admin"
+}

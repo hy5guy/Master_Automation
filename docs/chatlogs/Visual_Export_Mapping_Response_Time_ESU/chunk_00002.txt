@@ -1,0 +1,505 @@
+3. **The plan overview is stale relative to the implementation. ** It says "add ~86 missing self-initiated and administrative call types in a single v1.17.18 pass" — but the actual build added ~142 new types (92 → 234), implemented Layer 1 (How Reported) and Layer 3 (Category_Type) which aren't mentioned in the plan overview at all, and iterated through v1.17.19. This only matters if you're treating the plan as a living spec. If it's just the historical planning artifact and the CHANGELOG is your authoritative record, leave it. 4. **One thing to verify before running:** The CHANGELOG references a comparison file at `docs/response_time/2026_02_27_PreFix_vs_PostFix_Comparison_v1.17.18.md`. Make sure that file actually exists at that path — if Cursor generated the comparison but saved it somewhere else, the CHANGELOG link is a dead reference. **My recommendation:** Fix #1 (30-second edit), fix #2 (word change), verify #4 exists, and run the ETL. The plan document (#3) can stay as-is since the CHANGELOG and README already have the authoritative record of what was built. ---
+
+**Cursor**
+
+Found it — line 5 still says `1.17.18`. Fixing both that and the CHANGELOG word count now:
+
+Now verify the comparison file exists at the path referenced in CHANGELOG:
+
+All three items resolved:
+
+1. **SUMMARY.md line 5** — `Version: 1.17.18` → `1.17.19`
+2. **CHANGELOG** — "Nine incident types" → "Eight incident types" (the table correctly lists 8)
+3. **Comparison file** — confirmed present at `docs/response_time/2026_02_27_PreFix_vs_PostFix_Comparison_v1.17.18.md` — CHANGELOG link is valid
+
+---
+
+**User**
+
+Perfect, Great Work! Proceed with building
+
+---
+
+**Cursor**
+
+The ETL is already run and all docs are updated. "Building" here likely means committing everything to git. Let me check the current state:
+
+The ETL script lives outside the repo, so it's not tracked here. The relevant changes are the three modified docs plus the new comparison file and feedback doc. I'll stage those and commit:
+
+Committed. Summary of what went into the commit (`734d6ce`):
+
+**6 files, 543 insertions:**
+- `CHANGELOG.md` — v1.17.18 and v1.17.19 entries
+- `README.md` — latest update header
+- `SUMMARY.md` — version corrected to 1.17.19, both release notes added
+- `docs/response_time/2026_02_27_PreFix_vs_PostFix_Comparison_v1.17.18.md` — pre/post metrics comparison (new)
+- `docs/response_time/FEEDBACK_Response_Time_Filter_Plan_2026_02_27.md` — peer review feedback (new)
+- `docs/response_time/response_time_plan_notes.md` — planning notes (new)
+
+**Next step:** Refresh Power BI to pick up the 25 regenerated monthly CSVs from `PowerBI_Date\Backfill\response_time_all_metrics\`. ---
+
+**User**
+
+attachment 1 are the values of the response time visuals before the refresh, the attached are the data export after the refresh@c:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\post_refresh_Average Response Time (From Time Received to On Scene).csv @c:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\post_refresh_Dispatch Processing Time (Call Received to Dispatch).csv @c:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\post_refresh_Average Response Time (Dispatch to On Scene).csv 
+
+---
+
+**Cursor**
+
+Now I'll build the full pre/post comparison programmatically:
+
+Clear picture. Let me write this up properly into the comparison document and flag the key patterns:
+
+Here's what the refresh shows:
+
+---
+
+## Results Summary
+
+**Emergency** — Correct and stable. Increases of only +2 to +21 seconds across all 13 months, consistent across all three metrics. No surprises, no concerns. **Routine** — Direction correct, magnitude expected. Dispatch-to-Scene increased from the ~2:01–3:03 range to ~2:04–3:43. Jan-25 is anomalously small (+0:03) — that's the yearly export artifact, not a filter issue. The rest of the year shows the expected upward correction as self-initiated patrol activity is removed. **Urgent — This is the conversation you'll need to have with admin. ** Three findings:
+
+| Metric | Pre | Post | Δ |
+|---|---|---|---|
+| Dispatch Processing (Urgent) | 1:24–2:07 | 3:13–3:40 | **+1:30 to +2:02** |
+| Total Response Time (Urgent) | 3:04–3:44 | 5:13–5:55 | **+1:54 to +2:38** |
+
+The pre-filter Urgent dispatch processing was artificially compressed to ~1:45 because self-initiated entries (officer already on location = zero processing lag) dominated the population. The corrected 3:15–3:40 reflects the actual dispatcher workflow for citizen-reported Urgent calls. The talking point: *"The old 3:05 Urgent average included officers who were already present — there was no response. The corrected 5:30 is what a citizen who calls about an Urgent incident actually waits. "*
+
+The full comparison doc is saved at `docs/response_time/2026_02_27_PowerBI_PostRefresh_Comparison.md`. ---
+
+**User**
+
+Since this is the first run of the this version of the ETL I do not think we should use a backfill as the script had a major rework. We should process the full 13 month from the raw exports C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\timereport\monthly\2026_01_timereport.xlsx
+C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\timereport\yearly\2025_full_timereport.xlsx. This will give us a true base line for future runs. We should archive all backfill for the response times and only keep the new version we will creat from running the etl using the linked data
+
+---
+
+**Cursor**
+
+
+Checking the ETL script's source configuration and output paths:
+
+
+
+Implementing the changes:
+
+
+
+Updating the ETL script: removing 2024 from sources and switching output to the canonical baseline path. Running the ETL:
+
+
+
+ETL completed. Writing the Power BI path update doc and adding a CHANGELOG entry. Summary of what was done:
+
+---
+
+## v1.17.20 baseline run
+
+### 1. Archived previous backfill
+- **Location:** `Master_Automation\archive\response_time_backfill_pre_baseline_20260227\`
+- **Contents:** All 25 CSVs (2024-01 through 2026-01) from the prior run
+
+### 2. ETL script changes
+- **Sources:** 2024 removed; only 2025 yearly + 2026-01 monthly
+- **Output path:** `PowerBI_Date\response_time_all_metrics` (no longer under Backfill)
+- **Version:** v1.17.20
+
+### 3. ETL run
+- **Output:** 13 monthly CSVs (2025_01 through 2026_01) in `PowerBI_Date\response_time_all_metrics\`
+- **Sources used:**
+  - `05_EXPORTS\_CAD\timereport\yearly\2025_full_timereport.xlsx`
+  - `05_EXPORTS\_CAD\timereport\monthly\2026_01_timereport.xlsx`
+
+### 4. Power BI M code updates
+All three queries now use:
+```
+...\PowerBI_Date\response_time_all_metrics
+```
+instead of:
+```
+...\PowerBI_Date\Backfill\response_time_all_metrics
+```
+
+**Action required:** If the PBIX still uses the old path, update the three response time queries in Power BI Desktop to the new path (or paste the updated M code from `m_code\response_time\`). ### 5. Documentation
+- **Baseline run doc:** `docs/response_time/2026_02_27_Baseline_Run_v1.17.20.md`
+- **CHANGELOG:** v1.17.20 entry added
+
+---
+
+**User**
+
+below are the paths that the queries use
+"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\response_time_all_metrics"
+"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\response_time_all_metrics"
+"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\response_time_all_metrics"
+
+---
+
+**Cursor**
+
+
+Power BI is still pointing at the old Backfill path. You can either update the queries or keep using the old path. **Option 1 — Update the queries (recommended)**  
+In Power BI Desktop, edit each of the three response time queries and change:
+
+```
+C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\response_time_all_metrics
+```
+
+to:
+
+```
+C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\response_time_all_metrics
+```
+
+The M code in `m_code\response_time\` already uses this path, so you can copy from there if you prefer. **Option 2 — Keep using the Backfill path**  
+Copy the 13 new CSVs from:
+
+`PowerBI_Date\response_time_all_metrics\`
+
+into:
+
+`PowerBI_Date\Backfill\response_time_all_metrics\`
+
+and remove the old 2024 files from that folder. Power BI will then work without changing the queries. ---
+
+**User**
+
+I manually updated all queries these are the data exports of the visuals
+@c:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\After_mcode_update_Average Response Time (From Time Received to On Scene).csv @c:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\After_mcode_update_Dispatch Processing Time (Call Received to Dispatch).csv @c:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\After_mcode_update_Average Response Time (Dispatch to On Scene).csv 
+
+should I rename them to remove "After_mcode_update_" then add the prefix of "2026_01_" and move them to C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\_DropExports
+or do the visula exports get saved to C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports
+
+I am confussed where the visual data gets saved to. I am also see many of the same directories in C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date that I see C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation
+
+I assumed that C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation was the master directory for the automation. ---
+
+**Cursor**
+
+
+Here’s how the setup works and what to do with your files. ---
+
+## Where visual exports go
+
+**Power BI visual exports should be saved to:**
+
+```
+C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\
+```
+
+Not `Master_Automation\_DropExports`. The organize script reads from `PowerBI_Date\_DropExports`. ---
+
+## What to do with your three files
+
+1. **Move** them into `PowerBI_Date\_DropExports\`. 2. **Rename** to remove `After_mcode_update_` if you want cleaner names:
+   - `Average Response Time (Dispatch to On Scene).csv`
+   - `Dispatch Processing Time (Call Received to Dispatch).csv`
+   - `Average Response Time (From Time Received to On Scene).csv`
+3. **Run the organize script** with the January 2026 month:
+
+   ```powershell
+   cd "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date"
+   .\tools\organize_backfill_exports.ps1 -Month "2026_01"
+   ```
+
+The script will:
+
+- Add the `2026_01_` prefix
+- Route them to `response_time` (because of “Response Time” in the names)
+- Move them to `Backfill\2026_01\response_time\`
+
+You don’t need to add the prefix yourself; the script does it. ---
+
+## Master_Automation vs PowerBI_Date
+
+| Folder | Role |
+|--------|------|
+| **Master_Automation** | Code, config, docs, M code templates, ETL scripts, orchestration |
+| **PowerBI_Date** | Power BI data: `_DropExports` (staging), `Backfill` (organized exports), `response_time_all_metrics` (ETL output), `tools` (organize script) |
+
+They are siblings under `City of Hackensack`. `Master_Automation` is the main project; `PowerBI_Date` is where Power BI data and related tools live. Some folders (e.g. `docs`, `mCode`) may exist in both for different purposes. ---
+
+**User**
+
+Ok there was automation set up for me to save the data exports of the visuals to C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\_DropExports
+when run the automation was to find the files add the YYYY_MM_ prefix clean the export data's structure then move them to a dedicated folder for the visual in a parent directory YYYY_MM based on the month of the monthly report
+
+read the following:
+@CHANGELOG.md @SUMMARY.md @README.md @Claude.md @config/scripts.json 
+read also C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\MONTHLY_REPORT_TEMPLATE_WORKFLOW.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\M_CODE_DATETIME_FIX_GUIDE.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\M_CODE_HEADER_STANDARD.md
+
+---
+
+**Cursor**
+
+
+Here’s what the code and docs show:
+
+---
+
+## Visual export flow (your setup)
+
+**Source folder for Power BI visual exports:** `Master_Automation\_DropExports`
+
+From `process_powerbi_exports.py`:
+
+```python
+source_dir = source_dir or (AUTOMATION_ROOT / "_DropExports")
+```
+
+`AUTOMATION_ROOT` is `Master_Automation`, so the default source is `Master_Automation\_DropExports`. ---
+
+## What the automation does
+
+1. **Save exports** from Power BI visuals to `Master_Automation\_DropExports\`
+2. **Run** `scripts\process_powerbi_exports.py`
+3. The script:
+   - Reads CSVs from `_DropExports`
+   - Adds the `YYYY_MM_` prefix (from data or filename)
+   - Normalizes structure (per `visual_export_mapping.json`)
+   - Writes to `09_Reference\Standards\Processed_Exports`
+   - Copies to `PowerBI_Date\Backfill\YYYY_MM\{category}\`
+
+---
+
+## Two different `_DropExports` roles
+
+| Folder | Purpose |
+|--------|---------|
+| **Master_Automation\_DropExports** | Staging for Power BI visual exports (export from visuals → process_powerbi_exports.py) |
+| **PowerBI_Date\_DropExports** | Target for ETL outputs that feed Power BI (scripts.json `powerbi_drop_path`) |
+
+---
+
+## What to do with your three response time files
+
+1. **Save them to** `Master_Automation\_DropExports\`
+2. **Rename** to remove `After_mcode_update_` if you want cleaner names
+3. **Run** (from `Master_Automation`):
+
+   ```powershell
+   python scripts\process_powerbi_exports.py
+   ```
+
+The script will infer `2026_01` from the data (13‑month window ending in Jan‑26), add the prefix, and place them under `Backfill\2026_01\response_time\`. ---
+
+## MONTHLY_REPORT_TEMPLATE_WORKFLOW
+
+Step 6 says: “Run `scripts/process_powerbi_exports.py` for standardized exports.” That script uses `Master_Automation\_DropExports` as the source, so the workflow is consistent with your setup. ---
+
+**User**
+
+so the visual exports are saved to C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\_DropExports. Correct? we should then archive all files currentily in the said directory
+I will export all the visuals data to the said directory once it is clean
+we can run the script 
+we will then have to update the script to account for the three visuals for response time the query bases are 
+Average Response Time (Dispatch to On Scene).csv
+Dispatch Processing Time (Call Received to Dispatch).csv
+Average Response Time (From Time Received to On Scene).csv
+do thiese exports need to be reviewed for normailization? ---
+
+**Cursor**
+
+
+Confirming answers and next steps:
+
+
+
+Archiving _DropExports and updating the mapping. Adding the three response-time visual mappings. Summary of what’s in place:
+
+---
+
+## 1. Visual export path
+
+Power BI visual exports go to:
+
+`C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\_DropExports`
+
+---
+
+## 2. Archive
+
+`_DropExports` was archived to:
+
+`Master_Automation\archive\_DropExports_pre_2026_02_27\` (43 files)
+
+---
+
+## 3. Response time mappings
+
+These three mappings were added to `visual_export_mapping.json`:
+
+| Power BI export filename | Standardized output |
+|--------------------------|---------------------|
+| Average Response Time (Dispatch to On Scene).csv | `YYYY_MM_response_time_dispatch_to_onscene.csv` |
+| Dispatch Processing Time (Call Received to Dispatch).csv | `YYYY_MM_dispatch_processing_time.csv` |
+| Average Response Time (From Time Received to On Scene).csv | `YYYY_MM_response_time_received_to_onscene.csv` |
+
+Each uses `requires_normalization: false`, `enforce_13_month_window: true`, and `target_folder: "response_time"`. ---
+
+## 4. Normalization
+
+No extra normalization is needed. These exports already use:
+
+- Columns: `Response Type`, `MM-YY`, `First Response_Time_MMSS`
+- Values: mm:ss (e.g., 2:54)
+- Long format with rolling 13‑month layout
+
+This matches the existing “Average Response Times Values are in mmss” pattern, which also has `requires_normalization: false`. ---
+
+## 5. Next steps
+
+1. Export all visuals from Power BI into the empty `_DropExports` folder. 2. Run: `python scripts\process_powerbi_exports.py` from `Master_Automation`. 3. The script will match the three response time exports, rename them, and place them in `Processed_Exports\response_time\` and `Backfill\YYYY_MM\response_time\` as configured. ---
+
+**User**
+
+export is complete please Run: python scripts\process_powerbi_exports.py from Master_Automation. and review the progress
+
+---
+
+**Cursor**
+
+
+Verifying response time files were placed correctly:
+
+
+
+Summary of the run:
+
+---
+
+## Script run summary
+
+| Metric | Count |
+|--------|-------|
+| **Files renamed** | 37 |
+| **Files normalized** | 6 |
+| **Files moved** | 37 |
+| **Skipped** | 1 (ESU.csv – no mapping) |
+| **_DropExports** | Empty (all CSVs processed) |
+
+---
+
+## Response time visuals
+
+All three response time exports were processed and placed in `Processed_Exports\response_time\`:
+
+| Original export | Output file |
+|-----------------|-------------|
+| Average Response Time (Dispatch to On Scene).csv | `2026_01_response_time_dispatch_to_onscene.csv` |
+| Dispatch Processing Time (Call Received to Dispatch).csv | `2026_01_dispatch_processing_time.csv` |
+| Average Response Time (From Time Received to On Scene).csv | `2026_01_response_time_received_to_onscene.csv` |
+
+Each used the fallback date `2026_01` (previous month) because the script could not infer the date from the data. That is expected for these 13‑month rolling visuals. ---
+
+## Other processing
+
+- **6 files normalized** (summons, monthly accrual, training cost, etc.) before being moved. - **ESU.csv** was skipped because there is no mapping for it; it was routed to `Other/`. If you want it processed, add an ESU mapping to `visual_export_mapping.json`. ---
+
+## Status
+
+- `_DropExports` is empty. - 45 files are in `Processed_Exports`. - Response time visuals are in `Processed_Exports\response_time\`. ---
+
+**User**
+
+esu needs its onwn folder please update script and advise if it needs to be normalized. when complete move the final version of ESU export to its folder
+
+---
+
+**Cursor**
+
+
+Adding the ESU mapping and moving the file. Creating the `esu` folder and moving the file. Summary of changes:
+
+---
+
+## 1. ESU mapping added
+
+In `visual_export_mapping.json`:
+
+| Field | Value |
+|-------|-------|
+| **visual_name** | ESU |
+| **page_name** | ESU |
+| **match_aliases** | ESU, ESU__ESU |
+| **target_folder** | esu |
+| **standardized_filename** | esu_activity |
+
+---
+
+## 2. Normalization
+
+No normalization is needed. The ESU export is already in Long format:
+
+- **Columns:** TrackedItem, Month_Year, Sum of Total  
+- **Format:** Rolling 13 months  
+- **Date column:** Month_Year (MM-YY)
+
+`requires_normalization` is set to `false`. ---
+
+## 3. File moved
+
+`Processed_Exports\Other\2026_01_esu.csv` → `Processed_Exports\esu\2026_01_esu_activity.csv`
+
+---
+
+## 4. Future runs
+
+`process_powerbi_exports.py` will now route ESU exports to `Processed_Exports\esu\` as `YYYY_MM_esu_activity.csv` without needing any script changes. ---
+
+**User**
+
+update all docs to reflect recient changes, then update local git, remote git
+
+---
+
+**Cursor**
+
+
+Summary of completed work:
+
+---
+
+## Docs updated
+
+| File | Changes |
+|------|---------|
+| **CHANGELOG.md** | Added [1.17.21] entry for visual export mapping (response time + ESU), `_DropExports` archive |
+| **Standards/config/powerbi_visuals/README.md** | Added target folders table (response_time, esu, summons, drone, traffic, patrol) |
+| **docs/response_time/2026_02_27_Baseline_Run_v1.17.20.md** | Added Visual Export Workflow section and step 4 in Future Runs |
+| **docs/response_time/response_time_plan_notes.md** | Added summary of completed work (v1.17.18–v1.17.21) |
+
+---
+
+## Git
+
+- **Commit:** `736a711` — `docs: v1.17.21 visual export mapping (response time + ESU), update CHANGELOG and README`
+- **Branch:** `docs/update-20260114-1447`
+- **Remote:** Pushed to `origin/docs/update-20260114-1447`
+
+---
+
+## Note
+
+The M code files (`___ResponseTimeCalculator.m`, `___ResponseTime_DispVsCall.m`, `___ResponseTime_OutVsCall.m`) remain modified but unstaged. They were updated for the baseline path change. Should I add and commit those as well? ---
+
+**User**
+
+commit as well
+
+---
+
+**Cursor**
+
+
+Commit and push completed. - **Commit:** `6366403` — `m_code: response time queries use PowerBI_Date/response_time_all_metrics (baseline path)`
+- **Files:** `___ResponseTimeCalculator.m`, `___ResponseTime_DispVsCall.m`, `___ResponseTime_OutVsCall.m`
+- **Remote:** Pushed to `origin/docs/update-20260114-1447`
+
+---
+
+**User**
+
+I'm preparing to export this chat. Please generate a descriptive filename that summarizes the main topic or task of this conversation.

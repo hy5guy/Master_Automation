@@ -1,0 +1,34 @@
+Applying updates and creating a todo list to track edits. Noting Benchmark isn't a git repo. Staging and committing the doc updates (and the Benchmark diagnostic script and new docs) in Master_Automation. Adding and committing the remaining modified file (Claude.md). Summary of what was done:
+
+---
+
+### Master_Automation
+
+- **README.md** – Listed `scripts/diagnose_benchmark_data.py` in the directory structure. - **SUMMARY.md** – Set version to 1.15.7, added `diagnose_benchmark_data.py` to the script list, and documented the Benchmark diagnostic result (Scenario B: source data OK, fix in Power BI) with a pointer to `docs/BENCHMARK_VISUAL_DIAGNOSTIC.md`. - **CHANGELOG.md** – Added **[1.15.7] - 2026-02-13**: Benchmark source data diagnostic, Scenario B, and doc updates. - **CLAUDE.md** – Added **v1.15.7 - Benchmark Source Data Diagnostic (Scenario B Confirmed)** and set Current System Status to 1.15.7. **Git:** Two commits on branch `docs/update-20260114-1447`:
+
+1. `Docs: Benchmark diagnostic run – Scenario B, source data OK; update README, SUMMARY, CHANGELOG, CLAUDE`  
+   (CHANGELOG, README, SUMMARY, `diagnose_benchmark_data.py`, `BENCHMARK_QUICK_FIX_REFERENCE.md`, `BENCHMARK_VISUAL_DIAGNOSTIC.md`)
+2. `Docs: include CLAUDE.md (Benchmark diagnostic Scenario B) in doc update`  
+   (Claude.md)
+
+---
+
+### 02_ETL_Scripts\Benchmark
+
+- **README.md** – New section **Power BI Visuals Diagnostic (Feb 2026)** (Scenario B, diagnostic script, next steps) and doc links; added `CLAUDE.md` and Benchmark diagnostic docs to the Documentation list. - **SUMMARY.md** – Status line for Scenario B, new **Diagnostic (2026-02-13)** subsection, and **Power BI Visuals (broken → fix in PBI)** with handoff/diagnostic links. - **CHANGELOG.md** – New **[1.1.0] - 2026-02-13** entry for the diagnostic run and doc updates. - **CLAUDE.md** – New file: purpose, key paths, diagnostic result (Scenario B), and pointers to Master_Automation docs. **Git:** `02_ETL_Scripts\Benchmark` is **not** a git repository (no `.git` there), so no commit was made in that folder. Only the files on disk were updated. If you want Benchmark under version control, we can run `git init` in that directory and create an initial commit. ---
+
+**User**
+
+great work please I'm preparing to export this chat. Please generate a descriptive filename that summarizes the main topic or task of this conversation. Requirements:
+• 4-8 words
+• Title Case (capitalize major words)
+• Replace spaces with underscores
+• Include .md extension
+• No dates or special characters
+
+Output only the filename, with the suffix .md and nothing else. ---
+
+**Cursor**
+
+
+Benchmark_Diagnostic_Documentation_And_Git_Update.md

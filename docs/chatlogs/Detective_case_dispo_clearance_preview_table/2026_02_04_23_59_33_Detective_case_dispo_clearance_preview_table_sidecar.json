@@ -1,0 +1,60 @@
+{
+  "source_file": "Detective_case_dispo_clearance_preview_table.md",
+  "source_path": "C:\\_chunker\\02_data\\Detective_case_dispo_clearance_preview_table.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Detective_case_dispo_clearance_preview_table\\2026_02_04_23_59_33_Detective_case_dispo_clearance_preview_table.origin.json",
+  "created_at": "2026_02_04_23_59_33",
+  "tags": [
+    "docs",
+    "markdown",
+    "police"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "2025",
+      "false",
+      "closed",
+      "prosecuted",
+      "cleared",
+      "complaint"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "Closed Case Dispositions\tRow_Sort\tIs_Percent\tMonth_MM_YY\tValue\tDate\tMonth_Year\tSort_Order\tDisposition_Category\nActive / Administratively Closed\t0\tFALSE\t12-24\t56\t12/01/24\tDecember 2024\t202412\tOpen Cases\nActive / Administratively Closed\t0...",
+    "first_line": "Closed Case Dispositions\tRow_Sort\tIs_Percent\tMonth_MM_YY\tValue\tDate\tMonth_Year\tSort_Order\tDisposition_Category"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-04T23:59:33+00:00_Detective_case_dispo_clearance_preview_table_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "2025",
+        "cleared",
+        "closed",
+        "complaint",
+        "docs",
+        "false",
+        "markdown",
+        "police",
+        "prosecuted"
+      ],
+      "key_terms": [
+        "2025",
+        "false",
+        "closed",
+        "prosecuted",
+        "cleared",
+        "complaint"
+      ],
+      "summary": "Closed Case Dispositions\tRow_Sort\tIs_Percent\tMonth_MM_YY\tValue\tDate\tMonth_Year\tSort_Order\tDisposition_Category\nActive / Administratively Closed\t0\tFALSE\t12-24\t56\t12/01/24\tDecember 2024\t202412\tOpen Cases\nActive / Administratively Closed\t0...",
+      "char_length": 8790,
+      "byte_length": 8906
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

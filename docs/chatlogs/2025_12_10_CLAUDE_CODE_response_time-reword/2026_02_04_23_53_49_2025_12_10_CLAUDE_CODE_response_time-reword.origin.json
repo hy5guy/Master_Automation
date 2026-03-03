@@ -1,0 +1,41 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "read",
+        "logger",
+        "city",
+        "onedrive",
+        "response_times",
+        "hackensack"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "│                                                                          │\n│     # Report unmapped incidents                                          │\n│     if unmapped_count > 0:                                               │\n│...",
+      "first_line": "│                                                                          │"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-04T23:53:49.923708",
+  "department": "admin"
+}

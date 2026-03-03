@@ -1,0 +1,198 @@
+Fixing data types for 48010 records... Fixed numeric: DATA_QUALITY_SCORE
+  Fixed date: VIOLATION_DATE
+  Fixed date: ISSUE_DATE
+  Fixed date: PROCESSED_TIMESTAMP
+Data type fixes complete
+
+
+---
+
+**Cursor**
+
+
+## ETL run summary
+
+### Results
+
+| Item | Status |
+|------|--------|
+| **13-month e-ticket window** | Loaded all 13 files (2025_02 through 2026_02) |
+| **Total records** | 48,010 (48,006 e-ticket + 4 backfill) |
+| **Backfill** | Used `2026_01_Department-Wide Summons  Moving and Parking.csv` |
+| **Backfill rows merged** | 4 (01-25 and 02-25 M/P for validated totals) |
+| **Staging file** | `summons_powerbi_latest.xlsx` updated |
+
+### Why only 4 backfill rows? With 13 months of e-ticket data, the merge only adds backfill for **01-25 and 02-25** (2 months × M and P = 4 rows) to match last month’s report. Gap months (03-25, 07-25, 10-25, 11-25) are not merged because e-ticket already has data for them. ### Next step
+
+Refresh Power BI so it uses the updated staging file. The Department-Wide Summons visual should show:
+
+- All 13 months (02-25 through 02-26)
+- 02-25 and 02-26 included
+- 01-25 and 02-25 from the 2026_01 backfill
+
+---
+
+**User**
+
+summons_13month_trend
+We were unable to load this Excel file because we couldn't understand its format. Archive file cannot be size 0.
+when the query is loading
+
+
+---
+
+**Cursor**
+
+
+Identifying the issue: `summons_powerbi_latest.xlsx` is 2,075 bytes (corrupted). The run produced `summons_powerbi_20260303_012932.xlsx` (24.6 MB). Copying the good file over the corrupted one. `summons_powerbi_latest.xlsx` has been restored from the good run (`summons_powerbi_20260303_012932.xlsx`). It’s now about 24.6 MB instead of 2 KB. **Refresh Power BI** and the query should load correctly. ---
+
+**What happened:** The ETL run at 01:31 wrote a valid timestamped file, but `summons_powerbi_latest.xlsx` ended up as 2 KB, likely due to OneDrive sync or a file lock during the overwrite. **To avoid this next time:** Close Power BI (and any other app using the file) before running the ETL, and wait for OneDrive to finish syncing. ---
+
+**User**
+
+DataFormat.Error: We were unable to load this Excel file because we couldn't understand its format. File contains corrupted data. Details:
+    [Binary]
+at the source step
+
+---
+
+**Cursor**
+
+
+Checking OneDrive sync and re-copying the file:
+
+
+
+The file has been recreated and validated. The problem was likely a locked or corrupted copy; deleting it first and then copying fixed it. **Refresh Power BI now** — the query should load correctly. ---
+
+**If it still fails**, OneDrive may be interfering. Try:
+
+1. **Right‑click** `summons_powerbi_latest.xlsx` in File Explorer  
+2. Choose **"Always keep on this device"**  
+3. Wait for it to finish syncing (green checkmark)  
+4. Refresh Power BI again
+
+---
+
+**User**
+
+there are three 
+C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\summons_powerbi_latest.xlsx
+C:\Users\carucci_r\OneDrive - Personal\OneDrive\03_Staging\Summons\summons_powerbi_latest.xlsx
+
+---
+
+**Cursor**
+
+
+Checking which path the M code uses and how the orchestrator handles these files:
+
+
+
+Here’s how those three paths relate:
+
+## Which path Power BI uses
+
+All summons M code in the repo points to:
+
+**`C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx`**
+
+That’s the only one the queries are designed to load from. ---
+
+## What each file is
+
+| Path | Role |
+|------|------|
+| **City of Hackensack\03_Staging\Summons\** | Main source – ETL writes here, M code reads here |
+| **City of Hackensack\PowerBI_Date\_DropExports\** | Orchestrator copies outputs here; not used by summons M code |
+| **Personal\OneDrive\03_Staging\Summons\** | Different OneDrive account; likely a duplicate or sync artifact |
+
+---
+
+## What to do
+
+1. **Confirm your PBIX**  
+   In Power Query, check the `summons_13month_trend` Source step and see which path it uses. If it’s not the City of Hackensack path, update it to:
+
+   `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx`
+
+2. **Keep the City of Hackensack file correct**  
+   That’s the one we fixed. The other two don’t matter for these queries. 3. **Optional cleanup**  
+   You can delete or ignore the Personal OneDrive copy if it’s not needed. The _DropExports copy is created by the orchestrator and can stay or be removed depending on your workflow. ---
+
+**User**
+
+C:\Users\carucci_r\OneDrive - Personal\OneDrive\03_Staging\Summons\summons_powerbi_latest.xlsx is now always on divice
+
+---
+
+**Cursor**
+
+
+That file is in **Personal** OneDrive, but the summons M code loads from **City of Hackensack**:
+
+| Path | Used by M code? |
+|------|------------------|
+| `OneDrive - City of Hackensack\03_Staging\Summons\` | Yes – this is the source |
+| `OneDrive - Personal\OneDrive\03_Staging\Summons\` | No – different OneDrive |
+
+**Do this for the correct file:**
+
+1. Open File Explorer and go to:
+   ```
+   C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\
+   ```
+2. Right‑click `summons_powerbi_latest.xlsx`
+3. Choose **“Always keep on this device”**
+
+That’s the file the ETL writes to and the M code reads from. The Personal copy is separate and not used by the summons queries. `summons_powerbi_latest.xlsx` looks correct: 23.5 MB, pinned locally, and modified at 01:31. Try refreshing Power BI again. With the file fully available on the device, the query should load without the previous errors. If it still fails, tell me the exact error message and which path the Power BI Source step is using. ---
+
+**User**
+
+I get this error when loading
+summons_13month_trend
+A single value for column 'UI MonthRange 13m' in table 'UI' cannot be determined. This can happen when a measure or function formula refers to a column that contains many values without specifying an aggregation such as min, max, count, or sum to get a single result. Column 'TOTAL_PAID_AMOUNT' in table '___Summons' cannot be found or may not be used in this expression. Column 'TOTAL_PAID_AMOUNT' in table '___Summons' cannot be found or may not be used in this expression. Column 'TOTAL_PAID_AMOUNT' in table '___Summons' cannot be found or may not be used in this expression. Column 'TOTAL_PAID_AMOUNT' in table '___Summons' cannot be found or may not be used in this expression. Column 'TOTAL_PAID_AMOUNT' in table '___Summons' cannot be found or may not be used in this expression. Column 'TOTAL_PAID_AMOUNT' in table '___Summons' cannot be found or may not be used in this expression. Column 'TOTAL_PAID_AMOUNT' in table '___Summons' cannot be found or may not be used in this expression. Column 'Ticket Number' in Table 'summons_13month_trend' contains blank values and this is not allowed for columns on the one side of a many-to-one relationship or for columns that are used as the primary key of a table. (Ticket Number (3199353)). Close
+
+---
+
+**Cursor**
+
+
+Implementing fixes for the three issues:
+
+
+
+I’ve applied fixes for two of the three issues:
+
+## 1. **Ticket Number blanks** (fixed)
+
+Backfill rows now get unique `Ticket Number` values (e.g. `BACKFILL_01-25_M_000000`) so Power BI relationships no longer fail on blanks. **File:** `scripts/summons_backfill_merge.py`
+
+## 2. **TOTAL_PAID_AMOUNT missing** (fixed)
+
+`___Summons` now adds `TOTAL_PAID_AMOUNT`, `FINE_AMOUNT`, `COST_AMOUNT`, and `MISC_AMOUNT` when they’re missing, defaulting to 0. **File:** `m_code/summons/___Summons.m`
+
+## 3. **UI MonthRange 13m** (Power BI change)
+
+This is a DAX measure or calculated column in the UI table. To fix it in Power BI:
+
+1. Open **Model view** → select the **UI** table. 2. Find the **UI MonthRange 13m** column or measure. 3. Update the formula so it uses an aggregation (e.g. `MIN`, `MAX`, `FIRSTNONBLANK`) instead of returning multiple values. ---
+
+**Next steps**
+
+1. Re-run the Summons ETL so backfill rows get the new Ticket Numbers:
+   ```powershell
+   python "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Summons\summons_etl_enhanced.py"
+   ```
+
+2. Copy the updated `___Summons.m` into your Power BI report. 3. Refresh Power BI. 4. If **UI MonthRange 13m** still errors, share the DAX formula and I can suggest a fix. ---
+
+**User**
+
+summons_13month_trend
+We were unable to load this Excel file because we couldn't understand its format. Archive file cannot be size 0.
+summons_all_bureaus
+We were unable to load this Excel file because we couldn't understand its format. File contains corrupted data. PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation>    python "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Summons\summons_etl_enhanced.py"
+C:\Users\carucci_r\scoop\apps\python\current\Lib\site-packages\fuzzywuzzy\fuzz.py:11: UserWarning: Using slow pure-python SequenceMatcher. Install python-Levenshtein to remove this warning
+  warnings.warn('Using slow pure-python SequenceMatcher.

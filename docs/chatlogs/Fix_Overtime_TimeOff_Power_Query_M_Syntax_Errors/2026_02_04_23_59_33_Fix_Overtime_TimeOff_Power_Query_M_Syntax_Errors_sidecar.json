@@ -1,0 +1,68 @@
+{
+  "source_file": "Fix_Overtime_TimeOff_Power_Query_M_Syntax_Errors.md",
+  "source_path": "C:\\_chunker\\02_data\\Fix_Overtime_TimeOff_Power_Query_M_Syntax_Errors.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Fix_Overtime_TimeOff_Power_Query_M_Syntax_Errors\\2026_02_04_23_59_33_Fix_Overtime_TimeOff_Power_Query_M_Syntax_Errors.origin.json",
+  "created_at": "2026_02_04_23_59_33",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "json",
+    "markdown",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "table",
+      "null",
+      "each",
+      "then",
+      "else",
+      "periodlabel"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "╭─── Claude Code v2.1.5 ───────────────────────────────────────────────────────────────────────────────────────────────╮\n│                                                     │ Tips for getting started...",
+    "first_line": "╭─── Claude Code v2.1.5 ───────────────────────────────────────────────────────────────────────────────────────────────╮"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-04T23:59:33+00:00_Fix_Overtime_TimeOff_Power_Query_M_Syntax_Errors_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "docs",
+        "each",
+        "else",
+        "json",
+        "markdown",
+        "null",
+        "periodlabel",
+        "sql",
+        "table",
+        "then"
+      ],
+      "key_terms": [
+        "table",
+        "null",
+        "each",
+        "then",
+        "else",
+        "periodlabel"
+      ],
+      "summary": "╭─── Claude Code v2.1.5 ───────────────────────────────────────────────────────────────────────────────────────────────╮\n│                                                     │ Tips for getting started...",
+      "char_length": 23213,
+      "byte_length": 24932
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

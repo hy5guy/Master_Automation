@@ -1,0 +1,39 @@
+{
+  "tags": [
+    "code",
+    "data",
+    "docs",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "onedrive",
+        "users",
+        "carucci_r",
+        "city",
+        "hackensack",
+        "powerbi_date"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Master_Automation Migration Verification Guide\n\n## Overview\n\nThis guide helps you verify that the Master_Automation workspace is correctly configured after the PowerBI_Date migration to OneDrive. **Migration Date:** 2025-12-11  \n**New...",
+      "first_line": "# Master_Automation Migration Verification Guide"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-05T00:00:41.806310",
+  "department": "admin"
+}

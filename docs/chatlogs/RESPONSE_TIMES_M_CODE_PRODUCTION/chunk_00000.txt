@@ -1,0 +1,284 @@
+// ==============================================================================
+// RESPONSE TIMES M CODE - PRODUCTION VERSION
+// Query Name: ___ResponseTimeCalculator
+// ==============================================================================
+// Based on October 2025 preview table structure which has:
+// - Response_Type
+// - Average_Response_Time (this is what the measures need!) // - Response_Time_MMSS
+// - MM-YY
+// - YearMonth
+// - And many other columns
+// ==============================================================================
+
+let
+    // ========================================================================
+    // LOAD NOVEMBER 2025 DATA (ETL Output)
+    // ========================================================================
+    
+    Nov2025Raw = Csv.Document(
+        File.Contents("C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\2025_12_Average_Response_Times__Values_are_in_mmss.csv"),
+        [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]
+    ),
+    
+    // Promote headers: Response Type, MM-YY, First Response_Time_MMSS
+    Nov2025Headers = Table.PromoteHeaders(Nov2025Raw, [PromoteAllScalars=true]),
+    
+    // Rename columns to match expected schema
+    Nov2025Renamed = Table.RenameColumns(
+        Nov2025Headers,
+        {
+            {"Response Type", "Response_Type"},
+            {"First Response_Time_MMSS", "Response_Time_MMSS"},
+            {"MM-YY", "MM_YY"}
+        }
+    ),
+    
+    // Calculate Average_Response_Time from MM:SS format (convert to minutes)
+    Nov2025WithAvg = Table.AddColumn(
+        Nov2025Renamed,
+        "Average_Response_Time",
+        each let
+            timeStr = Text.Trim(Text.From([Response_Time_MMSS])),
+            parts = Text.Split(timeStr, ":"),
+            minutes = if List.Count(parts) >= 2 then
+                let
+                    mins = Number.From(parts{0}),
+                    secs = Number.From(parts{1}),
+                    totalMins = mins + (secs / 60.0)
+                in
+                    totalMins
+            else
+                null
+        in
+            minutes,
+        type number
+    ),
+    
+    // Add YearMonth column from MM-YY format (e.g., "11-25" -> "2025-11")
+    Nov2025WithYearMonth = Table.AddColumn(
+        Nov2025WithAvg,
+        "YearMonth",
+        each let
+            mmYY = Text.Trim(Text.From([MM_YY])),
+            parts = Text.Split(mmYY, "-"),
+            yearMonth = if List.Count(parts) >= 2 then
+                let
+                    mm = parts{0},
+                    yy = "20" & parts{1}, // Convert "25" to "2025"
+                    yearMonthStr = yy & "-" & Text.PadStart(mm, 2, "0")
+                in
+                    yearMonthStr
+            else
+                null
+        in
+            yearMonth,
+        type text
+    ),
+    
+    // Add additional columns to match preview table structure (set to null/defaults)
+    Nov2025WithAllColumns = Table.AddColumn(
+        Table.AddColumn(
+            Table.AddColumn(
+                Table.AddColumn(
+                    Table.AddColumn(
+                        Table.AddColumn(
+                            Table.AddColumn(
+                                Table.AddColumn(
+                                    Table.AddColumn(
+                                        Table.AddColumn(
+                                            Table.AddColumn(
+                                                Table.AddColumn(
+                                                    Table.AddColumn(
+                                                        Nov2025WithYearMonth,
+                                                        "Avg_Response_Time", each [Average_Response_Time], type number
+                                                    ),
+                                                    "Category_Type", each null, type text
+                                                ),
+                                                "Avg_Category_Time", each null, type number
+                                            ),
+                                            "Count", each null, type number
+                                        ),
+                                        "Date", each null, type date
+                                    ),
+                                    "Summary_Type", each "Response_Type", type text
+                                ),
+                                "Category", each [Response_Type], type text
+                            ),
+                            "Response_Time_Decimal", each [Average_Response_Time], type number
+                        ),
+                        "Year", each try Number.From(Text.Start([YearMonth], 4)) otherwise null, type number
+                    ),
+                    "Month", each try Number.From(Text.End(Text.BeforeDelimiter([YearMonth], "-", 1), 2)) otherwise null, type number
+                ),
+                "MonthName", each null, type text // Will need to be populated based on Month number
+            ),
+            "Period", each [MM_YY], type text
+        ),
+        "Data_Quality_Flag", each "NORMAL", type text
+    ),
+    
+    // ========================================================================
+    // LOAD BACKFILL DATA (Nov 2024 - Oct 2025)
+    // ========================================================================
+    
+    BackfillRaw = Csv.Document(
+        File.Contents("C:\Dev\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Average Response Times  Values are in mmss.csv"),
+        [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]
+    ),
+    
+    // Promote headers
+    BackfillHeaders = Table.PromoteHeaders(BackfillRaw, [PromoteAllScalars=true]),
+    
+    // Rename columns
+    BackfillRenamed = Table.RenameColumns(
+        BackfillHeaders,
+        {
+            {"Response Type", "Response_Type"},
+            {"First Response_Time_MMSS", "Response_Time_MMSS"},
+            {"MM-YY", "MM_YY"}
+        }
+    ),
+    
+    // Calculate Average_Response_Time
+    BackfillWithAvg = Table.AddColumn(
+        BackfillRenamed,
+        "Average_Response_Time",
+        each let
+            timeStr = Text.Trim(Text.From([Response_Time_MMSS])),
+            parts = Text.Split(timeStr, ":"),
+            minutes = if List.Count(parts) >= 2 then
+                let
+                    mins = Number.From(parts{0}),
+                    secs = Number.From(parts{1}),
+                    totalMins = mins + (secs / 60.0)
+                in
+                    totalMins
+            else
+                null
+        in
+            minutes,
+        type number
+    ),
+    
+    // Add YearMonth
+    BackfillWithYearMonth = Table.AddColumn(
+        BackfillWithAvg,
+        "YearMonth",
+        each let
+            mmYY = Text.Trim(Text.From([MM_YY])),
+            parts = Text.Split(mmYY, "-"),
+            yearMonth = if List.Count(parts) >= 2 then
+                let
+                    mm = parts{0},
+                    yy = "20" & parts{1},
+                    yearMonthStr = yy & "-" & Text.PadStart(mm, 2, "0")
+                in
+                    yearMonthStr
+            else
+                null
+        in
+            yearMonth,
+        type text
+    ),
+    
+    // Add additional columns to match preview table structure
+    BackfillWithAllColumns = Table.AddColumn(
+        Table.AddColumn(
+            Table.AddColumn(
+                Table.AddColumn(
+                    Table.AddColumn(
+                        Table.AddColumn(
+                            Table.AddColumn(
+                                Table.AddColumn(
+                                    Table.AddColumn(
+                                        Table.AddColumn(
+                                            Table.AddColumn(
+                                                Table.AddColumn(
+                                                    Table.AddColumn(
+                                                        BackfillWithYearMonth,
+                                                        "Avg_Response_Time", each [Average_Response_Time], type number
+                                                    ),
+                                                    "Category_Type", each null, type text
+                                                ),
+                                                "Avg_Category_Time", each null, type number
+                                            ),
+                                            "Count", each null, type number
+                                        ),
+                                        "Date", each null, type date
+                                    ),
+                                    "Summary_Type", each "Response_Type", type text
+                                ),
+                                "Category", each [Response_Type], type text
+                            ),
+                            "Response_Time_Decimal", each [Average_Response_Time], type number
+                        ),
+                        "Year", each try Number.From(Text.Start([YearMonth], 4)) otherwise null, type number
+                    ),
+                    "Month", each try Number.From(Text.End(Text.BeforeDelimiter([YearMonth], "-", 1), 2)) otherwise null, type number
+                ),
+                "MonthName", each null, type text
+            ),
+            "Period", each [MM_YY], type text
+        ),
+        "Data_Quality_Flag", each "NORMAL", type text
+    ),
+    
+    // ========================================================================
+    // COMBINE DATASETS
+    // ========================================================================
+    
+    Combined = Table.Combine({BackfillWithAllColumns, Nov2025WithAllColumns}),
+    
+    // ========================================================================
+    // FINAL PROCESSING - ENSURE COLUMN ORDER MATCHES PREVIEW TABLE
+    // ========================================================================
+    
+    // Reorder columns to match preview table structure
+    ColumnOrder = {
+        "YearMonth",
+        "Response_Type",
+        "Avg_Response_Time",
+        "Category_Type",
+        "Avg_Category_Time",
+        "Count",
+        "Date",
+        "MM-YY",
+        "Summary_Type",
+        "Category",
+        "Average_Response_Time", // This is the key column the measures need! "Response_Time_MMSS",
+        "Response_Time_Decimal",
+        "Year",
+        "Month",
+        "MonthName",
+        "Period",
+        "Data_Quality_Flag"
+    },
+    
+    // Select columns in the correct order
+    Reordered = Table.SelectColumns(
+        Combined,
+        ColumnOrder,
+        MissingField.UseNull
+    ),
+    
+    // Ensure MM-YY column exists (from MM_YY)
+    Final = if Table.HasColumns(Reordered, "MM_YY") and not Table.HasColumns(Reordered, "MM-YY") then
+        Table.RenameColumns(Reordered, {{"MM_YY", "MM-YY"}})
+    else if not Table.HasColumns(Reordered, "MM-YY") then
+        Table.AddColumn(Reordered, "MM-YY", each null, type text)
+    else
+        Reordered,
+    
+    Result = Final
+    
+in
+    Result
+
+// ==============================================================================
+// NOTES:
+// 1. This script creates the exact column structure from October's preview table
+// 2. The key column "Average_Response_Time" is calculated from Response_Time_MMSS
+// 3. All required columns are present to match the preview table structure
+// 4. The measures (Emergency_Avg_13M, Routine_Avg_13M, Urgent_Avg_13M) will now
+//    find the "Average_Response_Time" column they're looking for
+// ==============================================================================

@@ -1,0 +1,423 @@
+{
+  "source_file": "Benchmark_Data_Architecture_Migration_Complete.md",
+  "source_path": "C:\\_chunker\\02_data\\Benchmark_Data_Architecture_Migration_Complete.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Benchmark_Data_Architecture_Migration_Complete\\2026_02_04_23_56_07_Benchmark_Data_Architecture_Migration_Complete.origin.json",
+  "created_at": "2026_02_04_23_56_07",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "csv",
+      "data",
+      "date",
+      "incident",
+      "force",
+      "file"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "│   │       ├── 2024_complete.csv\n  │   │       └── 2025_complete.csv\n  │   ├── use_force/\n  │   │   ├── historical_complete.csv\n  │   │   └── archives/\n  │   │       ├── 2024_complete.csv\n  │   │       └── 2025_complete.csv\n  │   └── ve...",
+    "first_line": "│   │       ├── 2024_complete.csv"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-04T23:56:07+00:00_Benchmark_Data_Architecture_Migration_Complete_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "code",
+        "combined_df",
+        "data",
+        "date",
+        "docs",
+        "incident",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sql"
+      ],
+      "key_terms": [
+        "csv",
+        "log",
+        "date",
+        "incident",
+        "data",
+        "combined_df"
+      ],
+      "summary": "│   │       ├── 2024_complete.csv\n  │   │       └── 2025_complete.csv\n  │   ├── use_force/\n  │   │   ├── historical_complete.csv\n  │   │   └── archives/\n  │   │       ├── 2024_complete.csv\n  │   │       └── 2025_complete.csv\n  │   └── ve...",
+      "char_length": 29753,
+      "byte_length": 31641
+    },
+    {
+      "chunk_id": "2026-02-04T23:56:07+00:00_Benchmark_Data_Architecture_Migration_Complete_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "ai",
+        "carucci_r",
+        "city",
+        "code",
+        "data",
+        "docs",
+        "hackensack",
+        "json",
+        "legal",
+        "markdown",
+        "onedrive",
+        "police",
+        "python",
+        "sql"
+      ],
+      "key_terms": [
+        "csv",
+        "data",
+        "hackensack",
+        "carucci_r",
+        "onedrive",
+        "city"
+      ],
+      "summary": "## File Naming Conventions\n\n ### Date Formats\n - **YYYY-MM-DD**: ISO 8601 standard for date columns in CSV files\n - **MM-YY**: Display format for month labels (e.g., \"12-24\" = December 2024)\n\n ### Event Types\n - `Show of Force`\n - `Use o...",
+      "char_length": 29767,
+      "byte_length": 33528
+    },
+    {
+      "chunk_id": "2026-02-04T23:56:07+00:00_Benchmark_Data_Architecture_Migration_Complete_chunk3",
+      "chunk_index": 3,
+      "file": "chunk_00002.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "date",
+        "docs",
+        "file",
+        "force",
+        "incident",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sql"
+      ],
+      "key_terms": [
+        "csv",
+        "date",
+        "data",
+        "incident",
+        "force",
+        "file"
+      ],
+      "summary": "**Manual filtering**: Rolling 13-month datasets require runtime calculation\n\n  ### Reference Files (Current Outputs)\n  ```\n  C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\\n  ├── Use of Force Incident Matrix.csv\n  ├──...",
+      "char_length": 28130,
+      "byte_length": 29955
+    },
+    {
+      "chunk_id": "2026-02-04T23:56:07+00:00_Benchmark_Data_Architecture_Migration_Complete_chunk4",
+      "chunk_index": 4,
+      "file": "chunk_00003.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "date",
+        "docs",
+        "files",
+        "hackensack",
+        "incident",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sql"
+      ],
+      "key_terms": [
+        "csv",
+        "data",
+        "date",
+        "incident",
+        "files",
+        "hackensack"
+      ],
+      "summary": "**Resolution:**\n The migration correctly implements a **13-month rolling window** as specified in the requirements:\n - December 2024 to December 2025 = 13 complete calendar months\n - This includes December 2025 data, which was not in the...",
+      "char_length": 29313,
+      "byte_length": 32264
+    },
+    {
+      "chunk_id": "2026-02-04T23:56:07+00:00_Benchmark_Data_Architecture_Migration_Complete_chunk5",
+      "chunk_index": 5,
+      "file": "chunk_00004.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "date",
+        "docs",
+        "files",
+        "force",
+        "incident",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sql"
+      ],
+      "key_terms": [
+        "csv",
+        "date",
+        "data",
+        "incident",
+        "force",
+        "files"
+      ],
+      "summary": "● Update(benchmark_restructure.py)\n  ⎿  Added 3 lines, removed 3 lines\n      49           backup_files = list(BACKUP_DIR.rglob(\"*\"))\n      50           backup_file_count = len([f for f in backup_files if f.is_file()])\n      51\n      52 -...",
+      "char_length": 29492,
+      "byte_length": 32851
+    },
+    {
+      "chunk_id": "2026-02-04T23:56:07+00:00_Benchmark_Data_Architecture_Migration_Complete_chunk6",
+      "chunk_index": 6,
+      "file": "chunk_00005.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "date",
+        "docs",
+        "file",
+        "force",
+        "incident",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sql"
+      ],
+      "key_terms": [
+        "csv",
+        "data",
+        "date",
+        "incident",
+        "force",
+        "file"
+      ],
+      "summary": "**Update M-code** (file: `2026_01_12_benchmark_m_codes.m`):\n  - Replace all hardcoded paths with new structure\n  - **Dynamic rolling window logic**:\n  ```m\n  let\n  Today = DateTime.LocalNow(),\n  EndOfLastMonth = Date.EndOfMonth(Date.AddM...",
+      "char_length": 30061,
+      "byte_length": 31989
+    },
+    {
+      "chunk_id": "2026-02-04T23:56:07+00:00_Benchmark_Data_Architecture_Migration_Complete_chunk7",
+      "chunk_index": 7,
+      "file": "chunk_00006.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "date",
+        "docs",
+        "force",
+        "hackensack",
+        "incident",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sql"
+      ],
+      "key_terms": [
+        "csv",
+        "date",
+        "data",
+        "incident",
+        "hackensack",
+        "force"
+      ],
+      "summary": "`Master_Automation/Incident Distribution by Event Type_UPDATED.csv`\n 3.",
+      "char_length": 29852,
+      "byte_length": 32912
+    },
+    {
+      "chunk_id": "2026-02-04T23:56:07+00:00_Benchmark_Data_Architecture_Migration_Complete_chunk8",
+      "chunk_index": 8,
+      "file": "chunk_00007.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "date",
+        "docs",
+        "files",
+        "incident",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sql",
+        "window"
+      ],
+      "key_terms": [
+        "csv",
+        "data",
+        "date",
+        "incident",
+        "files",
+        "window"
+      ],
+      "summary": "### Backup Status\n - **Location:** `C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\05_EXPORTS\\_Benchmark_BACKUP_20260112`\n - **Status:** ✅ Created successfully\n - **Contents:** Complete copy of legacy structure with all files and subdi...",
+      "char_length": 30084,
+      "byte_length": 33085
+    },
+    {
+      "chunk_id": "2026-02-04T23:56:07+00:00_Benchmark_Data_Architecture_Migration_Complete_chunk9",
+      "chunk_index": 9,
+      "file": "chunk_00008.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "date",
+        "docs",
+        "force",
+        "incident",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sql",
+        "window"
+      ],
+      "key_terms": [
+        "csv",
+        "date",
+        "data",
+        "incident",
+        "force",
+        "window"
+      ],
+      "summary": "● Bash(cd \"C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\05_EXPORTS\\_Benchmark\" && wc -l\n      show_force/complete_report/all_time/*.csv use_force/complete_report/all_tim…)\n  ⎿     38 show_force/complete_report/all_time/show-of-force-...",
+      "char_length": 29152,
+      "byte_length": 31952
+    },
+    {
+      "chunk_id": "2026-02-04T23:56:07+00:00_Benchmark_Data_Architecture_Migration_Complete_chunk10",
+      "chunk_index": 10,
+      "file": "chunk_00009.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "date",
+        "docs",
+        "file",
+        "force",
+        "incident",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sql"
+      ],
+      "key_terms": [
+        "csv",
+        "data",
+        "date",
+        "incident",
+        "force",
+        "file"
+      ],
+      "summary": "## Current State Analysis\n\n  ### Root Directory\n  `C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\05_EXPORTS\\_Benchmark`\n\n  ### Current Structure (Problematic)\n  ```\n  _Benchmark/\n  ├── show_force/\n  │   ├── complete_report/\n  │   │...",
+      "char_length": 29367,
+      "byte_length": 31413
+    },
+    {
+      "chunk_id": "2026-02-04T23:56:07+00:00_Benchmark_Data_Architecture_Migration_Complete_chunk11",
+      "chunk_index": 11,
+      "file": "chunk_00010.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "date",
+        "docs",
+        "files",
+        "hackensack",
+        "incident",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sql"
+      ],
+      "key_terms": [
+        "csv",
+        "data",
+        "date",
+        "incident",
+        "files",
+        "hackensack"
+      ],
+      "summary": "**Resolution:**\n The migration correctly implements a **13-month rolling window** as specified in the requirements:\n - December 2024 to December 2025 = 13 complete calendar months\n - This includes December 2025 data, which was not in the...",
+      "char_length": 29274,
+      "byte_length": 32224
+    },
+    {
+      "chunk_id": "2026-02-04T23:56:07+00:00_Benchmark_Data_Architecture_Migration_Complete_chunk12",
+      "chunk_index": 12,
+      "file": "chunk_00011.txt",
+      "tags": [
+        "2026-01-12",
+        "ai",
+        "code",
+        "data",
+        "docs",
+        "files",
+        "json",
+        "legal",
+        "lines",
+        "markdown",
+        "migration",
+        "police",
+        "python",
+        "sql"
+      ],
+      "key_terms": [
+        "files",
+        "data",
+        "migration",
+        "csv",
+        "lines",
+        "2026-01-12"
+      ],
+      "summary": "● Update(benchmark_restructure.py)\n  ⎿  Added 3 lines, removed 3 lines\n      49           backup_files = list(BACKUP_DIR.rglob(\"*\"))\n      50           backup_file_count = len([f for f in backup_files if f.is_file()])\n      51\n      52 -...",
+      "char_length": 10255,
+      "byte_length": 11251
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

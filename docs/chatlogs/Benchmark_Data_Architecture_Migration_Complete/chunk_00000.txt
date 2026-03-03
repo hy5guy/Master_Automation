@@ -1,0 +1,782 @@
+  │   │       ├── 2024_complete.csv
+  │   │       └── 2025_complete.csv
+  │   ├── use_force/
+  │   │   ├── historical_complete.csv
+  │   │   └── archives/
+  │   │       ├── 2024_complete.csv
+  │   │       └── 2025_complete.csv
+  │   └── vehicle_pursuit/
+  │       ├── historical_complete.csv
+  │       └── archives/
+  │           ├── 2024_complete.csv
+  │           └── 2025_complete.csv
+  ├── by_time_period/
+  │   ├── rolling_13month/
+  │   │   ├── current_window.csv                (auto-generated: Dec-24 to Dec-25)
+  │   │   ├── by_event_type/
+  │   │   │   ├── show_force_13month.csv
+  │   │   │   ├── use_force_13month.csv
+  │   │   │   └── vehicle_pursuit_13month.csv
+  │   │   └── last_updated.txt                  (timestamp of generation)
+  │   ├── ytd_current/
+  │   │   ├── 2026_ytd.csv
+  │   │   └── by_event_type/
+  │   │       ├── show_force_2026_ytd.csv
+  │   │       ├── use_force_2026_ytd.csv
+  │   │       └── vehicle_pursuit_2026_ytd.csv
+  │   └── archives/
+  │       ├── 2024_rolling_13month/             (historical snapshots)
+  │       └── 2025_rolling_13month/
+  └── _legacy_structure_backup/                 (original files, frozen)
+  ```
+
+  ---
+
+  ## Your Tasks
+
+  ### Phase 1: Validation & Backup (CRITICAL - Do First)
+  1. **Load directory tree JSON** to map current structure
+  2. **Create complete backup**:
+  - Copy entire `_Benchmark` folder to `_Benchmark_BACKUP_20260112`
+  - Verify backup integrity (file counts, sizes)
+  3. **Validate source data**:
+  - Load all three `all_time` CSV files
+  - Check schema consistency (columns, data types)
+  - Verify date ranges and record counts
+  - **Flag any anomalies** (missing dates, duplicates, schema mismatches)
+
+  ### Phase 2: Data Processing & Transformation
+  4. **Create master combined dataset**:
+  - Merge show_force + use_force + vehicle_pursuit
+  - Add `EventType` column distinguishing source
+  - Ensure consistent date formatting (YYYY-MM-DD)
+  - Save to: `all_events_combined/master_combined_all_time.csv`
+  - Generate metadata.json with:
+  ```json
+  {
+  "total_records": 12345,
+  "date_range": {"start": "2001-01-01", "end": "2026-01-07"},
+  "by_event_type": {
+  "show_force": 123,
+  "use_force": 456,
+  "vehicle_pursuit": 789
+  },
+  "last_updated": "2026-01-12T14:30:00"
+  }
+  ```
+
+  5. **Generate rolling 13-month datasets** (TODAY = 2026-01-12):
+  - **Current window**: December 2024 - December 2025 (13 complete months)
+  - **Logic**:
+  ```python
+  end_date = last_day_of_previous_month(today)  # 2025-12-31
+  start_date = end_date - 12_months              # 2024-12-01
+  ```
+  - Create:
+  - `by_time_period/rolling_13month/current_window.csv` (all events)
+  - Individual event CSVs in `by_event_type/` subfolder
+  - `last_updated.txt` with timestamp
+
+  6. **Generate YTD 2026 datasets**:
+  - Filter: January 1, 2026 - January 7, 2026
+  - Create combined + individual event CSVs in `ytd_current/`
+
+  7. **Archive historical complete years**:
+  - Extract complete 2024 data → `archives/2024_complete.csv`
+  - Extract complete 2025 data → `archives/2025_complete.csv`
+  - Save by event type in respective folders
+
+  ### Phase 3: Power BI Integration
+  8. **Update M-code** (file: `2026_01_12_benchmark_m_codes.m`):
+  - Replace all hardcoded paths with new structure
+  - **Dynamic rolling window logic**:
+  ```m
+  let
+  Today = DateTime.LocalNow(),
+  EndOfLastMonth = Date.EndOfMonth(Date.AddMonths(Date.StartOfMonth(Today), -1)),
+  StartOfWindow = Date.AddMonths(EndOfLastMonth, -12),
+
+  Source = Csv.Document(
+  File.Contents("C:\Users\carucci_r\OneDrive - City of
+  Hackensack\05_EXPORTS\_Benchmark\by_time_period\rolling_13month\current_window.csv")
+  ),
+
+  FilteredRows = Table.SelectRows(Source,
+  each [Date] >= StartOfWindow and [Date] <= EndOfLastMonth
+  )
+  in
+  FilteredRows
+  ```
+  - Create separate queries for:
+  - Rolling 13-month combined
+  - Rolling 13-month by event type
+  - YTD current
+  - Add header comments explaining date logic
+
+  9. **Generate Use of Force Matrix**:
+  - Using rolling 13-month `use_force_13month.csv`
+  - Pivot by month (columns) and EventType (rows)
+  - Match format from uploaded screenshot
+  - **Validate totals**:
+  - Use of Force: 67
+  - Show of Force: 3
+  - Vehicle Pursuit: 1
+  - Total: 71
+  - Save to: `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\Use of Force Incident
+  Matrix_UPDATED.csv`
+
+  10. **Generate supporting visualizations**:
+  - Incident Distribution by Event Type (13-month pie chart data)
+  - Incident Count by Date and Event Type (trend line data)
+  - Save to `Master_Automation/` with `_UPDATED` suffix
+
+  ### Phase 4: Documentation & Validation
+  11. **Create folder structure README**:
+  - Save to: `_Benchmark/README.md`
+  - Document:
+  - Purpose of each folder
+  - File naming conventions
+  - Update frequency expectations
+  - Rolling window calculation logic
+  - Query paths for Power BI
+
+  12. **Generate migration report**:
+  - Before/after folder comparison
+  - File count reconciliation
+  - Data integrity checks (record counts match)
+  - Updated Power BI paths mapping
+  - Save to: `_Benchmark/MIGRATION_REPORT_20260112.md`
+
+  13. **Final validation checklist**:
+  - [ ] All source data preserved in backup
+  - [ ] Combined master file record count matches sum of sources
+  - [ ] Rolling 13-month window = Dec-24 to Dec-25 (13 months)
+  - [ ] Use of Force matrix totals match screenshot (71 total)
+  - [ ] M-code paths updated and syntactically valid
+  - [ ] All CSVs have consistent schemas
+  - [ ] README and migration report generated
+
+  ---
+
+  ## Critical Rules
+
+  1. **NEVER delete original files** without verified backup
+  2. **Preserve data integrity**: Every record must be accounted for
+  3. **Date handling**: Use YYYY-MM-DD format consistently
+  4. **Rolling window**: Always exclude current incomplete month
+  5. **File encoding**: UTF-8 for all CSVs
+  6. **Path separators**: Use Windows backslashes in M-code, forward slashes in Python
+
+  ## Expected Outputs
+
+  ### Files to Create/Update
+  ```
+  _Benchmark/
+  ├── all_events_combined/master_combined_all_time.csv
+  ├── by_time_period/rolling_13month/current_window.csv
+  ├── by_time_period/rolling_13month/by_event_type/*.csv (3 files)
+  ├── README.md
+  └── MIGRATION_REPORT_20260112.md
+
+  Master_Automation/
+  ├── Use of Force Incident Matrix_UPDATED.csv
+  ├── Incident Distribution by Event Type_UPDATED.csv
+  ├── Incident Count by Date and Event Type_UPDATED.csv
+  └── 2026_01_12_benchmark_m_codes_UPDATED.m
+  ```
+
+  ### Terminal Output Expected
+  - Backup confirmation with file counts
+  - Data validation summary (record counts, date ranges)
+  - Rolling window dates confirmation (Dec-24 to Dec-25)
+  - Matrix totals validation (matches 71 total)
+  - Migration completion status
+
+  ---
+
+  ## Starting Points
+
+  ### Key Files to Load First
+  1. `/mnt/user-data/uploads/2026_01_12__Benchmark_directory_tree.json`
+  2. Current all_time CSVs (paths in structure above)
+  3. Current M-code: `/mnt/user-data/uploads/2026_01_12_benchmark_m_codes.m`
+  4. Current matrix: `/mnt/user-data/uploads/Use_of_Force_Incident_Matrix.csv`
+
+  ### Success Criteria
+  - ✅ New structure operational with all historical data intact
+  - ✅ Rolling 13-month window auto-calculates correctly
+  - ✅ Power BI M-code updated and validated
+  - ✅ Use of Force matrix matches screenshot (71 total incidents)
+  - ✅ Complete documentation and migration report
+  - ✅ Original data backed up and preserved
+
+  ---
+
+  ## Authority Level
+  **Full authority to restructure** after validation confirms:
+  1. Backup created successfully
+  2. Data integrity verified (no record loss)
+  3. Logic is sound per requirements
+
+  If you encounter ambiguities or data quality issues, **document them in migration report** and proceed with
+  best-judgment decisions that preserve data integrity. **Begin with Phase 1 validation and backup. Confirm completion before proceeding to transformation phases. **
+  ```
+
+● I'll help you restructure the Benchmark use-of-force tracking system. This is a complex migration that requires careful execution to preserve data integrity. Let me start by creating a comprehensive task list and then proceed with Phase 1 validation and backup. ● Read(/mnt/user-data/uploads/2026_01_12__Benchmark_directory_tree.json)
+  ⎿  Error reading file
+
+● Read(/mnt/user-data/uploads/2026_01_12_benchmark_m_codes.m)
+  ⎿  Error reading file
+
+● Read(/mnt/user-data/uploads/Use_of_Force_Incident_Matrix.csv)
+  ⎿  Error reading file
+
+● Let me check for uploaded files in the current working directory. ● Bash(ls -la *.json *.m *.csv 2>/dev/null | head -20)
+  ⎿  -rw-r--r-- 1 carucci_r 1049089    5686 Jan  5 23:13 ___Arrest_Categories_FIXED.m
+     -rw-r--r-- 1 carucci_r 1049089  376380 Dec 11 20:30 ___Summons_preview_table.csv
+     -rw-r--r-- 1 carucci_r 1049089 1212508 Dec 11 20:28 ___Summons_preview_table_latest.csv
+     … +20 lines (ctrl+o to expand)
+
+● Bash(find . -maxdepth 2 -name "*Benchmark*.json" -o -name "*benchmark*.m" -o -name "*Force*.csv" 2>/dev/null)
+  ⎿  ./2026_01_12_benchmark_m_codes.m
+     ./Use of Force Incident Matrix.csv
+
+● Bash(find . -maxdepth 2 -name "*Benchmark*directory*.json" 2>/dev/null)
+  ⎿  (No content)
+
+● Read(2026_01_12_benchmark_m_codes.m)
+  ⎿  Read 532 lines
+
+● Read(Use of Force Incident Matrix.csv)
+  ⎿  Read 38 lines
+
+● Read(Incident Count by Date and Event Type.csv)
+  ⎿  Read 41 lines
+
+● Read(Incident Distribution by Event Type.csv)
+  ⎿  Read 5 lines
+
+● Bash(ls -la *.json 2>/dev/null | grep -i benchmark)
+  ⎿  No matches found
+
+● Bash(cd "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark" && tree /F /A >
+      benchmark_structure.txt 2>&1 && head -100 benchmark_structure.txt)
+  ⎿  Error: Exit code 127
+
+● Bash(cd "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark" && ls -R | head -200)
+  ⎿  . :
+     2026_01_12__Benchmark_directory_tree.json
+     2026_01_12__Benchmark_directory_tree.md
+     … +197 lines (ctrl+o to expand)
+
+● Read(~\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark\2026_01_12__Benchmark_directory_tree.json)
+  ⎿  Read 1588 lines
+
+● Now let me validate the source data by examining the three main all_time CSV files to check their schemas, date ranges, and record counts. ● Bash(cd "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark" && wc -l
+      show_force/complete_report/all_time/*.csv use_force/complete_report/all_tim…)
+  ⎿     38 show_force/complete_report/all_time/show-of-force-reports-01_01_2001-01_07_2026.csv
+       341 use_force/complete_report/all_time/use-of-force-reports-01_01_2001-01_07_2026.csv
+        22 vehicle_pursuit/complete_report/all_time/vehicle-pursuit-reports-01_01_2001-01_07_2026.csv
+       401 total
+
+● Bash(cd "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark" && head -5
+      show_force/complete_report/all_time/*.csv)
+  ⎿ ﻿"Officer Name","Badge Number","Rank","Organization","Incident Number","Report Number","Incident Date","Subject
+     type","Report Key"
+    "Ghirardi, Robert","150","Sergeant","NJ BRG Hackensack PD","22-081603","SOF22-10-10","2022-10-17T18:30:00.000",
+    … +7 lines (ctrl+o to expand)
+
+
+● Bash(cd "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark" && head -5
+      use_force/complete_report/all_time/*.csv)
+  ⎿ ﻿"Officer Name","Badge Number","Rank","Organization","Incident Number","Report Number","Incident Date","Locatio
+    n","Initial Contact","# of Officers Involved","# of Subjects","Subject type","Report Key"
+    "Peralta, Kley","311","Sergeant","NJ BRG Hackensack PD","20-066428","UOF20-10-13","2020-10-05T18:37:00.000","No
+    … +7 lines (ctrl+o to expand)
+
+
+● Bash(cd "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark" && head -5
+      vehicle_pursuit/complete_report/all_time/*.csv)
+  ⎿ ﻿"Officer Name","Badge Number","Rank","Organization","Incident Number","Report Number","Incident Date","Subject
+     type","Report Key"
+    "Conlon, Ryan","354","Police Officer","NJ BRG Hackensack PD","22-020765","VP22-3-1","2022-03-18T22:00:00.000","
+    … +7 lines (ctrl+o to expand)
+
+
+● Now I'll create a comprehensive Python script to handle the entire migration process. Let me write the script that will validate data, create backups, and perform the transformation. ● Write(benchmark_restructure.py)
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ Create file benchmark_restructure.py
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+ """
+ Benchmark Data Architecture Overhaul Script
+ Date: 2026-01-12
+ Purpose: Restructure Benchmark use-of-force tracking system
+ Author: Claude Code (with R. A. Carucci)
+ """
+
+ import pandas as pd
+ import json
+ import shutil
+ import os
+ from datetime import datetime, date
+ from pathlib import Path
+ import csv
+
+ # Configuration
+ ROOT_BENCHMARK = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark")
+ ROOT_AUTOMATION = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation")
+ BACKUP_DIR = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark_BACKUP_20260112")
+ TODAY = date(2026, 1, 12)
+
+ # Source files
+ SOURCE_FILES = {
+     "show_force": ROOT_BENCHMARK / "show_force" / "complete_report" / "all_time" /
+ "show-of-force-reports-01_01_2001-01_07_2026.csv",
+     "use_force": ROOT_BENCHMARK / "use_force" / "complete_report" / "all_time" /
+ "use-of-force-reports-01_01_2001-01_07_2026.csv",
+     "vehicle_pursuit": ROOT_BENCHMARK / "vehicle_pursuit" / "complete_report" / "all_time" /
+ "vehicle-pursuit-reports-01_01_2001-01_07_2026.csv"
+ }
+
+ def log(message):
+     """Print timestamped log message"""
+     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {message}")
+
+ def create_backup():
+     """Create complete backup of _Benchmark folder"""
+     log("=" * 80)
+     log("PHASE 1: CREATING BACKUP")
+     log("=" * 80)
+
+     if BACKUP_DIR.exists():
+         log(f"Backup directory already exists: {BACKUP_DIR}")
+         log("Skipping backup creation")
+         return True
+
+     try:
+         log(f"Creating backup: {BACKUP_DIR}")
+         shutil.copytree(ROOT_BENCHMARK, BACKUP_DIR)
+
+         # Count files
+         backup_files = list(BACKUP_DIR.rglob("*"))
+         backup_file_count = len([f for f in backup_files if f.is_file()])
+
+         log(f"✓ Backup created successfully")
+         log(f"✓ Total files backed up: {backup_file_count}")
+         return True
+     except Exception as e:
+         log(f"✗ Backup failed: {e}")
+         return False
+
+ def validate_source_data():
+     """Validate source CSV files and return metadata"""
+     log("=" * 80)
+     log("PHASE 1: VALIDATING SOURCE DATA")
+     log("=" * 80)
+
+     validation_results = {}
+
+     for event_type, file_path in SOURCE_FILES.items():
+         log(f"\nValidating {event_type}...")
+
+         try:
+             # Read file
+             df = pd.read_csv(file_path, encoding='utf-8')
+
+             # Get metadata
+             record_count = len(df)
+             columns = list(df.columns)
+
+             # Parse dates
+             df['Incident Date'] = pd.to_datetime(df['Incident Date'], errors='coerce')
+             date_min = df['Incident Date'].min()
+             date_max = df['Incident Date'].max()
+
+             # Store results
+             validation_results[event_type] = {
+                 "file_path": str(file_path),
+                 "record_count": record_count,
+                 "columns": columns,
+                 "date_range": {
+                     "start": date_min.strftime('%Y-%m-%d') if pd.notna(date_min) else None,
+                     "end": date_max.strftime('%Y-%m-%d') if pd.notna(date_max) else None
+                 }
+             }
+
+             log(f"  ✓ Records: {record_count}")
+             log(f"  ✓ Columns: {len(columns)}")
+             log(f"  ✓ Date range: {date_min.strftime('%Y-%m-%d')} to {date_max.strftime('%Y-%m-%d')}")
+
+         except Exception as e:
+             log(f"  ✗ Error: {e}")
+             validation_results[event_type] = {"error": str(e)}
+
+     return validation_results
+
+ def create_master_combined_dataset():
+     """Create master combined dataset with all event types"""
+     log("=" * 80)
+     log("PHASE 2: CREATING MASTER COMBINED DATASET")
+     log("=" * 80)
+
+     all_data = []
+
+     # Common columns across all event types
+     common_columns = [
+         "Officer Name", "Badge Number", "Rank", "Organization",
+         "Incident Number", "Report Number", "Incident Date",
+         "Subject type", "Report Key"
+     ]
+
+     # Event-specific additional columns
+     event_configs = {
+         "Show of Force": {"file": SOURCE_FILES["show_force"], "abbrev": "show_force"},
+         "Use of Force": {"file": SOURCE_FILES["use_force"], "abbrev": "use_force"},
+         "Vehicle Pursuit": {"file": SOURCE_FILES["vehicle_pursuit"], "abbrev": "vehicle_pursuit"}
+     }
+
+     for event_type, config in event_configs.items():
+         log(f"\nProcessing {event_type}...")
+
+         try:
+             # Read CSV
+             df = pd.read_csv(config["file"], encoding='utf-8')
+
+             # Add EventType column
+             df['EventType'] = event_type
+
+             # Parse and standardize dates
+             df['Incident Date'] = pd.to_datetime(df['Incident Date'], errors='coerce')
+
+             # Select columns (keep all columns, pad missing ones with None)
+             all_cols = set(df.columns.tolist())
+
+             log(f"  ✓ Loaded {len(df)} records")
+             all_data.append(df)
+
+         except Exception as e:
+             log(f"  ✗ Error processing {event_type}: {e}")
+
+     # Combine all dataframes
+     log("\nCombining all datasets...")
+     combined_df = pd.concat(all_data, ignore_index=True, sort=False)
+
+     # Sort by Incident Date
+     combined_df = combined_df.sort_values('Incident Date')
+
+     # Create output directory
+     output_dir = ROOT_BENCHMARK / "all_events_combined"
+     output_dir.mkdir(exist_ok=True)
+
+     # Save combined dataset
+     output_file = output_dir / "master_combined_all_time.csv"
+     combined_df.to_csv(output_file, index=False, encoding='utf-8')
+
+     log(f"✓ Master combined dataset created: {output_file}")
+     log(f"✓ Total records: {len(combined_df)}")
+
+     # Create metadata
+     metadata = {
+         "total_records": len(combined_df),
+         "date_range": {
+             "start": combined_df['Incident Date'].min().strftime('%Y-%m-%d'),
+             "end": combined_df['Incident Date'].max().strftime('%Y-%m-%d')
+         },
+         "by_event_type": {},
+         "last_updated": datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+     }
+
+     for event_type in event_configs.keys():
+         count = len(combined_df[combined_df['EventType'] == event_type])
+         metadata["by_event_type"][event_type] = count
+         log(f"  - {event_type}: {count} records")
+
+     # Save metadata
+     metadata_file = output_dir / "metadata.json"
+     with open(metadata_file, 'w') as f:
+         json.dump(metadata, f, indent=2)
+
+     log(f"✓ Metadata saved: {metadata_file}")
+
+     return combined_df, metadata
+
+ def generate_rolling_13month_datasets(combined_df):
+     """Generate rolling 13-month datasets"""
+     log("=" * 80)
+     log("PHASE 2: GENERATING ROLLING 13-MONTH DATASETS")
+     log("=" * 80)
+
+     # Calculate rolling window (today = 2026-01-12)
+     # Last complete month is December 2025
+     # 13-month window: Dec 2024 - Dec 2025
+     end_date = date(2025, 12, 31)
+     start_date = date(2024, 12, 1)
+
+     log(f"Rolling 13-month window: {start_date} to {end_date}")
+
+     # Filter data
+     combined_df['Incident Date'] = pd.to_datetime(combined_df['Incident Date'])
+     rolling_df = combined_df[
+         (combined_df['Incident Date'] >= pd.Timestamp(start_date)) &
+         (combined_df['Incident Date'] <= pd.Timestamp(end_date))
+     ].copy()
+
+     log(f"✓ Filtered to {len(rolling_df)} records in rolling window")
+
+     # Create output directories
+     rolling_dir = ROOT_BENCHMARK / "by_time_period" / "rolling_13month"
+     rolling_dir.mkdir(parents=True, exist_ok=True)
+
+     by_event_dir = rolling_dir / "by_event_type"
+     by_event_dir.mkdir(exist_ok=True)
+
+     # Save combined rolling dataset
+     current_window_file = rolling_dir / "current_window.csv"
+     rolling_df.to_csv(current_window_file, index=False, encoding='utf-8')
+     log(f"✓ Combined rolling 13-month dataset: {current_window_file}")
+
+     # Save by event type
+     for event_type in rolling_df['EventType'].unique():
+         event_df = rolling_df[rolling_df['EventType'] == event_type]
+         filename = event_type.lower().replace(' ', '_') + '_13month.csv'
+         output_file = by_event_dir / filename
+         event_df.to_csv(output_file, index=False, encoding='utf-8')
+         log(f"  ✓ {event_type}: {len(event_df)} records → {filename}")
+
+     # Save last_updated timestamp
+     timestamp_file = rolling_dir / "last_updated.txt"
+     with open(timestamp_file, 'w') as f:
+         f.write(f"Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+         f.write(f"Window: {start_date} to {end_date}\n")
+         f.write(f"Total Records: {len(rolling_df)}\n")
+
+     log(f"✓ Timestamp saved: {timestamp_file}")
+
+     return rolling_df
+
+ def generate_ytd_2026_datasets(combined_df):
+     """Generate YTD 2026 datasets"""
+     log("=" * 80)
+     log("PHASE 2: GENERATING YTD 2026 DATASETS")
+     log("=" * 80)
+
+     # YTD 2026: Jan 1 - Jan 7, 2026
+     start_date = date(2026, 1, 1)
+     end_date = date(2026, 1, 7)
+
+     log(f"YTD 2026 window: {start_date} to {end_date}")
+
+     # Filter data
+     combined_df['Incident Date'] = pd.to_datetime(combined_df['Incident Date'])
+     ytd_df = combined_df[
+         (combined_df['Incident Date'] >= pd.Timestamp(start_date)) &
+         (combined_df['Incident Date'] <= pd.Timestamp(end_date))
+     ].copy()
+
+     log(f"✓ Filtered to {len(ytd_df)} records in YTD 2026 window")
+
+     # Create output directories
+     ytd_dir = ROOT_BENCHMARK / "by_time_period" / "ytd_current"
+     ytd_dir.mkdir(parents=True, exist_ok=True)
+
+     by_event_dir = ytd_dir / "by_event_type"
+     by_event_dir.mkdir(exist_ok=True)
+
+     # Save combined YTD dataset
+     ytd_file = ytd_dir / "2026_ytd.csv"
+     ytd_df.to_csv(ytd_file, index=False, encoding='utf-8')
+     log(f"✓ Combined YTD 2026 dataset: {ytd_file}")
+
+     # Save by event type
+     if len(ytd_df) > 0:
+         for event_type in ytd_df['EventType'].unique():
+             event_df = ytd_df[ytd_df['EventType'] == event_type]
+             filename = event_type.lower().replace(' ', '_') + '_2026_ytd.csv'
+             output_file = by_event_dir / filename
+             event_df.to_csv(output_file, index=False, encoding='utf-8')
+             log(f"  ✓ {event_type}: {len(event_df)} records → {filename}")
+     else:
+         log("  Note: No records in YTD 2026 window")
+
+     return ytd_df
+
+ def archive_historical_years(combined_df):
+     """Archive historical complete years (2024, 2025)"""
+     log("=" * 80)
+     log("PHASE 2: ARCHIVING HISTORICAL COMPLETE YEARS")
+     log("=" * 80)
+
+     years_to_archive = [2024, 2025]
+
+     for year in years_to_archive:
+         log(f"\nArchiving {year}...")
+
+         # Filter data for the year
+         start_date = date(year, 1, 1)
+         end_date = date(year, 12, 31)
+
+         combined_df['Incident Date'] = pd.to_datetime(combined_df['Incident Date'])
+         year_df = combined_df[
+             (combined_df['Incident Date'] >= pd.Timestamp(start_date)) &
+             (combined_df['Incident Date'] <= pd.Timestamp(end_date))
+         ].copy()
+
+         log(f"  ✓ Filtered to {len(year_df)} records for {year}")
+
+         # Archive by event type
+         for event_type in ["Show of Force", "Use of Force", "Vehicle Pursuit"]:
+             event_df = year_df[year_df['EventType'] == event_type]
+
+             if len(event_df) == 0:
+                 log(f"    - {event_type}: No records")
+                 continue
+
+             # Create directory
+             event_slug = event_type.lower().replace(' ', '_')
+             archive_dir = ROOT_BENCHMARK / "by_event_type" / event_slug / "archives"
+             archive_dir.mkdir(parents=True, exist_ok=True)
+
+             # Save file
+             archive_file = archive_dir / f"{year}_complete.csv"
+             event_df.to_csv(archive_file, index=False, encoding='utf-8')
+             log(f"    ✓ {event_type}: {len(event_df)} records → {archive_file.name}")
+
+ def generate_use_of_force_matrix(rolling_df):
+     """Generate Use of Force Incident Matrix"""
+     log("=" * 80)
+     log("PHASE 3: GENERATING USE OF FORCE MATRIX")
+     log("=" * 80)
+
+     # Filter to rolling 13-month window
+     rolling_df['Incident Date'] = pd.to_datetime(rolling_df['Incident Date'])
+
+     # Add MonthLabel column (MM-YY format)
+     rolling_df['MonthLabel'] = rolling_df['Incident Date'].dt.strftime('%m-%y')
+
+     # Group by EventType and MonthLabel
+     matrix_df = rolling_df.groupby(['EventType', 'MonthLabel']).size().reset_index(name='IncidentCount')
+
+     # Sort by date
+     matrix_df['SortKey'] = pd.to_datetime('20' + matrix_df['MonthLabel'].str[-2:] + '-' +
+ matrix_df['MonthLabel'].str[:2] + '-01')
+     matrix_df = matrix_df.sort_values(['EventType', 'SortKey'])
+     matrix_df = matrix_df.drop('SortKey', axis=1)
+
+     # Save matrix
+     output_file = ROOT_AUTOMATION / "Use of Force Incident Matrix_UPDATED.csv"
+     matrix_df.to_csv(output_file, index=False, encoding='utf-8')
+
+     log(f"✓ Matrix saved: {output_file}")
+     log(f"✓ Total records: {len(matrix_df)}")
+
+     # Validate totals
+     totals = rolling_df.groupby('EventType').size()
+     log("\nValidation - Total incidents by event type:")
+     total_all = 0
+     for event_type, count in totals.items():
+         log(f"  - {event_type}: {count}")
+         total_all += count
+     log(f"  - TOTAL: {total_all}")
+
+     expected_total = 71
+     if total_all == expected_total:
+         log(f"✓ Totals match expected: {expected_total}")
+     else:
+         log(f"⚠ Warning: Expected {expected_total}, got {total_all}")
+
+     return matrix_df
+
+ def generate_supporting_visualizations(rolling_df):
+     """Generate supporting visualization data files"""
+     log("=" * 80)
+     log("PHASE 3: GENERATING SUPPORTING VISUALIZATIONS")
+     log("=" * 80)
+
+     # 1. Incident Distribution by Event Type
+     log("\nGenerating Incident Distribution by Event Type...")
+     dist_df = rolling_df.groupby('EventType').size().reset_index(name='IncidentCount_13Month')
+     dist_file = ROOT_AUTOMATION / "Incident Distribution by Event Type_UPDATED.csv"
+     dist_df.to_csv(dist_file, index=False, encoding='utf-8')
+     log(f"✓ {dist_file.name}")
+
+     # 2. Incident Count by Date and Event Type
+     log("\nGenerating Incident Count by Date and Event Type...")
+     rolling_df['MonthLabel'] = rolling_df['Incident Date'].dt.strftime('%m-%y')
+     count_df = rolling_df.groupby(['MonthLabel', 'EventType']).size().reset_index(name='IncidentCount')
+
+     # Pivot to wide format (Date, EventType, IncidentCount)
+     # But keep long format for easier charting
+     count_df['SortKey'] = pd.to_datetime('20' + count_df['MonthLabel'].str[-2:] + '-' + count_df['MonthLabel'].str[:2]
+  + '-01')
+     count_df = count_df.sort_values('SortKey')
+     count_df = count_df.rename(columns={'MonthLabel': 'Date'})
+     count_df = count_df[['Date', 'EventType', 'IncidentCount']]
+
+     count_file = ROOT_AUTOMATION / "Incident Count by Date and Event Type_UPDATED.csv"
+     count_df.to_csv(count_file, index=False, encoding='utf-8')
+     log(f"✓ {count_file.name}")
+
+ def create_folder_structure_readme():
+     """Create README documenting the new folder structure"""
+     log("=" * 80)
+     log("PHASE 4: CREATING FOLDER STRUCTURE README")
+     log("=" * 80)
+
+     readme_content = """# Benchmark Data Architecture
+
+ ## Overview
+ This directory contains Hackensack Police Department's Benchmark use-of-force tracking data, restructured for
+ efficient querying and analysis. ## Folder Structure
+
+ ### `all_events_combined/`
+ Master combined dataset merging all three event types:
+ - `master_combined_all_time.csv` - Complete historical dataset (2001-present)
+ - `metadata.json` - Record counts, date ranges, and last update timestamp
+
+ ### `by_event_type/`
+ Individual event type datasets organized for query optimization:
+
+ ```
+ by_event_type/
+ ├── show_force/
+ │   ├── historical_complete.csv (future: all historical data)
+ │   └── archives/
+ │       ├── 2024_complete.csv
+ │       └── 2025_complete.csv
+ ├── use_force/
+ │   ├── historical_complete.csv
+ │   └── archives/
+ │       ├── 2024_complete.csv
+ │       └── 2025_complete.csv
+ └── vehicle_pursuit/
+     ├── historical_complete.csv
+     └── archives/
+         ├── 2024_complete.csv
+         └── 2025_complete.csv
+ ```
+
+ ### `by_time_period/`
+ Pre-filtered datasets for common time windows:
+
+ #### `rolling_13month/`
+ **Current Window: December 2024 - December 2025**
+ - `current_window.csv` - All events combined for the rolling 13-month window
+ - `by_event_type/` - Individual event type files for the window
+   - `show_force_13month.csv`
+   - `use_force_13month.csv`
+   - `vehicle_pursuit_13month.csv`
+ - `last_updated.txt` - Timestamp and window details
+
+ **Rolling Window Logic:**
+ - Always excludes the current incomplete month
+ - Includes the last 13 complete calendar months
+ - Updates monthly (today = 2026-01-12, so last complete month = Dec 2025)
+
+ #### `ytd_current/`
+ Year-to-date data for the current year:
+ - `2026_ytd.csv` - Combined YTD dataset
+ - `by_event_type/` - Individual event type YTD files
+
+ #### `archives/`
+ Historical snapshots of rolling windows for trend analysis.

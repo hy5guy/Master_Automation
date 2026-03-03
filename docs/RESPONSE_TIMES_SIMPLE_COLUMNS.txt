@@ -1,0 +1,35 @@
+// ==============================================================================
+// SIMPLE CALCULATED COLUMNS (If you just need the value for each row)
+// These are simpler and just copy Average_Response_Time for matching rows
+// ==============================================================================
+
+// Simple Emergency Column
+Emergency_Avg_13M = 
+IF(
+    '___ResponseTimeCalculator'[Response_Type] = "Emergency",
+    '___ResponseTimeCalculator'[Average_Response_Time],
+    BLANK()
+)
+
+// Simple Routine Column
+Routine_Avg_13M = 
+IF(
+    '___ResponseTimeCalculator'[Response_Type] = "Routine",
+    '___ResponseTimeCalculator'[Average_Response_Time],
+    BLANK()
+)
+
+// Simple Urgent Column
+Urgent_Avg_13M = 
+IF(
+    '___ResponseTimeCalculator'[Response_Type] = "Urgent",
+    '___ResponseTimeCalculator'[Average_Response_Time],
+    BLANK()
+)
+
+
+// ==============================================================================
+// NOTE: If you need the 13-month rolling average calculation,
+// use the formulas from RESPONSE_TIMES_DAX_COLUMNS.txt instead
+// ==============================================================================
+

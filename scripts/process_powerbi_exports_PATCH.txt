@@ -1,0 +1,63 @@
+# PATCH for process_powerbi_exports.py
+# Add this parameter to run_normalize function and update the call sites
+
+# === CHANGE 1: Update run_normalize function signature (line 116) ===
+# OLD:
+def run_normalize(input_path: Path, output_path: Path, dry_run: bool, normalizer_format: str | None = None) -> bool:
+
+# NEW:
+def run_normalize(input_path: Path, output_path: Path, dry_run: bool, normalizer_format: str | None = None, enforce_13_month: bool = False) -> bool:
+    """Run normalize_visual_export_for_backfill.py on input -> output. Returns True on success."""
+    script = Path(__file__).resolve().parent / "normalize_visual_export_for_backfill.py"
+    if not script.exists():
+        return False
+    cmd = [sys.executable, str(script), "--input", str(input_path), "--output", str(output_path)]
+    if normalizer_format and normalizer_format in ("summons", "training_cost"):
+        cmd.extend(["--format", normalizer_format])
+    if enforce_13_month:  # ← ADD THIS
+        cmd.append("--enforce-13-month")  # ← ADD THIS
+    if dry_run:
+        cmd.append("--dry-run")
+    # ... rest of function unchanged
+
+
+# === CHANGE 2: Update call to run_normalize in process_exports (around line 217) ===
+# OLD:
+        if mapping.get("requires_normalization"):
+            fmt = mapping.get("normalizer_format")
+            ok = run_normalize(file_path, dest_path, dry_run=False, normalizer_format=fmt)
+
+# NEW:
+        if mapping.get("requires_normalization"):
+            fmt = mapping.get("normalizer_format")
+            enforce_window = mapping.get("enforce_13_month_window", False)  # ← ADD THIS
+            ok = run_normalize(
+                file_path, 
+                dest_path, 
+                dry_run=False, 
+                normalizer_format=fmt,
+                enforce_13_month=enforce_window  # ← ADD THIS
+            )
+
+
+# === CHANGE 3: Update dry-run preview section (around line 207) ===
+# OLD:
+            if mapping.get("requires_normalization"):
+                fmt = mapping.get("normalizer_format", "monthly_accrual")
+                _norm_script = Path(__file__).resolve().parent / "normalize_visual_export_for_backfill.py"
+                _dry_cmd = [sys.executable, str(_norm_script), "--input", str(file_path), "--output", str(dest_path)]
+                if fmt in ("summons", "training_cost"):
+                    _dry_cmd.extend(["--format", fmt])
+                _dry_cmd.append("--dry-run")
+
+# NEW:
+            if mapping.get("requires_normalization"):
+                fmt = mapping.get("normalizer_format", "monthly_accrual")
+                enforce_window = mapping.get("enforce_13_month_window", False)  # ← ADD THIS
+                _norm_script = Path(__file__).resolve().parent / "normalize_visual_export_for_backfill.py"
+                _dry_cmd = [sys.executable, str(_norm_script), "--input", str(file_path), "--output", str(dest_path)]
+                if fmt in ("summons", "training_cost"):
+                    _dry_cmd.extend(["--format", fmt])
+                if enforce_window:  # ← ADD THIS
+                    _dry_cmd.append("--enforce-13-month")  # ← ADD THIS
+                _dry_cmd.append("--dry-run")

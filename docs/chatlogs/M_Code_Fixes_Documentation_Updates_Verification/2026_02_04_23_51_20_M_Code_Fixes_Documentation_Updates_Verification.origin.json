@@ -1,0 +1,42 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "table",
+        "text",
+        "else",
+        "then",
+        "type",
+        "each"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Time off and overtime query backfill issue\n_Exported on 1/12/2026 at 19:03:00 EST from Cursor (2.3.29)_\n\n---\n\n**User**\n\n@2026_01_12____Overtime_Timeoff_v3.m looks like there is an issue with the backfill not being added to the Time off...",
+      "first_line": "# Time off and overtime query backfill issue"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-04T23:51:20.727641",
+  "department": "admin"
+}

@@ -1,0 +1,73 @@
+{
+  "source_file": "VISUAL_EXPORT_CHECKLIST.md",
+  "source_path": "C:\\_chunker\\02_data\\VISUAL_EXPORT_CHECKLIST.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\VISUAL_EXPORT_CHECKLIST\\2026_02_05_00_07_34_VISUAL_EXPORT_CHECKLIST.origin.json",
+  "created_at": "2026_02_05_00_07_34",
+  "tags": [
+    "data",
+    "docs",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "archive",
+      "backfill",
+      "csv",
+      "month",
+      "summons",
+      "arrest"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Power BI Visual Export Checklist\n\n**Date:** 2025-12-11  \n**Purpose:** Guide for exporting visuals needed for ETL scripts\n\n---\n\n## Visual Categories\n\n### 📊 Backfill Visuals (Multi-Month Historical Data)\n**Purpose:** These visuals show d...",
+    "first_line": "# Power BI Visual Export Checklist"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-05T00:07:34+00:00_VISUAL_EXPORT_CHECKLIST_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "archive",
+        "arrest",
+        "backfill",
+        "data",
+        "docs",
+        "json",
+        "legal",
+        "markdown",
+        "month",
+        "police",
+        "powershell",
+        "python",
+        "sql",
+        "summons",
+        "training"
+      ],
+      "key_terms": [
+        "archive",
+        "backfill",
+        "csv",
+        "month",
+        "summons",
+        "arrest"
+      ],
+      "summary": "# Power BI Visual Export Checklist\n\n**Date:** 2025-12-11  \n**Purpose:** Guide for exporting visuals needed for ETL scripts\n\n---\n\n## Visual Categories\n\n### 📊 Backfill Visuals (Multi-Month Historical Data)\n**Purpose:** These visuals show d...",
+      "char_length": 8817,
+      "byte_length": 9112
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

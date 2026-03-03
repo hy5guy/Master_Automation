@@ -1,0 +1,365 @@
+│                                                                          │
+│     # Report unmapped incidents                                          │
+│     if unmapped_count > 0:                                               │
+│         unmapped_incidents =                                             │
+│ df[unmapped_mask]['Incident'].value_counts()                             │
+│         logger.warning(f"Found {len(unmapped_incidents)} unique unmapped │
+│  incident types:")                                                       │
+│         for incident, count in unmapped_incidents.head(10).items():      │
+│             logger.warning(f"  - {incident}: {count} occurrences")       │
+│                                                                          │
+│         if len(unmapped_incidents) > 10:                                 │
+│             logger.warning(f"  ... and {len(unmapped_incidents) - 10}    │
+│ more")                                                                   │
+│                                                                          │
+│         # Check threshold                                                │
+│         if unmapped_pct > UNMAPPED_THRESHOLD_PCT:                        │
+│             error_msg = f"Unmapped incidents ({unmapped_pct:.1f}%)       │
+│ exceed threshold ({UNMAPPED_THRESHOLD_PCT}%)"                            │
+│             logger.error(error_msg)                                      │
+│             logger.error("ACTION REQUIRED: Add missing incidents to      │
+│ CAD_CALL_TYPE.xlsx")                                                     │
+│             raise ValueError(error_msg)                                  │
+│                                                                          │
+│     logger.info("✓ Incident mapping complete")                           │
+│                                                                          │
+│     return df                                                            │
+│                                                                          │
+│                                                                          │
+│ def step7_filter_valid_response_types(df: pd.DataFrame, logger:          │
+│ logging.Logger) -> pd.DataFrame:                                         │
+│     """                                                                  │
+│     STEP 7: Filter to valid response types only                          │
+│ (Emergency/Urgent/Routine). │
+│                                                                          │
+│     Args:                                                                │
+│         df: Data with Response_Type from mapping                         │
+│         logger: Logger instance                                          │
+│                                                                          │
+│     Returns:                                                             │
+│         pd.DataFrame: Data with only valid response types                │
+│     """                                                                  │
+│     logger.info("=" * 70)                                                │
+│     logger.info("STEP 7: Filter to Valid Response Types")                │
+│     logger.info("=" * 70)                                                │
+│                                                                          │
+│     original_count = len(df)                                             │
+│                                                                          │
+│     # Filter to valid types                                              │
+│     df = df[df['Response_Type'].isin(VALID_RESPONSE_TYPES)].copy()       │
+│                                                                          │
+│     removed_count = original_count - len(df)                             │
+│     removal_pct = (removed_count / original_count * 100) if              │
+│ original_count > 0 else 0                                                │
+│                                                                          │
+│     logger.info(f"Records before: {original_count:,}")                   │
+│     logger.info(f"Records after:  {len(df):,}")                          │
+│     logger.info(f"Removed:        {removed_count:,}                      │
+│ ({removal_pct:.1f}%)")                                                   │
+│     logger.info(f"Valid types:    {',                                    │
+│ '.join(sorted(VALID_RESPONSE_TYPES))}")                                  │
+│                                                                          │
+│     # Show breakdown by response type                                    │
+│     type_counts = df['Response_Type'].value_counts()                     │
+│     logger.info("Breakdown by Response Type:")                           │
+│     for rtype in sorted(VALID_RESPONSE_TYPES):                           │
+│         count = type_counts.get(rtype, 0)                                │
+│         pct = (count / len(df) * 100) if len(df) > 0 else 0              │
+│         logger.info(f"  {rtype:12s}: {count:,} ({pct:.1f}%)")            │
+│                                                                          │
+│     logger.info("✓ Response type filtering complete")                    │
+│                                                                          │
+│     return df                                                            │
+│                                                                          │
+│                                                                          │
+│ def step8_apply_rolling_window(df: pd.DataFrame, report_month: str,      │
+│ logger: logging.Logger) -> pd.DataFrame:                                 │
+│     """                                                                  │
+│     STEP 8: Apply 13-month rolling window filter. │
+│                                                                          │
+│     For November 2025 report, include data from November 2024 through    │
+│ November 2025. │
+│                                                                          │
+│     Args:                                                                │
+│         df: Data with valid response types                               │
+│         report_month: Report month in YYYY-MM format                     │
+│         logger: Logger instance                                          │
+│                                                                          │
+│     Returns:                                                             │
+│         pd.DataFrame: Data within rolling window                         │
+│     """                                                                  │
+│     logger.info("=" * 70)                                                │
+│     logger.info("STEP 8: Apply 13-Month Rolling Window")                 │
+│     logger.info("=" * 70)                                                │
+│                                                                          │
+│     # Calculate window bounds                                            │
+│     start_month, end_month =                                             │
+│ calculate_rolling_window_bounds(report_month, months_back=12)            │
+│                                                                          │
+│     logger.info(f"Report month:   {report_month}")                       │
+│     logger.info(f"Window start:   {start_month}")                        │
+│     logger.info(f"Window end:     {end_month}")                          │
+│     logger.info(f"Window size:    13 months")                            │
+│                                                                          │
+│     original_count = len(df)                                             │
+│                                                                          │
+│     # Filter to rolling window                                           │
+│     df = df[                                                             │
+│         (df['YearMonth'] >= start_month) &                               │
+│         (df['YearMonth'] <= end_month)                                   │
+│     ].copy()                                                             │
+│                                                                          │
+│     kept_count = len(df)                                                 │
+│     kept_pct = (kept_count / original_count * 100) if original_count > 0 │
+│  else 0                                                                  │
+│                                                                          │
+│     logger.info(f"Records before: {original_count:,}")                   │
+│     logger.info(f"Records after:  {kept_count:,} ({kept_pct:.1f}%)")     │
+│                                                                          │
+│     # Show breakdown by month                                            │
+│     months_in_window = sorted(df['YearMonth'].unique())                  │
+│     logger.info(f"Months in window: {len(months_in_window)}")            │
+│     for month in months_in_window:                                       │
+│         count = (df['YearMonth'] == month).sum()                         │
+│         logger.debug(f"  {month}: {count:,} records")                    │
+│                                                                          │
+│     logger.info("✓ Rolling window applied")                              │
+│                                                                          │
+│     return df                                                            │
+│                                                                          │
+│                                                                          │
+│ def step9_aggregate_by_response_type(df: pd.DataFrame, report_month:     │
+│ str, logger: logging.Logger) -> pd.DataFrame:                            │
+│     """                                                                  │
+│     STEP 9: Aggregate to calculate average response time by response     │
+│ type. │
+│                                                                          │
+│     Calculates a single average across all calls in the 13-month window  │
+│     for each response type. │
+│                                                                          │
+│     Args:                                                                │
+│         df: Data within rolling window                                   │
+│         report_month: Report month for output                            │
+│         logger: Logger instance                                          │
+│                                                                          │
+│     Returns:                                                             │
+│         pd.DataFrame: Aggregated summary with one row per response type  │
+│     """                                                                  │
+│     logger.info("=" * 70)                                                │
+│     logger.info("STEP 9: Aggregate by Response Type")                    │
+│     logger.info("=" * 70)                                                │
+│                                                                          │
+│     # Aggregate across entire rolling window                             │
+│     summary = df.groupby('Response_Type').agg(                           │
+│         Avg_Response_Time=('Response_Time_Minutes', 'mean'),             │
+│         Count=('Response_Time_Minutes', 'count'),                        │
+│         Median_Response_Time=('Response_Time_Minutes', 'median'),        │
+│         Min_Response_Time=('Response_Time_Minutes', 'min'),              │
+│         Max_Response_Time=('Response_Time_Minutes', 'max')               │
+│     ).reset_index()                                                      │
+│                                                                          │
+│     # Round averages                                                     │
+│     summary['Avg_Response_Time'] = summary['Avg_Response_Time'].round(3) │
+│     summary['Median_Response_Time'] =                                    │
+│ summary['Median_Response_Time'].round(3)                                 │
+│     summary['Min_Response_Time'] = summary['Min_Response_Time'].round(3) │
+│     summary['Max_Response_Time'] = summary['Max_Response_Time'].round(3) │
+│                                                                          │
+│     # Add report month column                                            │
+│     summary['Report_Month'] = report_month                               │
+│                                                                          │
+│     logger.info(f"Aggregated to {len(summary)} response types")          │
+│     logger.info("\nResults:")                                            │
+│     for _, row in summary.iterrows():                                    │
+│         logger.info(f"  {row['Response_Type']:12s}:                      │
+│ {row['Avg_Response_Time']:.2f} min "                                     │
+│                    f"(median {row['Median_Response_Time']:.2f}, "        │
+│                    f"range                                               │
+│ {row['Min_Response_Time']:.2f}-{row['Max_Response_Time']:.2f}, "         │
+│                    f"n={int(row['Count'])})")                            │
+│                                                                          │
+│     logger.info("✓ Aggregation complete")                                │
+│                                                                          │
+│     return summary                                                       │
+│                                                                          │
+│                                                                          │
+│ def step10_format_output(summary: pd.DataFrame, report_month: str,       │
+│ logger: logging.Logger) -> pd.DataFrame:                                 │
+│     """                                                                  │
+│     STEP 10: Format output to match Power BI requirements. │
+│                                                                          │
+│     Output format:                                                       │
+│         Response Type, MM-YY, First Response_Time_MMSS                   │
+│                                                                          │
+│     Example:                                                             │
+│         Emergency,11-25,2:59                                             │
+│         Routine,11-25,2:18                                               │
+│         Urgent,11-25,2:52                                                │
+│                                                                          │
+│     Args:                                                                │
+│         summary: Aggregated summary                                      │
+│         report_month: Report month                                       │
+│         logger: Logger instance                                          │
+│                                                                          │
+│     Returns:                                                             │
+│         pd.DataFrame: Formatted output ready for CSV export              │
+│     """                                                                  │
+│     logger.info("=" * 70)                                                │
+│     logger.info("STEP 10: Format Output for Power BI")                   │
+│     logger.info("=" * 70)                                                │
+│                                                                          │
+│     # Create output dataframe                                            │
+│     output = pd.DataFrame({                                              │
+│         'Response Type': summary['Response_Type'],                       │
+│         'MM-YY': create_mm_yy(report_month),                             │
+│         'First Response_Time_MMSS':                                      │
+│ summary['Avg_Response_Time'].apply(minutes_to_mmss)                      │
+│     })                                                                   │
+│                                                                          │
+│     # Sort by response type (Emergency, Routine, Urgent)                 │
+│     output = output.sort_values('Response Type')                         │
+│                                                                          │
+│     logger.info("Output format:")                                        │
+│     for _, row in output.iterrows():                                     │
+│         logger.info(f"  {row['Response Type']:12s}, {row['MM-YY']},      │
+│ {row['First Response_Time_MMSS']}")                                      │
+│                                                                          │
+│     logger.info("✓ Output formatting complete")                          │
+│                                                                          │
+│     return output                                                        │
+│                                                                          │
+│                                                                          │
+│ # ====================================================================== │
+│ ======                                                                   │
+│ # VALIDATION                                                             │
+│ # ====================================================================== │
+│ ======                                                                   │
+│                                                                          │
+│ def validate_results(summary: pd.DataFrame, report_month: str, logger:   │
+│ logging.Logger):                                                         │
+│     """                                                                  │
+│     Validate results against expected values and quality checks. │
+│                                                                          │
+│     For November 2025, expected values are:                              │
+│         - Emergency: ~2:59 min (309 calls)                               │
+│         - Routine: 1.7-2.4 min                                           │
+│         - Urgent: 2.5-3.5 min                                            │
+│                                                                          │
+│     Args:                                                                │
+│         summary: Aggregated summary                                      │
+│         report_month: Report month                                       │
+│         logger: Logger instance                                          │
+│     """                                                                  │
+│     logger.info("=" * 70)                                                │
+│     logger.info("VALIDATION: Quality Checks")                            │
+│     logger.info("=" * 70)                                                │
+│                                                                          │
+│     checks_passed = 0                                                    │
+│     checks_total = 0                                                     │
+│                                                                          │
+│     # Check 1: All three response types present                          │
+│     checks_total += 1                                                    │
+│     if set(summary['Response_Type']) == VALID_RESPONSE_TYPES:            │
+│         logger.info("✓ All 3 response types present")                    │
+│         checks_passed += 1                                               │
+│     else:                                                                │
+│         missing = VALID_RESPONSE_TYPES - set(summary['Response_Type'])   │
+│         logger.warning(f"✗ Missing response types: {missing}")           │
+│                                                                          │
+│     # Check 2: Reasonable response times                                 │
+│     checks_total += 1                                                    │
+│     all_reasonable = True                                                │
+│     for _, row in summary.iterrows():                                    │
+│         rtype = row['Response_Type']                                     │
+│         avg_time = row['Avg_Response_Time']                              │
+│                                                                          │
+│         # General sanity check: 1-10 minutes                             │
+│         if not (1.0 <= avg_time <= 10.0):                                │
+│             logger.warning(f"✗ {rtype} average ({avg_time:.2f} min)      │
+│ outside reasonable range (1-10 min)")                                    │
+│             all_reasonable = False                                       │
+│                                                                          │
+│     if all_reasonable:                                                   │
+│         logger.info("✓ All response times within reasonable range (1-10  │
+│ min)")                                                                   │
+│         checks_passed += 1                                               │
+│                                                                          │
+│     # Check 3: November 2025 specific validation                         │
+│     if report_month == "2025-11":                                        │
+│         checks_total += 1                                                │
+│         emergency_row = summary[summary['Response_Type'] == 'Emergency'] │
+│                                                                          │
+│         if not emergency_row.empty:                                      │
+│             emg_avg = emergency_row['Avg_Response_Time'].iloc[0]         │
+│             emg_count = emergency_row['Count'].iloc[0]                   │
+│                                                                          │
+│             # Expected: ~2:59 min (2.98 decimal), 309 calls              │
+│             expected_time = 2.98                                         │
+│             expected_count = 309                                         │
+│                                                                          │
+│             time_diff = abs(emg_avg - expected_time)                     │
+│             count_match = (emg_count == expected_count)                  │
+│                                                                          │
+│             if time_diff < 0.2 and count_match:                          │
+│                 logger.info(f"✓ November 2025 Emergency values match     │
+│ expected: "                                                              │
+│                            f"{emg_avg:.2f} min ≈ {expected_time:.2f}     │
+│ min, "                                                                   │
+│                            f"{int(emg_count)} calls = {expected_count}   │
+│ calls")                                                                  │
+│                 checks_passed += 1                                       │
+│             else:                                                        │
+│                 logger.warning(f"⚠ November 2025 Emergency values        │
+│ differ from expected:")                                                  │
+│                 logger.warning(f"  Actual:   {emg_avg:.2f} min,          │
+│ {int(emg_count)} calls")                                                 │
+│                 logger.warning(f"  Expected: {expected_time:.2f} min,    │
+│ {expected_count} calls")                                                 │
+│                 logger.warning(f"  Time diff: {time_diff:.2f} min, Count │
+│  match: {count_match}")                                                  │
+│                                                                          │
+│     # Check 4: Minimum sample sizes                                      │
+│     checks_total += 1                                                    │
+│     min_sample_size = 10                                                 │
+│     all_sufficient = True                                                │
+│     for _, row in summary.iterrows():                                    │
+│         if row['Count'] < min_sample_size:                               │
+│             logger.warning(f"⚠ {row['Response_Type']} has low sample     │
+│ size: {int(row['Count'])} < {min_sample_size}")                          │
+│             all_sufficient = False                                       │
+│                                                                          │
+│     if all_sufficient:                                                   │
+│         logger.info(f"✓ All response types have sufficient sample size   │
+│ (>= {min_sample_size})")                                                 │
+│         checks_passed += 1                                               │
+│                                                                          │
+│     # Summary                                                            │
+│     logger.info("=" * 70)                                                │
+│     logger.info(f"Validation: {checks_passed}/{checks_total} checks      │
+│ passed")                                                                 │
+│                                                                          │
+│     if checks_passed == checks_total:                                    │
+│         logger.info("✓ All validation checks passed")                    │
+│     elif checks_passed >= checks_total * 0.75:                           │
+│         logger.warning("⚠ Most validation checks passed, but review      │
+│ warnings")                                                               │
+│     else:                                                                │
+│         logger.error("✗ Multiple validation checks failed - review       │
+│ results carefully")                                                      │
+│                                                                          │
+│                                                                          │
+│ # ====================================================================== │
+│ ======                                                                   │
+│ # OUTPUT                                                                 │
+│ # ====================================================================== │
+│ ======                                                                   │
+│                                                                          │
+│ def save_output(output_df: pd.DataFrame, summary_df: pd.DataFrame,       │
+│ report_month: str,                                                       │
+│                 output_dir: Path, logger: logging.Logger):               │
+│     """                                                                  │
+│     Save output files to disk. │
+│                                                                          │
+│     Creates two output files:                                            │
+│     1. Power BI format: Response Type, MM-YY, First Response_Time_MMSS   │
+│     2.

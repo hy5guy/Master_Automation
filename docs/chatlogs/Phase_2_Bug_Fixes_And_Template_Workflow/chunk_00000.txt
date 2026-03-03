@@ -1,0 +1,207 @@
+# Master automation phase 2 remediation pack
+_Exported on 2/21/2026 at 01:08:58 EST from Cursor (2.5.20)_
+
+---
+
+**User**
+
+@c:\Users\carucci_r\.cursor\plans\schema_md_update_v2_b6a2c182.plan.md # Claude Prompt. Master_Automation Phase 2 Remediation Pack
+
+## Role
+Act as Lead Data Operations Engineer and Run Controller for Hackensack PD Master_Automation. ## Inputs
+You have these project files open:
+- README.md
+- SUMMARY.md
+- CHANGELOG.md
+- Claude.md
+- schema_md_update_v2_b6a2c182.plan.md
+- docs_update_&_m_code_fix_142d66b2.plan.md
+- 2026_02_18_00_16_28_Claude-February_2026_ETL_Cycle_Response_Times_Fix_transcript.md
+
+## Primary goal
+Stop monthly Power BI archives from changing after refresh. ## Definitions
+- ReportMonth. Date. First day of target month. Example: 2026-01-01
+- MonthStart = Date.StartOfMonth(ReportMonth)
+- MonthEnd = Date.EndOfMonth(ReportMonth)
+- Rolling13Start = Date.AddMonths(MonthStart, -12)
+- Rolling13End = MonthEnd
+
+## Non-negotiables
+- Remove all clock-driven month logic from archive queries. - Remove hardcoded user paths and C:\Dev references. - Response Times keeps first-arriving unit logic:
+  - sort by ReportNumberNew, then Time Out
+  - deduplicate after sort
+- visual_export_mapping.json schema:
+  - root object with key `mappings` as list
+  - enforce flag `enforce_13_month_window`
+  - enforced count must equal 25
+  - total mappings count must remain stable unless mapping file updates
+
+## Tasks
+
+### A. Power BI M code freeze fix
+1. Create Power BI parameters:
+   - pReportMonth (Date)
+   - pRootPath (Text)
+2. Refactor every archive query that uses any LocalNow pattern:
+   - DateTime.LocalNow
+   - DateTimeZone.LocalNow
+   - Date.From(DateTime.LocalNow())
+   - any “current month” derivation
+3. Replace with ReportMonth-driven bounds:
+   - Rolling 13 months ends at MonthEnd for pReportMonth
+4. Replace hardcoded file paths with pRootPath concatenation. 5. Keep output schema unchanged unless correctness requires change. Deliverable for A
+- Full updated M code for each edited query. - Full helper function M code if you add shared bounds helpers. - List of all queries edited with reason. ### B. Pre_Flight_Validation fixes
+1. Fix E-Ticket input checks to support watchdog structure:
+   - 05_EXPORTS_Summons\E_Ticket\YYYY\month\YYYY_MM_eticket_export.csv
+   - 05_EXPORTS_Summons\E_Ticket\YYYY\month\YYYY_MM_eticket_export.xlsx
+2. Treat missing ATS file as Warning and continue, unless project docs demand block. 3. Fix visual_export_mapping.json parsing:
+   - read `mappings` list
+   - compute total and enforced counts
+4. Add evidence checks:
+   - non-zero file size thresholds
+   - row count thresholds for CSV outputs
+
+Deliverable for B
+- Full corrected file content for scripts/Pre_Flight_Validation.py (or actual path discovered). - Any new constants or config entries required. ### C. Orchestrator output routing and manifest
+1. Update run_all_etl.ps1 to copy newest outputs into:
+   - PowerBI_Date\_DropExports
+2. Drive copy rules from scripts.json output_patterns. 3. Write a drop manifest after copy:
+   - JSON plus CSV
+   - fields: filename, size_bytes, modified_time, row_count, source_path, dest_path
+
+Deliverable for C
+- Full corrected file content for scripts/run_all_etl.ps1 (or actual path discovered). - Full corrected file content for config/scripts.json if edits required. ### D. Response Times stability cleanups
+1. Fix report-month argument handling. 2. Fix wrong-month input selection (example bug: 2025_11 selected during 2026_01 run). 3. Fix double extension bug (.xlsx.xlsx). 4. Keep first-arriving unit logic intact. Deliverable for D
+- Full corrected Response Times script file(s). ### E. Summons derived outputs schema alignment
+1. Confirm required derived fields referenced by derived outputs:
+   - IS_AGGREGATE
+   - TICKET_COUNT
+2. Decide one approach:
+   - add fields during main Summons output generation, or
+   - derive fields in derived outputs layer
+3. Define behavior for missing optional inputs. Deliverable for E
+- Full corrected script file(s) involved in derived outputs. - Schema contract note added to docs. ### F. Docs updates
+Update project docs so docs match code behavior and file locations:
+- README.md
+- SUMMARY.md
+- CHANGELOG.md
+- Claude.md
+- schema_md_update_v2_b6a2c182.plan.md
+
+Required doc updates
+- Replace any stale paths with current watchdog and output routing paths. - Document ReportMonth freeze model and parameter names. - Document new post-run manifest outputs and Go/No-Go gate. - Add CHANGELOG entries for each fix with date and file list. Deliverable for F
+- Full updated content for each doc file above. ## Artifact header standard
+Add this header to every modified file. Adjust comment markers per language. Timestamp (EST): YYYY-MM-DD-HH-MM-SS  
+Project Name: Hackensack PD | Data Ops & ETL Remediation  
+File Name: <full relative path in repo>  
+Author: R. A. Carucci  
+Purpose: <one line>
+
+## Output rules
+- Return full corrected file content. No partial snippets. - One file per code block. - Start each code block with the file path on the first line as a comment. - No narrative. No recap. - If a file path differs from the list above, state the discovered path in the header and proceed. ## Acceptance checks
+- Repo search returns zero hits for LocalNow patterns inside archive query set. - Enforced visual count equals 25 in visual_export_mapping parsing. - Archive queries return 13 months ending on MonthEnd for pReportMonth. - _DropExports contains fresh outputs for required workflows, with manifest evidence. ---
+
+**Cursor**
+
+Let me start by reading the referenced plan file and then exploring the codebase in parallel to understand the current state of all affected systems. Let me read a few more critical files to finalize the plan details. I see that `process_cad_data_13month_rolling.py` is corrupted (contains PowerShell code). Let me find the actual Response Times script and check a few more details. Let me check a few final details before creating the plan. Let me check the actual Response Times ETL script location and the `Workbook_Rework` directory. I have a comprehensive picture of all six task areas. Before creating the final plan, I need to clarify two critical points. ---
+
+**User**
+
+1. Response Times script target
+   C. Fix both. Treat the production script in 02_ETL_Scripts/Response_Times/ as the source of truth, then restore the workspace copy from the corrected production version so future edits and reviews stay consistent. 2. Consolidated M code file vs individual .m files
+   A. Update only the 14 individual .m files. Treat the 4000+ line consolidated file as a generated snapshot and rebuild it after the individual files are updated. # Claude Code Prompt. Export Power BI M Code and Visual Data Exports
+
+## Role
+Act as a senior Power BI + Windows automation engineer working inside my local environment. ## Objective
+Export two things for the current report:
+1. All current Power Query M code, individually per query. 2. The data behind every visual used in the monthly report. ## Inputs you must request from me only if missing
+- Full path to the PBIX file. - Output folder root (default: `C:\Users\carucci_r\Downloads\PBIX_Exports\YYYY_MM_DD\`). - Whether you are allowed to install tools (Yes or No). ## Deliverables (must create on disk)
+### A. M Code Export
+Create:
+- `01_M_Code\`
+  - One `.m` file per query, named after the query. - `ALL_QUERIES_CONSOLIDATED.m` containing all queries in one file. - `m_export_manifest.csv` listing: query_name, file_name, bytes, modified_time. Rules:
+- Prefer extracting directly from PBIX so it reflects the current state in Power BI. - If PBIX extraction is blocked, fall back to exporting from any existing consolidated file and split into individual files. - Ensure query names with spaces and special characters are safely file-named. ### B. Visual Data Export
+Create:
+- `02_Visual_Data_Exports\`
+  - Export the underlying data for *every* visual in the report. - Output format: CSV per visual. - Naming: `<PageName>__<VisualTitleOrIndex>.csv`
+  - `visual_export_manifest.csv` listing: page, visual, file_name, rows, cols, bytes, modified_time. Rules:
+- Use the same export logic used by Power BI “Export data” where possible. - If Power BI UI automation is required, use a repeatable method:
+  - enumerate report pages
+  - enumerate visuals per page
+  - export each visual’s data to CSV
+- If there is an existing `visual_export_mapping.json`, use it to drive naming and coverage. - If mapping is missing, generate a new `visual_export_mapping.json` capturing:
+  - page name
+  - visual index
+  - visual title (if available)
+  - export file name
+  - enforce_13_month_window flag (default false unless you detect it from existing rules)
+
+## Acceptance checks
+- M code export count equals total queries in the PBIX. - Visual export count equals total visuals discovered across all pages. - All manifests exist and row counts are populated. - No empty CSV exports unless the visual truly has zero rows. ## Output format rules for this chat
+- Provide:
+  1) A step-by-step execution plan. 2) The full automation script(s) you will run (PowerShell preferred, Python ok). 3) Exact commands I will run. - Do not summarize beyond the plan and scripts. - Do not omit error handling. Script must fail fast with clear messages. ## Notes
+- This export is for February 2026 remediation. The goal is to capture the current state for freeze fixes. ---
+
+**Cursor**
+
+This is a separate task from the Phase 2 Remediation plan. Before I can build an execution plan, I need the missing inputs you flagged. ---
+
+**User**
+
+1. C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports\2026\01_january\2026_01_Monthly_Report.pbix
+
+---
+
+**Cursor**
+
+Good -- I have all three inputs now:
+
+- **PBIX**: `C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports\2026\01_january\2026_01_Monthly_Report.pbix`
+- **Install tools**: Yes
+- **PBI Desktop**: Running (or will be opened)
+
+Let me verify the PBIX exists and check the environment before creating the plan. Excellent -- found everything I need. The AS instance is on port 49673 (PID 13688). Let me verify the ADOMD.NET connection and check `pbi-tools` install options. Connection to the AS instance is confirmed. Let me enumerate the model tables and check pbi-tools availability. ---
+
+**User**
+
+please continue
+
+please continue I have gotten the attached error twice now
+
+---
+
+**Cursor**
+
+The OOM crash is from the large conversation context. I'll keep this concise. All reconnaissance is complete -- here's the plan. ---
+
+**User**
+
+can you do the following? # Claude Code Prompt. Export Power BI M Code and Visual Data Exports
+
+## Role
+Act as a senior Power BI + Windows automation engineer working inside my local environment. ## Objective
+Export two things for the current report:
+1. All current Power Query M code, individually per query. 2. The data behind every visual used in the monthly report. ## Inputs you must request from me only if missing
+- Full path to the PBIX file. - Output folder root (default: `C:\Users\carucci_r\Downloads\PBIX_Exports\YYYY_MM_DD\`). - Whether you are allowed to install tools (Yes or No). ## Deliverables (must create on disk)
+### A. M Code Export
+Create:
+- `01_M_Code\`
+  - One `.m` file per query, named after the query. - `ALL_QUERIES_CONSOLIDATED.m` containing all queries in one file. - `m_export_manifest.csv` listing: query_name, file_name, bytes, modified_time. Rules:
+- Prefer extracting directly from PBIX so it reflects the current state in Power BI. - If PBIX extraction is blocked, fall back to exporting from any existing consolidated file and split into individual files. - Ensure query names with spaces and special characters are safely file-named. ### B. Visual Data Export
+Create:
+- `02_Visual_Data_Exports\`
+  - Export the underlying data for *every* visual in the report. - Output format: CSV per visual. - Naming: `<PageName>__<VisualTitleOrIndex>.csv`
+  - `visual_export_manifest.csv` listing: page, visual, file_name, rows, cols, bytes, modified_time. Rules:
+- Use the same export logic used by Power BI “Export data” where possible. - If Power BI UI automation is required, use a repeatable method:
+  - enumerate report pages
+  - enumerate visuals per page
+  - export each visual’s data to CSV
+- If there is an existing `visual_export_mapping.json`, use it to drive naming and coverage. - If mapping is missing, generate a new `visual_export_mapping.json` capturing:
+  - page name
+  - visual index
+  - visual title (if available)
+  - export file name
+  - enforce_13_month_window flag (default false unless you detect it from existing rules)
+
+## Acceptance checks
+- M code export count equals total queries in the PBIX. - Visual export count equals total visuals discovered across all pages. - All manifests exist and row counts are populated. - No empty CSV exports unless the visual truly has zero rows.

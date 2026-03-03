@@ -1,0 +1,35 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "json",
+    "markdown",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "table",
+        "null",
+        "each",
+        "then",
+        "else",
+        "periodlabel"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "╭─── Claude Code v2.1.5 ───────────────────────────────────────────────────────────────────────────────────────────────╮\n│                                                     │ Tips for getting started...",
+      "first_line": "╭─── Claude Code v2.1.5 ───────────────────────────────────────────────────────────────────────────────────────────────╮"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-04T23:59:33.231620",
+  "department": "admin"
+}

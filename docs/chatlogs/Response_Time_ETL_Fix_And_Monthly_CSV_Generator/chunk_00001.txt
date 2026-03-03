@@ -1,0 +1,547 @@
+Improved error handling and code structure
+   15 + //
+   16 + // DATA SOURCES:
+   17 + // - Backfill (Dec 2024 - Oct 2025): 2025_10 folder
+   18 + // - November 2025: 2025_12 folder
+   19 + // ==============================================================================
+   20 +
+   21 + let
+   22 +     // ========================================================================
+   23 +     // CONFIGURATION - Update these paths if needed
+   24 +     // ========================================================================
+   25 +
+   26 +     BasePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\",
+   27 +
+   28 +     // Target date range (MM-YY format for filtering)
+   29 +     TargetMonths = {
+   30 +         "12-24", "01-25", "02-25", "03-25", "04-25", "05-25",
+   31 +         "06-25", "07-25", "08-25", "09-25", "10-25", "11-25", "12-25"
+   32 +     },
+   33 +
+   34 +     // ========================================================================
+   35 +     // HELPER FUNCTION: Process a CSV file
+   36 +     // ========================================================================
+   37 +
+   38 +     ProcessCSV = (filePath as text) as table =>
+   39 +         let
+   40 +             // Load CSV
+   41 +             RawData = Csv.Document(
+   42 +                 File.Contents(filePath),
+   43 +                 [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.None]
+   44 +             ),
+   45 +             WithHeaders = Table.PromoteHeaders(RawData, [PromoteAllScalars=true]),
+   46 +
+   47 +             // Standardize column names
+   48 +             Renamed = Table.RenameColumns(
+   49 +                 WithHeaders,
+   50 +                 {
+   51 +                     {"Response Type", "Response_Type"},
+   52 +                     {"First Response_Time_MMSS", "Response_Time_MMSS"}
+   53 +                 },
+   54 +                 MissingField.Ignore
+   55 +             ),
+   56 +
+   57 +             // Ensure MM-YY column exists
+   58 +             WithMMYY = if Table.HasColumns(Renamed, "MM-YY") then
+   59 +                 Renamed
+   60 +             else if Table.HasColumns(Renamed, "MM_YY") then
+   61 +                 Table.RenameColumns(Renamed, {{"MM_YY", "MM-YY"}})
+   62 +             else
+   63 +                 Renamed
+   64 +         in
+   65 +             WithMMYY,
+   66 +
+   67 +     // ========================================================================
+   68 +     // LOAD DATA SOURCES
+   69 +     // ========================================================================
+   70 +
+   71 +     // Source 1: Backfill data (Dec 2024 - Oct 2025)
+   72 +     BackfillPath = BasePath & "2025_10\response_time\2025_10_Average Response Times  Values are in mmss.csv",
+   73 +     BackfillData = ProcessCSV(BackfillPath),
+   74 +
+   75 +     // Source 2: November 2025 data
+   76 +     Nov2025Path = BasePath & "2025_12\response_time\2025_11_Average_Response_Times__Values_are_in_mmss.csv",
+   77 +     Nov2025Data = try ProcessCSV(Nov2025Path) otherwise #table({"Response_Type", "MM-YY",
+      +"Response_Time_MMSS"}, {}),
+   78 +
+   79 +     // Source 3: December 2025 data (if available)
+   80 +     Dec2025Path = BasePath & "2025_12\response_time\2025_12_response_times_current.csv",
+   81 +     Dec2025Data = try ProcessCSV(Dec2025Path) otherwise #table({"Response_Type", "MM-YY",
+      +"Response_Time_MMSS"}, {}),
+   82 +
+   83 +     // ========================================================================
+   84 +     // COMBINE ALL DATA SOURCES
+   85 +     // ========================================================================
+   86 +
+   87 +     Combined = Table.Combine({BackfillData, Nov2025Data, Dec2025Data}),
+   88 +
+   89 +     // ========================================================================
+   90 +     // FILTER TO TARGET DATE RANGE (Dec 2024 - Dec 2025)
+   91 +     // ========================================================================
+   92 +
+   93 +     Filtered = Table.SelectRows(Combined, each List.Contains(TargetMonths, [#"MM-YY"])),
+   94 +
+   95 +     // ========================================================================
+   96 +     // REMOVE DUPLICATES (keep latest for each month/response type)
+   97 +     // ========================================================================
+   98 +
+   99 +     // Sort to get most recent data first, then remove duplicates
+  100 +     Sorted = Table.Sort(Filtered, {{"MM-YY", Order.Descending}, {"Response_Type", Order.Ascending}}),
+  101 +     Deduplicated = Table.Distinct(Sorted, {"MM-YY", "Response_Type"}),
+  102 +
+  103 +     // ========================================================================
+  104 +     // ADD CALCULATED COLUMNS
+  105 +     // ========================================================================
+  106 +
+  107 +     // Calculate Average_Response_Time from MM:SS format
+  108 +     WithAvgTime = Table.AddColumn(
+  109 +         Deduplicated,
+  110 +         "Average_Response_Time",
+  111 +         each let
+  112 +             timeStr = Text.Trim(Text.From([Response_Time_MMSS])),
+  113 +             parts = Text.Split(timeStr, ":"),
+  114 +             minutes = if List.Count(parts) >= 2 then
+  115 +                 let
+  116 +                     mins = try Number.From(parts{0}) otherwise 0,
+  117 +                     secs = try Number.From(parts{1}) otherwise 0,
+  118 +                     totalMins = mins + (secs / 60.0)
+  119 +                 in
+  120 +                     totalMins
+  121 +             else
+  122 +                 null
+  123 +         in
+  124 +             minutes,
+  125 +         type number
+  126 +     ),
+  127 +
+  128 +     // Add YearMonth from MM-YY (e.g., "12-24" -> "2024-12")
+  129 +     WithYearMonth = Table.AddColumn(
+  130 +         WithAvgTime,
+  131 +         "YearMonth",
+  132 +         each let
+  133 +             mmYY = Text.Trim(Text.From([#"MM-YY"])),
+  134 +             parts = Text.Split(mmYY, "-"),
+  135 +             yearMonth = if List.Count(parts) >= 2 then
+  136 +                 let
+  137 +                     mm = parts{0},
+  138 +                     yy = "20" & parts{1},
+  139 +                     yearMonthStr = yy & "-" & Text.PadStart(mm, 2, "0")
+  140 +                 in
+  141 +                     yearMonthStr
+  142 +             else
+  143 +                 null
+  144 +         in
+  145 +             yearMonth,
+  146 +         type text
+  147 +     ),
+  148 +
+  149 +     // Add Date_Sort_Key - proper date type for sorting (first day of month)
+  150 +     WithDateKey = Table.AddColumn(
+  151 +         WithYearMonth,
+  152 +         "Date_Sort_Key",
+  153 +         each let
+  154 +             yearMonth = [YearMonth],
+  155 +             dateValue = try
+  156 +                 Date.FromText(yearMonth & "-01")
+  157 +             otherwise null
+  158 +         in
+  159 +             dateValue,
+  160 +         type date
+  161 +     ),
+  162 +
+  163 +     // ========================================================================
+  164 +     // ADD DAX COMPATIBILITY COLUMNS
+  165 +     // ========================================================================
+  166 +
+  167 +     // Add Summary_Type column
+  168 +     WithSummaryType = Table.AddColumn(
+  169 +         WithDateKey,
+  170 +         "Summary_Type",
+  171 +         each "Response_Type",
+  172 +         type text
+  173 +     ),
+  174 +
+  175 +     // Add Category column (same as Response_Type for compatibility)
+  176 +     WithCategory = Table.AddColumn(
+  177 +         WithSummaryType,
+  178 +         "Category",
+  179 +         each [Response_Type],
+  180 +         type text
+  181 +     ),
+  182 +
+  183 +     // Add Date column (alias for Date_Sort_Key)
+  184 +     WithDate = Table.AddColumn(
+  185 +         WithCategory,
+  186 +         "Date",
+  187 +         each [Date_Sort_Key],
+  188 +         type date
+  189 +     ),
+  190 +
+  191 +     // ========================================================================
+  192 +     // SET COLUMN TYPES
+  193 +     // ========================================================================
+  194 +
+  195 +     Typed = Table.TransformColumnTypes(
+  196 +         WithDate,
+  197 +         {
+  198 +             {"Response_Type", type text},
+  199 +             {"Response_Time_MMSS", type text},
+  200 +             {"MM-YY", type text},
+  201 +             {"YearMonth", type text},
+  202 +             {"Date_Sort_Key", type date},
+  203 +             {"Date", type date},
+  204 +             {"Average_Response_Time", type number},
+  205 +             {"Summary_Type", type text},
+  206 +             {"Category", type text}
+  207 +         },
+  208 +         "en-US"
+  209 +     ),
+  210 +
+  211 +     // ========================================================================
+  212 +     // SELECT AND ORDER FINAL COLUMNS
+  213 +     // ========================================================================
+  214 +
+  215 +     Result = Table.SelectColumns(
+  216 +         Typed,
+  217 +         {
+  218 +             "YearMonth",
+  219 +             "Date_Sort_Key",
+  220 +             "Date",
+  221 +             "Response_Type",
+  222 +             "Summary_Type",
+  223 +             "Category",
+  224 +             "Average_Response_Time",
+  225 +             "Response_Time_MMSS",
+  226 +             "MM-YY"
+  227 +         }
+  228 +     ),
+  229 +
+  230 +     // Sort by date and response type for clean output
+  231 +     FinalSorted = Table.Sort(Result, {{"Date_Sort_Key", Order.Ascending}, {"Response_Type", Order.Ascending}})
+  232 +
+  233 + in
+  234 +     FinalSorted
+  235 +
+  236 + // ==============================================================================
+  237 + // OUTPUT COLUMNS:
+  238 + // - YearMonth (text): "2024-12", "2025-01", etc. 239 + // - Date_Sort_Key (date): Date type for sorting (first day of month)
+  240 + // - Date (date): Alias for Date_Sort_Key (DAX compatibility)
+  241 + // - Response_Type (text): "Emergency", "Routine", "Urgent"
+  242 + // - Summary_Type (text): "Response_Type" (DAX compatibility)
+  243 + // - Category (text): Same as Response_Type (DAX compatibility)
+  244 + // - Average_Response_Time (number): Decimal minutes (e.g., 3.28 = 3:17)
+  245 + // - Response_Time_MMSS (text): Original MM:SS format (e.g., "3:17")
+  246 + // - MM-YY (text): Month-Year format (e.g., "12-24")
+  247 + //
+  248 + // DATA COVERAGE:
+  249 + // - December 2024 through November 2025 (12 months currently)
+  250 + // - December 2025 will be added when ETL generates the data
+  251 + //
+  252 + // TO ADD DECEMBER 2025:
+  253 + // 1. Sync the CAD source file from OneDrive
+  254 + // 2. Run the ETL script: response_time_monthly_generator.py
+  255 + // 3. Refresh this Power BI query
+  256 + // ==============================================================================
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+ Do you want to overwrite response_time_calculator.m? 1. Yes
+ > 2. Yes, allow all edits during this session (shift+tab)
+   3. No
+
+ Esc to cancel
+
+ ▐▛███▜▌   Claude Code v2.1.7
+▝▜█████▛▘  Opus 4.5 · Claude Pro
+  ▘▘ ▝▝    ~\OneDrive - City of Hackensack\Master_Automation
+
+> see the prompt at C:\Users\carucci_r\OneDrive - City of
+  Hackensack\Master_Automation\CLAUDE_CODE_PROMPT_RESPONSE_TIME_ETL_FIX.md
+
+● Read(CLAUDE_CODE_PROMPT_RESPONSE_TIME_ETL_FIX.md)
+  ⎿  Read 396 lines
+
+● I'll help you fix the Response Time ETL and Power BI query. Let me create a task list and start investigating the
+  codebase. ● Read(m_code\response_time_calculator.m)
+  ⎿  Read 302 lines
+
+● Bash(ls "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times" 2>&1 || echo "Directory not
+      found")
+  ⎿  __pycache__
+     10)
+     120
+     … +64 lines (ctrl+o to expand)
+
+● Bash(ls "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill" 2>&1 || echo "Directory not found")
+  ⎿  _TEMPLATE_YYYY_MM
+     13-Month NIBRS Clearance Rate Trend October 2024 - October 2025.csv
+     13-Month NIBRS Clearance Rate Trend.csv
+     … +16 lines (ctrl+o to expand)
+
+● Bash(ls "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\response_time\2025" 2>&1 || echo "Directory
+      not found")
+  ⎿  2024_11_to_2025_11_ResponseTime_CAD.xlsx
+     2024_12_to_2025_12_ResponseTime_CAD.xlsx
+
+● Good progress. I found the source CAD file exists and I can see the Backfill directory structure. Let me explore
+  further to understand the existing files and the ETL script. ● Bash(ls "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_12\response_time" 2>&1)
+  ⎿  2025_11_Average_Response_Times__Values_are_in_mmss.csv
+     2025_12_1762769887946_corrected_response_time_data.csv
+     2025_12_Average_Response_Times__Values_are_in_mmss.csv
+     … +6 lines (ctrl+o to expand)
+
+● Bash(ls "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_10\response_time" 2>&1)
+  ⎿  2025_10_Average Response Times  Values are in mmss.csv
+     2025_10_Response Times by Priority.csv
+
+● Bash(ls "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_11\response_time" 2>&1)
+  ⎿  Error: Exit code 2
+     ls: cannot access 'C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_11\response_time': N
+      such file or directory
+
+● Read(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\response_time_diagnostic.py)
+  ⎿  Read 628 lines
+
+● I see the issue now. The response_time_diagnostic.py is a diagnostic script that compares data but doesn't generate
+  the monthly CSV files the M code needs. Let me look for more scripts and check what exists. ● Bash(ls "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_09\response_time" 2>&1)
+  ⎿  Average Response Times  Values are in mmss.csv
+     Response Times by Priority.csv
+
+● Bash(ls "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\scripts" 2>&1 || echo "No
+      scripts subdirectory")
+  ⎿  __pycache__
+     analyze_dax_data.py
+     analyze_exclude_assist_backup.py
+     … +113 lines (ctrl+o to expand)
+
+● Search(pattern: "Average.*Response.*Times. *mmss", path: "~\OneDrive - City of
+        Hackensack\02_ETL_Scripts\Response_Times", type: "py")
+  ⎿  Found 5 files (ctrl+o to expand)
+
+● Bash(ls "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times" | findstr /I ".py")
+  ⎿  Error: Exit code 1
+     FINDSTR: Cannot open .py
+
+● Found some promising scripts. Let me examine the ones that might generate the monthly CSV files. ● Read(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\process_cad_data_13month_rolling.py)
+  ⎿  Read 1207 lines
+
+● Read(~\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\scripts\generate_backfilled_monthly_summary.py)
+  ⎿  Read 188 lines
+
+● Good progress. I now understand the situation:
+
+  1. process_cad_data_13month_rolling.py - Comprehensive script but designed for single monthly CAD files
+  2. Source file - We have a consolidated CAD file for Dec 2024 - Dec 2025
+
+  I need to create a script that processes the consolidated file and generates monthly CSVs. Let me first check the
+  source file structure and mapping. ● Bash(python -c "import pandas as pd; df = pd.read_excel(r'C:\Users\carucci_r\OneDrive - City of  timeout: 1m 0s
+      Hackensack\05_EXPORTS\_CAD\response_time\2025\2024_12_to_2025_12_Resp…)
+  ⎿  Error: Exit code 1
+     Traceback (most recent call last):
+       File "<string>", line 1, in <module>
+       File "C:\Users\carucci_r\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", lin
+      495, in read_excel
+         io = ExcelFile(
+              ^^^^^^^^^^
+       File "C:\Users\carucci_r\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", lin
+      1554, in __init__
+         raise ValueError(
+     ValueError: Excel file format cannot be determined, you must specify an engine manually. ● Bash(ls "C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Classifications\CallTypes" 2>&1)
+  ⎿  archive
+     CallType_Categories.csv
+     CallType_Categories_backup_20260109_214115.csv
+
+● Bash(python -c "import pandas as pd; df = pd.read_excel(r'C:\Users\carucci_r\OneDrive - City of  timeout: 1m 30s
+      Hackensack\05_EXPORTS\_CAD\response_time\2025\2024_12_to_2025_12_Resp…)
+  ⎿  Error: Exit code 1
+     Traceback (most recent call last):
+       File "<string>", line 1, in <module>
+       File "C:\Users\carucci_r\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", lin
+      495, in read_excel
+         io = ExcelFile(
+              ^^^^^^^^^^
+       File "C:\Users\carucci_r\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", lin
+      1567, in __init__
+         self._reader = self._engines[engine](
+                        ^^^^^^^^^^^^^^^^^^^^^^
+       File "C:\Users\carucci_r\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_openpyxl.py",
+     line 553, in __init__
+
+     … +21 lines (ctrl+o to see all)
+
+● Read(~\OneDrive - City of Hackensack\09_Reference\Classifications\CallTypes\CallType_Categories.csv)
+  ⎿  Read 50 lines
+
+● The Excel file may be corrupted. Let me check the file and look for alternatives. ● Bash(dir "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\response_time\2025")
+  ⎿  2024_11_to_2025_11_ResponseTime_CAD.xlsx
+     2024_12_to_2025_12_ResponseTime_CAD.xlsx
+
+● Bash(file "C:\Users\carucci_r\OneDrive - City of
+      Hackensack\05_EXPORTS\_CAD\response_time\2025\2024_12_to_2025_12_ResponseTime_CAD.xlsx" 2>&1 || echo "file command
+       n…)
+  ⎿ C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\response_time\2025\2024_12_to_2025_12_Response
+    Time_CAD.xlsx: data
+
+
+● Bash(python -c "import pandas as pd; df = pd.read_excel(r'C:\Users\carucci_r\OneDrive - City of  timeout: 1m 30s
+      Hackensack\05_EXPORTS\_CAD\response_time\2025\2024_12_to_2025_12_Resp…)
+  ⎿  Error: Exit code 1
+     Traceback (most recent call last):
+       File "<string>", line 1, in <module>
+       File "C:\Users\carucci_r\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", lin
+      495, in read_excel
+         io = ExcelFile(
+              ^^^^^^^^^^
+       File "C:\Users\carucci_r\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", lin
+      1567, in __init__
+         self._reader = self._engines[engine](
+                        ^^^^^^^^^^^^^^^^^^^^^^
+       File "C:\Users\carucci_r\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_xlrd.py", lin
+      46, in __init__
+     … +18 lines (ctrl+o to see all)
+
+● Bash(dir "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\response_time\2025" /A)
+  ⎿  Error: Exit code 2
+     dir: cannot access '/A': No such file or directory
+
+     C\:\\Users\\carucci_r\\OneDrive - City of Hackensack\\05_EXPORTS\\_CAD\\response_time\\2025:
+     2024_11_to_2025_11_ResponseTime_CAD.xlsx
+     2024_12_to_2025_12_ResponseTime_CAD.xlsx
+
+● Bash(attrib "C:\Users\carucci_r\OneDrive - City of
+      Hackensack\05_EXPORTS\_CAD\response_time\2025\2024_12_to_2025_12_ResponseTime_CAD.xlsx")
+  ⎿ A            P       C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\response_time\2025\2024_1
+    2_to_2025_12_ResponseTime_CAD.xlsx
+
+
+● The file is a OneDrive placeholder (not synced locally). Let me try the alternative file and check other data sources. ● Bash(attrib "C:\Users\carucci_r\OneDrive - City of
+      Hackensack\05_EXPORTS\_CAD\response_time\2025\2024_11_to_2025_11_ResponseTime_CAD.xlsx")
+  ⎿ A            P       C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\response_time\2025\2024_1
+    1_to_2025_11_ResponseTime_CAD.xlsx
+
+
+● Bash(ls "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\monthly_export" 2>&1)
+  ⎿  2024
+     2024_11_to_2025_11_CAD_Data.xlsx
+     2025
+     2026
+
+● Bash(attrib "C:\Users\carucci_r\OneDrive - City of
+      Hackensack\05_EXPORTS\_CAD\monthly_export\2024_11_to_2025_11_CAD_Data.xlsx")
+  ⎿ A            P       C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\monthly_export\2024_11_to
+    _2025_11_CAD_Data.xlsx
+
+
+● Bash(ls "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\monthly_export\2025")
+  ⎿  2025_11_Monthly_CAD.xlsx.xlsx
+     2025_12_Monthly_CAD.xlsx
+     25_10_cad.xlsx
+
+● Bash(attrib "C:\Users\carucci_r\OneDrive - City of
+      Hackensack\05_EXPORTS\_CAD\monthly_export\2025\2025_12_Monthly_CAD.xlsx")
+  ⎿ A            P       C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\monthly_export\2025\2025_
+    12_Monthly_CAD.xlsx
+
+
+● Bash(attrib "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_09\response_time\Average
+      Response Times  Values are in mmss.csv")
+  ⎿ A            P       C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_09\response_ti
+    me\Average Response Times  Values are in mmss.csv
+
+
+● Read(~\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_09\response_time\Average Response Times  Values are in
+       mmss.csv)
+  ⎿  Read 41 lines
+
+● The backfill CSV is readable and contains data from Sep 2024 through Sep 2025. Let me check all existing data files. ● Read(~\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Average Response Times
+      Values are in mmss.csv)
+  ⎿  Read 38 lines
+
+● Read(~\OneDrive - City of
+      Hackensack\PowerBI_Date\Backfill\2025_12\response_time\2025_11_Average_Response_Times__Values_are_in_mmss.csv)
+  ⎿  Read 5 lines
+
+● Read(~\OneDrive - City of
+      Hackensack\PowerBI_Date\Backfill\2025_12\response_time\2025_12_Average_Response_Times__Values_are_in_mmss.csv)
+  ⎿  Read 5 lines
+
+● I've analyzed the data situation. Let me summarize what I found and present the options. ● User answered Claude's questions:
+  ⎿  · The source CAD file (`2024_12_to_2025_12_ResponseTime_CAD.xlsx`) is a OneDrive cloud-only placeholder and
+     needs to be synced locally before it can be processed. How would you like to proceed? → Sync the CAD file now
+
+● Please sync the CAD file from OneDrive. You can do this by:
+  1. Opening File Explorer to C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\response_time\2025\
+  2. Double-clicking on 2024_12_to_2025_12_ResponseTime_CAD.xlsx
+  3. Or right-click the file and select "Always keep on this device"
+
+  Once the file is synced, let me know and I'll continue with the ETL processing. ✻ Cogitated for 4m 35s
+
+> continue
+
+● Bash(attrib "C:\Users\carucci_r\OneDrive - City of
+      Hackensack\05_EXPORTS\_CAD\response_time\2025\2024_12_to_2025_12_ResponseTime_CAD.xlsx")
+  ⎿ A            P       C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\response_time\2025\2024_1
+    2_to_2025_12_ResponseTime_CAD.xlsx
+
+
+● Bash(python -c "import pandas as pd; df = pd.read_excel(r'C:\Users\carucci_r\OneDrive - City of
+      Hackensack\05_EXPORTS\_CAD\response_time\2025\2024_12_to_2025_12_Resp…)
+  ⎿  Error: Exit code 1
+     <string>:1: SyntaxWarning: invalid escape sequence '\!' Traceback (most recent call last):
+       File "<string>", line 1, in <module>
+       File "C:\Users\carucci_r\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", lin
+      495, in read_excel
+         io = ExcelFile(
+              ^^^^^^^^^^
+       File "C:\Users\carucci_r\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\excel\_base.py", lin
+      1567, in __init__
+         self._reader = self._engines[engine](
+                        ^^^^^^^^^^^^^^^^^^^^^^
+     … +22 lines (ctrl+o to see all)
+
+● The file is still not synced (showing as placeholder). I'll proceed with the existing backfill data (Dec 2024 - Nov
+  2025) and also create an ETL script you can run once the CAD file is synced. ● Let me create an updated M code file that uses the correct paths and loads all available months. ● Read(m_code\response_time_calculator.m)
+  ⎿  Read 302 lines
+
+● Now I'll write the updated M code with correct paths and proper data loading. ● Write(m_code\response_time_calculator.m)
+  ⎿  Added 255 lines, removed 302 lines
+        1 - // ==============================================================================
+        2 - // RESPONSE TIMES M CODE - COMPLETE FIX WITH DATE SORT KEY
+        3 - // Query Name: ___ResponseTimeCalculator
+        4 - // ==============================================================================
+        5 - // FIXES:
+        6 - // 1. Ensures Average_Response_Time column exists (fixes measure errors)
+        7 - // 2. Adds Date_Sort_Key for proper chronological sorting
+        8 - // 3. Properly handles column naming and types
+        9 - // ==============================================================================
+       10 -
+       11 - let
+       12 -     // ========================================================================
+       13 -     // LOAD BACKFILL DATA (Nov 2024 - Oct 2025)
+       14 -     // ========================================================================
+       15 -
+       16 -     BackfillRaw = Csv.Document(
+       17 -         File.Contents("C:\Dev\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Average Response
+          -Times  Values are in mmss.csv"),
+       18 -         [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]
+       19 -     ),
+       20 -     BackfillHeaders = Table.PromoteHeaders(BackfillRaw, [PromoteAllScalars=true]),
+       21 -
+       22 -     // Rename columns - handle both possible column names
+       23 -     BackfillRenamed = Table.RenameColumns(
+       24 -         BackfillHeaders,
+       25 -         {
+       26 -             {"Response Type", "Response_Type"},
+       27 -             {"First Response_Time_MMSS", "Response_Time_MMSS"},
+       28 -             {"MM-YY", "MM-YY"}
+       29 -         },
+       30 -         MissingField.Ignore
+       31 -     ),
+       32 -
+       33 -     // Ensure MM-YY column exists (may already be named correctly)
+       34 -     BackfillWithMMYY = if Table.HasColumns(BackfillRenamed, "MM-YY") then
+       35 -         BackfillRenamed
+       36 -     else if Table.HasColumns(BackfillRenamed, "MM_YY") then
+       37 -         Table.RenameColumns(BackfillRenamed, {{"MM_YY", "MM-YY"}})
+       38 -     else
+       39 -         BackfillRenamed,
+       40 -
+       41 -     // Calculate Average_Response_Time from MM:SS format (CRITICAL - measures need this!)

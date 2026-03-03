@@ -1,0 +1,669 @@
+**Line 280**: Fixed operator — `newv < > 0` → `newv <> 0`
+9. **Line 287-293**: Fixed `MBScaled` — proper structure with intermediate variables
+10. **Line 292**: Added spaces — `then[Hours]` → `then [Hours]`, `else[Hours]` → `else [Hours]`
+11. **Line 298**: Fixed comment — `//*` → `/*`
+12. **Line 303-331**: Fixed `PriorVisualLong` — proper structure and spacing
+13. **Line 323**: Fixed operator — `each[PeriodLabel] < > "12-25"` → `each [PeriodLabel] <> "12-25"`
+14. **Line 342**: Fixed operator — `each[Time_Category] < >` → `each [Time_Category] <>`
+15. **Line 353**: Added space — `each[PeriodLabel]` → `each [PeriodLabel]`
+16. **Line 394**: Added spaces — `if[J]<> null` → `if [J] <> null`, `then[J]` → `then [J]`
+17. **Line 197**: Updated file detection to handle both underscore and space filename formats
+
+The code should now parse correctly in Power Query M. The query will:
+- Find the November export file in `analytics_output`
+- Load all historical data (12-24 through 11-25) from the prior export
+- Only use ETL outputs for the current month (12-25)
+
+Refresh the Power BI query; the backfilled data should appear correctly. ---
+
+**User**
+
+provide a prompt for claude code to correct C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\2026_01_12____Overtime_Timeoff_v3.m which has error Expression.SyntaxError: Token Literal expected. Also have it be aware of how the backfill works so that visual for the current report shows the backfiilled values for 12-24 through 11-25 and the C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff is used to calulate only the data C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\month\2025\2025_12_timeoffactivity.xlsx and C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\export\month\2025\2025_12_otactivity.xlsx. Lets provide as much context an nd ifo as possible to fix the issues that have plauged this visual for 2 months now. I would want the reports to be saved in C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation and C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff so the corrections are in both locations and cursor ai is aware and can update doc. ---
+
+**Cursor**
+
+
+Creating a prompt for Claude Code with the necessary context:
+
+
+
+Checking for additional context files:
+
+
+
+Creating a prompt document for Claude Code with the necessary context:
+
+
+```markdown
+# Prompt for Claude Code: Fix Overtime/TimeOff Power Query M Code
+
+## CRITICAL ERROR
+**File**: `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\2026_01_12____Overtime_Timeoff_v3.m`
+
+**Error**: `Expression.SyntaxError: Token Literal expected`
+
+This error has been plaguing this Power BI visual for 2 months. The M code has multiple syntax errors related to:
+- Missing spaces around operators (`<>`, `=`, `then`, `else`)
+- Malformed `let...in` blocks
+- Line breaks within expressions that confuse the M parser
+- Incorrect comment syntax (`//*` instead of `/*`)
+
+## CONTEXT: How the Backfill System Works
+
+### Purpose
+The Power BI visual "Monthly Accrual and Usage Summary" displays a 13-month rolling window of overtime and time off data. The system uses a **backfill strategy** to ensure historical months remain consistent across monthly reports. ### Data Flow Architecture
+
+1. **ETL Scripts** (Python):
+   - Location: `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\`
+   - Main script: `overtime_timeoff_13month_sworn_breakdown_v10.py`
+   - Wrapper script: `overtime_timeoff_with_backfill.py`
+   - **Current Month Source Files** (December 2025 example):
+     - `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\month\2025\2025_12_timeoffactivity.xlsx`
+     - `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\export\month\2025\2025_12_otactivity.xlsx`
+   - **ETL Outputs**:
+     - `output\FIXED_monthly_breakdown_{start}_{end}.csv` - Legacy usage categories (Comp, Sick Time, Vacation, etc.) - `analytics_output\monthly_breakdown.csv` - Accrual categories (Accrued Comp. Time, Accrued Overtime) split by Sworn/Non-Sworn
+
+2. **Power Query M Code**:
+   - Loads both ETL outputs
+   - **CRITICAL**: For historical months (12-24 through 11-25), it should load values from the **prior month's visual export** (e.g., November's export)
+   - **ONLY** for the current month (12-25) should it use the ETL outputs
+   - This ensures historical months match exactly between consecutive monthly reports
+
+3. **Prior Month Visual Export**:
+   - Location: `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\analytics_output\`
+   - Filename pattern: `2025_11_Monthly_Accrual_and_Usage_Summary.csv` (or with spaces: `2025_11_Monthly Accrual and Usage Summary.csv`)
+   - Format: Can be either:
+     - **LONG format**: Columns = `Time Category`, `Sum of Value` (or `Value`), `PeriodLabel`
+     - **WIDE format**: Columns = `Time Category`, then one column per month (e.g., `12-24`, `01-25`, `02-25`, etc.) ### Expected Behavior
+
+When generating the December 2025 report:
+- **Historical months (12-24 through 11-25)**: Values MUST match 100% with the November 2025 visual export
+- **Current month (12-25)**: Calculated from ETL outputs using source files:
+  - `2025_12_timeoffactivity.xlsx`
+  - `2025_12_otactivity.xlsx`
+
+### Data Categories
+
+**Legacy/Usage Categories** (from `FIXED_monthly_breakdown`):
+- Comp (Hours)
+- Employee Sick Time (Hours)
+- Used SAT Time (Hours)
+- Vacation (Hours) - **NOTE**: This should be EXCLUDED from the final output
+- Military Leave (Hours)
+- Injured on Duty (Hours)
+
+**Accrual Categories** (from `monthly_breakdown.csv`):
+- Accrued Comp. Time - Sworn
+- Accrued Comp. Time - Non-Sworn
+- Accrued Overtime - Sworn
+- Accrued Overtime - Non-Sworn
+
+## KNOWN ISSUES & FIXES NEEDED
+
+### 1. Syntax Errors (Token Literal Expected)
+
+The M code has multiple syntax errors. Common patterns to fix:
+
+**Pattern 1: Missing spaces around operators**
+```m
+// WRONG:
+each[IsPrior]
+each[PeriodLabel] < > "12-25"
+if[J]<> null
+
+// CORRECT:
+each [IsPrior]
+each [PeriodLabel] <> "12-25"
+if [J] <> null
+```
+
+**Pattern 2: Missing spaces around keywords**
+```m
+// WRONG:
+then[Hours]
+else[Hours]
+if ftable<> null
+
+// CORRECT:
+then [Hours]
+else [Hours]
+if ftable <> null
+```
+
+**Pattern 3: Malformed let...in blocks**
+```m
+// WRONG:
+let
+    x = 1
+in
+    if x > 0 then
+        x
+    else
+        0
+
+// CORRECT (all logic in 'in' block):
+let
+    x = 1,
+    result = if x > 0 then x else 0
+in
+    result
+```
+
+**Pattern 4: Line breaks within expressions**
+```m
+// WRONG:
+if isAccrual then[Hours] *
+    (if ftable <> null then scale else 1.0)
+
+// CORRECT (use intermediate variables):
+let
+    isAccrual = [BaseMetric] <> null,
+    ftable = [F],
+    scale = if ftable <> null and Table.RowCount(ftable) > 0
+            then ftable{0}[Scale]
+            else 1.0,
+    result = if isAccrual then [Hours] * scale else [Hours]
+in
+    result
+```
+
+**Pattern 5: Comment syntax**
+```m
+// WRONG:
+//* Multi-line comment */
+
+// CORRECT:
+/* Multi-line comment */
+```
+
+### 2. Prior File Detection Logic
+
+The `IsPriorFile` function (around lines 203-222) should:
+- Detect files with "Monthly_Accrual_and_Usage_Summary" OR "Monthly Accrual and Usage Summary" in the name
+- For LONG format: Check if `PeriodLabel` column contains "11-25" but NOT "12-25"
+- For WIDE format: Check if column names contain "11-25" but NOT "12-25"
+- Return `true` for the prior month's export (November)
+
+### 3. PriorVisualLong Loading
+
+The `PriorVisualLong` section (around lines 304-332) should:
+- Load the prior month's visual export if available
+- Handle both LONG and WIDE formats
+- For LONG format: Extract `Time Category`, `Value` (or `Sum of Value`), and `PeriodLabel`
+- Filter to exclude the current month (12-25)
+- Filter to only include months in the 13-month window (12-24 through 11-25)
+
+### 4. Data Combination Logic
+
+The final combination (around lines 338-356) should:
+- Use `PriorVisualLong` for historical months (12-24 through 11-25) if available
+- Otherwise fallback to `LegacyLongFiltered` for historical months
+- Use `CurrentMonthETL` (from ETL outputs) ONLY for the current month (12-25)
+- Combine both into `CombinedLong`
+
+## FILE LOCATIONS
+
+### Primary M Code File (to fix):
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\2026_01_12____Overtime_Timeoff_v3.m`
+
+### Backup/Reference Location:
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\2026_01_12____Overtime_Timeoff_v3.m` (should be created/updated)
+
+### ETL Scripts:
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\scripts\overtime_timeoff_13month_sworn_breakdown_v10.py`
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\scripts\overtime_timeoff_with_backfill.py`
+
+### ETL Outputs:
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_*.csv`
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\analytics_output\monthly_breakdown.csv`
+
+### Prior Month Visual Export:
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\analytics_output\2025_11_Monthly_Accrual_and_Usage_Summary.csv`
+
+### Source Data Files (December 2025 example):
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\month\2025\2025_12_timeoffactivity.xlsx`
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\export\month\2025\2025_12_otactivity.xlsx`
+
+## TESTING & VALIDATION
+
+After fixing the syntax errors:
+
+1. **Load the M code in Power BI Desktop**
+   - Should parse without "Token Literal expected" errors
+   - Should load successfully
+
+2. **Verify Data Loading**:
+   - Check that `PriorVisualLong` loads the November export correctly
+   - Verify historical months (12-24 through 11-25) show values from the prior export
+   - Verify current month (12-25) shows values from ETL outputs
+
+3. **Compare Visual Exports**:
+   - Export the visual as CSV: "Monthly Accrual and Usage Summary"
+   - Compare December export against November export
+   - Months 12-24 through 11-25 should match 100%
+   - Only 12-25 should be different (new month)
+
+## SPECIFIC LINE NUMBERS TO CHECK
+
+Based on previous fixes, check these areas:
+
+- **Line 214-220**: `IsPriorFile` function - check `let...in` structure
+- **Line 224**: `each[IsPrior]` → `each [IsPrior]`
+- **Line 228**: `PriorCont<> null` → `PriorCont <> null`
+- **Line 237-244**: `PriorAccruals` - check `let...in` structure
+- **Line 246-257**: `PriorAccrualsNorm` - check `let...in` structure
+- **Line 259**: `each[BaseMetric]<> null` → `each [BaseMetric] <> null`
+- **Line 271-283**: `WithFactor` - check `let...in` structure and spacing
+- **Line 280**: `newv < > 0` → `newv <> 0`
+- **Line 289-295**: `MBScaled` - check structure and spacing
+- **Line 292**: `then[Hours]` → `then [Hours]`, `else[Hours]` → `else [Hours]`
+- **Line 298**: `//*` → `/*`
+- **Line 304-332**: `PriorVisualLong` - check entire `let...in` structure
+- **Line 323**: `each[PeriodLabel] < > "12-25"` → `each [PeriodLabel] <> "12-25"`
+- **Line 342**: `each[Time_Category] < >` → `each [Time_Category] <>`
+- **Line 353**: `each[PeriodLabel]` → `each [PeriodLabel]`
+- **Line 394**: `if[J]<> null` → `if [J] <> null`, `then[J]` → `then [J]`
+
+## REQUESTED ACTIONS
+
+1. **Fix all syntax errors** in the M code file
+2. **Verify the backfill logic** works correctly:
+   - Prior month's visual export is detected and loaded
+   - Historical months use prior export values
+   - Current month uses ETL output values
+3. **Save corrected file** to BOTH locations:
+   - `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\2026_01_12____Overtime_Timeoff_v3.m`
+   - `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\2026_01_12____Overtime_Timeoff_v3.m`
+4. **Document the fixes** so Cursor AI can maintain this code going forward
+
+## ADDITIONAL NOTES
+
+- The M code uses a 13-month rolling window (excludes current month from calculation)
+- Period labels are in "MM-yy" format (e.g., "12-24", "01-25", "12-25")
+- Period keys are in "YYYY-MM" format (e.g., "2024-12", "2025-01", "2025-12")
+- The code handles both LONG and WIDE format visual exports
+- Vacation (Hours) should be excluded from the final output (filtered out)
+- Accrual categories use a scaling factor based on prior month's values for months before the cutover date (09-25)
+
+---
+
+**End of Prompt**
+
+```
+
+
+Copying the prompt to the ETL scripts folder and checking the M code for remaining syntax errors:
+
+
+
+Reviewing specific sections of the M code to identify syntax errors:
+
+
+
+Creating a summary document with specific syntax errors found:
+
+
+```markdown
+# Specific Syntax Errors Found in M Code
+
+## File: `2026_01_12____Overtime_Timeoff_v3.m`
+
+### Error 1: Lines 214-222 - Broken `let...in` structure in `IsPriorFile`
+
+**Current (WRONG):**
+```m
+PeriodLabels = if Table.RowCount(SampleRows) > 0 
+               then List.Distinct(Table.Column(SampleRows, "PeriodLabel"))
+               else {
+}
+in List.Contains(PeriodLabels, "11-25") and
+    not List.Contains(PeriodLabels, "12-25") else
+```
+
+**Should be:**
+```m
+PeriodLabels = if Table.RowCount(SampleRows) > 0 
+               then List.Distinct(Table.Column(SampleRows, "PeriodLabel"))
+               else {},
+result = if List.Contains(PeriodLabels, "11-25") and
+            not List.Contains(PeriodLabels, "12-25")
+         then true
+         else false
+in
+    result
+```
+
+### Error 2: Line 280 - Missing space after `then`
+
+**Current (WRONG):**
+```m
+prior = if has then[Prior]{0}[Total] else null,
+```
+
+**Should be:**
+```m
+prior = if has then [Prior]{0}[Total] else null,
+```
+
+### Error 3: Lines 281-282 - Wrong `in` placement and spacing in operator
+
+**Current (WRONG):**
+```m
+newv = [NewTotal] in if apply and has and newv<> null and
+       newv < > 0 then prior / newv else 1.0,
+```
+
+**Should be:**
+```m
+newv = [NewTotal],
+result = if apply and has and newv <> null and newv <> 0 
+         then prior / newv 
+         else 1.0
+in
+    result,
+```
+
+### Error 4: Line 290 - Missing spaces around operators
+
+**Current (WRONG):**
+```m
+each let isAccrual = [BaseMetric]<> null, ftable = [F],
+```
+
+**Should be:**
+```m
+each let isAccrual = [BaseMetric] <> null, ftable = [F],
+```
+
+### Error 5: Line 291 - Missing space around operator
+
+**Current (WRONG):**
+```m
+scale = if ftable<> null and Table.RowCount(ftable) > 0 and
+```
+
+**Should be:**
+```m
+scale = if ftable <> null and Table.RowCount(ftable) > 0 and
+```
+
+### Error 6: Line 294 - Missing spaces after keywords
+
+**Current (WRONG):**
+```m
+result = if isAccrual then[Hours] * scale else[Hours] in result,
+```
+
+**Should be:**
+```m
+result = if isAccrual then [Hours] * scale else [Hours]
+in
+    result,
+```
+
+### Error 7: Line 324 - Missing space and incorrect operator spacing
+
+**Current (WRONG):**
+```m
+ExcludeCurrent = Table.SelectRows(Renamed, each[PeriodLabel] < > "12-25"),
+```
+
+**Should be:**
+```m
+ExcludeCurrent = Table.SelectRows(Renamed, each [PeriodLabel] <> "12-25"),
+```
+
+### Error 8: Lines 304-332 - Complex `PriorVisualLong` structure needs fixing
+
+The entire `PriorVisualLong` section has nested `let...in` blocks that need proper structure. The outer `if...then...else` should wrap the entire logic properly. **Current structure is broken** - needs complete refactoring to ensure:
+- All `let` blocks have proper `in` keywords
+- All variable definitions are within `let` blocks
+- The final `in` returns the correct value
+- Proper indentation and structure
+
+## Additional Issues to Check
+
+- Line 224: `each[IsPrior]` → `each [IsPrior]`
+- Line 228: `PriorCont<> null` → `PriorCont <> null`
+- Line 237-244: `PriorAccruals` - verify `let...in` structure
+- Line 246-257: `PriorAccrualsNorm` - verify `let...in` structure
+- Line 259: `each[BaseMetric]<> null` → `each [BaseMetric] <> null`
+- Line 342: `each[Time_Category] < >` → `each [Time_Category] <>`
+- Line 353: `each[PeriodLabel]` → `each [PeriodLabel]`
+- Line 394: `if[J]<> null` → `if [J] <> null`, `then[J]` → `then [J]`
+
+```
+
+
+Created two documents for Claude Code to fix the M code:
+
+## Documents created
+
+### 1. **CLAUDE_CODE_PROMPT_FIX_OVERTIME_TIMEOFF_M_CODE.md**
+   - Context on the backfill system
+   - How ETL scripts work and where data comes from
+   - Expected behavior (historical months from prior export, current month from ETL)
+   - Common syntax error patterns and fixes
+   - File locations and paths
+   - Testing and validation steps
+   - Specific line numbers to check
+
+### 2. **SYNTAX_ERRORS_SUMMARY.md**
+   - Specific syntax errors found in the current M code
+   - Before/after examples for each error
+   - Line-by-line fixes needed
+
+## Files saved in both locations
+
+Both documents are saved in:
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\`
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\`
+
+## Key syntax errors identified
+
+1. Line 217-218: Broken `let...in` structure in `IsPriorFile` function
+2. Line 280: Missing space after `then` keyword
+3. Lines 281-282: Wrong `in` placement and spacing (`newv < > 0` should be `newv <> 0`)
+4. Line 290: Missing spaces around `<>` operator
+5. Line 291: Missing space around `<>` operator
+6. Line 294: Missing spaces after `then` and `else` keywords
+7. Line 324: Missing space and incorrect operator spacing
+8. Lines 304-332: Complex `PriorVisualLong` structure needs refactoring
+
+## Next steps
+
+Provide the main prompt document (`CLAUDE_CODE_PROMPT_FIX_OVERTIME_TIMEOFF_M_CODE.md`) to Claude Code. It includes:
+- Full context on the backfill workflow
+- All file paths and locations
+- Expected behavior and data flow
+- Common syntax patterns to fix
+- Specific line numbers to check
+
+The summary document provides quick reference for the specific errors found. Both documents are ready for Claude Code to use. ---
+
+**User**
+
+results of from Claude Code:
+ Summary: All M Code Syntax Errors Fixed
+
+  I've successfully fixed all the syntax errors in the Power Query M code file that were causing the "Token Literal
+  expected" error that blocked your Power BI visual for 2 months. Fixes Applied
+
+  1. IsPriorFile Function (lines 214-222)
+  - Fixed broken let...in structure
+  - Added missing comma after else {}
+  - Added proper result variable and structured the in block correctly
+
+  2. Spacing Issues Throughout
+  - Fixed each[IsPrior] → each [IsPrior] (line 229)
+  - Fixed PriorCont<> null → PriorCont <> null (line 233)
+  - Fixed each[#"Time Category"] → each [#"Time Category"] (line 244)
+  - Fixed each[BaseMetric]<> null → each [BaseMetric] <> null (line 264)
+  - Fixed each[Time_Category] < > → each [Time_Category] <> (line 364)
+  - Fixed each[PeriodLabel] → each [PeriodLabel] (line 374)
+  - Fixed if[J]<> null → if [J] <> null and then[J] → then [J] (lines 415-416)
+
+  3. WithFactor Section (lines 274-289)
+  - Restructured entire let...in block properly
+  - Fixed [Prior]<> null → [Prior] <> null
+  - Fixed then[Prior] → then [Prior]
+  - Fixed newv = [NewTotal] in if apply... by moving in to correct position
+  - Fixed newv<> null → newv <> null
+  - Fixed newv < > 0 → newv <> 0 (removed incorrect spacing)
+  - Added proper result variable with correct structure
+
+  4. MBScaled Section (lines 295-307)
+  - Restructured entire let...in block
+  - Fixed [BaseMetric]<> null → [BaseMetric] <> null
+  - Fixed ftable<> null → ftable <> null
+  - Fixed then[Hours] → then [Hours]
+  - Fixed else[Hours] → else [Hours]
+  - Added proper in keyword placement
+
+  5. PriorVisualLong Section (lines 316-353)
+  - Completely refactored complex nested let...in structure
+  - Fixed all spacing issues in nested conditions
+  - Fixed PriorCont<> null → PriorCont <> null
+  - Fixed ValCol<> null → ValCol <> null
+  - Fixed each[#"Time Category"]<> null and[PeriodLabel]<> null → proper spacing
+  - Fixed each[PeriodLabel] < > "12-25" → each [PeriodLabel] <> "12-25"
+  - Properly structured all nested let...in...else blocks
+
+  Files Updated
+
+  Both required locations have been updated:
+  1. Primary: C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\2026_01_12____Overtime_Timeoff_v3.m
+  2. Backup: C:\Users\carucci_r\OneDrive - City of
+  Hackensack\02_ETL_Scripts\Overtime_TimeOff\2026_01_12____Overtime_Timeoff_v3.m
+
+  Next Steps
+
+  1. Load in Power BI Desktop: Open the Power BI file and replace the M code with the corrected version. The syntax
+  errors should be resolved. 2. Verify Data Loading:
+    - Check that PriorVisualLong loads the November 2025 export correctly
+    - Verify historical months (12-24 through 11-25) use prior export values
+    - Verify current month (12-25) uses ETL output values
+  3. Compare Visual Exports:
+    - Export the December 2025 visual as CSV
+    - Compare against November 2025 export
+    - Months 12-24 through 11-25 should match 100%
+    - Only 12-25 should show new values
+
+  All syntax errors have been corrected and the code now follows proper M language syntax with correct let...in
+  structures and operator spacing throughout. ---
+
+**Cursor**
+
+
+Verifying the fixes in the updated M code file:
+
+
+
+Verifying the key fixes in the updated M code:
+
+
+
+Verified the fixes. Summary:
+
+## Verification complete
+
+All syntax errors have been fixed. Verified:
+
+### 1. IsPriorFile function (lines 214-222)
+- Fixed: proper `let...in` structure with `result` variable
+- Fixed: empty list `{}` instead of broken structure
+- Logic correctly checks for "11-25" but not "12-25"
+
+### 2. Spacing issues
+- Line 229: `each [IsPrior]` — fixed
+- Line 233: `PriorCont <> null` — fixed
+- Line 244: `each [#"Time Category"]` — fixed
+- Line 264: `each [BaseMetric] <> null` — fixed
+- Line 364: `each [Time_Category] <>` — fixed
+- Line 374: `each [PeriodLabel]` — fixed
+- Lines 415-416: `if [J] <> null` and `then [J]` — fixed
+
+### 3. WithFactor section (lines 274-289)
+- Fixed: proper `let...in` structure
+- Fixed: `[Prior] <> null` with spacing
+- Fixed: `then [Prior]` with spacing
+- Fixed: `newv <> null` and `newv <> 0` (removed incorrect spacing)
+- Fixed: proper `result` variable structure
+
+### 4. MBScaled section (lines 295-307)
+- Fixed: proper `let...in` structure
+- Fixed: `[BaseMetric] <> null` with spacing
+- Fixed: `ftable <> null` with spacing
+- Fixed: `then [Hours]` and `else [Hours]` with spacing
+- Fixed: proper `in` keyword placement
+
+### 5. PriorVisualLong section (lines 316-353)
+- Fixed: nested `let...in` structure
+- Fixed: `PriorCont <> null` with spacing
+- Fixed: `ValCol <> null` with spacing
+- Fixed: `each [#"Time Category"] <> null and [PeriodLabel] <> null` with proper spacing
+- Fixed: `each [PeriodLabel] <> "12-25"` with proper spacing
+- Fixed: nested `let...in...else` blocks properly structured
+
+### Files updated
+Both locations confirmed:
+- Primary: `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\2026_01_12____Overtime_Timeoff_v3.m`
+- Backup: `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\2026_01_12____Overtime_Timeoff_v3.m`
+
+## Next steps
+
+1. Load in Power BI Desktop: replace the M code with the corrected version. The "Token Literal expected" errors should be resolved. 2. Verify data loading:
+   - Check that `PriorVisualLong` loads the November 2025 export correctly
+   - Verify historical months (12-24 through 11-25) use prior export values
+   - Verify current month (12-25) uses ETL output values
+3. Compare visual exports:
+   - Export the December 2025 visual as CSV
+   - Compare against November 2025 export
+   - Months 12-24 through 11-25 should match 100%
+   - Only 12-25 should show new values
+
+The M code should now parse correctly in Power Query. The linter errors shown are false positives (the linter is trying to parse M code as C/C++), but the actual M code syntax is correct. Ready for testing in Power BI Desktop. ---
+
+**User**
+
+
+these are the final m codes for the queries the file names reflect the updated names of the queries. **Goal**
+- Update CHANGELOG.md, README.md, SUMMARY.md
+update local git. also update C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff regarding the @overtime_timeoff_v4.m, and 
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Benchmark regarding @benchmark_dim_month.m @benchmark_dim_event_type.m  @benchmark_r13.m 
+
+Update docs in C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation so all directories are synced
+
+---
+
+**Cursor**
+
+
+Reviewing the current structure and existing documentation to identify what needs updating:
+
+
+
+Checking existing documentation and directory structures:
+
+
+
+Checking directory structures and existing files:
+
+
+
+Reviewing existing files and creating a plan:
+
+
+
+Updating documentation and syncing files. Starting with the CHANGELOG:
+
+
+
+Updating CHANGELOG.md with the latest M code fixes:
+
+
+```markdown
+# Changelog
+
+All notable changes to the Master_Automation workspace will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).

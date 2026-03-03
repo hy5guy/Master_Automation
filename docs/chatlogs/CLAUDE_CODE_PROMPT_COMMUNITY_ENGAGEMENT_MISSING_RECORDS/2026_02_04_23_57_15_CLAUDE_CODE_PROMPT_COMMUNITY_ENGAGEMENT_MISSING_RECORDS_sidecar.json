@@ -1,0 +1,69 @@
+{
+  "source_file": "CLAUDE_CODE_PROMPT_COMMUNITY_ENGAGEMENT_MISSING_RECORDS.md",
+  "source_path": "C:\\_chunker\\02_data\\CLAUDE_CODE_PROMPT_COMMUNITY_ENGAGEMENT_MISSING_RECORDS.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\CLAUDE_CODE_PROMPT_COMMUNITY_ENGAGEMENT_MISSING_RECORDS\\2026_02_04_23_57_15_CLAUDE_CODE_PROMPT_COMMUNITY_ENGAGEMENT_MISSING_RECORDS.origin.json",
+  "created_at": "2026_02_04_23_57_15",
+  "tags": [
+    "ai",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "markdown",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "events",
+      "etl",
+      "december",
+      "2025",
+      "output",
+      "source"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Claude Code Prompt: Community Engagement ETL Missing Records Investigation\n\n> **RESOLVED** ✅ (2026-01-12)\n> \n> **Resolution:** The issue was resolved by re-running the ETL script. The ETL output file was outdated (last run: December 10...",
+    "first_line": "# Claude Code Prompt: Community Engagement ETL Missing Records Investigation"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-04T23:57:15+00:00_CLAUDE_CODE_PROMPT_COMMUNITY_ENGAGEMENT_MISSING_RECORDS_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "2025",
+        "ai",
+        "data",
+        "december",
+        "docs",
+        "events",
+        "excel",
+        "json",
+        "markdown",
+        "output",
+        "python",
+        "source",
+        "sql"
+      ],
+      "key_terms": [
+        "events",
+        "etl",
+        "december",
+        "2025",
+        "output",
+        "source"
+      ],
+      "summary": "# Claude Code Prompt: Community Engagement ETL Missing Records Investigation\n\n> **RESOLVED** ✅ (2026-01-12)\n> \n> **Resolution:** The issue was resolved by re-running the ETL script.",
+      "char_length": 8134,
+      "byte_length": 8297
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

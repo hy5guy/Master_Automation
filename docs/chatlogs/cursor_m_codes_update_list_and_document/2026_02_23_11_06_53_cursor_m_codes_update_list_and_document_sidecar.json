@@ -1,0 +1,115 @@
+{
+  "source_file": "cursor_m_codes_update_list_and_document.md",
+  "source_path": "C:\\_chunker\\02_data\\cursor_m_codes_update_list_and_document.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\cursor_m_codes_update_list_and_document\\2026_02_23_11_06_53_cursor_m_codes_update_list_and_document.origin.json",
+  "created_at": "2026_02_23_11_06_53",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "2026",
+      "preportmonth",
+      "file",
+      "let",
+      "january",
+      "m_code"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# M codes update list and documentation review\n_Exported on 2/21/2026 at 15:27:49 EST from Cursor (2.5.20)_\n\n---\n\n**User**\n\nwhere are the update m codes? Provide a list of which m codes need to be updated review readme summary and claude...",
+    "first_line": "# M codes update list and documentation review"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-23T11:06:53+00:00_cursor_m_codes_update_list_and_document_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "2026",
+        "ai",
+        "code",
+        "data",
+        "docs",
+        "excel",
+        "file",
+        "it-ops",
+        "january",
+        "json",
+        "legal",
+        "m_code",
+        "markdown",
+        "police",
+        "preportmonth",
+        "python",
+        "sql",
+        "training"
+      ],
+      "key_terms": [
+        "2026",
+        "preportmonth",
+        "file",
+        "january",
+        "let",
+        "m_code"
+      ],
+      "summary": "# M codes update list and documentation review\n_Exported on 2/21/2026 at 15:27:49 EST from Cursor (2.5.20)_\n\n---\n\n**User**\n\nwhere are the update m codes?",
+      "char_length": 19089,
+      "byte_length": 19397
+    },
+    {
+      "chunk_id": "2026-02-23T11:06:53+00:00_cursor_m_codes_update_list_and_document_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "added",
+        "ai",
+        "code",
+        "commit",
+        "data",
+        "docs",
+        "excel",
+        "files",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sql",
+        "status",
+        "training",
+        "updated"
+      ],
+      "key_terms": [
+        "commit",
+        "updated",
+        "status",
+        "let",
+        "files",
+        "added"
+      ],
+      "summary": "Now let me check git status, diff, and recent commits to prepare the commit.",
+      "char_length": 1159,
+      "byte_length": 1168
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

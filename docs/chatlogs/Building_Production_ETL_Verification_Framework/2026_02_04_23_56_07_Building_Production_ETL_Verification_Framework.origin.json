@@ -1,0 +1,42 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "file",
+        "files",
+        "csv",
+        "powerbi_date",
+        "dev",
+        "verification"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "Microsoft Windows [Version 10.0.26200.7462]\n(c) Microsoft Corporation. All rights reserved.",
+      "first_line": "Microsoft Windows [Version 10.0.26200.7462]"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-04T23:56:07.201083",
+  "department": "admin"
+}

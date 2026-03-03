@@ -1,0 +1,9 @@
+// ___ResponseTime_OutVsCall — Title and subtitle for line chart
+// Metric: Time Out − Time of Call (full response: call receipt → officer on scene)
+// Paste these measures into the report and use for the OutVsCall visual's title/subtitle.
+
+RT OutVsCall Title = 
+    "Average Response Time (From Time Received to On Scene)"
+
+RT OutVsCall Subtitle = 
+    "Values in mm:ss. From time call is received until officer on scene. Rolling 13 months."

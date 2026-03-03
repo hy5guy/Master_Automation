@@ -1,0 +1,379 @@
+│
+│                                                                          │
+│     Args:                                                                │
+│         input_path: Path to monthly CAD export (.xlsx)                   │
+│         logger: Logger instance                                          │
+│                                                                          │
+│     Returns:                                                             │
+│         pd.DataFrame: Raw CAD data                                       │
+│                                                                          │
+│     Raises:                                                              │
+│         FileNotFoundError: If input file not found                       │
+│         ValueError: If required columns missing                          │
+│     """                                                                  │
+│     logger.info(f"Loading CAD data: {input_path}")                       │
+│                                                                          │
+│     if not input_path.exists():                                          │
+│         raise FileNotFoundError(f"CAD export file not found:             │
+│ {input_path}")                                                           │
+│                                                                          │
+│     # Load Excel file                                                    │
+│     df = pd.read_excel(input_path, sheet_name="Sheet1",                  │
+│ engine="openpyxl")                                                       │
+│                                                                          │
+│     # Clean column names                                                 │
+│     df.columns = df.columns.str.strip()                                  │
+│                                                                          │
+│     logger.info(f"Loaded {len(df):,} records from CAD export")           │
+│                                                                          │
+│     # Verify required columns exist                                      │
+│     required_cols = ['ReportNumberNew', 'Incident', 'cYear', 'cMonth']   │
+│     missing_cols = [col for col in required_cols if col not in           │
+│ df.columns]                                                              │
+│                                                                          │
+│     if missing_cols:                                                     │
+│         raise ValueError(f"CAD export missing required columns:          │
+│ {missing_cols}")                                                         │
+│                                                                          │
+│     logger.debug(f"CAD columns: {list(df.columns)}")                     │
+│                                                                          │
+│     return df                                                            │
+│                                                                          │
+│                                                                          │
+│ # ====================================================================== │
+│ ======                                                                   │
+│ # DATA PROCESSING PIPELINE                                               │
+│ # ====================================================================== │
+│ ======                                                                   │
+│                                                                          │
+│ def step1_deduplicate(df: pd.DataFrame, logger: logging.Logger) ->       │
+│ pd.DataFrame:                                                            │
+│     """                                                                  │
+│     STEP 1: Deduplicate by ReportNumberNew (CRITICAL - MUST BE FIRST). │
+│                                                                          │
+│     Multi-unit responses create multiple records with same               │
+│ ReportNumberNew. │
+│     Deduplication prevents counting the same incident multiple times. │
+│                                                                          │
+│     Example: Noise complaint with 3 units → 3 records → deduplicate to 1 │
+│  record                                                                  │
+│                                                                          │
+│     Args:                                                                │
+│         df: Raw CAD data                                                 │
+│         logger: Logger instance                                          │
+│                                                                          │
+│     Returns:                                                             │
+│         pd.DataFrame: Deduplicated data                                  │
+│     """                                                                  │
+│     logger.info("=" * 70)                                                │
+│     logger.info("STEP 1: Deduplication by ReportNumberNew")              │
+│     logger.info("=" * 70)                                                │
+│                                                                          │
+│     original_count = len(df)                                             │
+│                                                                          │
+│     if 'ReportNumberNew' not in df.columns:                              │
+│         logger.warning("ReportNumberNew column not found - skipping      │
+│ deduplication")                                                          │
+│         return df.copy()                                                 │
+│                                                                          │
+│     # Deduplicate: keep first occurrence                                 │
+│     df = df.drop_duplicates(subset=['ReportNumberNew'], keep='first')    │
+│                                                                          │
+│     removed_count = original_count - len(df)                             │
+│     removal_pct = (removed_count / original_count * 100) if              │
+│ original_count > 0 else 0                                                │
+│                                                                          │
+│     logger.info(f"Records before: {original_count:,}")                   │
+│     logger.info(f"Records after:  {len(df):,}")                          │
+│     logger.info(f"Removed:        {removed_count:,}                      │
+│ ({removal_pct:.1f}%)")                                                   │
+│     logger.info("✓ Deduplication complete")                              │
+│                                                                          │
+│     return df.copy()                                                     │
+│                                                                          │
+│                                                                          │
+│ def step2_create_yearmonth(df: pd.DataFrame, logger: logging.Logger) ->  │
+│ pd.DataFrame:                                                            │
+│     """                                                                  │
+│     STEP 2: Create YearMonth column from cYear and cMonth. │
+│                                                                          │
+│     Uses cYear/cMonth columns (NOT CallDateTime which is often missing). │
+│                                                                          │
+│     Args:                                                                │
+│         df: Deduplicated data                                            │
+│         logger: Logger instance                                          │
+│                                                                          │
+│     Returns:                                                             │
+│         pd.DataFrame: Data with YearMonth column                         │
+│     """                                                                  │
+│     logger.info("=" * 70)                                                │
+│     logger.info("STEP 2: Create YearMonth from cYear and cMonth")        │
+│     logger.info("=" * 70)                                                │
+│                                                                          │
+│     df['YearMonth'] = df.apply(create_year_month, axis=1)                │
+│                                                                          │
+│     null_count = df['YearMonth'].isna().sum()                            │
+│     null_pct = (null_count / len(df) * 100) if len(df) > 0 else 0        │
+│                                                                          │
+│     logger.info(f"YearMonth created: {(len(df) - null_count):,} valid,   │
+│ {null_count:,} null ({null_pct:.1f}%)")                                  │
+│                                                                          │
+│     if null_count > 0:                                                   │
+│         logger.warning(f"{null_count} records have invalid YearMonth -   │
+│ these will be excluded")                                                 │
+│                                                                          │
+│     # Remove records with null YearMonth                                 │
+│     df = df[df['YearMonth'].notna()].copy()                              │
+│                                                                          │
+│     logger.info(f"✓ YearMonth creation complete - {len(df):,} records    │
+│ retained")                                                               │
+│                                                                          │
+│     return df                                                            │
+│                                                                          │
+│                                                                          │
+│ def step3_filter_admin_incidents(df: pd.DataFrame, logger:               │
+│ logging.Logger) -> pd.DataFrame:                                         │
+│     """                                                                  │
+│     STEP 3: Filter out administrative incidents (101 types). │
+│                                                                          │
+│     Removes internal/administrative incident types that are not true     │
+│ emergency responses. │
+│                                                                          │
+│     Args:                                                                │
+│         df: Data with YearMonth                                          │
+│         logger: Logger instance                                          │
+│                                                                          │
+│     Returns:                                                             │
+│         pd.DataFrame: Data with admin incidents removed                  │
+│     """                                                                  │
+│     logger.info("=" * 70)                                                │
+│     logger.info("STEP 3: Filter Administrative Incidents (101 types)")   │
+│     logger.info("=" * 70)                                                │
+│                                                                          │
+│     original_count = len(df)                                             │
+│                                                                          │
+│     if 'Incident' not in df.columns:                                     │
+│         logger.warning("Incident column not found - skipping admin       │
+│ filter")                                                                 │
+│         return df.copy()                                                 │
+│                                                                          │
+│     # Standardize incident names                                         │
+│     df['Incident'] = df['Incident'].astype(str).str.strip()              │
+│                                                                          │
+│     # Filter out admin incidents                                         │
+│     df = df[~df['Incident'].isin(ADMIN_INCIDENTS)].copy()                │
+│                                                                          │
+│     removed_count = original_count - len(df)                             │
+│     removal_pct = (removed_count / original_count * 100) if              │
+│ original_count > 0 else 0                                                │
+│                                                                          │
+│     logger.info(f"Records before: {original_count:,}")                   │
+│     logger.info(f"Records after:  {len(df):,}")                          │
+│     logger.info(f"Removed:        {removed_count:,}                      │
+│ ({removal_pct:.1f}%)")                                                   │
+│     logger.info(f"Admin types:    {len(ADMIN_INCIDENTS)}")               │
+│     logger.info("✓ Admin filtering complete")                            │
+│                                                                          │
+│     return df                                                            │
+│                                                                          │
+│                                                                          │
+│ def step4_calculate_response_times(df: pd.DataFrame, logger:             │
+│ logging.Logger) -> pd.DataFrame:                                         │
+│     """                                                                  │
+│     STEP 4: Calculate response times (Time Out - Time Dispatched). │
+│                                                                          │
+│     Primary Method: Time Out - Time Dispatched (in minutes)              │
+│     Fallback: Time Response column (if primary method fails)             │
+│                                                                          │
+│     Args:                                                                │
+│         df: Data with admin incidents filtered                           │
+│         logger: Logger instance                                          │
+│                                                                          │
+│     Returns:                                                             │
+│         pd.DataFrame: Data with Response_Time_Minutes column             │
+│     """                                                                  │
+│     logger.info("=" * 70)                                                │
+│     logger.info("STEP 4: Calculate Response Times")                      │
+│     logger.info("=" * 70)                                                │
+│                                                                          │
+│     # Parse time columns                                                 │
+│     for col in ['Time Dispatched', 'Time Out']:                          │
+│         if col in df.columns:                                            │
+│             df[col] = pd.to_datetime(df[col], errors='coerce')           │
+│                                                                          │
+│             # Remove timezone if present (ensure timezone-naive)         │
+│             if df[col].dt.tz is not None:                                │
+│                 df[col] = df[col].dt.tz_localize(None)                   │
+│         else:                                                            │
+│             logger.warning(f"{col} column not found")                    │
+│             df[col] = pd.NaT                                             │
+│                                                                          │
+│     # Primary method: Time Out - Time Dispatched                         │
+│     df['Response_Time_Minutes'] = (df['Time Out'] - df['Time             │
+│ Dispatched']).dt.total_seconds() / 60.0                                  │
+│                                                                          │
+│     primary_valid = df['Response_Time_Minutes'].notna().sum()            │
+│     primary_pct = (primary_valid / len(df) * 100) if len(df) > 0 else 0  │
+│                                                                          │
+│     logger.info(f"Primary method (Time Out - Dispatched):                │
+│ {primary_valid:,} valid ({primary_pct:.1f}%)")                           │
+│                                                                          │
+│     # Fallback: Time Response column                                     │
+│     if 'Time Response' in df.columns:                                    │
+│         fallback_mask = df['Response_Time_Minutes'].isna()               │
+│         fallback_count_before = fallback_mask.sum()                      │
+│                                                                          │
+│         if fallback_count_before > 0:                                    │
+│             # Convert Time Response (duration format) to minutes         │
+│             fallback_times = pd.to_timedelta(df.loc[fallback_mask, 'Time │
+│  Response'], errors='coerce')                                            │
+│             df.loc[fallback_mask, 'Response_Time_Minutes'] =             │
+│ fallback_times.dt.total_seconds() / 60.0                                 │
+│                                                                          │
+│             fallback_count_after =                                       │
+│ df['Response_Time_Minutes'].isna().sum()                                 │
+│             fallback_filled = fallback_count_before -                    │
+│ fallback_count_after                                                     │
+│                                                                          │
+│             logger.info(f"Fallback method (Time Response):               │
+│ {fallback_filled:,} additional records")                                 │
+│     else:                                                                │
+│         logger.warning("Time Response column not found - no fallback     │
+│ available")                                                              │
+│                                                                          │
+│     total_valid = df['Response_Time_Minutes'].notna().sum()              │
+│     total_pct = (total_valid / len(df) * 100) if len(df) > 0 else 0      │
+│                                                                          │
+│     logger.info(f"Total valid response times: {total_valid:,}            │
+│ ({total_pct:.1f}%)")                                                     │
+│     logger.info("✓ Response time calculation complete")                  │
+│                                                                          │
+│     return df                                                            │
+│                                                                          │
+│                                                                          │
+│ def step5_filter_time_window(df: pd.DataFrame, logger: logging.Logger)   │
+│ -> pd.DataFrame:                                                         │
+│     """                                                                  │
+│     STEP 5: Filter to valid response time window (0 < minutes <= 10). │
+│                                                                          │
+│     Removes unrealistic response times (negative, zero, or > 10          │
+│ minutes). │
+│                                                                          │
+│     Args:                                                                │
+│         df: Data with response times calculated                          │
+│         logger: Logger instance                                          │
+│                                                                          │
+│     Returns:                                                             │
+│         pd.DataFrame: Data within valid time window                      │
+│     """                                                                  │
+│     logger.info("=" * 70)                                                │
+│     logger.info("STEP 5: Filter Response Time Window (0 < min <= 10)")   │
+│     logger.info("=" * 70)                                                │
+│                                                                          │
+│     original_count = len(df)                                             │
+│                                                                          │
+│     # Filter to valid time window                                        │
+│     df = df[                                                             │
+│         df['Response_Time_Minutes'].notna() &                            │
+│         (df['Response_Time_Minutes'] > MIN_RESPONSE_TIME) &              │
+│         (df['Response_Time_Minutes'] <= MAX_RESPONSE_TIME)               │
+│     ].copy()                                                             │
+│                                                                          │
+│     removed_count = original_count - len(df)                             │
+│     removal_pct = (removed_count / original_count * 100) if              │
+│ original_count > 0 else 0                                                │
+│                                                                          │
+│     logger.info(f"Records before: {original_count:,}")                   │
+│     logger.info(f"Records after:  {len(df):,}")                          │
+│     logger.info(f"Removed:        {removed_count:,}                      │
+│ ({removal_pct:.1f}%)")                                                   │
+│     logger.info(f"Time window:    {MIN_RESPONSE_TIME} < minutes <=       │
+│ {MAX_RESPONSE_TIME}")                                                    │
+│     logger.info("✓ Time window filtering complete")                      │
+│                                                                          │
+│     return df                                                            │
+│                                                                          │
+│                                                                          │
+│ def step6_apply_incident_mapping(df: pd.DataFrame, call_type_map: dict,  │
+│ logger: logging.Logger) -> pd.DataFrame:                                 │
+│     """                                                                  │
+│     STEP 6: Apply incident → response type mapping from                  │
+│ CAD_CALL_TYPE.xlsx. │
+│                                                                          │
+│     CRITICAL: Uses mapping file as single source of truth. │
+│     IGNORES any existing "Response Type" column in CAD export. │
+│                                                                          │
+│     Args:                                                                │
+│         df: Data with valid response times                               │
+│         call_type_map: Mapping dictionary (Call Type → Response Type)    │
+│         logger: Logger instance                                          │
+│                                                                          │
+│     Returns:                                                             │
+│         pd.DataFrame: Data with Response_Type column from mapping        │
+│     """                                                                  │
+│     logger.info("=" * 70)                                                │
+│     logger.info("STEP 6: Apply Incident → Response Type Mapping")        │
+│     logger.info("=" * 70)                                                │
+│                                                                          │
+│     # Drop existing Response Type column if present (we don't trust it)  │
+│     if 'Response Type' in df.columns:                                    │
+│         logger.info("Dropping existing 'Response Type' column (using     │
+│ mapping file instead)")                                                  │
+│         df = df.drop(columns=['Response Type'])                          │
+│                                                                          │
+│     # Apply mapping                                                      │
+│     df['Response_Type'] = df['Incident'].map(call_type_map)              │
+│                                                                          │
+│     # Normalize response types (handle case variations)                  │
+│     response_normalize = {                                               │
+│         'RoutineZ': 'Routine', 'routine': 'Routine', 'ROUTINE':          │
+│ 'Routine',                                                               │
+│         'emergency': 'Emergency', 'EMERGENCY': 'Emergency',              │
+│         'urgent': 'Urgent', 'URGENT': 'Urgent'                           │
+│     }                                                                    │
+│     df['Response_Type'] =                                                │
+│ df['Response_Type'].replace(response_normalize)                          │
+│                                                                          │
+│     # Identify unmapped incidents                                        │
+│     unmapped_mask = df['Response_Type'].isna() |                         │
+│ ~df['Response_Type'].isin(VALID_RESPONSE_TYPES)                          │
+│     unmapped_count = unmapped_mask.sum()                                 │
+│     unmapped_pct = (unmapped_count / len(df) * 100) if len(df) > 0 else  │
+│ 0                                                                        │
+│                                                                          │
+│     logger.info(f"Mapped incidents:   {(len(df) - unmapped_count):,}")   │
+│     logger.info(f"Unmapped incidents: {unmapped_count:,}                 │
+│ ({unmapped_pct:.1f}%)")                                                  │
+│                                                                          │
+│     # Report unmapped incidents                                          │
+│     if unmapped_count > 0:                                               │
+│         unmapped_incidents =                                             │
+│ df[unmapped_mask]['Incident'].value_counts()                             │
+│         logger.warning(f"Found {len(unmapped_incidents)} unique unmapped │
+│  incident types:")                                                       │
+│         for incident, count in unmapped_incidents.head(10).items():      │
+│             logger.warning(f"  - {incident}: {count} occurrences")       │
+│                                                                          │
+│         if len(unmapped_incidents) > 10:                                 │
+│             logger.warning(f"  ... and {len(unmapped_incidents) - 10}    │
+│ more")                                                                   │
+│                                                                          │
+│         # Check threshold                                                │
+│         if unmapped_pct > UNMAPPED_THRESHOLD_PCT:                        │
+│             error_msg = f"Unmapped incidents ({unmapped_pct:.1f}%)       │
+│ exceed threshold ({UNMAPPED_THRESHOLD_PCT}%)"                            │
+│             logger.error(error_msg)                                      │
+│             logger.error("ACTION REQUIRED: Add missing incidents to      │
+│ CAD_CALL_TYPE.xlsx")                                                     │
+│             raise ValueError(error_msg)                                  │
+│                                                                          │
+│     logger.info("✓ Incident mapping complete")                           │
+│                                                                          │
+│     return df                                                            │
+│                                                                          │
+│                                                                          │
+│ def step7_filter_valid_response_types(df: pd.DataFrame, logger:          │
+│ logging.Logger) -> pd.DataFrame:                                         │
+│     """                                                                  │
+│     STEP 7: Filter to valid response types only                          │
+│ (Emergency/Urgent/Routine).

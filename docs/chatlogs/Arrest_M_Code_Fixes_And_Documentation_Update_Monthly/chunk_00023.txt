@@ -1,0 +1,722 @@
+Args:
+            df: Input DataFrame to clean and enrich
+            month_info: Dictionary containing month information
+            
+        Returns:
+            Cleaned and enriched DataFrame
+        """
+        if df.empty:
+            logger.warning("No data to clean and enrich")
+            return df
+        
+        try:
+            # Ensure address column is standardized
+            df['Address'] = df.get('Address', '').fillna('').astype(str).str.strip()
+
+            # Extract ZIP codes from address field
+            df['ExtractedZIP'] = df['Address'].apply(self.extract_zip_from_address)
+            
+            # Use existing ZIP column if available, otherwise use extracted
+            zip_cols = [col for col in df.columns if 'zip' in col.lower()]
+            if zip_cols:
+                df['ZIP'] = df[zip_cols[0]].fillna(df['ExtractedZIP'])
+                df['OriginalZipColumn'] = zip_cols[0]
+            else:
+                df['ZIP'] = df['ExtractedZIP']
+                df['OriginalZipColumn'] = 'ExtractedZIP'
+            
+            # Normalize ZIP codes and flag validity
+            df['ZIP'] = df['ZIP'].apply(self._normalize_zip_value)
+            df['zip_code'] = df['ZIP']
+            df['ValidZIP'] = df['ZIP'].notna()
+            
+            # Convert Arrest Date if present
+            if 'Arrest Date' in df.columns:
+                df['Arrest Date'] = pd.to_datetime(df['Arrest Date'], errors='coerce')
+                
+                # Filter to target month
+                start_date = month_info['start_date']
+                end_date = month_info['end_date']
+                
+                # Use inclusive date range filtering (normalize to date for comparison)
+                mask = (
+                    (df['Arrest Date'].dt.date >= start_date.date()) & 
+                    (df['Arrest Date'].dt.date <= end_date.date())
+                )
+                df = df[mask].copy()
+                logger.info(
+                    f"After date filtering ({start_date.strftime('%Y-%m-%d')} to "
+                    f"{end_date.strftime('%Y-%m-%d')}): {len(df)} records"
+                )
+            
+            # Join with ZIP reference data
+            if not self.zip_ref.empty:
+                ref_df = self.zip_ref.rename(
+                    columns={'state_id': 'zip_state_id', 'county_name': 'zip_county_name'}
+                )
+                df = df.merge(ref_df, left_on='ZIP', right_on='zip', how='left')
+            
+            df.drop(columns=['zip'], inplace=True, errors='ignore')
+
+            # Standardize county/state fields using reference data
+            if 'state_id' not in df.columns:
+                df['state_id'] = ''
+            if 'county_name' not in df.columns:
+                df['county_name'] = ''
+
+            df['state_id'] = df['state_id'].fillna('').astype(str).str.upper().str.strip()
+            df['county_name'] = df['county_name'].fillna('').apply(self._normalize_county_name)
+
+            if 'zip_state_id' in df.columns:
+                df['zip_state_id'] = df['zip_state_id'].fillna('').astype(str).str.upper().str.strip()
+                df['state_id'] = np.where(
+                    df['state_id'].astype(bool),
+                    df['state_id'],
+                    df['zip_state_id']
+                )
+
+            if 'zip_county_name' in df.columns:
+                df['zip_county_name'] = df['zip_county_name'].fillna('').apply(self._normalize_county_name)
+                df['county_name'] = np.where(
+                    df['county_name'].astype(bool),
+                    df['county_name'],
+                    df['zip_county_name']
+                )
+
+            df.drop(columns=['zip_state_id', 'zip_county_name'], inplace=True, errors='ignore')
+
+            # Infer missing geography metadata
+            geo_values = df.apply(self._infer_geography, axis=1, result_type='expand')
+            geo_values = geo_values.fillna('')
+            geo_county = geo_values[0].apply(self._normalize_county_name)
+            geo_state = geo_values[1].astype(str).str.upper().str.strip()
+
+            df['county_name'] = np.where(
+                df['county_name'].astype(bool),
+                df['county_name'],
+                geo_county
+            )
+            df['state_id'] = np.where(
+                df['state_id'].astype(bool),
+                df['state_id'],
+                geo_state
+            )
+
+            df['county_state'] = np.where(
+                df['county_name'].astype(bool) & df['state_id'].astype(bool),
+                df['county_name'] + ', ' + df['state_id'],
+                ''
+            )
+            df['state'] = df['state_id']
+
+            # Derive city and residence categories
+            df['city_of_residence'] = df.apply(self._extract_city_of_residence, axis=1)
+            df['residence_category'] = df.apply(self._classify_residence_category, axis=1)
+            df['Home_Category'] = df['residence_category']
+            
+            # Create full address field for analysis
+            df['FullAddress2'] = df['Address'].str.upper()
+            
+            # Split UCR codes if present
+            if 'UCR #' in df.columns:
+                ucr_split = df['UCR #'].astype(str).str.split(' ', n=1, expand=True)
+                df['UCR_Code'] = ucr_split[0] if len(ucr_split.columns) > 0 else ''
+                df['UCR_Desc'] = ucr_split[1] if len(ucr_split.columns) > 1 else ''
+            else:
+                df['UCR_Code'] = ''
+                df['UCR_Desc'] = ''
+            
+            # Charge categorization
+            if 'Charge' in df.columns:
+                df['charge_category'] = df.apply(
+                    lambda row: self._categorize_charge(row.get('Charge'), row.get('UCR_Code')),
+                    axis=1
+                )
+                df['statute'] = df['Charge'].astype(str).str.extract(r'(\d+:\d+-\d+)', expand=False)
+                df['charge_description'] = df['Charge'].astype(str).str.replace(
+                    r'\d+:\d+-\d+', '', regex=True
+                ).str.strip()
+            else:
+                df['charge_category'] = 'Unknown'
+                df['statute'] = ''
+                df['charge_description'] = ''
+
+            # Add processing metadata
+            df['MonthProcessed'] = f"{month_info['month_name']} {month_info['year']}"
+            df['DateFilterRange'] = (
+                f"{month_info['start_date'].strftime('%Y-%m-%d')} to "
+                f"{month_info['end_date'].strftime('%Y-%m-%d')}"
+            )
+            df['ProcessingTimestamp'] = datetime.now().isoformat()
+
+            # Add record index
+            df.reset_index(drop=True, inplace=True)
+            df['RecordIndex'] = df.index + 1
+
+            # 🔧 FIX: Convert column names for M Code compatibility
+            df = self._prepare_for_mcode_compatibility(df)
+
+            # MonthKey for current-month export
+            report_end = pd.Timestamp(month_info['start_date'])
+            df['MonthKey'] = report_end
+            df['MonthKey'] = df['MonthKey'].apply(normalize_monthkey)
+            df['MonthKey'] = pd.to_datetime(df['MonthKey']).dt.date
+
+            logger.info(f"Data cleaning and enrichment completed: {len(df)} records")
+            return df
+            
+        except Exception as e:
+            logger.error(f"Error during data cleaning and enrichment: {e}")
+            return pd.DataFrame()
+
+    def export_results(self, df: pd.DataFrame, month_info: Dict) -> Optional[Path]:
+        """
+        Export processed results to CSV and JSON summary. Args:
+            df: DataFrame to export
+            month_info: Dictionary containing month information
+            
+        Returns:
+            Path to exported CSV file or None if export failed
+        """
+        if df.empty:
+            logger.warning("No data to export")
+            return None
+        
+        try:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            month_name = month_info['month_name'].lower()
+            year = month_info['year']
+            
+            # Export CSV
+            output_file = self.output_folder / f"arrests_{month_name}_{year}_{timestamp}.csv"
+            df.to_csv(output_file, index=False)
+            logger.info(f"Exported {len(df)} records to {output_file}")
+            
+            # Create and export summary
+            summary = self._create_summary(df, month_info)
+            summary_file = self.output_folder / f"arrests_summary_{month_name}_{year}_{timestamp}.json"
+            
+            with open(summary_file, 'w') as f:
+                json.dump(summary, f, indent=2, default=str)
+            
+            logger.info(f"Exported summary to {summary_file}")
+
+            # Export Excel snapshot for Power BI visuals that expect .xlsx inputs
+            excel_path = self._export_excel_snapshot(df, month_info)
+            if excel_path:
+                logger.info(f"Exported Power BI ready workbook to {excel_path}")
+            
+            return output_file
+            
+        except Exception as e:
+            logger.error(f"Error exporting results: {e}")
+            return None
+
+    def _prepare_for_mcode_compatibility(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        🔧 FIX: Prepare DataFrame for M Code compatibility. Ensure column names and data formats match M Code expectations. Args:
+            df: Processed DataFrame
+
+        Returns:
+            DataFrame with M Code-compatible formatting
+        """
+        # The arrest processor already uses mostly M Code compatible names
+        # Just ensure key fields are properly formatted
+
+        # Ensure Address_Defaulted field exists
+        if 'Address' in df.columns:
+            df['Address_Defaulted'] = df['Address'].fillna('Not Provided').replace('', 'Not Provided')
+
+        # Ensure ZIP is text type
+        if 'ZIP' in df.columns:
+            df['ZIP'] = df['ZIP'].apply(lambda value: '' if pd.isna(value) else str(value))
+
+        # Split UCR if it exists
+        if 'UCR #' in df.columns:
+            ucr_split = df['UCR #'].astype(str).str.split(' ', n=1, expand=True)
+            df['UCR_Code'] = ucr_split[0] if len(ucr_split.columns) > 0 else ''
+            df['UCR_Desc'] = ucr_split[1] if len(ucr_split.columns) > 1 else ''
+
+        logger.info("Prepared data for M Code compatibility")
+        return df
+
+    def _export_excel_snapshot(self, df: pd.DataFrame, month_info: Dict) -> Optional[Path]:
+        """
+        Export a Power BI-ready Excel file to preserve legacy M Code integrations. Args:
+            df: Processed arrest dataset. month_info: Metadata describing the processed month. Returns:
+            Path to the exported Excel file, or None if export fails.
+        """ try:
+            excel_name = f"{month_info['year']}_{month_info['month']:02d}_Arrests_PowerBI_Ready.xlsx"
+            excel_path = self.output_folder / excel_name
+
+            export_df = df.copy()
+            for zip_col in ['ZIP', 'zip_code']:
+                if zip_col in export_df.columns:
+                    export_df[zip_col] = export_df[zip_col].apply(
+                        lambda value: self._normalize_zip_value(value) or ''
+                    )
+
+            with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
+                export_df.to_excel(writer, sheet_name='PowerBI_Ready', index=False)
+
+            return excel_path
+        except Exception as exc:
+            logger.error(f"Failed to export Power BI ready workbook: {exc}")
+            return None
+
+    def _create_summary(self, df: pd.DataFrame, month_info: Dict) -> Dict:
+        """
+        Create summary statistics for the processed data. Args:
+            df: Processed DataFrame
+            month_info: Dictionary containing month information
+
+        Returns:
+            Dictionary containing summary statistics
+        """
+        return {
+            'total_records': len(df),
+            'month_processed': f"{month_info['month_name']} {month_info['year']}",
+            'processing_timestamp': datetime.now().isoformat(),
+            'residence_category_breakdown': df['residence_category'].value_counts().to_dict(),
+            'home_category_breakdown': df['Home_Category'].value_counts().to_dict(),
+            'valid_zip_count': df['ValidZIP'].sum(),
+            'files_processed': df['source_file'].nunique(),
+            'sheets_processed': df['source_sheet'].nunique()
+        }
+
+    def run_processing(self) -> Optional[Path]:
+        """
+        Run the complete arrest data processing pipeline. Returns:
+            Path to exported file if successful, None otherwise
+        """
+        logger.info("Starting arrest data processing for previous month")
+        
+        try:
+            # Find target files
+            files, month_info = self.find_target_files()
+            
+            if not files:
+                logger.error(f"No files found for {month_info['month_name']} {month_info['year']}")
+                return None
+            
+            # Process files
+            df = self.process_files(files, month_info)
+            
+            if df.empty:
+                logger.error("No data found in processed files")
+                return None
+            
+            # Clean and enrich data
+            df = self.clean_and_enrich_data(df, month_info)
+            
+            if df.empty:
+                logger.error("No data remaining after filtering")
+                return None
+            
+            # Standardized current-month output for PBIX backfill union
+            write_current_month(
+                df=df,
+                subject='Arrests',
+                report_end_month=pd.Timestamp(month_info['start_date'])
+            )
+            
+            # Export results
+            output_file = self.export_results(df, month_info)
+            
+            if output_file:
+                logger.info("Arrest data processing completed successfully")
+            else:
+                logger.error("Failed to export results")
+            
+            return output_file
+            
+        except Exception as e:
+            logger.error(f"Error in processing pipeline: {e}")
+            return None
+
+
+def main() -> None:
+    """Main entry point for the arrest data processor.""" parser = argparse.ArgumentParser(
+        description="Process arrest data for previous month with ZIP enrichment"
+    )
+    parser.add_argument(
+        "--base-path", 
+        type=str, 
+        help="Base path for data processing"
+    )
+    parser.add_argument(
+        "--log-level",
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
+        default='INFO',
+        help="Set logging level"
+    )
+    
+    args = parser.parse_args()
+    
+    # Set logging level
+    logging.getLogger().setLevel(getattr(logging, args.log_level))
+    
+    try:
+        # Initialize processor
+        processor = ArrestDataProcessor(base_path=args.base_path)
+        
+        # Run processing
+        result = processor.run_processing()
+        
+        if result:
+            logger.info(f"Processing completed successfully. Output: {result}")
+        else:
+            logger.error("Processing failed or no data found.") except Exception as e:
+        logger.error(f"Fatal error in main execution: {e}")
+        raise
+
+
+if __name__ == "__main__":
+    main()
+```
+
+Issue found: the script used `glob("*.xlsx")`, which only searches the immediate directory. The December file is in `monthly_export\2025\`, so it wasn't found. Updated the script to use recursive glob (`glob("**/*.xlsx")`). Verifying the change and testing:
+
+
+```markdown
+# Arrest Script Path Fix - January 5, 2026
+
+## 🔍 Issue Identified
+
+The arrest processing script was not finding the December 2025 file because:
+- **Script was looking:** `05_EXPORTS/_Arrest/*.xlsx` (non-recursive)
+- **File actually located:** `05_EXPORTS/_Arrest/monthly_export/2025/2025_12_LAWSOFT_ARREST.xlsx`
+
+### Root Cause
+The script used `glob("*.xlsx")` which only searches the immediate directory, not subdirectories. ---
+
+## ✅ Fix Applied
+
+### File Updated
+`C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Arrests\arrest_python_processor.py`
+
+### Change Made
+**Line 404:** Changed from non-recursive to recursive glob search
+
+**Before:**
+```python
+all_files = sorted(
+    self.arrest_folder.glob("*.xlsx"),  # ❌ Only immediate directory
+    key=lambda file_path: file_path.stat().st_mtime,
+    reverse=True
+)
+```
+
+**After:**
+```python
+# Search recursively for .xlsx files in subdirectories (e.g., monthly_export/2025/)
+all_files = sorted(
+    self.arrest_folder.glob("**/*.xlsx"),  # ✅ Recursive search
+    key=lambda file_path: file_path.stat().st_mtime,
+    reverse=True
+)
+```
+
+---
+
+## 📁 Directory Structure
+
+The script now searches recursively and will find files in:
+
+```
+05_EXPORTS/_Arrest/
+├── *.xlsx                          ✅ (immediate directory)
+├── monthly_export/
+│   └── 2025/
+│       └── 2025_12_LAWSOFT_ARREST.xlsx  ✅ (now found!) └── full_year/
+    └── 2025/
+        └── 2025_Lawsoft_Yearly_Arrest.xlsx  ✅ (also found)
+```
+
+---
+
+## 🎯 Expected Behavior
+
+After this fix, the script will:
+1. ✅ Search recursively in all subdirectories
+2. ✅ Find the December 2025 file: `monthly_export/2025/2025_12_LAWSOFT_ARREST.xlsx`
+3. ✅ Select the most recent file by modification time
+4. ✅ Process it and create `2025_12_Arrests_PowerBI_Ready.xlsx`
+
+---
+
+## 📋 Next Steps
+
+1. **Run the arrest script again:**
+   ```powershell
+   .\scripts\run_all_etl.ps1 -ScriptNames "Arrests"
+   ```
+
+2. **Verify output:**
+   - Check for: `2025_12_Arrests_PowerBI_Ready.xlsx` in `01_DataSources/ARREST_DATA/Power_BI/`
+
+3. **Update Power BI queries:**
+   - The M code queries are already updated to target December 2025
+   - They will automatically load the new PowerBI_Ready file once it's created
+
+---
+
+## ✅ Verification
+
+**Files Found by Recursive Search:**
+- ✅ `2025_12_LAWSOFT_ARREST.xlsx` (Modified: 01/02/2026 11:46:24) - **Latest**
+- ✅ `2025_Lawsoft_Yearly_Arrest.xlsx` (Modified: 01/02/2026 11:45:34)
+- ✅ `2025_11_LAWSOFT_ARREST.xlsx` (Modified: 12/10/2025 13:34:28)
+
+**Status:** ✅ **FIXED - Ready to Process December 2025 Data**
+
+```
+
+## Fix applied
+
+### Problem
+The script used `glob("*.xlsx")`, which only searches the immediate directory. The December file is in a subdirectory:
+- Looking in: `05_EXPORTS/_Arrest/*.xlsx`
+- File is at: `05_EXPORTS/_Arrest/monthly_export/2025/2025_12_LAWSOFT_ARREST.xlsx`
+
+### Solution
+Updated the script to use recursive glob search:
+
+**Changed line 404-405:**
+- **Before:** `self.arrest_folder.glob("*.xlsx")` (non-recursive)
+- **After:** `self.arrest_folder.glob("**/*.xlsx")` (recursive)
+
+### Verification
+The recursive search now finds:
+- `2025_12_LAWSOFT_ARREST.xlsx` (Modified: 01/02/2026) — latest
+- `2025_Lawsoft_Yearly_Arrest.xlsx`
+- `2025_11_LAWSOFT_ARREST.xlsx`
+
+### Next step
+Run the arrest script again; it should now find and process the December 2025 file:
+
+```powershell
+.\scripts\run_all_etl.ps1 -ScriptNames "Arrests"
+```
+
+This should create `2025_12_Arrests_PowerBI_Ready.xlsx` in the Power_BI directory. The fix is documented in `docs/ARREST_SCRIPT_PATH_FIX.md`. ```powershell
+.\scripts\run_all_etl.ps1 -ScriptNames "Arrests"
+```
+
+---
+
+**User**
+
+run the script for me
+
+---
+
+**Cursor**
+
+Running the arrest processing script to process the December 2025 file:
+
+
+Script completed successfully. Checking if the December 2025 PowerBI_Ready file was created:
+
+
+Checking the log file to see what file was processed:
+
+
+## Success: December 2025 file created
+
+The script found and processed the December 2025 file. **Created file:**
+- `2025_12_Arrests_PowerBI_Ready.xlsx`
+- Location: `C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI`
+- Created: 01/05/2026 23:58:23 (just now)
+
+### What happened
+1. Script found the December file using recursive search
+2. Processed `2025_12_LAWSOFT_ARREST.xlsx` from `monthly_export/2025/`
+3. Created the PowerBI_Ready file for December 2025
+
+### Next steps
+1. Update Power BI queries with the updated M code from:
+   - `m_code/___Top_5_Arrests_FIXED.m`
+   - `m_code/___Arrest_Categories_FIXED.m`
+
+2. Refresh the queries in Power BI — they should now:
+   - Load `2025_12_Arrests_PowerBI_Ready.xlsx` automatically
+   - Filter to December 2025 data
+   - Display results instead of empty tables
+
+The path fix worked, and the December 2025 data is ready for Power BI. ---
+
+**User**
+
+Expression.Error: The value for option 'Culture' is invalid. in @m_code/___Arrest_Categories_FIXED.m 
+
+---
+
+**Cursor**
+
+The error is likely from `Table.TransformColumnTypes` when converting the date column. Fixing it:
+
+
+```objective-c
+// ___Arrest_Categories
+// 🕒 2025-01-05-14-30-00
+// Project: Arrest_Analysis/Arrest_Categories
+// Author: R. A. Carucci
+// Purpose: Simplified M Code that relies on Python preprocessing for geographic data
+
+let
+    // ═══ A) Load latest Power BI ready file ═══════════════════════
+    FolderFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"),
+    
+    PowerBIFiles = Table.SelectRows(
+        FolderFiles,
+        each [Extension] = ".xlsx" and Text.Contains([Name], "PowerBI_Ready")
+    ),
+    
+    Sorted = Table.Sort(PowerBIFiles, {{"Date modified", Order.Descending}}),
+    
+    // Load the latest file
+    Source = if Table.RowCount(Sorted) > 0 then
+        Excel.Workbook(Sorted{0}[Content], null, true){0}[Data]
+    else
+        error "No Power BI ready files found",
+
+    // ═══ B) Basic data cleaning ═══════════════════════════════════
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+    
+    // Filter to previous month - handle multiple date column name variations
+    // Handle Excel serial dates, actual dates, and text dates
+    ToDate = (x) => 
+        if x = null or x = "" then
+            null
+        else
+            // Try Date.From first (handles Excel serial numbers and dates)
+            try Date.From(x) otherwise
+            // Try converting number to Excel serial date
+            try if Number.From(x) > 0 and Number.From(x) < 1000000 then
+                Date.From(Number.From(x))
+            else
+                null
+            otherwise
+            // Try Date.FromText for text dates
+            try Date.FromText(Text.From(x)) otherwise null,
+    
+    // December 2025 data is now available at:
+    // C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Arrest\monthly_export\2025\2025_12_LAWSOFT_ARREST.xlsx
+    Prev = Date.AddMonths(Date.From(DateTime.LocalNow()), -1),
+    PrevY = Date.Year(Prev),
+    PrevM = Date.Month(Prev),
+    
+    // Find the date column (handle variations)
+    DateColumnName = if Table.HasColumns(Headers, "Arrest Date") then
+        "Arrest Date"
+    else if Table.HasColumns(Headers, "Arrest_Date") then
+        "Arrest_Date"
+    else if Table.HasColumns(Headers, "ArrestDate") then
+        "ArrestDate"
+    else if Table.HasColumns(Headers, "Date") then
+        "Date"
+    else
+        null,
+    
+    DateFiltered = if DateColumnName = null then
+        #table({"Name", "Age", "Address", "Charge", "Arrest Date"}, {})
+    else
+        Table.SelectRows(
+            Headers,
+            each let d = ToDate(Record.Field(_, DateColumnName)) in d <> null and Date.Year(d) = PrevY and Date.Month(d) = PrevM
+        ),
+
+    // ═══ C) Handle empty results gracefully ═══════════════════════
+    HasData = Table.RowCount(DateFiltered) > 0,
+    
+    // Use Python-processed geographic data directly
+    WithHomeCategory = if not HasData then
+        #table({"Name", "Age", "Address", "Charge", "Arrest Date", "Home_Category_Final"}, {})
+    else
+        Table.AddColumn(
+            DateFiltered,
+            "Home_Category_Final",
+            each
+                // Use Python's Home_Category if available, otherwise fallback
+                if Table.HasColumns(DateFiltered, "Home_Category") then
+                    [Home_Category]
+                else if Text.Contains(Text.Upper([Address] ? ? ""), "HACKENSACK") then
+                    "Local"
+                else
+                    "Check Data",
+            type text
+        ),
+
+    // ═══ D) Simple charge categorization ═══════════════════════════
+    AddChargeCategory = if not HasData then
+        WithHomeCategory
+    else
+        Table.AddColumn(
+            WithHomeCategory,
+            "ChargeCategory",
+            each
+                let charge = Text.Upper([Charge] ? ? "") in
+                if Text.Contains(charge, "ASSAULT") then "Assault"
+                else if Text.Contains(charge, "SHOPLIFTING") then "Theft"
+                else if Text.Contains(charge, "BURGLARY") then "Burglary"
+                else if Text.Contains(charge, "ROBBERY") then "Robbery"
+                else if Text.Contains(charge, "WARRANT") then "Warrant"
+                else if Text.Contains(charge, "DWI") then "DWI"
+                else if Text.Contains(charge, "DRUG") then "Drug Related"
+                else if Text.Contains(charge, "WEAPON") then "Weapons"
+                else "Other",
+            type text
+        ),
+
+    // ═══ E) Data quality indicators ═══════════════════════════════
+    AddDataQuality = if not HasData then
+        Table.AddColumn(AddChargeCategory, "DataQualityScore", each 0, type number)
+    else if Table.HasColumns(AddChargeCategory, "DataQualityScore") then
+        AddChargeCategory
+    else
+        Table.AddColumn(
+            AddChargeCategory,
+            "DataQualityScore",
+            each
+                (if [Name] <> null and [Name] <> "" then 1 else 0) +
+                (if [Age] <> null and Number.From([Age] ? ? 0) > 0 then 1 else 0) +
+                (if [Address] <> null and [Address] <> "" then 1 else 0) +
+                (if [Charge] <> null and [Charge] <> "" then 1 else 0) +
+                (if Table.HasColumns(AddChargeCategory, "ZIP") and [ZIP] <> null then 1 else 0),
+            type number
+        ),
+
+    // ═══ F) Final type enforcement ═══════════════════════════════
+    TypedData = if not HasData then
+        AddDataQuality
+    else
+        let
+            // Build type list only for columns that exist
+            TypeList = List.RemoveNulls({
+                if Table.HasColumns(AddDataQuality, "Age") then {"Age", type number} else null,
+                if Table.HasColumns(AddDataQuality, "DataQualityScore") then {"DataQualityScore", type number} else null,
+                if DateColumnName <> null and Table.HasColumns(AddDataQuality, DateColumnName) then {DateColumnName, type date} else null
+            }),
+            // Apply type transformation only if we have columns to transform
+            Result = if List.Count(TypeList) > 0 then
+                Table.TransformColumnTypes(AddDataQuality, TypeList, MissingField.Ignore)
+            else
+                AddDataQuality
+        in
+            Result,
+
+    // ═══ G) Add source tracking ═══════════════════════════════════
+    WithSourceInfo = Table.AddColumn(
+        TypedData,
+        "SourceFile",
+        each if Table.RowCount(Sorted) > 0 then Sorted{0}[Name] else "Unknown",
+        type text
+    )
+
+in
+    WithSourceInfo
+
+```
+
+The linter errors are false positives (M code being parsed as C/C++). The Culture error likely comes from date type conversion.

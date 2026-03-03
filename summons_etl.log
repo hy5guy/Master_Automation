@@ -1,0 +1,1110 @@
+2026-02-26 18:09:05,052 - INFO - Starting Summons ETL Process v2.1
+2026-02-26 18:09:05,068 - INFO - Assignment Master columns: ['REF_NUMBER', 'FULL_NAME', 'TITLE', 'FIRST_NAME', 'LAST_NAME', 'BADGE_NUMBER', 'PADDED_BADGE_NUMBER', 'TEAM', 'WG1', 'WG2', 'WG3', 'WG4', 'CONTRACT_TYPE', 'STANDARD_NAME', 'CONFLICT_RESOLUTION', 'CODE', 'WORKING_GROUP', 'DOB', 'JOINED_SERVICE', 'SGT', 'LT', 'CAPT', 'CHIEF', 'STATUS', 'RANK']
+2026-02-26 18:09:05,069 - INFO - Assignment Master: V3 schema detected (STANDARD_NAME / PATROL DIVISION)
+2026-02-26 18:09:05,076 - INFO - Loaded 155 officer records from Assignment Master
+2026-02-26 18:09:05,078 - INFO - Loading e-ticket: 2026_01_eticket_export.csv
+2026-02-26 18:09:05,179 - INFO - Loaded 4136 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note', 'Column106', 'Column107', 'Column108', 'Column109', 'Column110', 'Column111', 'Column112', 'Column113']
+2026-02-26 18:09:05,191 - INFO - Records after Officer Id validation: 4136
+2026-02-26 18:09:05,419 - INFO - Badge join: 4134 matched, 2 unmatched
+2026-02-26 18:09:05,419 - WARNING - Unmatched badges (update Assignment Master): ['9110']
+2026-02-26 18:09:05,524 - WARNING - Last-name fuzzy match: 33 rows with score < 70 (export vs Assignment Master by badge)
+2026-02-26 18:09:05,616 - INFO - E-ticket processing complete: 4136 records, 67 unique officers
+2026-02-26 18:09:05,621 - INFO - === PROCESSING SUMMARY ===
+2026-02-26 18:09:05,621 - INFO - total_records: 4136
+2026-02-26 18:09:05,621 - INFO - date_range: 1/10/2026 10:05 to 2/6/2026 9:27
+2026-02-26 18:09:05,621 - INFO - unique_officers: 67
+2026-02-26 18:09:05,621 - INFO - match_quality_distribution: {'DIRECT_BADGE': 4134, 'NO_MATCH': 2}
+2026-02-26 18:09:05,621 - INFO - type_distribution: {'P': 3577, 'M': 474, 'C': 85}
+2026-02-26 18:09:05,621 - INFO - name_anomaly_count: 237
+2026-02-26 18:09:05,621 - INFO - data_quality_avg: 99.98791102514507
+2026-02-26 18:09:15,081 - INFO - Saved: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_20260226_180905.xlsx
+2026-02-26 18:09:22,697 - INFO - Saved: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+2026-02-26 18:09:22,697 - INFO - === QA VALIDATION: counts by badge+type ===
+2026-02-26 18:09:22,708 - INFO - 
+PADDED_BADGE_NUMBER       OFFICER_DISPLAY_NAME TYPE  COUNT
+               0083         A. MATTALIAN #0083    M      3
+               0083         A. MATTALIAN #0083    P      3
+               0135          MA. ANTISTA #0135    M      5
+               0135          MA. ANTISTA #0135    P     16
+               0138          M. JACOBSEN #0138    C      1
+               0138          M. JACOBSEN #0138    M     87
+               0138          M. JACOBSEN #0138    P     87
+               0144         M. DIMARTINO #0144    P      4
+               0161            W. RIVERA #0161    M      1
+               0161            W. RIVERA #0161    P      1
+               0164          B. MCCARTHY #0164    M      5
+               0164          B. MCCARTHY #0164    P      6
+               0166         P. DOMINGUEZ #0166    M      3
+               0166         P. DOMINGUEZ #0166    P     11
+               0226       F. COMPETIELLO #0226    M      2
+               0253           F. CAVALLO #0253    P      2
+               0256         G. GALLORINI #0256    M     15
+               0256         G. GALLORINI #0256    P    415
+               0257              J. MORA #0257    M     15
+               0257              J. MORA #0257    P     60
+               0271            D. MARBLE #0271    P      3
+               0301            F. MCCALL #0301    M      1
+               0308      I. PAPANIKOLAOU #0308    M      1
+               0308      I. PAPANIKOLAOU #0308    P     15
+               0309             B. FARHI #0309    M      5
+               0309             B. FARHI #0309    P      1
+               0318              R. LYAK #0318    M      2
+               0318              R. LYAK #0318    P      5
+               0322              A. MENA #0322    P      1
+               0327            M. ONEILL #0327    C      1
+               0327            M. ONEILL #0327    M     52
+               0327            M. ONEILL #0327    P    163
+               0328             K. SMALL #0328    M      5
+               0328             K. SMALL #0328    P     13
+               0329       D. FRANCAVILLA #0329    M     39
+               0329       D. FRANCAVILLA #0329    P    207
+               0333        R. DONNERSTAG #0333    M      1
+               0335         J. TANUCILLI #0335    P      1
+               0339               M. REO #0339    M      5
+               0342         J. RODRIGUEZ #0342    M      4
+               0342         J. RODRIGUEZ #0342    P     14
+               0344            S. TOVBIN #0344    M      2
+               0344            S. TOVBIN #0344    P     20
+               0346            F. CANEJA #0346    M      2
+               0347        S. LEMANOWICZ #0347    M      5
+               0347        S. LEMANOWICZ #0347    P     20
+               0350           B. ESTRADA #0350    M      2
+               0350           B. ESTRADA #0350    P     23
+               0354            R. CONLON #0354    M      2
+               0355             A. REYES #0355    M      9
+               0355             A. REYES #0355    P      2
+               0356             A. MARZA #0356    P      1
+               0357            A. MILLER #0357    M      1
+               0357            A. MILLER #0357    P      4
+               0361            B. RIVERA #0361    M      8
+               0361            B. RIVERA #0361    P      4
+               0362            PA. LOPEZ #0362    M      2
+               0363           A. TABARES #0363    M      1
+               0363           A. TABARES #0363    P      4
+               0364           C. ALVAREZ #0364    M     13
+               0364           C. ALVAREZ #0364    P     32
+               0365            M. GIBSON #0365    M      2
+               0365            M. GIBSON #0365    P     42
+               0366             J. PRICE #0366    M     10
+               0366             J. PRICE #0366    P     12
+               0368         M. ANGUIZACA #0368    M      7
+               0368         M. ANGUIZACA #0368    P      5
+               0369             R. SALAS #0369    M     14
+               0369             R. SALAS #0369    P      4
+               0370            A. VICALE #0370    M      5
+               0370            A. VICALE #0370    P     13
+               0374       L. LOPEZ-AMAYA #0374    M     14
+               0374       L. LOPEZ-AMAYA #0374    P     12
+               0375             A. LOPEZ #0375    M     11
+               0375             A. LOPEZ #0375    P      8
+               0376        J. DEOLIVEIRA #0376    P      5
+               0377        N. MAZZACCARO #0377    M     33
+               0377        N. MAZZACCARO #0377    P     51
+               0379         M. GALLORINI #0379    M      4
+               0379         M. GALLORINI #0379    P      8
+               0382          E. BADALYAN #0382    M      1
+               0382          E. BADALYAN #0382    P     11
+               0383    REQUIRES_MANUAL_MAPPING    M      8
+               0383    REQUIRES_MANUAL_MAPPING    P     13
+               0384           J. PERALTA #0384    M      3
+               0384           J. PERALTA #0384    P      6
+               0385              C. COLE #0385    M      6
+               0385              C. COLE #0385    P      9
+               0386            J. ABERDE #0386    M      5
+               0386            J. ABERDE #0386    P     29
+               0387    REQUIRES_MANUAL_MAPPING    M      9
+               0387    REQUIRES_MANUAL_MAPPING    P     16
+               0388            A. LIGGIO #0388    M     17
+               0388            A. LIGGIO #0388    P      1
+               0389    REQUIRES_MANUAL_MAPPING    M      2
+               0389    REQUIRES_MANUAL_MAPPING    P     16
+               0390    REQUIRES_MANUAL_MAPPING    M      4
+               0390    REQUIRES_MANUAL_MAPPING    P     19
+               0391    REQUIRES_MANUAL_MAPPING    M     12
+               0391    REQUIRES_MANUAL_MAPPING    P      8
+               0717         D. MATTALIAN #0717    C     81
+               0717         D. MATTALIAN #0717    P    311
+               0817             A. ABUEG #0817    P      2
+               0839    REQUIRES_MANUAL_MAPPING    M      8
+               0839    REQUIRES_MANUAL_MAPPING    P      5
+               0844    REQUIRES_MANUAL_MAPPING    M      1
+               0844    REQUIRES_MANUAL_MAPPING    P      3
+               1711         J. SQUILLACE #1711    P    207
+               2008           D. CASSIDY #2008    P     29
+               2013           D. SALAZAR #2013    P    199
+               2025 M. RAMIREZ-DRAKEFORD #2025    P    335
+               2027            K. TORRES #2027    P    678
+               2030             D. RIZZI #2030    P    382
+               9110             UNKNOWN - 9110    C      2
+2026-02-26 18:09:22,712 - WARNING - 2 records with no Assignment Master match:
+2026-02-26 18:09:22,713 - WARNING - PADDED_BADGE_NUMBER
+9110    2
+2026-02-26 18:09:22,713 - INFO - ETL complete. Output: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+2026-03-03 01:27:10,774 - INFO - Starting Summons ETL Process v2.1
+2026-03-03 01:27:10,800 - INFO - Assignment Master columns: ['REF_NUMBER', 'FULL_NAME', 'TITLE', 'FIRST_NAME', 'LAST_NAME', 'BADGE_NUMBER', 'PADDED_BADGE_NUMBER', 'TEAM', 'WG1', 'WG2', 'WG3', 'WG4', 'CONTRACT_TYPE', 'STANDARD_NAME', 'CONFLICT_RESOLUTION', 'CODE', 'WORKING_GROUP', 'DOB', 'JOINED_SERVICE', 'SGT', 'LT', 'CAPT', 'CHIEF', 'STATUS', 'RANK']
+2026-03-03 01:27:10,801 - INFO - Assignment Master: V3 schema detected (STANDARD_NAME / PATROL DIVISION)
+2026-03-03 01:27:10,809 - INFO - Loaded 157 officer records from Assignment Master
+2026-03-03 01:27:10,822 - INFO - Loading 13 e-ticket files (13-month window): ['2025_02_eticket_export.csv', '2025_03_eticket_export.csv', '2025_04_eticket_export.csv', '2025_05_eticket_export.csv', '2025_06_eticket_export.csv', '2025_07_eticket_export.csv', '2025_08_eticket_export.csv', '2025_09_eticket_export.csv', '2025_10_eticket_export.csv', '2025_11_eticket_export.csv', '2025_12_eticket_export.csv', '2026_01_eticket_export.csv', '2026_02_eticket_export.csv']
+2026-03-03 01:27:10,822 - INFO - Loading e-ticket: 2025_02_eticket_export.csv
+2026-03-03 01:27:10,887 - INFO - Loaded 2741 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:27:10,900 - INFO - Records after Officer Id validation: 2741
+2026-03-03 01:27:11,082 - INFO - Badge join: 2693 matched, 48 unmatched
+2026-03-03 01:27:11,084 - WARNING - Unmatched badges (update Assignment Master): ['0378', '0380', '9110']
+2026-03-03 01:27:11,172 - WARNING - Last-name fuzzy match: 16 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:27:11,236 - INFO - E-ticket processing complete: 2741 records, 57 unique officers
+2026-03-03 01:27:11,236 - INFO - Loading e-ticket: 2025_03_eticket_export.csv
+2026-03-03 01:27:11,301 - INFO - Loaded 3628 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:27:11,306 - INFO - Records after Officer Id validation: 3628
+2026-03-03 01:27:11,522 - INFO - Badge join: 3605 matched, 23 unmatched
+2026-03-03 01:27:11,522 - WARNING - Unmatched badges (update Assignment Master): ['0380', '0378']
+2026-03-03 01:27:11,616 - WARNING - Last-name fuzzy match: 5 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:27:11,689 - INFO - E-ticket processing complete: 3628 records, 55 unique officers
+2026-03-03 01:27:11,690 - INFO - Loading e-ticket: 2025_04_eticket_export.csv
+2026-03-03 01:27:11,752 - INFO - Loaded 3692 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:27:11,757 - INFO - Records after Officer Id validation: 3692
+2026-03-03 01:27:11,984 - INFO - Badge join: 3663 matched, 29 unmatched
+2026-03-03 01:27:11,985 - WARNING - Unmatched badges (update Assignment Master): ['0380', '0378']
+2026-03-03 01:27:12,083 - WARNING - Last-name fuzzy match: 4 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:27:12,154 - INFO - E-ticket processing complete: 3692 records, 59 unique officers
+2026-03-03 01:27:12,154 - INFO - Loading e-ticket: 2025_05_eticket_export.csv
+2026-03-03 01:27:12,220 - INFO - Loaded 3497 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:27:12,226 - INFO - Records after Officer Id validation: 3497
+2026-03-03 01:27:12,420 - INFO - Badge join: 3483 matched, 14 unmatched
+2026-03-03 01:27:12,420 - WARNING - Unmatched badges (update Assignment Master): ['0378', '0380']
+2026-03-03 01:27:12,504 - WARNING - Last-name fuzzy match: 17 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:27:12,565 - INFO - E-ticket processing complete: 3497 records, 61 unique officers
+2026-03-03 01:27:12,566 - INFO - Loading e-ticket: 2025_06_eticket_export.csv
+2026-03-03 01:27:12,621 - INFO - Loaded 3389 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:27:12,627 - INFO - Records after Officer Id validation: 3389
+2026-03-03 01:27:12,817 - INFO - Badge join: 3389 matched, 0 unmatched
+2026-03-03 01:27:12,892 - WARNING - Last-name fuzzy match: 16 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:27:12,956 - INFO - E-ticket processing complete: 3389 records, 61 unique officers
+2026-03-03 01:27:12,957 - INFO - Loading e-ticket: 2025_07_eticket_export.csv
+2026-03-03 01:27:13,029 - INFO - Loaded 4407 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:27:13,034 - INFO - Records after Officer Id validation: 4407
+2026-03-03 01:27:13,262 - INFO - Badge join: 4407 matched, 0 unmatched
+2026-03-03 01:27:13,263 - INFO - Applying assignment override for badge 2025 (3 records)
+2026-03-03 01:27:13,358 - WARNING - Last-name fuzzy match: 37 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:27:13,431 - INFO - E-ticket processing complete: 4407 records, 57 unique officers
+2026-03-03 01:27:13,431 - INFO - Loading e-ticket: 2025_08_eticket_export.csv
+2026-03-03 01:27:13,503 - INFO - Loaded 4345 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:27:13,508 - INFO - Records after Officer Id validation: 4345
+2026-03-03 01:27:13,732 - INFO - Badge join: 4345 matched, 0 unmatched
+2026-03-03 01:27:13,734 - INFO - Applying assignment override for badge 2025 (4 records)
+2026-03-03 01:27:13,823 - WARNING - Last-name fuzzy match: 67 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:27:13,900 - INFO - E-ticket processing complete: 4345 records, 65 unique officers
+2026-03-03 01:27:13,900 - INFO - Loading e-ticket: 2025_09_eticket_export.csv
+2026-03-03 01:27:13,976 - INFO - Loaded 4599 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:27:13,981 - INFO - Records after Officer Id validation: 4599
+2026-03-03 01:27:14,232 - INFO - Badge join: 4599 matched, 0 unmatched
+2026-03-03 01:27:14,235 - INFO - Applying assignment override for badge 2025 (1 records)
+2026-03-03 01:27:14,339 - WARNING - Last-name fuzzy match: 68 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:27:14,417 - INFO - E-ticket processing complete: 4599 records, 62 unique officers
+2026-03-03 01:27:14,418 - INFO - Loading e-ticket: 2025_10_eticket_export.csv
+2026-03-03 01:27:14,481 - INFO - Loaded 3953 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:27:14,487 - INFO - Records after Officer Id validation: 3953
+2026-03-03 01:27:14,706 - INFO - Badge join: 3953 matched, 0 unmatched
+2026-03-03 01:27:14,708 - INFO - Applying assignment override for badge 2025 (6 records)
+2026-03-03 01:27:14,795 - WARNING - Last-name fuzzy match: 10 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:27:14,867 - INFO - E-ticket processing complete: 3953 records, 59 unique officers
+2026-03-03 01:27:14,868 - INFO - Loading e-ticket: 2025_11_eticket_export.csv
+2026-03-03 01:27:14,924 - INFO - Loaded 3404 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:27:14,931 - INFO - Records after Officer Id validation: 3404
+2026-03-03 01:27:15,113 - INFO - Badge join: 3404 matched, 0 unmatched
+2026-03-03 01:27:15,115 - INFO - Applying assignment override for badge 2025 (2 records)
+2026-03-03 01:27:15,187 - WARNING - Last-name fuzzy match: 34 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:27:15,246 - INFO - E-ticket processing complete: 3404 records, 61 unique officers
+2026-03-03 01:27:15,246 - INFO - Loading e-ticket: 2025_12_eticket_export.csv
+2026-03-03 01:27:15,300 - INFO - Loaded 3383 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:27:15,305 - INFO - Records after Officer Id validation: 3383
+2026-03-03 01:27:15,486 - INFO - Badge join: 3383 matched, 0 unmatched
+2026-03-03 01:27:15,488 - INFO - Applying assignment override for badge 2025 (3 records)
+2026-03-03 01:27:15,569 - WARNING - Last-name fuzzy match: 43 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:27:15,659 - INFO - E-ticket processing complete: 3383 records, 58 unique officers
+2026-03-03 01:27:15,660 - INFO - Loading e-ticket: 2026_01_eticket_export.csv
+2026-03-03 01:27:15,762 - INFO - Loaded 4136 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note', 'Column106', 'Column107', 'Column108', 'Column109', 'Column110', 'Column111', 'Column112', 'Column113']
+2026-03-03 01:27:15,767 - INFO - Records after Officer Id validation: 4136
+2026-03-03 01:27:15,980 - INFO - Badge join: 4134 matched, 2 unmatched
+2026-03-03 01:27:15,980 - WARNING - Unmatched badges (update Assignment Master): ['9110']
+2026-03-03 01:27:15,985 - INFO - Applying assignment override for badge 2025 (1 records)
+2026-03-03 01:27:16,078 - WARNING - Last-name fuzzy match: 33 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:27:16,153 - INFO - E-ticket processing complete: 4136 records, 67 unique officers
+2026-03-03 01:27:16,153 - INFO - Loading e-ticket: 2026_02_eticket_export.csv
+2026-03-03 01:27:16,200 - INFO - Loaded 2832 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:27:16,205 - INFO - Records after Officer Id validation: 2832
+2026-03-03 01:27:16,356 - INFO - Badge join: 2832 matched, 0 unmatched
+2026-03-03 01:27:16,358 - INFO - Applying assignment override for badge 2025 (19 records)
+2026-03-03 01:27:16,360 - INFO - Applying assignment override for badge 0738 (4 records)
+2026-03-03 01:27:16,414 - WARNING - Last-name fuzzy match: 47 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:27:16,469 - INFO - E-ticket processing complete: 2832 records, 60 unique officers
+2026-03-03 01:27:16,508 - INFO - === PROCESSING SUMMARY ===
+2026-03-03 01:27:16,509 - INFO - total_records: 48006
+2026-03-03 01:27:16,509 - INFO - date_range: 1/10/2026 10:05 to 2026-03-02T09:14:30.403
+2026-03-03 01:27:16,509 - INFO - unique_officers: 97
+2026-03-03 01:27:16,509 - INFO - match_quality_distribution: {'DIRECT_BADGE': 47890, 'NO_MATCH': 116}
+2026-03-03 01:27:16,509 - INFO - type_distribution: {'P': 41234, 'M': 5920, 'C': 852}
+2026-03-03 01:27:16,509 - INFO - name_anomaly_count: 2439
+2026-03-03 01:27:16,509 - INFO - data_quality_avg: 99.93959088447278
+2026-03-03 01:27:16,515 - INFO - Using backfill: C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\projects\PowerBI_Date\Backfill\2026_01\summons
+2026-03-03 01:27:16,524 - INFO - Loaded gap months from consolidated file 2026_01_Department-Wide Summons  Moving and Parking.csv: 4 rows
+2026-03-03 01:27:16,767 - INFO - Merged 4 backfill rows into main dataframe.
+2026-03-03 01:28:54,419 - INFO - Saved: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_20260303_012717.xlsx
+2026-03-03 01:29:25,979 - INFO - Starting Summons ETL Process v2.1
+2026-03-03 01:29:25,997 - INFO - Assignment Master columns: ['REF_NUMBER', 'FULL_NAME', 'TITLE', 'FIRST_NAME', 'LAST_NAME', 'BADGE_NUMBER', 'PADDED_BADGE_NUMBER', 'TEAM', 'WG1', 'WG2', 'WG3', 'WG4', 'CONTRACT_TYPE', 'STANDARD_NAME', 'CONFLICT_RESOLUTION', 'CODE', 'WORKING_GROUP', 'DOB', 'JOINED_SERVICE', 'SGT', 'LT', 'CAPT', 'CHIEF', 'STATUS', 'RANK']
+2026-03-03 01:29:25,997 - INFO - Assignment Master: V3 schema detected (STANDARD_NAME / PATROL DIVISION)
+2026-03-03 01:29:26,003 - INFO - Loaded 157 officer records from Assignment Master
+2026-03-03 01:29:26,006 - INFO - Loading 13 e-ticket files (13-month window): ['2025_02_eticket_export.csv', '2025_03_eticket_export.csv', '2025_04_eticket_export.csv', '2025_05_eticket_export.csv', '2025_06_eticket_export.csv', '2025_07_eticket_export.csv', '2025_08_eticket_export.csv', '2025_09_eticket_export.csv', '2025_10_eticket_export.csv', '2025_11_eticket_export.csv', '2025_12_eticket_export.csv', '2026_01_eticket_export.csv', '2026_02_eticket_export.csv']
+2026-03-03 01:29:26,007 - INFO - Loading e-ticket: 2025_02_eticket_export.csv
+2026-03-03 01:29:26,072 - INFO - Loaded 2741 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:29:26,084 - INFO - Records after Officer Id validation: 2741
+2026-03-03 01:29:26,242 - INFO - Badge join: 2693 matched, 48 unmatched
+2026-03-03 01:29:26,243 - WARNING - Unmatched badges (update Assignment Master): ['0378', '0380', '9110']
+2026-03-03 01:29:26,316 - WARNING - Last-name fuzzy match: 16 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:29:26,371 - INFO - E-ticket processing complete: 2741 records, 57 unique officers
+2026-03-03 01:29:26,372 - INFO - Loading e-ticket: 2025_03_eticket_export.csv
+2026-03-03 01:29:26,430 - INFO - Loaded 3628 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:29:26,435 - INFO - Records after Officer Id validation: 3628
+2026-03-03 01:29:26,623 - INFO - Badge join: 3605 matched, 23 unmatched
+2026-03-03 01:29:26,624 - WARNING - Unmatched badges (update Assignment Master): ['0380', '0378']
+2026-03-03 01:29:26,709 - WARNING - Last-name fuzzy match: 5 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:29:26,777 - INFO - E-ticket processing complete: 3628 records, 55 unique officers
+2026-03-03 01:29:26,778 - INFO - Loading e-ticket: 2025_04_eticket_export.csv
+2026-03-03 01:29:26,838 - INFO - Loaded 3692 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:29:26,844 - INFO - Records after Officer Id validation: 3692
+2026-03-03 01:29:27,042 - INFO - Badge join: 3663 matched, 29 unmatched
+2026-03-03 01:29:27,043 - WARNING - Unmatched badges (update Assignment Master): ['0380', '0378']
+2026-03-03 01:29:27,127 - WARNING - Last-name fuzzy match: 4 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:29:27,193 - INFO - E-ticket processing complete: 3692 records, 59 unique officers
+2026-03-03 01:29:27,193 - INFO - Loading e-ticket: 2025_05_eticket_export.csv
+2026-03-03 01:29:27,251 - INFO - Loaded 3497 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:29:27,256 - INFO - Records after Officer Id validation: 3497
+2026-03-03 01:29:27,455 - INFO - Badge join: 3483 matched, 14 unmatched
+2026-03-03 01:29:27,455 - WARNING - Unmatched badges (update Assignment Master): ['0378', '0380']
+2026-03-03 01:29:27,541 - WARNING - Last-name fuzzy match: 17 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:29:27,608 - INFO - E-ticket processing complete: 3497 records, 61 unique officers
+2026-03-03 01:29:27,608 - INFO - Loading e-ticket: 2025_06_eticket_export.csv
+2026-03-03 01:29:27,662 - INFO - Loaded 3389 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:29:27,667 - INFO - Records after Officer Id validation: 3389
+2026-03-03 01:29:27,900 - INFO - Badge join: 3389 matched, 0 unmatched
+2026-03-03 01:29:27,976 - WARNING - Last-name fuzzy match: 16 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:29:28,040 - INFO - E-ticket processing complete: 3389 records, 61 unique officers
+2026-03-03 01:29:28,040 - INFO - Loading e-ticket: 2025_07_eticket_export.csv
+2026-03-03 01:29:28,111 - INFO - Loaded 4407 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:29:28,116 - INFO - Records after Officer Id validation: 4407
+2026-03-03 01:29:28,347 - INFO - Badge join: 4407 matched, 0 unmatched
+2026-03-03 01:29:28,350 - INFO - Applying assignment override for badge 2025 (3 records)
+2026-03-03 01:29:28,446 - WARNING - Last-name fuzzy match: 37 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:29:28,520 - INFO - E-ticket processing complete: 4407 records, 57 unique officers
+2026-03-03 01:29:28,520 - INFO - Loading e-ticket: 2025_08_eticket_export.csv
+2026-03-03 01:29:28,588 - INFO - Loaded 4345 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:29:28,593 - INFO - Records after Officer Id validation: 4345
+2026-03-03 01:29:28,830 - INFO - Badge join: 4345 matched, 0 unmatched
+2026-03-03 01:29:28,832 - INFO - Applying assignment override for badge 2025 (4 records)
+2026-03-03 01:29:28,928 - WARNING - Last-name fuzzy match: 67 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:29:29,006 - INFO - E-ticket processing complete: 4345 records, 65 unique officers
+2026-03-03 01:29:29,007 - INFO - Loading e-ticket: 2025_09_eticket_export.csv
+2026-03-03 01:29:29,083 - INFO - Loaded 4599 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:29:29,089 - INFO - Records after Officer Id validation: 4599
+2026-03-03 01:29:29,342 - INFO - Badge join: 4599 matched, 0 unmatched
+2026-03-03 01:29:29,345 - INFO - Applying assignment override for badge 2025 (1 records)
+2026-03-03 01:29:29,449 - WARNING - Last-name fuzzy match: 68 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:29:29,524 - INFO - E-ticket processing complete: 4599 records, 62 unique officers
+2026-03-03 01:29:29,525 - INFO - Loading e-ticket: 2025_10_eticket_export.csv
+2026-03-03 01:29:29,585 - INFO - Loaded 3953 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:29:29,591 - INFO - Records after Officer Id validation: 3953
+2026-03-03 01:29:29,817 - INFO - Badge join: 3953 matched, 0 unmatched
+2026-03-03 01:29:29,820 - INFO - Applying assignment override for badge 2025 (6 records)
+2026-03-03 01:29:29,904 - WARNING - Last-name fuzzy match: 10 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:29:29,971 - INFO - E-ticket processing complete: 3953 records, 59 unique officers
+2026-03-03 01:29:29,972 - INFO - Loading e-ticket: 2025_11_eticket_export.csv
+2026-03-03 01:29:30,025 - INFO - Loaded 3404 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:29:30,031 - INFO - Records after Officer Id validation: 3404
+2026-03-03 01:29:30,227 - INFO - Badge join: 3404 matched, 0 unmatched
+2026-03-03 01:29:30,230 - INFO - Applying assignment override for badge 2025 (2 records)
+2026-03-03 01:29:30,308 - WARNING - Last-name fuzzy match: 34 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:29:30,377 - INFO - E-ticket processing complete: 3404 records, 61 unique officers
+2026-03-03 01:29:30,378 - INFO - Loading e-ticket: 2025_12_eticket_export.csv
+2026-03-03 01:29:30,435 - INFO - Loaded 3383 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:29:30,440 - INFO - Records after Officer Id validation: 3383
+2026-03-03 01:29:30,643 - INFO - Badge join: 3383 matched, 0 unmatched
+2026-03-03 01:29:30,645 - INFO - Applying assignment override for badge 2025 (3 records)
+2026-03-03 01:29:30,729 - WARNING - Last-name fuzzy match: 43 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:29:30,801 - INFO - E-ticket processing complete: 3383 records, 58 unique officers
+2026-03-03 01:29:30,801 - INFO - Loading e-ticket: 2026_01_eticket_export.csv
+2026-03-03 01:29:30,895 - INFO - Loaded 4136 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note', 'Column106', 'Column107', 'Column108', 'Column109', 'Column110', 'Column111', 'Column112', 'Column113']
+2026-03-03 01:29:30,901 - INFO - Records after Officer Id validation: 4136
+2026-03-03 01:29:31,143 - INFO - Badge join: 4134 matched, 2 unmatched
+2026-03-03 01:29:31,144 - WARNING - Unmatched badges (update Assignment Master): ['9110']
+2026-03-03 01:29:31,149 - INFO - Applying assignment override for badge 2025 (1 records)
+2026-03-03 01:29:31,240 - WARNING - Last-name fuzzy match: 33 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:29:31,322 - INFO - E-ticket processing complete: 4136 records, 67 unique officers
+2026-03-03 01:29:31,323 - INFO - Loading e-ticket: 2026_02_eticket_export.csv
+2026-03-03 01:29:31,369 - INFO - Loaded 2832 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:29:31,375 - INFO - Records after Officer Id validation: 2832
+2026-03-03 01:29:31,528 - INFO - Badge join: 2832 matched, 0 unmatched
+2026-03-03 01:29:31,530 - INFO - Applying assignment override for badge 2025 (19 records)
+2026-03-03 01:29:31,533 - INFO - Applying assignment override for badge 0738 (4 records)
+2026-03-03 01:29:31,589 - WARNING - Last-name fuzzy match: 47 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:29:31,642 - INFO - E-ticket processing complete: 2832 records, 60 unique officers
+2026-03-03 01:29:31,681 - INFO - === PROCESSING SUMMARY ===
+2026-03-03 01:29:31,681 - INFO - total_records: 48006
+2026-03-03 01:29:31,681 - INFO - date_range: 1/10/2026 10:05 to 2026-03-02T09:14:30.403
+2026-03-03 01:29:31,681 - INFO - unique_officers: 97
+2026-03-03 01:29:31,681 - INFO - match_quality_distribution: {'DIRECT_BADGE': 47890, 'NO_MATCH': 116}
+2026-03-03 01:29:31,682 - INFO - type_distribution: {'P': 41234, 'M': 5920, 'C': 852}
+2026-03-03 01:29:31,682 - INFO - name_anomaly_count: 2439
+2026-03-03 01:29:31,682 - INFO - data_quality_avg: 99.93959088447278
+2026-03-03 01:29:31,688 - INFO - Using backfill: C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\projects\PowerBI_Date\Backfill\2026_01\summons
+2026-03-03 01:29:31,696 - INFO - Loaded gap months from consolidated file 2026_01_Department-Wide Summons  Moving and Parking.csv: 4 rows
+2026-03-03 01:29:31,960 - INFO - Merged 4 backfill rows into main dataframe.
+2026-03-03 01:30:25,573 - INFO - Saved: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+2026-03-03 01:30:25,574 - INFO - === QA VALIDATION: counts by badge+type ===
+2026-03-03 01:30:25,606 - INFO - 
+PADDED_BADGE_NUMBER       OFFICER_DISPLAY_NAME TYPE  COUNT
+               0083         A. MATTALIAN #0083    M     26
+               0083         A. MATTALIAN #0083    P     89
+               0135           M. ANTISTA #0135    M     27
+               0135           M. ANTISTA #0135    P    163
+               0136        T. CAPPADONNA #0136    P      5
+               0138          M. JACOBSEN #0138    C      1
+               0138          M. JACOBSEN #0138    M   1126
+               0138          M. JACOBSEN #0138    P    981
+               0141             J. KNAPP #0141    P     12
+               0144         M. DIMARTINO #0144    M      3
+               0144         M. DIMARTINO #0144    P     10
+               0153            M. KOENIG #0153    C      4
+               0153            M. KOENIG #0153    M     13
+               0153            M. KOENIG #0153    P      2
+               0161            W. RIVERA #0161    M     15
+               0161            W. RIVERA #0161    P     50
+               0164          B. MCCARTHY #0164    M     30
+               0164          B. MCCARTHY #0164    P     69
+               0165               J. HAN #0165    M     22
+               0165               J. HAN #0165    P    123
+               0166         P. DOMINGUEZ #0166    M     25
+               0166         P. DOMINGUEZ #0166    P    146
+               0226       F. COMPETIELLO #0226    M      3
+               0226       F. COMPETIELLO #0226    P      4
+               0253           F. CAVALLO #0253    P     11
+               0256         G. GALLORINI #0256    M    123
+               0256         G. GALLORINI #0256    P   1861
+               0257              J. MORA #0257    M     26
+               0257              J. MORA #0257    P     98
+               0267             T. SROKA #0267    M     21
+               0267             T. SROKA #0267    P    104
+               0271            D. MARBLE #0271    M      1
+               0271            D. MARBLE #0271    P     11
+               0273            S. BRIGGS #0273    M      2
+               0301            F. MCCALL #0301    M    159
+               0301            F. MCCALL #0301    P     29
+               0308      I. PAPANIKOLAOU #0308    M     19
+               0308      I. PAPANIKOLAOU #0308    P    193
+               0309             B. FARHI #0309    C      3
+               0309             B. FARHI #0309    M     19
+               0309             B. FARHI #0309    P      9
+               0311           K. PERALTA #0311    M     48
+               0311           K. PERALTA #0311    P     35
+               0313         A. IANNACONE #0313    M    156
+               0313         A. IANNACONE #0313    P   1290
+               0316           M. TEDESCO #0316    M      4
+               0316           M. TEDESCO #0316    P     13
+               0318              R. LYAK #0318    M     24
+               0318              R. LYAK #0318    P    142
+               0320              A. REVI #0320    P     24
+               0322              A. MENA #0322    M     14
+               0322              A. MENA #0322    P     19
+               0325           M. DEBONIS #0325    M      5
+               0327            M. ONEILL #0327    C      1
+               0327            M. ONEILL #0327    M    657
+               0327            M. ONEILL #0327    P   1366
+               0328             K. SMALL #0328    M     62
+               0328             K. SMALL #0328    P    172
+               0329       D. FRANCAVILLA #0329    C      2
+               0329       D. FRANCAVILLA #0329    M    168
+               0329       D. FRANCAVILLA #0329    P    892
+               0330            J. BUTLER #0330    P      1
+               0331          M. CARRILLO #0331    C      6
+               0331          M. CARRILLO #0331    M      5
+               0331          M. CARRILLO #0331    P      3
+               0333        R. DONNERSTAG #0333    M      1
+               0333        R. DONNERSTAG #0333    P      5
+               0334           P. SERETIS #0334    C      1
+               0334           P. SERETIS #0334    M     20
+               0334           P. SERETIS #0334    P      3
+               0335         J. TANUCILLI #0335    M      1
+               0335         J. TANUCILLI #0335    P      6
+               0337              A. RIOS #0337    C      2
+               0337              A. RIOS #0337    M     22
+               0337              A. RIOS #0337    P      1
+               0338            M. DOGALI #0338    M      5
+               0338            M. DOGALI #0338    P      1
+               0339               M. REO #0339    M     26
+               0339               M. REO #0339    P     11
+               0341        C. LARA-NUNEZ #0341    M      1
+               0342         J. RODRIGUEZ #0342    M    105
+               0342         J. RODRIGUEZ #0342    P    176
+               0344            S. TOVBIN #0344    M      7
+               0344            S. TOVBIN #0344    P     41
+               0345        J. GRETKOWSKI #0345    P      7
+               0346            F. CANEJA #0346    C      1
+               0346            F. CANEJA #0346    M     36
+               0346            F. CANEJA #0346    P     34
+               0347        S. LEMANOWICZ #0347    M     80
+               0347        S. LEMANOWICZ #0347    P    149
+               0349       M. SCANGARELLA #0349    M     17
+               0349       M. SCANGARELLA #0349    P     76
+               0350           B. ESTRADA #0350    M     14
+               0350           B. ESTRADA #0350    P    177
+               0351        G. LARA-NUNEZ #0351    M      6
+               0351        G. LARA-NUNEZ #0351    P      1
+               0353             F. BONSU #0353    C      1
+               0353             F. BONSU #0353    M     62
+               0353             F. BONSU #0353    P    189
+               0354            R. CONLON #0354    M     35
+               0354            R. CONLON #0354    P     23
+               0355             A. REYES #0355    C      3
+               0355             A. REYES #0355    M     64
+               0355             A. REYES #0355    P     38
+               0356             A. MARZA #0356    C      1
+               0356             A. MARZA #0356    M     20
+               0356             A. MARZA #0356    P     51
+               0357            A. MILLER #0357    M     45
+               0357            A. MILLER #0357    P     96
+               0359           R. ALMONTE #0359    C      3
+               0359           R. ALMONTE #0359    M     91
+               0359           R. ALMONTE #0359    P    209
+               0361            B. RIVERA #0361    C     10
+               0361            B. RIVERA #0361    M    179
+               0361            B. RIVERA #0361    P    241
+               0362             P. LOPEZ #0362    M    110
+               0362             P. LOPEZ #0362    P    110
+               0363           A. TABARES #0363    M     66
+               0363           A. TABARES #0363    P    150
+               0364           C. ALVAREZ #0364    M     71
+               0364           C. ALVAREZ #0364    P    203
+               0365            M. GIBSON #0365    C      2
+               0365            M. GIBSON #0365    M    107
+               0365            M. GIBSON #0365    P    449
+               0366             J. PRICE #0366    C      3
+               0366             J. PRICE #0366    M     75
+               0366             J. PRICE #0366    P     58
+               0367             D. CAERO #0367    M     55
+               0367             D. CAERO #0367    P     57
+               0368 M. ANGUIZACA-ZHINDON #0368    M    103
+               0368 M. ANGUIZACA-ZHINDON #0368    P    230
+               0369             R. SALAS #0369    C      1
+               0369             R. SALAS #0369    M    114
+               0369             R. SALAS #0369    P     39
+               0370            A. VICALE #0370    C      3
+               0370            A. VICALE #0370    M     83
+               0370            A. VICALE #0370    P    176
+               0374       L. LOPEZ-AMAYA #0374    C      1
+               0374       L. LOPEZ-AMAYA #0374    M    173
+               0374       L. LOPEZ-AMAYA #0374    P    143
+               0375             A. LOPEZ #0375    C      1
+               0375             A. LOPEZ #0375    M    284
+               0375             A. LOPEZ #0375    P    253
+               0376        J. DEOLIVEIRA #0376    M    155
+               0376        J. DEOLIVEIRA #0376    P     90
+               0377        N. MAZZACCARO #0377    C      5
+               0377        N. MAZZACCARO #0377    M    329
+               0377        N. MAZZACCARO #0377    P    488
+               0378             UNKNOWN - 0378    M      9
+               0378             UNKNOWN - 0378    P     39
+               0379         M. GALLORINI #0379    M     67
+               0379         M. GALLORINI #0379    P    123
+               0380             UNKNOWN - 0380    M     18
+               0380             UNKNOWN - 0380    P     45
+               0381             R. SWABY #0381    C      2
+               0381             R. SWABY #0381    M     16
+               0381             R. SWABY #0381    P     27
+               0382          E. BADALYAN #0382    C      1
+               0382          E. BADALYAN #0382    M     57
+               0382          E. BADALYAN #0382    P    100
+               0383             D. LYNCH #0383    M      8
+               0383             D. LYNCH #0383    P     14
+               0384           J. PERALTA #0384    M     39
+               0384           J. PERALTA #0384    P    111
+               0385              C. COLE #0385    M     37
+               0385              C. COLE #0385    P    133
+               0386            J. ABERDE #0386    M    107
+               0386            J. ABERDE #0386    P    255
+               0387             C. ROYAL #0387    M     10
+               0387             C. ROYAL #0387    P     33
+               0388            A. LIGGIO #0388    C      1
+               0388            A. LIGGIO #0388    M    134
+               0388            A. LIGGIO #0388    P     37
+               0389           J. ANGELES #0389    C      1
+               0389           J. ANGELES #0389    M      9
+               0389           J. ANGELES #0389    P     30
+               0390           R. OROPEZA #0390    M     14
+               0390           R. OROPEZA #0390    P     43
+               0391              T. LUNA #0391    M     15
+               0391              T. LUNA #0391    P     16
+               0392        J. CAMPOVERDE #0392    M      1
+               0392        J. CAMPOVERDE #0392    P      2
+               0711         J. SQUILLACE #0711    P   3429
+               0717         D. MATTALIAN #0717    C    787
+               0717         D. MATTALIAN #0717    P   3052
+               0738            R. POLSON #0738    P      4
+               0817             A. ABUEG #0817    P     33
+               0839            R. VIVONA #0839    M      9
+               0839            R. VIVONA #0839    P      9
+               0842              S. SELA #0842    M      2
+               0844       H. TAHA-ZEIDAN #0844    M      3
+               0844       H. TAHA-ZEIDAN #0844    P      6
+               1711         J. SQUILLACE #1711    P    657
+               2008           D. CASSIDY #2008    P   1922
+               2013           D. SALAZAR #2013    P   2608
+               2025           M. RAMIREZ #2025    P     39
+               2025 M. RAMIREZ-DRAKEFORD #2025    P   6497
+               2027            K. TORRES #2027    P   7193
+               2030             D. RIZZI #2030    P   2869
+               9110             UNKNOWN - 9110    C      5
+2026-03-03 01:30:25,611 - WARNING - 116 records with no Assignment Master match:
+2026-03-03 01:30:25,612 - WARNING - PADDED_BADGE_NUMBER
+0380    63
+0378    48
+9110     5
+2026-03-03 01:30:25,663 - INFO - ETL complete. Output: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+2026-03-03 01:31:00,798 - INFO - Saved: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_20260303_012932.xlsx
+2026-03-03 01:32:22,944 - INFO - Saved: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+2026-03-03 01:32:22,944 - INFO - === QA VALIDATION: counts by badge+type ===
+2026-03-03 01:32:22,970 - INFO - 
+PADDED_BADGE_NUMBER       OFFICER_DISPLAY_NAME TYPE  COUNT
+               0083         A. MATTALIAN #0083    M     26
+               0083         A. MATTALIAN #0083    P     89
+               0135           M. ANTISTA #0135    M     27
+               0135           M. ANTISTA #0135    P    163
+               0136        T. CAPPADONNA #0136    P      5
+               0138          M. JACOBSEN #0138    C      1
+               0138          M. JACOBSEN #0138    M   1126
+               0138          M. JACOBSEN #0138    P    981
+               0141             J. KNAPP #0141    P     12
+               0144         M. DIMARTINO #0144    M      3
+               0144         M. DIMARTINO #0144    P     10
+               0153            M. KOENIG #0153    C      4
+               0153            M. KOENIG #0153    M     13
+               0153            M. KOENIG #0153    P      2
+               0161            W. RIVERA #0161    M     15
+               0161            W. RIVERA #0161    P     50
+               0164          B. MCCARTHY #0164    M     30
+               0164          B. MCCARTHY #0164    P     69
+               0165               J. HAN #0165    M     22
+               0165               J. HAN #0165    P    123
+               0166         P. DOMINGUEZ #0166    M     25
+               0166         P. DOMINGUEZ #0166    P    146
+               0226       F. COMPETIELLO #0226    M      3
+               0226       F. COMPETIELLO #0226    P      4
+               0253           F. CAVALLO #0253    P     11
+               0256         G. GALLORINI #0256    M    123
+               0256         G. GALLORINI #0256    P   1861
+               0257              J. MORA #0257    M     26
+               0257              J. MORA #0257    P     98
+               0267             T. SROKA #0267    M     21
+               0267             T. SROKA #0267    P    104
+               0271            D. MARBLE #0271    M      1
+               0271            D. MARBLE #0271    P     11
+               0273            S. BRIGGS #0273    M      2
+               0301            F. MCCALL #0301    M    159
+               0301            F. MCCALL #0301    P     29
+               0308      I. PAPANIKOLAOU #0308    M     19
+               0308      I. PAPANIKOLAOU #0308    P    193
+               0309             B. FARHI #0309    C      3
+               0309             B. FARHI #0309    M     19
+               0309             B. FARHI #0309    P      9
+               0311           K. PERALTA #0311    M     48
+               0311           K. PERALTA #0311    P     35
+               0313         A. IANNACONE #0313    M    156
+               0313         A. IANNACONE #0313    P   1290
+               0316           M. TEDESCO #0316    M      4
+               0316           M. TEDESCO #0316    P     13
+               0318              R. LYAK #0318    M     24
+               0318              R. LYAK #0318    P    142
+               0320              A. REVI #0320    P     24
+               0322              A. MENA #0322    M     14
+               0322              A. MENA #0322    P     19
+               0325           M. DEBONIS #0325    M      5
+               0327            M. ONEILL #0327    C      1
+               0327            M. ONEILL #0327    M    657
+               0327            M. ONEILL #0327    P   1366
+               0328             K. SMALL #0328    M     62
+               0328             K. SMALL #0328    P    172
+               0329       D. FRANCAVILLA #0329    C      2
+               0329       D. FRANCAVILLA #0329    M    168
+               0329       D. FRANCAVILLA #0329    P    892
+               0330            J. BUTLER #0330    P      1
+               0331          M. CARRILLO #0331    C      6
+               0331          M. CARRILLO #0331    M      5
+               0331          M. CARRILLO #0331    P      3
+               0333        R. DONNERSTAG #0333    M      1
+               0333        R. DONNERSTAG #0333    P      5
+               0334           P. SERETIS #0334    C      1
+               0334           P. SERETIS #0334    M     20
+               0334           P. SERETIS #0334    P      3
+               0335         J. TANUCILLI #0335    M      1
+               0335         J. TANUCILLI #0335    P      6
+               0337              A. RIOS #0337    C      2
+               0337              A. RIOS #0337    M     22
+               0337              A. RIOS #0337    P      1
+               0338            M. DOGALI #0338    M      5
+               0338            M. DOGALI #0338    P      1
+               0339               M. REO #0339    M     26
+               0339               M. REO #0339    P     11
+               0341        C. LARA-NUNEZ #0341    M      1
+               0342         J. RODRIGUEZ #0342    M    105
+               0342         J. RODRIGUEZ #0342    P    176
+               0344            S. TOVBIN #0344    M      7
+               0344            S. TOVBIN #0344    P     41
+               0345        J. GRETKOWSKI #0345    P      7
+               0346            F. CANEJA #0346    C      1
+               0346            F. CANEJA #0346    M     36
+               0346            F. CANEJA #0346    P     34
+               0347        S. LEMANOWICZ #0347    M     80
+               0347        S. LEMANOWICZ #0347    P    149
+               0349       M. SCANGARELLA #0349    M     17
+               0349       M. SCANGARELLA #0349    P     76
+               0350           B. ESTRADA #0350    M     14
+               0350           B. ESTRADA #0350    P    177
+               0351        G. LARA-NUNEZ #0351    M      6
+               0351        G. LARA-NUNEZ #0351    P      1
+               0353             F. BONSU #0353    C      1
+               0353             F. BONSU #0353    M     62
+               0353             F. BONSU #0353    P    189
+               0354            R. CONLON #0354    M     35
+               0354            R. CONLON #0354    P     23
+               0355             A. REYES #0355    C      3
+               0355             A. REYES #0355    M     64
+               0355             A. REYES #0355    P     38
+               0356             A. MARZA #0356    C      1
+               0356             A. MARZA #0356    M     20
+               0356             A. MARZA #0356    P     51
+               0357            A. MILLER #0357    M     45
+               0357            A. MILLER #0357    P     96
+               0359           R. ALMONTE #0359    C      3
+               0359           R. ALMONTE #0359    M     91
+               0359           R. ALMONTE #0359    P    209
+               0361            B. RIVERA #0361    C     10
+               0361            B. RIVERA #0361    M    179
+               0361            B. RIVERA #0361    P    241
+               0362             P. LOPEZ #0362    M    110
+               0362             P. LOPEZ #0362    P    110
+               0363           A. TABARES #0363    M     66
+               0363           A. TABARES #0363    P    150
+               0364           C. ALVAREZ #0364    M     71
+               0364           C. ALVAREZ #0364    P    203
+               0365            M. GIBSON #0365    C      2
+               0365            M. GIBSON #0365    M    107
+               0365            M. GIBSON #0365    P    449
+               0366             J. PRICE #0366    C      3
+               0366             J. PRICE #0366    M     75
+               0366             J. PRICE #0366    P     58
+               0367             D. CAERO #0367    M     55
+               0367             D. CAERO #0367    P     57
+               0368 M. ANGUIZACA-ZHINDON #0368    M    103
+               0368 M. ANGUIZACA-ZHINDON #0368    P    230
+               0369             R. SALAS #0369    C      1
+               0369             R. SALAS #0369    M    114
+               0369             R. SALAS #0369    P     39
+               0370            A. VICALE #0370    C      3
+               0370            A. VICALE #0370    M     83
+               0370            A. VICALE #0370    P    176
+               0374       L. LOPEZ-AMAYA #0374    C      1
+               0374       L. LOPEZ-AMAYA #0374    M    173
+               0374       L. LOPEZ-AMAYA #0374    P    143
+               0375             A. LOPEZ #0375    C      1
+               0375             A. LOPEZ #0375    M    284
+               0375             A. LOPEZ #0375    P    253
+               0376        J. DEOLIVEIRA #0376    M    155
+               0376        J. DEOLIVEIRA #0376    P     90
+               0377        N. MAZZACCARO #0377    C      5
+               0377        N. MAZZACCARO #0377    M    329
+               0377        N. MAZZACCARO #0377    P    488
+               0378             UNKNOWN - 0378    M      9
+               0378             UNKNOWN - 0378    P     39
+               0379         M. GALLORINI #0379    M     67
+               0379         M. GALLORINI #0379    P    123
+               0380             UNKNOWN - 0380    M     18
+               0380             UNKNOWN - 0380    P     45
+               0381             R. SWABY #0381    C      2
+               0381             R. SWABY #0381    M     16
+               0381             R. SWABY #0381    P     27
+               0382          E. BADALYAN #0382    C      1
+               0382          E. BADALYAN #0382    M     57
+               0382          E. BADALYAN #0382    P    100
+               0383             D. LYNCH #0383    M      8
+               0383             D. LYNCH #0383    P     14
+               0384           J. PERALTA #0384    M     39
+               0384           J. PERALTA #0384    P    111
+               0385              C. COLE #0385    M     37
+               0385              C. COLE #0385    P    133
+               0386            J. ABERDE #0386    M    107
+               0386            J. ABERDE #0386    P    255
+               0387             C. ROYAL #0387    M     10
+               0387             C. ROYAL #0387    P     33
+               0388            A. LIGGIO #0388    C      1
+               0388            A. LIGGIO #0388    M    134
+               0388            A. LIGGIO #0388    P     37
+               0389           J. ANGELES #0389    C      1
+               0389           J. ANGELES #0389    M      9
+               0389           J. ANGELES #0389    P     30
+               0390           R. OROPEZA #0390    M     14
+               0390           R. OROPEZA #0390    P     43
+               0391              T. LUNA #0391    M     15
+               0391              T. LUNA #0391    P     16
+               0392        J. CAMPOVERDE #0392    M      1
+               0392        J. CAMPOVERDE #0392    P      2
+               0711         J. SQUILLACE #0711    P   3429
+               0717         D. MATTALIAN #0717    C    787
+               0717         D. MATTALIAN #0717    P   3052
+               0738            R. POLSON #0738    P      4
+               0817             A. ABUEG #0817    P     33
+               0839            R. VIVONA #0839    M      9
+               0839            R. VIVONA #0839    P      9
+               0842              S. SELA #0842    M      2
+               0844       H. TAHA-ZEIDAN #0844    M      3
+               0844       H. TAHA-ZEIDAN #0844    P      6
+               1711         J. SQUILLACE #1711    P    657
+               2008           D. CASSIDY #2008    P   1922
+               2013           D. SALAZAR #2013    P   2608
+               2025           M. RAMIREZ #2025    P     39
+               2025 M. RAMIREZ-DRAKEFORD #2025    P   6497
+               2027            K. TORRES #2027    P   7193
+               2030             D. RIZZI #2030    P   2869
+               9110             UNKNOWN - 9110    C      5
+2026-03-03 01:32:22,974 - WARNING - 116 records with no Assignment Master match:
+2026-03-03 01:32:22,975 - WARNING - PADDED_BADGE_NUMBER
+0380    63
+0378    48
+9110     5
+2026-03-03 01:32:23,019 - INFO - ETL complete. Output: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+2026-03-03 01:40:41,354 - INFO - Starting Summons ETL Process v2.1
+2026-03-03 01:40:41,389 - INFO - Assignment Master columns: ['REF_NUMBER', 'FULL_NAME', 'TITLE', 'FIRST_NAME', 'LAST_NAME', 'BADGE_NUMBER', 'PADDED_BADGE_NUMBER', 'TEAM', 'WG1', 'WG2', 'WG3', 'WG4', 'CONTRACT_TYPE', 'STANDARD_NAME', 'CONFLICT_RESOLUTION', 'CODE', 'WORKING_GROUP', 'DOB', 'JOINED_SERVICE', 'SGT', 'LT', 'CAPT', 'CHIEF', 'STATUS', 'RANK']
+2026-03-03 01:40:41,390 - INFO - Assignment Master: V3 schema detected (STANDARD_NAME / PATROL DIVISION)
+2026-03-03 01:40:41,397 - INFO - Loaded 157 officer records from Assignment Master
+2026-03-03 01:40:41,410 - INFO - Loading 13 e-ticket files (13-month window): ['2025_02_eticket_export.csv', '2025_03_eticket_export.csv', '2025_04_eticket_export.csv', '2025_05_eticket_export.csv', '2025_06_eticket_export.csv', '2025_07_eticket_export.csv', '2025_08_eticket_export.csv', '2025_09_eticket_export.csv', '2025_10_eticket_export.csv', '2025_11_eticket_export.csv', '2025_12_eticket_export.csv', '2026_01_eticket_export.csv', '2026_02_eticket_export.csv']
+2026-03-03 01:40:41,411 - INFO - Loading e-ticket: 2025_02_eticket_export.csv
+2026-03-03 01:40:41,484 - INFO - Loaded 2741 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:40:41,496 - INFO - Records after Officer Id validation: 2741
+2026-03-03 01:40:41,643 - INFO - Badge join: 2693 matched, 48 unmatched
+2026-03-03 01:40:41,644 - WARNING - Unmatched badges (update Assignment Master): ['0378', '0380', '9110']
+2026-03-03 01:40:41,714 - WARNING - Last-name fuzzy match: 16 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:40:41,775 - INFO - E-ticket processing complete: 2741 records, 57 unique officers
+2026-03-03 01:40:41,776 - INFO - Loading e-ticket: 2025_03_eticket_export.csv
+2026-03-03 01:40:41,837 - INFO - Loaded 3628 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:40:41,841 - INFO - Records after Officer Id validation: 3628
+2026-03-03 01:40:42,034 - INFO - Badge join: 3605 matched, 23 unmatched
+2026-03-03 01:40:42,035 - WARNING - Unmatched badges (update Assignment Master): ['0380', '0378']
+2026-03-03 01:40:42,107 - WARNING - Last-name fuzzy match: 5 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:40:42,162 - INFO - E-ticket processing complete: 3628 records, 55 unique officers
+2026-03-03 01:40:42,162 - INFO - Loading e-ticket: 2025_04_eticket_export.csv
+2026-03-03 01:40:42,231 - INFO - Loaded 3692 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:40:42,235 - INFO - Records after Officer Id validation: 3692
+2026-03-03 01:40:42,389 - INFO - Badge join: 3663 matched, 29 unmatched
+2026-03-03 01:40:42,390 - WARNING - Unmatched badges (update Assignment Master): ['0380', '0378']
+2026-03-03 01:40:42,457 - WARNING - Last-name fuzzy match: 4 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:40:42,511 - INFO - E-ticket processing complete: 3692 records, 59 unique officers
+2026-03-03 01:40:42,511 - INFO - Loading e-ticket: 2025_05_eticket_export.csv
+2026-03-03 01:40:42,557 - INFO - Loaded 3497 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:40:42,562 - INFO - Records after Officer Id validation: 3497
+2026-03-03 01:40:42,709 - INFO - Badge join: 3483 matched, 14 unmatched
+2026-03-03 01:40:42,709 - WARNING - Unmatched badges (update Assignment Master): ['0378', '0380']
+2026-03-03 01:40:42,774 - WARNING - Last-name fuzzy match: 17 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:40:42,826 - INFO - E-ticket processing complete: 3497 records, 61 unique officers
+2026-03-03 01:40:42,827 - INFO - Loading e-ticket: 2025_06_eticket_export.csv
+2026-03-03 01:40:42,885 - INFO - Loaded 3389 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:40:42,889 - INFO - Records after Officer Id validation: 3389
+2026-03-03 01:40:43,050 - INFO - Badge join: 3389 matched, 0 unmatched
+2026-03-03 01:40:43,115 - WARNING - Last-name fuzzy match: 16 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:40:43,166 - INFO - E-ticket processing complete: 3389 records, 61 unique officers
+2026-03-03 01:40:43,166 - INFO - Loading e-ticket: 2025_07_eticket_export.csv
+2026-03-03 01:40:43,224 - INFO - Loaded 4407 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:40:43,229 - INFO - Records after Officer Id validation: 4407
+2026-03-03 01:40:43,405 - INFO - Badge join: 4407 matched, 0 unmatched
+2026-03-03 01:40:43,407 - INFO - Applying assignment override for badge 2025 (3 records)
+2026-03-03 01:40:43,480 - WARNING - Last-name fuzzy match: 37 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:40:43,536 - INFO - E-ticket processing complete: 4407 records, 57 unique officers
+2026-03-03 01:40:43,537 - INFO - Loading e-ticket: 2025_08_eticket_export.csv
+2026-03-03 01:40:43,596 - INFO - Loaded 4345 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:40:43,600 - INFO - Records after Officer Id validation: 4345
+2026-03-03 01:40:43,774 - INFO - Badge join: 4345 matched, 0 unmatched
+2026-03-03 01:40:43,776 - INFO - Applying assignment override for badge 2025 (4 records)
+2026-03-03 01:40:43,855 - WARNING - Last-name fuzzy match: 67 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:40:43,915 - INFO - E-ticket processing complete: 4345 records, 65 unique officers
+2026-03-03 01:40:43,916 - INFO - Loading e-ticket: 2025_09_eticket_export.csv
+2026-03-03 01:40:43,988 - INFO - Loaded 4599 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:40:43,992 - INFO - Records after Officer Id validation: 4599
+2026-03-03 01:40:44,185 - INFO - Badge join: 4599 matched, 0 unmatched
+2026-03-03 01:40:44,187 - INFO - Applying assignment override for badge 2025 (1 records)
+2026-03-03 01:40:44,271 - WARNING - Last-name fuzzy match: 68 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:40:44,335 - INFO - E-ticket processing complete: 4599 records, 62 unique officers
+2026-03-03 01:40:44,336 - INFO - Loading e-ticket: 2025_10_eticket_export.csv
+2026-03-03 01:40:44,387 - INFO - Loaded 3953 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:40:44,392 - INFO - Records after Officer Id validation: 3953
+2026-03-03 01:40:44,568 - INFO - Badge join: 3953 matched, 0 unmatched
+2026-03-03 01:40:44,570 - INFO - Applying assignment override for badge 2025 (6 records)
+2026-03-03 01:40:44,642 - WARNING - Last-name fuzzy match: 10 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:40:44,701 - INFO - E-ticket processing complete: 3953 records, 59 unique officers
+2026-03-03 01:40:44,701 - INFO - Loading e-ticket: 2025_11_eticket_export.csv
+2026-03-03 01:40:44,752 - INFO - Loaded 3404 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:40:44,756 - INFO - Records after Officer Id validation: 3404
+2026-03-03 01:40:44,904 - INFO - Badge join: 3404 matched, 0 unmatched
+2026-03-03 01:40:44,905 - INFO - Applying assignment override for badge 2025 (2 records)
+2026-03-03 01:40:44,968 - WARNING - Last-name fuzzy match: 34 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:40:45,018 - INFO - E-ticket processing complete: 3404 records, 61 unique officers
+2026-03-03 01:40:45,019 - INFO - Loading e-ticket: 2025_12_eticket_export.csv
+2026-03-03 01:40:45,064 - INFO - Loaded 3383 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:40:45,068 - INFO - Records after Officer Id validation: 3383
+2026-03-03 01:40:45,205 - INFO - Badge join: 3383 matched, 0 unmatched
+2026-03-03 01:40:45,206 - INFO - Applying assignment override for badge 2025 (3 records)
+2026-03-03 01:40:45,263 - WARNING - Last-name fuzzy match: 43 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:40:45,311 - INFO - E-ticket processing complete: 3383 records, 58 unique officers
+2026-03-03 01:40:45,312 - INFO - Loading e-ticket: 2026_01_eticket_export.csv
+2026-03-03 01:40:45,380 - INFO - Loaded 4136 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note', 'Column106', 'Column107', 'Column108', 'Column109', 'Column110', 'Column111', 'Column112', 'Column113']
+2026-03-03 01:40:45,385 - INFO - Records after Officer Id validation: 4136
+2026-03-03 01:40:45,550 - INFO - Badge join: 4134 matched, 2 unmatched
+2026-03-03 01:40:45,550 - WARNING - Unmatched badges (update Assignment Master): ['9110']
+2026-03-03 01:40:45,554 - INFO - Applying assignment override for badge 2025 (1 records)
+2026-03-03 01:40:45,629 - WARNING - Last-name fuzzy match: 33 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:40:45,691 - INFO - E-ticket processing complete: 4136 records, 67 unique officers
+2026-03-03 01:40:45,692 - INFO - Loading e-ticket: 2026_02_eticket_export.csv
+2026-03-03 01:40:45,731 - INFO - Loaded 2832 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note']
+2026-03-03 01:40:45,736 - INFO - Records after Officer Id validation: 2832
+2026-03-03 01:40:45,853 - INFO - Badge join: 2832 matched, 0 unmatched
+2026-03-03 01:40:45,854 - INFO - Applying assignment override for badge 2025 (19 records)
+2026-03-03 01:40:45,857 - INFO - Applying assignment override for badge 0738 (4 records)
+2026-03-03 01:40:45,900 - WARNING - Last-name fuzzy match: 47 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 01:40:45,943 - INFO - E-ticket processing complete: 2832 records, 60 unique officers
+2026-03-03 01:40:45,978 - INFO - === PROCESSING SUMMARY ===
+2026-03-03 01:40:45,978 - INFO - total_records: 48006
+2026-03-03 01:40:45,978 - INFO - date_range: 1/10/2026 10:05 to 2026-03-02T09:14:30.403
+2026-03-03 01:40:45,978 - INFO - unique_officers: 97
+2026-03-03 01:40:45,978 - INFO - match_quality_distribution: {'DIRECT_BADGE': 47890, 'NO_MATCH': 116}
+2026-03-03 01:40:45,979 - INFO - type_distribution: {'P': 41234, 'M': 5920, 'C': 852}
+2026-03-03 01:40:45,979 - INFO - name_anomaly_count: 2439
+2026-03-03 01:40:45,979 - INFO - data_quality_avg: 99.93959088447278
+2026-03-03 01:40:45,990 - INFO - Using backfill: C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\projects\PowerBI_Date\Backfill\2026_01\summons
+2026-03-03 01:40:45,997 - INFO - Loaded gap months from consolidated file 2026_01_Department-Wide Summons  Moving and Parking.csv: 4 rows
+2026-03-03 01:40:46,200 - INFO - Merged 4 backfill rows into main dataframe.
+2026-03-03 01:42:15,860 - INFO - Saved: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_20260303_014046.xlsx
+2026-03-03 01:43:27,883 - INFO - Saved: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+2026-03-03 01:43:27,883 - INFO - === QA VALIDATION: counts by badge+type ===
+2026-03-03 01:43:27,905 - INFO - 
+PADDED_BADGE_NUMBER       OFFICER_DISPLAY_NAME TYPE  COUNT
+               0083         A. MATTALIAN #0083    M     26
+               0083         A. MATTALIAN #0083    P     89
+               0135           M. ANTISTA #0135    M     27
+               0135           M. ANTISTA #0135    P    163
+               0136        T. CAPPADONNA #0136    P      5
+               0138          M. JACOBSEN #0138    C      1
+               0138          M. JACOBSEN #0138    M   1126
+               0138          M. JACOBSEN #0138    P    981
+               0141             J. KNAPP #0141    P     12
+               0144         M. DIMARTINO #0144    M      3
+               0144         M. DIMARTINO #0144    P     10
+               0153            M. KOENIG #0153    C      4
+               0153            M. KOENIG #0153    M     13
+               0153            M. KOENIG #0153    P      2
+               0161            W. RIVERA #0161    M     15
+               0161            W. RIVERA #0161    P     50
+               0164          B. MCCARTHY #0164    M     30
+               0164          B. MCCARTHY #0164    P     69
+               0165               J. HAN #0165    M     22
+               0165               J. HAN #0165    P    123
+               0166         P. DOMINGUEZ #0166    M     25
+               0166         P. DOMINGUEZ #0166    P    146
+               0226       F. COMPETIELLO #0226    M      3
+               0226       F. COMPETIELLO #0226    P      4
+               0253           F. CAVALLO #0253    P     11
+               0256         G. GALLORINI #0256    M    123
+               0256         G. GALLORINI #0256    P   1861
+               0257              J. MORA #0257    M     26
+               0257              J. MORA #0257    P     98
+               0267             T. SROKA #0267    M     21
+               0267             T. SROKA #0267    P    104
+               0271            D. MARBLE #0271    M      1
+               0271            D. MARBLE #0271    P     11
+               0273            S. BRIGGS #0273    M      2
+               0301            F. MCCALL #0301    M    159
+               0301            F. MCCALL #0301    P     29
+               0308      I. PAPANIKOLAOU #0308    M     19
+               0308      I. PAPANIKOLAOU #0308    P    193
+               0309             B. FARHI #0309    C      3
+               0309             B. FARHI #0309    M     19
+               0309             B. FARHI #0309    P      9
+               0311           K. PERALTA #0311    M     48
+               0311           K. PERALTA #0311    P     35
+               0313         A. IANNACONE #0313    M    156
+               0313         A. IANNACONE #0313    P   1290
+               0316           M. TEDESCO #0316    M      4
+               0316           M. TEDESCO #0316    P     13
+               0318              R. LYAK #0318    M     24
+               0318              R. LYAK #0318    P    142
+               0320              A. REVI #0320    P     24
+               0322              A. MENA #0322    M     14
+               0322              A. MENA #0322    P     19
+               0325           M. DEBONIS #0325    M      5
+               0327            M. ONEILL #0327    C      1
+               0327            M. ONEILL #0327    M    657
+               0327            M. ONEILL #0327    P   1366
+               0328             K. SMALL #0328    M     62
+               0328             K. SMALL #0328    P    172
+               0329       D. FRANCAVILLA #0329    C      2
+               0329       D. FRANCAVILLA #0329    M    168
+               0329       D. FRANCAVILLA #0329    P    892
+               0330            J. BUTLER #0330    P      1
+               0331          M. CARRILLO #0331    C      6
+               0331          M. CARRILLO #0331    M      5
+               0331          M. CARRILLO #0331    P      3
+               0333        R. DONNERSTAG #0333    M      1
+               0333        R. DONNERSTAG #0333    P      5
+               0334           P. SERETIS #0334    C      1
+               0334           P. SERETIS #0334    M     20
+               0334           P. SERETIS #0334    P      3
+               0335         J. TANUCILLI #0335    M      1
+               0335         J. TANUCILLI #0335    P      6
+               0337              A. RIOS #0337    C      2
+               0337              A. RIOS #0337    M     22
+               0337              A. RIOS #0337    P      1
+               0338            M. DOGALI #0338    M      5
+               0338            M. DOGALI #0338    P      1
+               0339               M. REO #0339    M     26
+               0339               M. REO #0339    P     11
+               0341        C. LARA-NUNEZ #0341    M      1
+               0342         J. RODRIGUEZ #0342    M    105
+               0342         J. RODRIGUEZ #0342    P    176
+               0344            S. TOVBIN #0344    M      7
+               0344            S. TOVBIN #0344    P     41
+               0345        J. GRETKOWSKI #0345    P      7
+               0346            F. CANEJA #0346    C      1
+               0346            F. CANEJA #0346    M     36
+               0346            F. CANEJA #0346    P     34
+               0347        S. LEMANOWICZ #0347    M     80
+               0347        S. LEMANOWICZ #0347    P    149
+               0349       M. SCANGARELLA #0349    M     17
+               0349       M. SCANGARELLA #0349    P     76
+               0350           B. ESTRADA #0350    M     14
+               0350           B. ESTRADA #0350    P    177
+               0351        G. LARA-NUNEZ #0351    M      6
+               0351        G. LARA-NUNEZ #0351    P      1
+               0353             F. BONSU #0353    C      1
+               0353             F. BONSU #0353    M     62
+               0353             F. BONSU #0353    P    189
+               0354            R. CONLON #0354    M     35
+               0354            R. CONLON #0354    P     23
+               0355             A. REYES #0355    C      3
+               0355             A. REYES #0355    M     64
+               0355             A. REYES #0355    P     38
+               0356             A. MARZA #0356    C      1
+               0356             A. MARZA #0356    M     20
+               0356             A. MARZA #0356    P     51
+               0357            A. MILLER #0357    M     45
+               0357            A. MILLER #0357    P     96
+               0359           R. ALMONTE #0359    C      3
+               0359           R. ALMONTE #0359    M     91
+               0359           R. ALMONTE #0359    P    209
+               0361            B. RIVERA #0361    C     10
+               0361            B. RIVERA #0361    M    179
+               0361            B. RIVERA #0361    P    241
+               0362             P. LOPEZ #0362    M    110
+               0362             P. LOPEZ #0362    P    110
+               0363           A. TABARES #0363    M     66
+               0363           A. TABARES #0363    P    150
+               0364           C. ALVAREZ #0364    M     71
+               0364           C. ALVAREZ #0364    P    203
+               0365            M. GIBSON #0365    C      2
+               0365            M. GIBSON #0365    M    107
+               0365            M. GIBSON #0365    P    449
+               0366             J. PRICE #0366    C      3
+               0366             J. PRICE #0366    M     75
+               0366             J. PRICE #0366    P     58
+               0367             D. CAERO #0367    M     55
+               0367             D. CAERO #0367    P     57
+               0368 M. ANGUIZACA-ZHINDON #0368    M    103
+               0368 M. ANGUIZACA-ZHINDON #0368    P    230
+               0369             R. SALAS #0369    C      1
+               0369             R. SALAS #0369    M    114
+               0369             R. SALAS #0369    P     39
+               0370            A. VICALE #0370    C      3
+               0370            A. VICALE #0370    M     83
+               0370            A. VICALE #0370    P    176
+               0374       L. LOPEZ-AMAYA #0374    C      1
+               0374       L. LOPEZ-AMAYA #0374    M    173
+               0374       L. LOPEZ-AMAYA #0374    P    143
+               0375             A. LOPEZ #0375    C      1
+               0375             A. LOPEZ #0375    M    284
+               0375             A. LOPEZ #0375    P    253
+               0376        J. DEOLIVEIRA #0376    M    155
+               0376        J. DEOLIVEIRA #0376    P     90
+               0377        N. MAZZACCARO #0377    C      5
+               0377        N. MAZZACCARO #0377    M    329
+               0377        N. MAZZACCARO #0377    P    488
+               0378             UNKNOWN - 0378    M      9
+               0378             UNKNOWN - 0378    P     39
+               0379         M. GALLORINI #0379    M     67
+               0379         M. GALLORINI #0379    P    123
+               0380             UNKNOWN - 0380    M     18
+               0380             UNKNOWN - 0380    P     45
+               0381             R. SWABY #0381    C      2
+               0381             R. SWABY #0381    M     16
+               0381             R. SWABY #0381    P     27
+               0382          E. BADALYAN #0382    C      1
+               0382          E. BADALYAN #0382    M     57
+               0382          E. BADALYAN #0382    P    100
+               0383             D. LYNCH #0383    M      8
+               0383             D. LYNCH #0383    P     14
+               0384           J. PERALTA #0384    M     39
+               0384           J. PERALTA #0384    P    111
+               0385              C. COLE #0385    M     37
+               0385              C. COLE #0385    P    133
+               0386            J. ABERDE #0386    M    107
+               0386            J. ABERDE #0386    P    255
+               0387             C. ROYAL #0387    M     10
+               0387             C. ROYAL #0387    P     33
+               0388            A. LIGGIO #0388    C      1
+               0388            A. LIGGIO #0388    M    134
+               0388            A. LIGGIO #0388    P     37
+               0389           J. ANGELES #0389    C      1
+               0389           J. ANGELES #0389    M      9
+               0389           J. ANGELES #0389    P     30
+               0390           R. OROPEZA #0390    M     14
+               0390           R. OROPEZA #0390    P     43
+               0391              T. LUNA #0391    M     15
+               0391              T. LUNA #0391    P     16
+               0392        J. CAMPOVERDE #0392    M      1
+               0392        J. CAMPOVERDE #0392    P      2
+               0711         J. SQUILLACE #0711    P   3429
+               0717         D. MATTALIAN #0717    C    787
+               0717         D. MATTALIAN #0717    P   3052
+               0738            R. POLSON #0738    P      4
+               0817             A. ABUEG #0817    P     33
+               0839            R. VIVONA #0839    M      9
+               0839            R. VIVONA #0839    P      9
+               0842              S. SELA #0842    M      2
+               0844       H. TAHA-ZEIDAN #0844    M      3
+               0844       H. TAHA-ZEIDAN #0844    P      6
+               1711         J. SQUILLACE #1711    P    657
+               2008           D. CASSIDY #2008    P   1922
+               2013           D. SALAZAR #2013    P   2608
+               2025           M. RAMIREZ #2025    P     39
+               2025 M. RAMIREZ-DRAKEFORD #2025    P   6497
+               2027            K. TORRES #2027    P   7193
+               2030             D. RIZZI #2030    P   2869
+               9110             UNKNOWN - 9110    C      5
+2026-03-03 01:43:27,910 - WARNING - 116 records with no Assignment Master match:
+2026-03-03 01:43:27,911 - WARNING - PADDED_BADGE_NUMBER
+0380    63
+0378    48
+9110     5
+2026-03-03 01:43:27,963 - INFO - ETL complete. Output: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+2026-03-03 02:10:49,270 - INFO - Assignment Master columns: ['REF_NUMBER', 'FULL_NAME', 'TITLE', 'FIRST_NAME', 'LAST_NAME', 'BADGE_NUMBER', 'PADDED_BADGE_NUMBER', 'TEAM', 'WG1', 'WG2', 'WG3', 'WG4', 'CONTRACT_TYPE', 'STANDARD_NAME', 'CONFLICT_RESOLUTION', 'CODE', 'WORKING_GROUP', 'DOB', 'JOINED_SERVICE', 'SGT', 'LT', 'CAPT', 'CHIEF', 'STATUS', 'RANK']
+2026-03-03 02:10:49,271 - INFO - Assignment Master: V3 schema detected (STANDARD_NAME / PATROL DIVISION)
+2026-03-03 02:10:49,294 - INFO - Loaded 157 officer records from Assignment Master
+2026-03-03 02:10:49,295 - INFO - Loading e-ticket: 2026_01_eticket_export.csv
+2026-03-03 02:10:49,387 - INFO - Loaded 4136 raw records | Columns: ['Ticket Court Code', 'Ticket Number', 'Case Status Code', 'Case Type Code', 'Entered Date', 'Issue Date', 'Charge Date', 'Charge Time', 'Agency Id', 'Officer Id', 'Police Unit Id', 'Officer First Name', 'Officer Middle Initial', 'Officer Last Name', 'Court Code', 'Court Name', 'County Name', 'Municipality Name', 'Court State Code', 'Court City', 'Court Zip First', 'Court Zip Last', 'Court Street 1', 'Court Street 2', 'Court Phone 1', 'Court Phone 2', 'Hours Of Operation', 'Jurisdiction Code', 'Statute', 'Violation Description', 'Municipality Of Offense Code', 'Offense Street Name', 'Penalty', 'Pay By Date', 'Court Date', 'Court Time', 'Vehicle Body Code', 'Vehicle Body Description', 'Model Year', 'Vehicle Color Code', 'Color Code Description', 'Make Code', 'Make Description', 'Vehicle VIN', 'License Plate Number', 'License Plate Expiration Date', 'License Plate State Code', 'Is Commercial License', 'Defendant First Name', 'Defendant Middle Initial', 'Defendant Last Name', 'Defendant Address City', 'Defendant Address State Code', 'Defendant Address Zip First', 'Defendant Address Zip Last', 'Defendant Address Street 1', 'Defendant Address Street 2', 'Defendant Phone', 'Defendant Sex Code', 'Defendant Eye Color Code', 'Defendant Eye Color Description', 'Defendant Birth Date', 'Defendant Height', 'Defendant Weight', 'Driver License Number', 'Driver License State Code', 'Driver License Expiration Date', 'Driver License Restriction Class Code', 'Driver License Restriction Class Description', 'Driver License Restriction Type Code', 'Driver License Restriction Type Description', 'Corporate Id', 'Corporate Id State Code', 'Corporate Name', 'Corporate Address City', 'Corporate Address State Code', 'Corporate Address Zip First', 'Corporate Address Zip Last', 'Corporate Address Street 1', 'Corporate Address Street 2', 'Corporate Phone', 'Meter Number/Speed MPH Zone Number', 'Area/Speed MPH', 'Road/Speed Determination Method Code', 'Traffic/Speed Determination Method Description', 'Visibility/Is Commercial Vehicle', 'Equipment/Is Breath Test', 'Equipment Operator Name/Is Construction Zone', 'Operator Id Number/Is Death Serious Body Injury', 'Unit Code/Is Personal Injury', 'Case Number/Is Hazard Material', 'Parking Note/Is Omnibus', 'Is Out Of Service', 'Is Safe Corridor', 'Is Sixty Five MPH', 'Area', 'Road', 'Traffic', 'Visibility', 'Equipment', 'Equipment Operator Name', 'Operator Id Number', 'Unit Code', 'Case Number', 'Moving Note', 'Column106', 'Column107', 'Column108', 'Column109', 'Column110', 'Column111', 'Column112', 'Column113']
+2026-03-03 02:10:49,404 - INFO - Records after Officer Id validation: 4136
+2026-03-03 02:10:49,628 - INFO - Badge join: 4134 matched, 2 unmatched
+2026-03-03 02:10:49,629 - WARNING - Unmatched badges (update Assignment Master): ['9110']
+2026-03-03 02:10:49,638 - INFO - Applying assignment override for badge 2025 (1 records)
+2026-03-03 02:10:49,761 - WARNING - Last-name fuzzy match: 33 rows with score < 70 (export vs Assignment Master by badge)
+2026-03-03 02:10:49,857 - INFO - E-ticket processing complete: 4136 records, 67 unique officers

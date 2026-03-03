@@ -1,0 +1,300 @@
+# 2025 12 22 Master Automation Directory Tree
+
+**Processing Date:** 2026-02-04 23:53:49
+**Source File:** 2025_12_22_Master_Automation_directory_tree.md
+**Total Chunks:** 1
+
+---
+
+# Directory Tree: Master_Automation
+
+📁 Master_Automation
+  - 📁 .claude
+    - 📄 settings.local.json
+  - 📁 02_ETL_Scripts
+    - 📁 Overtime_TimeOff
+  - 📁 2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow
+    - 📄 2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow.origin.json
+    - 📄 2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow_sidecar.json
+    - 📄 2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow_transcript.md
+    - 📄 chunk_00000.txt
+    - 📄 chunk_00001.txt
+    - 📄 chunk_00002.txt
+    - 📄 chunk_00003.txt
+    - 📄 chunk_00004.txt
+    - 📄 chunk_00005.txt
+    - 📄 chunk_00006.txt
+    - 📄 chunk_00007.txt
+    - 📄 chunk_00008.txt
+    - 📄 chunk_00009.txt
+    - 📄 chunk_00010.txt
+    - 📄 chunk_00011.txt
+    - 📄 chunk_00012.txt
+    - 📄 chunk_00013.txt
+    - 📄 chunk_00014.txt
+    - 📄 chunk_00015.txt
+    - 📄 chunk_00016.txt
+    - 📄 chunk_00017.txt
+    - 📄 chunk_00018.txt
+  - 📁 _DropExports
+    - 📄 ___Benchmark_m_code_preview_table.txt
+  - 📁 chatlogs
+    - 📄 README.md
+  - 📁 config
+    - 📄 scripts-PD_BCI_LTP.json
+    - 📄 scripts.json
+    - 📄 scripts.json.bak
+  - 📁 data
+    - 📁 preview_table
+      - 📄 response_time.csv
+    - 📁 visual_export
+      - 📄 Average Response Times  Values are in mmss.csv
+  - 📁 docs
+    - 📄 BACKFILL_COLUMN_ORDER_ISSUE.md
+    - 📄 BACKFILL_DATA_PATHS.md
+    - 📄 BACKFILL_WORKFLOW_RECOMMENDATION.md
+    - 📄 CHANGELOG.md
+    - 📄 CURSOR_AI_PROMPT.md
+    - 📄 EXPORT_ORGANIZATION_SUMMARY.md
+    - 📄 FOLDER_STRUCTURE_CREATED.md
+    - 📄 MIGRATION_VERIFICATION.md
+    - 📄 PROJECT_STRUCTURE.md
+    - 📄 QUICK_START.md
+    - 📄 SCRIPT_FILENAME_UPDATE_SUMMARY.md
+    - 📄 VERIFICATION_REPORT.md
+    - 📄 VERIFICATION_SUMMARY.md
+    - 📄 VISUAL_EXPORT_CHECKLIST.md
+    - 📄 VISUAL_EXPORT_GUIDE.md
+  - 📁 logs
+    - 📄 2025-12-09_22-54-01_ETL_Run.log
+    - 📄 2025-12-09_23-16-32_ETL_Run.log
+    - 📄 2025-12-09_23-16-39_Arrests.log
+    - 📄 2025-12-09_23-16-39_Arrests.log.err
+    - 📄 2025-12-09_23-16-39_Community Engagement.log
+    - 📄 2025-12-09_23-16-39_Community Engagement.log.err
+    - 📄 2025-12-09_23-16-39_ETL_Run.log
+    - 📄 2025-12-09_23-16-39_Overtime TimeOff.log
+    - 📄 2025-12-09_23-16-39_Overtime TimeOff.log.err
+    - 📄 2025-12-09_23-16-39_Policy Training Monthly.log
+    - 📄 2025-12-09_23-16-39_Policy Training Monthly.log.err
+    - 📄 2025-12-09_23-16-39_Response Times.log
+    - 📄 2025-12-09_23-16-39_Response Times.log.err
+    - 📄 2025-12-09_23-16-39_Summons.log
+    - 📄 2025-12-09_23-16-39_Summons.log.err
+    - 📄 2025-12-09_23-22-36_ETL_Run.log
+    - 📄 2025-12-09_23-22-36_Summons.log
+    - 📄 2025-12-09_23-22-36_Summons.log.err
+    - 📄 2025-12-09_23-28-25_Arrest Data Source.log
+    - 📄 2025-12-09_23-28-25_Arrest Data Source.log.err
+    - 📄 2025-12-09_23-28-25_ETL_Run.log
+    - 📄 2025-12-09_23-32-40_ETL_Run.log
+    - 📄 2025-12-09_23-32-40_Overtime TimeOff.log
+    - 📄 2025-12-09_23-32-40_Overtime TimeOff.log.err
+    - 📄 2025-12-09_23-33-32_ETL_Run.log
+    - 📄 2025-12-09_23-33-32_Overtime TimeOff.log
+    - 📄 2025-12-09_23-33-32_Overtime TimeOff.log.err
+    - 📄 2025-12-10_02-01-30_Arrest Data Source.log
+    - 📄 2025-12-10_02-01-30_Arrest Data Source.log.err
+    - 📄 2025-12-10_02-01-30_Arrests.log
+    - 📄 2025-12-10_02-01-30_Arrests.log.err
+    - 📄 2025-12-10_02-01-30_Community Engagement.log
+    - 📄 2025-12-10_02-01-30_Community Engagement.log.err
+    - 📄 2025-12-10_02-01-30_ETL_Run.log
+    - 📄 2025-12-10_02-01-30_Overtime TimeOff.log
+    - 📄 2025-12-10_02-01-30_Overtime TimeOff.log.err
+    - 📄 2025-12-10_02-01-30_Policy Training Monthly.log
+    - 📄 2025-12-10_02-01-30_Policy Training Monthly.log.err
+    - 📄 2025-12-10_02-01-30_Response Times.log
+    - 📄 2025-12-10_02-01-30_Response Times.log.err
+    - 📄 2025-12-10_02-01-30_Summons.log
+    - 📄 2025-12-10_02-01-30_Summons.log.err
+    - 📄 2025-12-10_02-37-17_Arrests.log
+    - 📄 2025-12-10_02-37-17_Arrests.log.err
+    - 📄 2025-12-10_02-37-17_Community Engagement.log
+    - 📄 2025-12-10_02-37-17_Community Engagement.log.err
+    - 📄 2025-12-10_02-37-17_ETL_Run.log
+    - 📄 2025-12-10_02-37-17_Overtime TimeOff.log
+    - 📄 2025-12-10_02-37-17_Overtime TimeOff.log.err
+    - 📄 2025-12-10_02-37-17_Policy Training Monthly.log
+    - 📄 2025-12-10_02-37-17_Policy Training Monthly.log.err
+    - 📄 2025-12-10_02-37-17_Response Times.log
+    - 📄 2025-12-10_02-37-17_Response Times.log.err
+    - 📄 2025-12-10_02-37-17_Summons.log
+    - 📄 2025-12-10_02-37-17_Summons.log.err
+    - 📄 2025-12-10_02-44-46_Arrest Data Source.log
+    - 📄 2025-12-10_02-44-46_Arrest Data Source.log.err
+    - 📄 2025-12-10_02-44-46_Arrests.log
+    - 📄 2025-12-10_02-44-46_Arrests.log.err
+    - 📄 2025-12-10_02-44-46_Community Engagement.log
+    - 📄 2025-12-10_02-44-46_Community Engagement.log.err
+    - 📄 2025-12-10_02-44-46_ETL_Run.log
+    - 📄 2025-12-10_02-44-46_Overtime TimeOff.log
+    - 📄 2025-12-10_02-44-46_Overtime TimeOff.log.err
+    - 📄 2025-12-10_02-44-46_Policy Training Monthly.log
+    - 📄 2025-12-10_02-44-46_Policy Training Monthly.log.err
+    - 📄 2025-12-10_02-44-46_Response Times.log
+    - 📄 2025-12-10_02-44-46_Response Times.log.err
+    - 📄 2025-12-10_02-44-46_Summons.log
+    - 📄 2025-12-10_02-44-46_Summons.log.err
+    - 📄 2025-12-11_13-23-55_ETL_Run.log
+    - 📄 2025-12-11_16-57-58_ETL_Run.log
+    - 📄 2025-12-11_17-31-37_ETL_Run.log
+    - 📄 2025-12-11_18-10-21_ETL_Run.log
+    - 📄 2025-12-11_18-12-20_Arrests.log
+    - 📄 2025-12-11_18-12-20_Arrests.log.err
+    - 📄 2025-12-11_18-12-20_Community Engagement.log
+    - 📄 2025-12-11_18-12-20_Community Engagement.log.err
+    - 📄 2025-12-11_18-12-20_ETL_Run.log
+    - 📄 2025-12-11_18-12-20_Overtime TimeOff.log
+    - 📄 2025-12-11_18-12-20_Overtime TimeOff.log.err
+    - 📄 2025-12-11_18-12-20_Response Times.log
+    - 📄 2025-12-11_18-12-20_Response Times.log.err
+    - 📄 2025-12-11_18-12-20_Summons.log
+    - 📄 2025-12-11_18-12-20_Summons.log.err
+    - 📄 2025-12-11_18-16-31_ETL_Run.log
+    - 📄 2025-12-11_18-16-31_Response Times.log
+    - 📄 2025-12-11_18-16-31_Response Times.log.err
+    - 📄 2025-12-11_18-18-20_ETL_Run.log
+    - 📄 2025-12-11_18-18-20_Response Times.log
+    - 📄 2025-12-11_18-18-20_Response Times.log.err
+    - 📄 2025-12-11_18-18-47_ETL_Run.log
+    - 📄 2025-12-11_18-23-52_Arrests.log
+    - 📄 2025-12-11_18-23-52_Arrests.log.err
+    - 📄 2025-12-11_18-23-52_Community Engagement.log
+    - 📄 2025-12-11_18-23-52_Community Engagement.log.err
+    - 📄 2025-12-11_18-23-52_ETL_Run.log
+    - 📄 2025-12-11_18-23-52_Overtime TimeOff.log
+    - 📄 2025-12-11_18-23-52_Overtime TimeOff.log.err
+    - 📄 2025-12-11_18-23-52_Response Times.log
+    - 📄 2025-12-11_18-23-52_Response Times.log.err
+    - 📄 2025-12-11_18-23-52_Summons.log
+    - 📄 2025-12-11_18-23-52_Summons.log.err
+    - 📄 2025-12-11_18-26-54_Arrests.log
+    - 📄 2025-12-11_18-26-54_Arrests.log.err
+    - 📄 2025-12-11_18-26-54_Community Engagement.log
+    - 📄 2025-12-11_18-26-54_Community Engagement.log.err
+    - 📄 2025-12-11_18-26-54_ETL_Run.log
+    - 📄 2025-12-11_18-26-54_Overtime TimeOff.log
+    - 📄 2025-12-11_18-26-54_Overtime TimeOff.log.err
+    - 📄 2025-12-11_18-26-54_Response Times.log
+    - 📄 2025-12-11_18-26-54_Response Times.log.err
+    - 📄 2025-12-11_18-26-54_Summons.log
+    - 📄 2025-12-11_18-26-54_Summons.log.err
+    - 📄 2025-12-11_18-30-06_Arrests.log
+    - 📄 2025-12-11_18-30-06_Arrests.log.err
+    - 📄 2025-12-11_18-30-06_Community Engagement.log
+    - 📄 2025-12-11_18-30-06_Community Engagement.log.err
+    - 📄 2025-12-11_18-30-06_ETL_Run.log
+    - 📄 2025-12-11_18-30-06_Overtime TimeOff.log
+    - 📄 2025-12-11_18-30-06_Overtime TimeOff.log.err
+    - 📄 2025-12-11_18-30-06_Response Times.log
+    - 📄 2025-12-11_18-30-06_Response Times.log.err
+    - 📄 2025-12-11_18-30-06_Summons.log
+    - 📄 2025-12-11_18-30-06_Summons.log.err
+    - 📄 2025-12-11_22-50-32_ETL_Run.log
+    - 📄 2025-12-11_22-50-32_Summons.log
+    - 📄 2025-12-11_22-50-32_Summons.log.err
+    - 📄 2025-12-11_22-52-53_Arrests.log
+    - 📄 2025-12-11_22-52-53_Arrests.log.err
+    - 📄 2025-12-11_22-52-53_Community Engagement.log
+    - 📄 2025-12-11_22-52-53_Community Engagement.log.err
+    - 📄 2025-12-11_22-52-53_ETL_Run.log
+    - 📄 2025-12-11_22-52-53_Overtime TimeOff.log
+    - 📄 2025-12-11_22-52-53_Overtime TimeOff.log.err
+    - 📄 2025-12-11_22-52-53_Response Times.log
+    - 📄 2025-12-11_22-52-53_Response Times.log.err
+    - 📄 2025-12-11_22-52-53_Summons.log
+    - 📄 2025-12-11_22-52-53_Summons.log.err
+  - 📁 output
+    - 📄 cad_data_for_powerbi_final.csv
+  - 📁 outputs
+  - 📁 scripts
+    - 📄 compare_policy_training_delivery.py
+    - 📄 compare_summons_all_bureaus.py
+    - 📄 compare_summons_deptwide.py
+    - 📄 compare_vcs_time_report_exports.py
+    - 📄 count_patrol_m_p_from_eticket.py
+    - 📄 diagnose_summons_assignment_mapping.py
+    - 📄 diagnose_summons_blank_bureau.py
+    - 📄 diagnose_summons_missing_months.py
+    - 📄 diagnose_summons_top5_vs_deptwide.py
+    - 📄 fix_summons_wg2_from_assignment.py
+    - 📄 overtime_timeoff_with_backfill.py
+    - 📄 restore_fixed_from_backfill.py
+    - 📄 run_all_etl-PD_BCI_LTP.ps1
+    - 📄 run_all_etl.bat
+    - 📄 run_all_etl.ps1
+    - 📄 run_etl_script.ps1
+    - 📄 run_summons_with_overrides.py
+  - 📄 -PD_BCI_LTP.gitignore
+  - 📄 .gitignore
+  - 📄 2025_12_10_CLAUDE_CODE_response_time-reword.md
+  - 📄 2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow (2).zip
+  - 📄 2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow.7z
+  - 📄 2025_12_11_22_32_04_Summons_And_Backfill_Validation_Workflow.zip
+  - 📄 2025_12_11_Monthly Accrual and Usage Summary.csv
+  - 📄 25_11_e_ticketexport.csv
+  - 📄 ___Overtime_Timeoff_v3.m
+  - 📄 ___ResponseTimeCalculator.txt
+  - 📄 ___Summons.m
+  - 📄 ___Summons_preview_table.csv
+  - 📄 ___Summons_preview_table.xlsx
+  - 📄 ___Summons_preview_table_latest.csv
+  - 📄 _summons_mcode.m
+  - 📄 ACTION_ITEMS.md
+  - 📄 AGGREGATION_ISSUE_RESOLVED.md
+  - 📄 all_summons_m_code.txt
+  - 📄 Assignment_Master_V2.csv
+  - 📄 BACKFILL_FILTERING_COMPARISON.md
+  - 📄 BACKFILL_LOCATIONS.md
+  - 📄 CHANGELOG-PD_BCI_LTP.md
+  - 📄 CHANGELOG.md
+  - 📄 claude_code_summons.md
+  - 📄 DAX_MEASURE_FIXED_FINAL.txt
+  - 📄 DAX_MEASURES_FIXED.txt
+  - 📄 debug_aggregation_issue.py
+  - 📄 Department-Wide Summons  Moving and Parking.csv
+  - 📄 diagnostic_summons_data.m
+  - 📄 DIRECTORY_STRUCTURE_RECOMMENDATION.md
+  - 📄 filter_incidents_response_types.csv
+  - 📄 FILTERING_ISSUE_ANALYSIS.md
+  - 📄 FIXED_DAX_MEASURES.txt
+  - 📄 INCIDENT_MAPPING_IMPLEMENTATION_SUMMARY.md
+  - 📄 M_CODE_IMPLEMENTATION_STEPS.md
+  - 📄 M_CODE_UPDATE_GUIDE.md
+  - 📄 manifest.json
+  - 📄 Master_Automation.code-workspace
+  - 📄 MISSING_DATA_EXPORTS.md
+  - 📄 Monthly Accrual and Usage Summary.csv
+  - 📄 new_Department-Wide Summons  Moving and Parking.csv
+  - 📄 new_Top 5 Moving Violations - Department Wide.csv
+  - 📄 new_Top 5 Non-Parking Violations - Department Wide.csv
+  - 📄 POWER_BI_QUERY_REFRESH_CHECKLIST.md
+  - 📄 POWER_BI_REPORT_INFO.md
+  - 📄 POWER_BI_VISUAL_FIX_GUIDE.md
+  - 📄 QUICK_START-PD_BCI_LTP.md
+  - 📄 README-PD_BCI_LTP.md
+  - 📄 README.md
+  - 📄 RESPONSE_TIMES_DAX_COLUMNS.txt
+  - 📄 RESPONSE_TIMES_FILTERING_REVIEW_SUMMARY.md
+  - 📄 RESPONSE_TIMES_M_CODE_COMPLETE_FIX.txt
+  - 📄 RESPONSE_TIMES_M_CODE_CORRECTED.txt
+  - 📄 RESPONSE_TIMES_M_CODE_FINAL.txt
+  - 📄 RESPONSE_TIMES_M_CODE_FINAL_READY.txt
+  - 📄 RESPONSE_TIMES_M_CODE_FIXED.txt
+  - 📄 RESPONSE_TIMES_M_CODE_PRODUCTION.txt
+  - 📄 RESPONSE_TIMES_M_CODE_SIMPLE.txt
+  - 📄 RESPONSE_TIMES_SIMPLE_COLUMNS.txt
+  - 📄 scripts.json
+  - 📄 SUMMARY-PD_BCI_LTP.md
+  - 📄 SUMMARY.md
+  - 📄 Summons  Moving & Parking  All Bureaus.csv
+  - 📄 SUMMONS_DAX_MEASURES_CORRECTED.txt
+  - 📄 SUMMONS_DIAGNOSTIC_REPORT_2025_12_12.md
+  - 📄 summons_simple_processing.log
+  - 📄 SYSTEM_STATUS.md
+  - 📄 Training Cost by Delivery Method.csv
+  - 📄 TROUBLESHOOTING_RESPONSE_TIMES.md
+  - 📄 VERIFICATION_REPORT-PD_BCI_LTP.md
+  - 📄 verify_migration.ps1
+

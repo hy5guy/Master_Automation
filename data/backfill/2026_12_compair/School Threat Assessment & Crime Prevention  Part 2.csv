@@ -1,0 +1,274 @@
+﻿Tracked Items ,Sum of Value,Month_MM_YY
+Luring,0,12-24
+Luring,0,01-25
+Luring,0,02-25
+Luring,0,03-25
+Luring,0,04-25
+Luring,0,05-25
+Luring,0,06-25
+Luring,0,07-25
+Luring,0,08-25
+Luring,0,09-25
+Luring,0,10-25
+Luring,0,11-25
+Luring,0,12-25
+Medical,2,12-24
+Medical,0,01-25
+Medical,1,02-25
+Medical,5,03-25
+Medical,0,04-25
+Medical,1,05-25
+Medical,5,06-25
+Medical,0,07-25
+Medical,1,08-25
+Medical,0,09-25
+Medical,2,10-25
+Medical,2,11-25
+Medical,2,12-25
+Missing Person,0,12-24
+Missing Person,0,01-25
+Missing Person,0,02-25
+Missing Person,0,03-25
+Missing Person,12,04-25
+Missing Person,3,05-25
+Missing Person,7,06-25
+Missing Person,2,07-25
+Missing Person,7,08-25
+Missing Person,12,09-25
+Missing Person,12,10-25
+Missing Person,9,11-25
+Missing Person,3,12-25
+MV Stops,1,12-24
+MV Stops,0,01-25
+MV Stops,2,02-25
+MV Stops,2,03-25
+MV Stops,0,04-25
+MV Stops,0,05-25
+MV Stops,4,06-25
+MV Stops,0,07-25
+MV Stops,0,08-25
+MV Stops,0,09-25
+MV Stops,0,10-25
+MV Stops,0,11-25
+MV Stops,0,12-25
+Robbery,0,12-24
+Robbery,0,01-25
+Robbery,0,02-25
+Robbery,0,03-25
+Robbery,1,04-25
+Robbery,0,05-25
+Robbery,0,06-25
+Robbery,0,07-25
+Robbery,0,08-25
+Robbery,0,09-25
+Robbery,0,10-25
+Robbery,0,11-25
+Robbery,1,12-25
+Station House Adjustments,2,12-24
+Station House Adjustments,0,01-25
+Station House Adjustments,1,02-25
+Station House Adjustments,1,03-25
+Station House Adjustments,2,04-25
+Station House Adjustments,0,05-25
+Station House Adjustments,2,06-25
+Station House Adjustments,3,07-25
+Station House Adjustments,0,08-25
+Station House Adjustments,4,09-25
+Station House Adjustments,2,10-25
+Station House Adjustments,1,11-25
+Station House Adjustments,0,12-25
+Sudden Death (DOA) ,0,12-24
+Sudden Death (DOA) ,0,01-25
+Sudden Death (DOA) ,0,02-25
+Sudden Death (DOA) ,0,03-25
+Sudden Death (DOA) ,0,04-25
+Sudden Death (DOA) ,0,05-25
+Sudden Death (DOA) ,0,06-25
+Sudden Death (DOA) ,0,07-25
+Sudden Death (DOA) ,1,08-25
+Sudden Death (DOA) ,0,09-25
+Sudden Death (DOA) ,0,10-25
+Sudden Death (DOA) ,0,11-25
+Sudden Death (DOA) ,0,12-25
+Suicidal Juvenile,1,12-24
+Suicidal Juvenile,1,01-25
+Suicidal Juvenile,0,02-25
+Suicidal Juvenile,0,03-25
+Suicidal Juvenile,2,04-25
+Suicidal Juvenile,1,05-25
+Suicidal Juvenile,0,06-25
+Suicidal Juvenile,0,07-25
+Suicidal Juvenile,0,08-25
+Suicidal Juvenile,0,09-25
+Suicidal Juvenile,1,10-25
+Suicidal Juvenile,0,11-25
+Suicidal Juvenile,0,12-25
+Summons Issued - Moving,0,12-24
+Summons Issued - Moving,0,01-25
+Summons Issued - Moving,4,02-25
+Summons Issued - Moving,0,03-25
+Summons Issued - Moving,0,04-25
+Summons Issued - Moving,0,05-25
+Summons Issued - Moving,0,06-25
+Summons Issued - Moving,0,07-25
+Summons Issued - Moving,0,08-25
+Summons Issued - Moving,0,09-25
+Summons Issued - Moving,0,10-25
+Summons Issued - Moving,0,11-25
+Summons Issued - Moving,0,12-25
+Summons Issued - Parking,0,12-24
+Summons Issued - Parking,0,01-25
+Summons Issued - Parking,4,02-25
+Summons Issued - Parking,0,03-25
+Summons Issued - Parking,0,04-25
+Summons Issued - Parking,0,05-25
+Summons Issued - Parking,0,06-25
+Summons Issued - Parking,0,07-25
+Summons Issued - Parking,0,08-25
+Summons Issued - Parking,0,09-25
+Summons Issued - Parking,0,10-25
+Summons Issued - Parking,0,11-25
+Summons Issued - Parking,0,12-25
+Summons Issued - Total MV,0,12-24
+Summons Issued - Total MV,0,01-25
+Summons Issued - Total MV,0,02-25
+Summons Issued - Total MV,0,03-25
+Summons Issued - Total MV,0,04-25
+Summons Issued - Total MV,0,05-25
+Summons Issued - Total MV,0,06-25
+Summons Issued - Total MV,0,07-25
+Summons Issued - Total MV,0,08-25
+Summons Issued - Total MV,0,09-25
+Summons Issued - Total MV,0,10-25
+Summons Issued - Total MV,0,11-25
+Summons Issued - Total MV,0,12-25
+Suspicious Incident,1,12-24
+Suspicious Incident,3,01-25
+Suspicious Incident,1,02-25
+Suspicious Incident,2,03-25
+Suspicious Incident,3,04-25
+Suspicious Incident,3,05-25
+Suspicious Incident,1,06-25
+Suspicious Incident,0,07-25
+Suspicious Incident,1,08-25
+Suspicious Incident,1,09-25
+Suspicious Incident,1,10-25
+Suspicious Incident,0,11-25
+Suspicious Incident,3,12-25
+Suspicious Person,0,12-24
+Suspicious Person,0,01-25
+Suspicious Person,0,02-25
+Suspicious Person,0,03-25
+Suspicious Person,0,04-25
+Suspicious Person,0,05-25
+Suspicious Person,0,06-25
+Suspicious Person,0,07-25
+Suspicious Person,0,08-25
+Suspicious Person,3,09-25
+Suspicious Person,0,10-25
+Suspicious Person,0,11-25
+Suspicious Person,1,12-25
+Terroristic Threats,0,12-24
+Terroristic Threats,2,01-25
+Terroristic Threats,2,02-25
+Terroristic Threats,2,03-25
+Terroristic Threats,1,04-25
+Terroristic Threats,1,05-25
+Terroristic Threats,1,06-25
+Terroristic Threats,0,07-25
+Terroristic Threats,0,08-25
+Terroristic Threats,0,09-25
+Terroristic Threats,2,10-25
+Terroristic Threats,0,11-25
+Terroristic Threats,1,12-25
+Theft,2,12-24
+Theft,0,01-25
+Theft,0,02-25
+Theft,0,03-25
+Theft,1,04-25
+Theft,1,05-25
+Theft,1,06-25
+Theft,1,07-25
+Theft,0,08-25
+Theft,0,09-25
+Theft,0,10-25
+Theft,2,11-25
+Theft,0,12-25
+Threat Assessments,1,12-24
+Threat Assessments,0,01-25
+Threat Assessments,0,02-25
+Threat Assessments,0,03-25
+Threat Assessments,0,04-25
+Threat Assessments,0,05-25
+Threat Assessments,0,06-25
+Threat Assessments,0,07-25
+Threat Assessments,0,08-25
+Threat Assessments,0,09-25
+Threat Assessments,1,10-25
+Threat Assessments,0,11-25
+Threat Assessments,0,12-25
+Trespassing,0,12-24
+Trespassing,2,01-25
+Trespassing,0,02-25
+Trespassing,0,03-25
+Trespassing,0,04-25
+Trespassing,3,05-25
+Trespassing,0,06-25
+Trespassing,0,07-25
+Trespassing,0,08-25
+Trespassing,0,09-25
+Trespassing,2,10-25
+Trespassing,0,11-25
+Trespassing,0,12-25
+Underage Possession of Alcohol,0,12-24
+Underage Possession of Alcohol,0,01-25
+Underage Possession of Alcohol,0,02-25
+Underage Possession of Alcohol,0,03-25
+Underage Possession of Alcohol,0,04-25
+Underage Possession of Alcohol,0,05-25
+Underage Possession of Alcohol,0,06-25
+Underage Possession of Alcohol,0,07-25
+Underage Possession of Alcohol,0,08-25
+Underage Possession of Alcohol,0,09-25
+Underage Possession of Alcohol,0,10-25
+Underage Possession of Alcohol,0,11-25
+Underage Possession of Alcohol,0,12-25
+Underage Possession of CDs,0,12-24
+Underage Possession of CDs,0,01-25
+Underage Possession of CDs,0,02-25
+Underage Possession of CDs,0,03-25
+Underage Possession of CDs,0,04-25
+Underage Possession of CDs,0,05-25
+Underage Possession of CDs,0,06-25
+Underage Possession of CDs,0,07-25
+Underage Possession of CDs,0,08-25
+Underage Possession of CDs,0,09-25
+Underage Possession of CDs,0,10-25
+Underage Possession of CDs,0,11-25
+Underage Possession of CDs,1,12-25
+Weapons,2,12-24
+Weapons,0,01-25
+Weapons,0,02-25
+Weapons,0,03-25
+Weapons,0,04-25
+Weapons,0,05-25
+Weapons,0,06-25
+Weapons,0,07-25
+Weapons,0,08-25
+Weapons,0,09-25
+Weapons,1,10-25
+Weapons,1,11-25
+Weapons,0,12-25
+Welfare Checks,0,12-24
+Welfare Checks,0,01-25
+Welfare Checks,0,02-25
+Welfare Checks,0,03-25
+Welfare Checks,4,04-25
+Welfare Checks,1,05-25
+Welfare Checks,0,06-25
+Welfare Checks,1,07-25
+Welfare Checks,2,08-25
+Welfare Checks,0,09-25
+Welfare Checks,3,10-25
+Welfare Checks,2,11-25
+Welfare Checks,5,12-25

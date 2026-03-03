@@ -1,0 +1,68 @@
+{
+  "source_file": "RESPONSE_TIME_VALUE_COMPARISON.md",
+  "source_path": "C:\\_chunker\\02_data\\RESPONSE_TIME_VALUE_COMPARISON.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\RESPONSE_TIME_VALUE_COMPARISON\\2026_02_05_00_02_59_RESPONSE_TIME_VALUE_COMPARISON.origin.json",
+  "created_at": "2026_02_05_00_02_59",
+  "tags": [
+    "ai",
+    "data",
+    "docs",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "routine",
+      "emergency",
+      "urgent",
+      "response",
+      "times",
+      "values"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Response Time Value Comparison - Attachments vs Calculated\n\n**Date:** January 14, 2026  \n**Purpose:** Compare attachment values with calculated values and explain Routine response time patterns\n\n---\n\n## Comparison: Attachments vs Calcu...",
+    "first_line": "# Response Time Value Comparison - Attachments vs Calculated"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-05T00:02:59+00:00_RESPONSE_TIME_VALUE_COMPARISON_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "data",
+        "docs",
+        "emergency",
+        "markdown",
+        "police",
+        "python",
+        "response",
+        "routine",
+        "sql",
+        "times",
+        "urgent",
+        "values"
+      ],
+      "key_terms": [
+        "routine",
+        "emergency",
+        "urgent",
+        "response",
+        "times",
+        "values"
+      ],
+      "summary": "# Response Time Value Comparison - Attachments vs Calculated\n\n**Date:** January 14, 2026  \n**Purpose:** Compare attachment values with calculated values and explain Routine response time patterns\n\n---\n\n## Comparison: Attachments vs Calcu...",
+      "char_length": 10826,
+      "byte_length": 11079
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

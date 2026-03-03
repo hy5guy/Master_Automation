@@ -1,0 +1,101 @@
+{
+  "source_file": "Gemini-Power BI M Code for Time Format Errors.json",
+  "source_path": "C:\\_chunker\\02_data\\Gemini-Power BI M Code for Time Format Errors.json",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Gemini-Power_BI_M_Code_for_Time_Format_Errors\\2026_02_12_21_46_32_Gemini-Power_BI_M_Code_for_Time_Format_Errors.origin.json",
+  "created_at": "2026_02_12_21_46_32",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "dataset",
+    "json",
+    "markdown",
+    "police",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "data",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "text",
+      "table",
+      "number",
+      "then",
+      "type",
+      "response_time_mmss"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "{\n  \"metadata\": {\n    \"title\": \"Power BI M Code for Time Format Errors\",\n    \"user\": {\n      \"name\": \"RAC\"\n    },\n    \"dates\": {\n      \"exported\": \"2/12/2026 21:41:52\"\n    },\n    \"link\": \"https://gemini.google.com/gem/coding-partner/8a71...",
+    "first_line": "{"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-12T21:46:32+00:00_Gemini-Power_BI_M_Code_for_Time_Format_Errors_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "dataset",
+        "json",
+        "markdown",
+        "number",
+        "police",
+        "response_time_mmss",
+        "sql",
+        "table",
+        "text",
+        "then",
+        "type"
+      ],
+      "key_terms": [
+        "text",
+        "table",
+        "number",
+        "then",
+        "type",
+        "response_time_mmss"
+      ],
+      "summary": "{\n  \"metadata\": {\n    \"title\": \"Power BI M Code for Time Format Errors\",\n    \"user\": {\n      \"name\": \"RAC\"\n    },\n    \"dates\": {\n      \"exported\": \"2/12/2026 21:41:52\"\n    },\n    \"link\": \"https://gemini.google.com/gem/coding-partner/8a71...",
+      "char_length": 29979,
+      "byte_length": 30194
+    },
+    {
+      "chunk_id": "2026-02-12T21:46:32+00:00_Gemini-Power_BI_M_Code_for_Time_Format_Errors_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "dataset",
+        "json",
+        "markdown",
+        "number",
+        "police",
+        "sql",
+        "step4",
+        "table",
+        "text",
+        "type"
+      ],
+      "key_terms": [
+        "number",
+        "text",
+        "raw",
+        "step4",
+        "type",
+        "table"
+      ],
+      "summary": "Using your refined structure and the specific requirements for handling mixed formats (MM:SS, Decimal, and HH:MM:SS), here is the production-ready fix for your Step4 and Step4b blocks.\\n\\n\\n1.",
+      "char_length": 4425,
+      "byte_length": 4427
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

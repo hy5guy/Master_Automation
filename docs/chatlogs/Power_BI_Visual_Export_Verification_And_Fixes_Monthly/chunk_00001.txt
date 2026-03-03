@@ -1,0 +1,591 @@
+**Data Validation Agent** (Phase 8.2) → Full regression testing
+
+### Testing Checkpoints and Verification Gates
+
+**After Phase 1 (Infrastructure)**:
+- [ ] All existing queries refresh without path errors
+- [ ] Path configuration file created and documented
+- [ ] Benchmark folder structure verified and documented
+
+**After Phase 2 (ETL Pipeline)**:
+- [ ] December 2025 data appears in Monthly Accrual visual
+- [ ] Bottom 5 fields (Comp, Sick Time, IOD, Military Leave, Used SAT Time) no longer show zeros
+- [ ] Backfill restoration script processes all categories correctly
+- [ ] Test report confirms data integrity for 12/24-12/25 window
+
+**After Phase 4 (Summons Queries)**:
+- [ ] All Summons queries (___Backfill, ___wg3, ___TopMoving, ___TopParking) load successfully
+- [ ] No hardcoded filenames remain (all dynamic based on current month)
+- [ ] Paths point to correct Power BI repository location
+
+**After Phase 5 (Patrol Query)**:
+- [ ] Patrol query structure matches Detectives query pattern
+- [ ] Fields pane shows sections organized like Detectives
+- [ ] Total Moving Summons and Total Parking Summons auto-calculate
+- [ ] No manual data entry required in `patrol_monthly.xlsm` for summons totals
+
+**After Phase 6 (Policy Training)**:
+- [ ] Policy Training ETL script runs successfully
+- [ ] Output file `policy_training_outputs.xlsx` exists with correct sheets
+- [ ] ___In_Person_Training and ___Cost_of_Training queries refresh successfully
+
+**After Phase 7 (SSOCC Integration)**:
+- [ ] SSOCC data loads from TAS exports with filtering logic applied
+- [ ] Watchdog service detects and processes TAS files automatically
+- [ ] TAS files converted to CSV and moved to correct YYYY_MM folder
+- [ ] SSOCC card and table visuals display correctly
+
+**After Phase 8 (Final Validation)**:
+- [ ] All queries refresh without errors
+- [ ] Full regression test passes
+- [ ] Documentation complete with all changes explained
+- [ ] Performance acceptable (refresh time hasn't degraded significantly)
+
+### Success Criteria Summary
+
+- **Data Integrity**: December 2025 processes correctly; no zeros in usage categories
+- **Path Consistency**: All queries use correct Power BI repository path
+- **Dynamic Logic**: No hardcoded filenames or dates; all queries adapt to current month
+- **Structure Alignment**: Patrol query matches Detectives query pattern
+- **Automation**: SSOCC TAS files process automatically via Watchdog
+- **Documentation**: All changes documented with inline comments and external docs
+
+## Phase 1: Verify Export Locations and Path Configuration (Critical)
+
+### 1.1 Verify Power BI Repository Path
+
+- **Task**: Confirm correct Power BI repository path for visual exports
+- **Current Path**: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date`
+- **Alternative Paths to Check**: 
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\projects\PowerBI_Date`
+- `C:\Dev\Power_BI_Data`
+- **Actions**:
+- Verify which path contains the active `_DropExports` folder
+- Confirm `Backfill` folder structure exists
+- Update any scripts referencing incorrect paths
+- Document correct path in configuration files
+
+### 1.2 Verify Benchmark Export Locations
+
+- **Task**: Update scripts to handle new Benchmark folder structure
+- **Current Structure**: 
+- `05_EXPORTS\_Benchmark\{show_force|use_force|vehicle_pursuit}\complete_report\all_time\{filename}.csv`
+- **Files to Process**:
+- `show-of-force-reports-01_01_2001-01_07_2026.csv`
+- `use-of-force-reports-01_01_2001-01_07_2026.csv`
+- `vehicle-pursuit-reports-01_01_2001-01_07_2026.csv`
+- **Actions**:
+- Review `fix_benchmark_structure.py` and related scripts
+- Update Power BI M code queries to use new `all_time` path
+- Verify file naming remains consistent (no prefix changes needed)
+- Document new structure
+
+## Phase 2: Fix Monthly Accrual and Usage Summary (Critical)
+
+### 2.1 Fix 12-25 Month Not Processing
+
+- **Task**: Ensure December 2025 data is processed correctly
+- **Root Cause**: Script may not be detecting or processing current month correctly
+- **Actions**:
+- Review `overtime_timeoff_13month_sworn_breakdown_v11.py` logic
+- Verify month detection logic handles December correctly
+- Check that `overtime_timeoff_with_backfill.py` wrapper includes 12-25
+- Test with December export files
+
+### 2.2 Fix Bottom 5 Fields Showing Zeros
+
+- **Task**: Restore usage categories (Comp, Sick Time, IOD, Military Leave, Used SAT Time)
+- **Root Cause**: These rows come from `FIXED_monthly_breakdown_*.csv` and need backfill restoration
+- **Actions**:
+- Verify `restore_fixed_from_backfill.py` processes all 5 usage categories
+- Check that backfill export contains these rows
+- Ensure `overtime_timeoff_with_backfill.py` calls restore script
+- Verify both `FIXED_monthly_breakdown.csv` AND `analytics_output/monthly_breakdown.csv` are backfilled correctly
+- **Files**:
+- Time_Off: `05_EXPORTS\_Time_Off\export\month\2025\2025_12_timeoffactivity.xlsx`
+- Overtime: `05_EXPORTS\_Overtime\export\month\2025\2025_12_otactivity.xlsx`
+
+## Phase 3: Fix Combined Outreach Query
+
+### 3.1 Update ___Combined_Outreach_All Query
+
+- **Task**: Fix query not updating (last output 12/10/25)
+- **Current Query Location**: Line ~1002 in `2026_01_07_all_queries.m`
+- **Actions**:
+- Verify ETL output path: `02_ETL_Scripts\Community_Engagment\output\community_engagement_data_*.csv`
+- Check if ETL script ran successfully
+- Verify file discovery logic (Folder.Files with dynamic sorting)
+- Test query refresh to ensure it picks up latest file
+- Verify output file exists and has recent data
+
+## Phase 4: Fix Summons Queries (Critical)
+
+### 4.1 Fix ___Backfill Query
+
+- **Task**: Resolve "Could not find path" error for `backfill_summons_summary.csv`
+- **Current Path**: `C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\backfill_summons_summary.csv`
+- **Actions**:
+- Update path to correct Power BI repository location
+- Verify file exists or create generation script
+- Document where this file should be generated/updated
+
+### 4.2 Fix ___wg3 Query
+
+- **Task**: Resolve "Could not find path" error for `wg2_movers_parkers_nov2025.csv`
+- **Current Path**: `C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\wg2_movers_parkers_nov2025.csv`
+- **Actions**:
+- Update path to correct location or generate file
+- Make filename dynamic (not hardcoded to "nov2025")
+- Link to Summons ETL output or create derived query
+
+### 4.3 Fix ___TopMoving and ___TopParking Queries
+
+- **Task**: Resolve path errors for `top5_moving_1125.csv` and `top5_parking_1125.csv`
+- **Current Paths**: `C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\{filename}`
+- **Actions**:
+- Update paths to correct Power BI repository
+- Make filenames dynamic (not hardcoded to "1125")
+- Link to Summons ETL output or create from `summons_powerbi_latest.xlsx`
+- Verify M code sums `TICKET_COUNT` correctly (not row counts)
+
+## Phase 5: Restructure Patrol Query
+
+### 5.1 Restructure ___Patrol Like Detectives Query
+
+- **Task**: Transform Patrol query to match Detectives structure with sections in Fields pane
+- **Current Query**: Line ~1658, loads from `patrol_monthly.xlsm`
+- **Target Structure**:
+- Unpivot month columns
+- Add date parsing (MM-YY → Date)
+- Add Month_Sort_Order
+- Add rolling 13-month window logic
+- Add reporting period metadata
+- Structure fields like Detectives query (line ~3347)
+
+### 5.2 Add Total Moving and Parking Summons
+
+- **Task**: Add automated calculation instead of manual entry
+- **Current Process**: Manual entry in `patrol_monthly.xlsm`
+- **Proposed Solution**:
+- Create derived query that reads from `summons_powerbi_latest.xlsx`
+- Calculate totals by filtering `WG2 = "PATROL BUREAU"` and `TYPE IN {"M", "P"}`
+- Add calculated columns to Patrol query:
+  - `Total Moving Summons` (sum where TYPE = "M")
+  - `Total Parking Summons` (sum where TYPE = "P")
+- Merge with existing Patrol data or create separate measure/column
+
+## Phase 6: Fix Policy Training Queries
+
+### 6.1 Verify ETL Script Execution
+
+- **Task**: Ensure Policy Training ETL script runs
+- **Location**: `02_ETL_Scripts\Policy_Training_Monthly\src\policy_training_etl.py`
+- **Actions**:
+- Verify script is enabled in `config/scripts.json`
+- Check output file exists: `output\policy_training_outputs.xlsx`
+- Verify sheets: `InPerson_Prior_Month_List`, `Delivery_Cost_By_Month`
+- Run ETL script if not already executed
+
+### 6.2 Verify ___In_Person_Training and ___Cost_of_Training Queries
+
+- **Task**: Ensure queries load latest ETL output
+- **Current Queries**: Lines ~3216 and ~3285
+- **Actions**:
+- Verify paths point to correct ETL output file
+- Test query refresh
+- Verify column names match ETL output schema
+- Check for any schema changes in ETL output
+
+## Phase 7: SSOCC Data Integration (New Feature)
+
+### 7.1 Update ___SSOCC_Data Query
+
+- **Task**: Add logic to load from TAS export with filtering
+- **Source File**: `05_EXPORTS\_CAD\tas\{year}\{year}_to_{YYYY_MM}_TAS_and_Vitural_{timestamp}.xlsx`
+- **Filter Logic**:
+- Primary: `DispatcherNew` contains: Carucci_R, carucci_r, Marino_B, marino_b, iannacone_a, Iannacone_A, polson_r, Polson_R, rios_a, Rios_A
+- Fallback: `Squad` = "SSOCC"
+- **Actions**:
+- Update query to use dynamic file discovery (similar to Combined_Outreach_All)
+- Parse filename to extract date range
+- Load most recent file
+- Apply filtering logic
+- Parse `Incident` or similar field for categorization
+
+### 7.2 Update Export File Watchdog for TAS Files
+
+- **Task**: Add monitoring for TAS_and_Vitural exports
+- **Location**: `02_ETL_Scripts\Export_File_Watchdog\watchdog_service.py`
+- **Pattern**: `YYYY_to_YYYY_MM_TAS_and_Vitural_YYYY_MM_DD.xlsx`
+- **Actions**:
+- Add file pattern detection for TAS exports
+- Extract second date (YYYY_MM) from filename after "to_"
+- Create folder structure: `05_EXPORTS\_CAD\tas\{year}\{YYYY_MM}\`
+- Convert .xlsx to .csv before moving (use existing FileConverter class)
+- Move both .xlsx and .csv to destination folder
+- Create year folder if needed (e.g., `2026` if it doesn't exist)
+- Create YYYY_MM subfolder if needed
+
+### 7.3 Add SSOCC Visual Cards
+
+- **Task**: Create card visuals similar to existing ones
+- **Reference Cards** (from user examples):
+- `CCTV Site Analysis Total`
+- `Service Categories Total`
+- `Service Category Totals`
+- `Service Category Value`
+- **Actions**:
+- Create measures for incident breakdown by month
+- Add cards for key service categories
+- Create table visual for monthly incident breakdown
+
+## Phase 8: Documentation and Validation
+
+### 8.1 Document Changes
+
+- Update M code with comments explaining changes
+- Document new folder structures
+- Create validation checklist for each query
+
+### 8.2 Test All Queries
+
+- Refresh each query individually
+- Verify data loads correctly
+- Check for path errors
+- Validate calculations match expected results
+
+## File References
+
+**M Code File**:
+
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\mCode\2026_01_07_all_queries.m`
+
+**ETL Scripts**:
+
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\`
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Policy_Training_Monthly\`
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Export_File_Watchdog\`
+
+**Export Locations**:
+
+- Benchmark: `05_EXPORTS\_Benchmark\{type}\complete_report\all_time\`
+- Time Off: `05_EXPORTS\_Time_Off\export\month\{year}\`
+- Overtime: `05_EXPORTS\_Overtime\export\month\{year}\`
+- TAS: `05_EXPORTS\_CAD\tas\{year}\{YYYY_MM}\`
+```
+
+Plan updated with the agent assignment strategy and workflow. Starting Phase 1 (Infrastructure Agent) to verify and fix paths. Checking which Power BI repository path is active:
+
+
+Confirmed the active Power BI repository path is `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date` (contains `_DropExports` and `Backfill`). Found incorrect path references in the M code. Fixing them:
+
+
+```objective-c
+// ___Arrest_Categories
+// ___Arrest_Categories
+// 🕒 2025-01-05-15-15-00
+// Project: Arrest_Analysis/Arrest_Categories
+// Author: R. A. Carucci
+// Purpose: Simplified M Code with defensive type handling to avoid Culture errors
+
+let
+    // ═══ A) Load latest Power BI ready file ═══════════════════════
+    FolderFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"),
+    
+    PowerBIFiles = Table.SelectRows(
+        FolderFiles,
+        each [Extension] = ".xlsx" and Text.Contains([Name], "PowerBI_Ready")
+    ),
+    
+    Sorted = Table.Sort(PowerBIFiles, {{"Date modified", Order.Descending}}),
+    
+    // Load the latest file
+    Source = if Table.RowCount(Sorted) > 0 then
+        Excel.Workbook(Sorted{0}[Content], null, true){0}[Data]
+    else
+        error "No Power BI ready files found",
+
+    // ═══ B) Basic data cleaning ═══════════════════════════════════
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+    
+    // Filter to previous month - handle multiple date column name variations
+    ToDate = (x) => 
+        if x = null or x = "" then
+            null
+        else
+            try Date.From(x) otherwise
+            try if Number.From(x) > 0 and Number.From(x) < 1000000 then
+                Date.From(Number.From(x))
+            else
+                null
+            otherwise
+            try Date.FromText(Text.From(x)) otherwise null,
+    
+    Prev = Date.AddMonths(Date.From(DateTime.LocalNow()), -1),
+    PrevY = Date.Year(Prev),
+    PrevM = Date.Month(Prev),
+    
+    // Find the date column (handle variations)
+    DateColumnName = if Table.HasColumns(Headers, "Arrest Date") then
+        "Arrest Date"
+    else if Table.HasColumns(Headers, "Arrest_Date") then
+        "Arrest_Date"
+    else if Table.HasColumns(Headers, "ArrestDate") then
+        "ArrestDate"
+    else if Table.HasColumns(Headers, "Date") then
+        "Date"
+    else
+        null,
+    
+    DateFiltered = if DateColumnName = null then
+        #table({"Name", "Age", "Address", "Charge", "Arrest Date"}, {})
+    else
+        Table.SelectRows(
+            Headers,
+            each let d = ToDate(Record.Field(_, DateColumnName)) in d <> null and Date.Year(d) = PrevY and Date.Month(d) = PrevM
+        ),
+
+    // ═══ C) Handle empty results gracefully ═══════════════════════
+    HasData = Table.RowCount(DateFiltered) > 0,
+    
+    // Use Python-processed geographic data directly
+    WithHomeCategory = if not HasData then
+        #table({"Name", "Age", "Address", "Charge", "Arrest Date", "Home_Category_Final"}, {})
+    else
+        Table.AddColumn(
+            DateFiltered,
+            "Home_Category_Final",
+            each
+                if Table.HasColumns(DateFiltered, "Home_Category") then
+                    [Home_Category]
+                else if Text.Contains(Text.Upper([Address] ? ? ""), "HACKENSACK") then
+                    "Local"
+                else
+                    "Check Data",
+            type text
+        ),
+
+    // ═══ D) Simple charge categorization ═══════════════════════════
+    AddChargeCategory = if not HasData then
+        WithHomeCategory
+    else
+        Table.AddColumn(
+            WithHomeCategory,
+            "ChargeCategory",
+            each
+                let charge = Text.Upper([Charge] ? ? "") in
+                if Text.Contains(charge, "ASSAULT") then "Assault"
+                else if Text.Contains(charge, "SHOPLIFTING") then "Theft"
+                else if Text.Contains(charge, "BURGLARY") then "Burglary"
+                else if Text.Contains(charge, "ROBBERY") then "Robbery"
+                else if Text.Contains(charge, "WARRANT") then "Warrant"
+                else if Text.Contains(charge, "DWI") then "DWI"
+                else if Text.Contains(charge, "DRUG") then "Drug Related"
+                else if Text.Contains(charge, "WEAPON") then "Weapons"
+                else "Other",
+            type text
+        ),
+
+    // ═══ E) Data quality indicators ═══════════════════════════════
+    AddDataQuality = if not HasData then
+        Table.AddColumn(AddChargeCategory, "DataQualityScore", each 0, type number)
+    else if Table.HasColumns(AddChargeCategory, "DataQualityScore") then
+        AddChargeCategory
+    else
+        Table.AddColumn(
+            AddChargeCategory,
+            "DataQualityScore",
+            each
+                (if [Name] <> null and [Name] <> "" then 1 else 0) +
+                (if [Age] <> null and Number.From([Age] ? ? 0) > 0 then 1 else 0) +
+                (if [Address] <> null and [Address] <> "" then 1 else 0) +
+                (if [Charge] <> null and [Charge] <> "" then 1 else 0) +
+                (if Table.HasColumns(AddChargeCategory, "ZIP") and [ZIP] <> null then 1 else 0),
+            type number
+        ),
+
+    // ═══ F) NO TYPE CONVERSION - Avoid Culture errors ═════════════
+    // Skip all type conversions to prevent Culture errors
+    // Power BI will auto-detect types from the Excel source
+    TypedData = AddDataQuality,
+
+    // ═══ G) Add source tracking ═══════════════════════════════════
+    WithSourceInfo = Table.AddColumn(
+        TypedData,
+        "SourceFile",
+        each if Table.RowCount(Sorted) > 0 then Sorted{0}[Name] else "Unknown",
+        type text
+    )
+
+in
+    WithSourceInfo
+
+// ___Arrest_Distro
+// ___Arrest_Distro
+// 🕒 2025-08-07-14-45-00
+// Project: Arrest_Analysis/Arrest_Distro
+// Author: R. A. Carucci
+// Purpose: Process arrest data from most recent Power BI ready file with
+// enhanced null handling Fixed: Resolved all column conflict issues
+
+let
+    // 1. Load folder of Power BI ready files
+    Source = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"),
+    
+    // 2. Filter for UCR-updated files (CSV or Excel)
+    PowerBIFiles = Table.SelectRows(Source, each
+        [Attributes]?[Hidden]? <> true and
+        (Text.EndsWith([Name], ".xlsx") or Text.EndsWith([Name], ".csv")) and
+        (Text.Contains([Name], "ucr_updated") or Text.Contains([Name], "POWERBI_READY") or Text.Contains([Name], "PowerBI_Ready"))
+    ),
+    
+    // 3. Sort by date modified to get the most recent file
+    SortedFiles = Table.Sort(PowerBIFiles, {{"Date modified", Order.Descending}}),
+    
+    // 4. Diagnostic: record which file we're loading
+    LatestFile = if Table.RowCount(SortedFiles) > 0 then SortedFiles{0} else error "No Power BI ready files found",
+    FileName = LatestFile[Name],
+    FileModifiedDate = LatestFile[Date modified],
+    DiagnosticInfo = Table.AddColumn(Table.FromRecords({LatestFile}), "FileDebug", each "Processing: " & [Name] & " (Modified: " & Date.ToText([Date modified]) & ")"),
+    
+    // 5. Load the most recent file
+    LoadedData = Table.AddColumn(DiagnosticInfo, "Data", each 
+        try 
+            if Text.EndsWith([Name], ".csv") then
+                let
+                    CsvData = Csv.Document([Content], [Delimiter=",", Columns=null, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+                    PromotedHeaders = Table.PromoteHeaders(CsvData, [PromoteAllScalars=true])
+                in
+                    PromotedHeaders
+            else
+                let
+                    ExcelFile = Excel.Workbook([Content], null, true),
+                    FirstSheet = ExcelFile{0}[Data],
+                    PromotedHeaders = Table.PromoteHeaders(FirstSheet, [PromoteAllScalars=true])
+                in
+                    PromotedHeaders
+        otherwise error "Failed to load file: " & [Name]
+    ),
+    
+    // 6. Extract the data table
+    DataTable = LoadedData{0}[Data],
+    
+    // 7. Remove entirely blank rows
+    RemoveNulls = Table.SelectRows(DataTable, each List.NonNullCount(Record.FieldValues(_))>0),
+    
+    // 8. Default "Not Provided" for missing addresses (only if Address_Defaulted doesn't exist)
+    WithDefaultAddress = if Table.HasColumns(RemoveNulls, "Address_Defaulted") then
+        RemoveNulls
+    else
+        Table.AddColumn(RemoveNulls, "Address_Defaulted", each 
+            if [Address] = null or [Address] = "" then "Not Provided" else try Text.From([Address]) otherwise "Not Provided"
+        , type text),
+    
+    // 9. Handle ZIP column - use existing if available, otherwise extract from address
+    WithZIP = if Table.HasColumns(WithDefaultAddress, "ZIP") then
+        // ZIP column already exists, just ensure it's text type
+        Table.TransformColumns(WithDefaultAddress, {{"ZIP", each try Text.From(_) otherwise "", type text}})
+    else if Table.HasColumns(WithDefaultAddress, "ExtractedZIP") then
+        // Use ExtractedZIP and rename it to ZIP
+        Table.RenameColumns(WithDefaultAddress, {{"ExtractedZIP", "ZIP"}})
+    else
+        // Extract ZIP from address
+        Table.AddColumn(WithDefaultAddress, "ZIP", each
+            let
+                addr = [Address_Defaulted],
+                tokens = if addr = "Not Provided" then {} else Text.Split(addr, " "),
+                candidates = List.Select(tokens, each 
+                    let s = Text.Select(_, {"0".."9"})
+                    in Text.Length(if Text.Contains(_, "-") then Text.BeforeDelimiter(_, "-") else s)=5
+                )
+            in
+                if List.Count(candidates)>0 
+                then Text.Select(if Text.Contains(candidates{0},"-") then Text.BeforeDelimiter(candidates{0},"-") else candidates{0}, {"0".."9"})
+                else null
+            , type text),
+    
+    // 10. Flag valid 5-digit ZIPs (only if ValidZIP doesn't exist)
+    WithValidZipFlag = if Table.HasColumns(WithZIP, "ValidZIP") then
+        WithZIP
+    else
+        Table.AddColumn(WithZIP, "ValidZIP", each
+            let z = try Text.From([ZIP]) otherwise ""
+            in Text.Length(z)=5 and Text.Length(Text.Select(z,{"0".."9"}))=5
+        , type logical),
+    
+    // 11. Ensure Arrest Date is a nullable date
+    ConvertedDates = if Table.HasColumns(WithValidZipFlag, "Arrest Date") then
+        Table.TransformColumns(WithValidZipFlag, {{"Arrest Date", each try Date.From(_) otherwise null, type nullable date}})
+    else
+        WithValidZipFlag,
+    
+    // 12. Add final record index (only if it doesn't already exist)
+    AddFinalIndex = if Table.HasColumns(ConvertedDates, "RecordIndex") then
+        ConvertedDates
+    else
+        Table.AddIndexColumn(ConvertedDates, "RecordIndex", 1, 1, Int64.Type),
+    
+    // 13. Load ZIP reference data
+    ZIPRef = try Csv.Document(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\GeographicData\ZipCodes\uszips.csv"), [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]) otherwise #table({"zip","state_id","county_name"},{}),
+    ZIPHeaders = Table.PromoteHeaders(ZIPRef, [PromoteAllScalars=true]),
+    ZIPNullHandled = Table.ReplaceValue(ZIPHeaders, null, "", Replacer.ReplaceValue, {"zip","state_id","county_name"}),
+    ZIPCleaned = Table.TransformColumnTypes(Table.SelectColumns(ZIPNullHandled,{"zip","state_id","county_name"}), {{"zip", type text}}),
+    
+    // 14. Join in state_id + county_name (only if they don't already exist)
+    JoinZip = if Table.HasColumns(AddFinalIndex, "state_id") and Table.HasColumns(AddFinalIndex, "county_name") then
+        AddFinalIndex
+    else
+        let
+            JoinResult = Table.NestedJoin(AddFinalIndex, "ZIP", ZIPCleaned, "zip", "ZipMeta", JoinKind.LeftOuter),
+            ExpandResult = Table.ExpandTableColumn(JoinResult, "ZipMeta", {"state_id","county_name"})
+        in ExpandResult,
+    
+    // 15. Uppercase full address for keyword logic (only if FullAddress2 doesn't exist)
+    AddFullAddress2 = if Table.HasColumns(JoinZip, "FullAddress2") then
+        JoinZip
+    else
+        Table.AddColumn(JoinZip, "FullAddress2", each 
+            if [Address_Defaulted] = "Not Provided" then "" else try Text.Upper([Address_Defaulted]) otherwise ""
+        , type text),
+    
+    // 16. Handle UCR columns (use existing if available, otherwise split)
+    WithUCR = if Table.HasColumns(AddFullAddress2, "UCR_Code") and Table.HasColumns(AddFullAddress2, "UCR_Desc") then
+        AddFullAddress2
+    else if Table.HasColumns(AddFullAddress2, "UCR #") then
+        let 
+            RemovedExisting = Table.RemoveColumns(AddFullAddress2, {"UCR_Code", "UCR_Desc"}, MissingField.Ignore),
+            split1 = Table.SplitColumn(RemovedExisting, "UCR #", Splitter.SplitTextByDelimiter(" ", QuoteStyle.Csv), {"UCR_Code","UCR_Desc"})
+        in Table.TransformColumns(split1, {
+               {"UCR_Code", each if _ = null then "" else Text.Trim(_), type text},
+               {"UCR_Desc", each if _ = null then "" else Text.Trim(_), type text}
+           })
+    else
+        let
+            AddUCRCode = if Table.HasColumns(AddFullAddress2, "UCR_Code") then AddFullAddress2 else Table.AddColumn(AddFullAddress2, "UCR_Code", each "", type text),
+            AddUCRDesc = if Table.HasColumns(AddUCRCode, "UCR_Desc") then AddUCRCode else Table.AddColumn(AddUCRCode, "UCR_Desc", each "", type text)
+        in AddUCRDesc,
+    
+    // 17. Categorize by home location (only if Home_Category doesn't exist)
+    AddHomeCategory = if Table.HasColumns(WithUCR, "Home_Category") then
+        WithUCR
+    else
+        Table.AddColumn(WithUCR, "Home_Category", each
+            let
+                addr = [FullAddress2],
+                st = try Text.From([state_id]) otherwise "",
+                cnty = try Text.From([county_name]) otherwise "",
+                z = try Text.From([ZIP]) otherwise "",
+                localZ = {"07601","07602"},
+                isLocalZip = if z = "" then false else List.Contains(localZ, z),
+                isHomeless = if addr = "" then false else Text.Contains(addr, "HOMELESS"),
+                isHack = if addr = "" then false else Text.Contains(addr, "HACKENSACK"),
+                inBergen = if cnty = "" then false else Text.Contains(Text.Upper(cnty), "BERGEN")
+            in
+                if addr = "" or isLocalZip or isHomeless or isHack then "Local"
+                else if st="NJ" and inBergen then "In-County"
+                else if st="NJ" then "Out-of-County | " & cnty
+                else if st<>"" then "Out-of-State | " & st
+                else "Unknown"
+        , type text),
+    
+    // 18.

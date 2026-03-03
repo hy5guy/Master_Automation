@@ -1,0 +1,744 @@
+The file exists and is readable. If Cursor still can't open it, try:
+
+1. Close and reopen Cursor
+2. Open the file from File Explorer: navigate to `02_ETL_Scripts\Overtime_TimeOff\` and double-click `CLAUDE_CODE_VERIFICATION_PROMPT.md`
+3. Use a different editor temporarily
+
+Creating a shorter-named copy to test:
+
+
+
+Fixed the special characters and created a shorter-named copy. The file should open now. **Fixed:**
+- Replaced special characters (✓, ✗) with "PASS or FAIL"
+- Created a shorter-named copy: `CLAUDE_VERIFY.md`
+
+**Try opening:**
+- `CLAUDE_CODE_VERIFICATION_PROMPT.md` (original)
+- `CLAUDE_VERIFY.md` (shorter name)
+
+Both files contain the same content. If the error persists, it may be a temporary Cursor IDE issue. Try:
+1. Restarting Cursor
+2. Opening from File Explorer
+3. Using the shorter-named file
+
+The file is valid and readable (12,520 bytes). The verification prompt is ready to use with Claude Code. ---
+
+**User**
+
+what's the path to the .md file
+
+---
+
+**Cursor**
+
+
+Path to the Claude Code verification prompt file:
+
+```
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\CLAUDE_CODE_VERIFICATION_PROMPT.md
+```
+
+Shorter-named copy:
+```
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\CLAUDE_VERIFY.md
+```
+
+Both files contain the same content. Use either one for Claude Code verification. ```plaintext
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\CLAUDE_CODE_VERIFICATION_PROMPT.md
+```
+
+```plaintext
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\CLAUDE_VERIFY.md
+```
+
+---
+
+**User**
+
+Claude Code results Perfect! Claude Code delivered a complete, production-ready verification framework. Here's what to do next:
+
+***
+
+## Immediate Actions
+
+### 1. **Review the Framework** ✅
+Check the files Claude Code created:
+```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\verifications"
+dir
+# Should see:
+# - etl_verification_framework.py
+# - overtime_timeoff_verifier.py
+# - arrests_verifier.py
+# - run_all_verifications.py
+# - README.md
+```
+
+Read `README.md` to understand how to add new verifiers. [1]
+
+### 2. **Export December 2025 Power BI Visuals** 🎯
+The framework is waiting for your Power BI visual exports. You need to:
+
+**For Overtime & Time Off:**
+1. Open Power BI report with December 2025 data
+2. Navigate to the Time Report page
+3. Right-click the "Monthly Accrual and Usage Summary" visual → Export data → Summarized data → CSV
+4. Save as: `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\outputs\2025_12_Monthly Accrual and Usage Summary.csv`
+
+**For Arrests:**
+1. Open Power BI report with December 2025 data
+2. Navigate to the Arrest page
+3. Export these 3 visuals to CSV:
+   - "Arrest Categories by Type and Gender"
+   - "Arrest Distribution by Local, State & Out of State"
+   - "TOP 5 ARREST LEADERS"
+4. Save with `2025_12_` prefix to `outputs\` folder
+
+### 3. **Run the Verification** ✅
+Once exports are in place:
+```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\verifications"
+python run_all_verifications.py
+```
+
+This will generate:
+- Individual reports: `OVERTIME_TIMEOFF_VERIFICATION_REPORT.md`, `ARRESTS_VERIFICATION_REPORT.md`
+- Master summary: `VERIFICATION_SUMMARY_[timestamp].md`
+
+### 4. **Review Results** 📊
+Check the reports for:
+- Pass/fail status
+- Match percentages
+- Any discrepancies flagged
+- Processing rules validation
+
+***
+
+## Next Phase: Expand to Remaining Scripts
+
+Once Overtime & Arrests are verified, add the remaining 5 verifiers following the template in `README.md`:
+
+**Priority Order:**
+1. ✅ Overtime & Time Off (done)
+2. ✅ Arrests (done)
+3. **Community Engagement** (next)
+4. **Response Times** (next)
+5. **Summons** (next)
+6. NIBRS Clearance
+7. Policy Training
+
+**For each script:**
+- Takes ~15 minutes using the template
+- Follow the step-by-step guide in `verifications\README.md`
+- Run verification after Power BI refresh
+
+***
+
+## Integration with Power BI Export Workflow
+
+Update your monthly workflow to include verification:
+
+```
+Monthly Workflow (Updated):
+1. Run Master_Automation Python ETL scripts
+2. Refresh Power BI Desktop with new data
+3. Export visuals to _DropExports\ or outputs\
+4. Run verification: python run_all_verifications.py
+5. Review reports for any issues
+6. If 95%+ pass rate → Organize to Backfill with organize_backfill_exports.ps1
+7. Commit to Git
+```
+
+***
+
+## Quick Win: Test with November 2025
+
+If you want to test the framework immediately without waiting for December exports:
+
+```powershell
+# Use November backfill data as "current" export
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\verifications"
+
+# Edit overtime_timeoff_verifier.py temporarily:
+# Change: current_month="2025_12"
+# To: current_month="2025_11"
+
+# Copy November backfill to outputs folder
+Copy-Item "C:\Dev\PowerBI_Date\Backfill\2025_11\07_Time_Report\*.csv" "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\outputs\"
+
+# Run verification (will compare Nov vs Oct)
+python run_all_verifications.py
+```
+
+This lets you see the framework in action immediately. ***
+
+## Summary
+
+**Framework Status:** ✅ Production-ready and tested
+
+**Waiting on:** Power BI visual exports for December 2025
+
+**Next Steps:**
+1. Export December visuals from Power BI
+2. Run `python run_all_verifications.py`
+3. Review reports
+4. Add remaining 5 verifiers (15 min each)
+
+**You now have a bulletproof verification system that will catch ETL issues before they reach production reports. ** 🎯
+
+Want me to draft instructions for exporting the Power BI visuals correctly, or help with anything else? [1](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/10459886/fe6289a2-934e-44f8-be02-7640431e2ec5/README.md)
+[2](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/10459886/4a77ac2b-60a4-429a-b838-8329d0d65f96/manifest.json)
+[3](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/10459886/f640ccf6-3ff1-41a1-a0c1-2f8f09c44b26/README.md)
+[4](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/10459886/f540b703-45c9-49c0-957b-6439f3647d83/SETUP_COMPLETE.md)
+[5](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/10459886/bf9cdcab-729d-49e6-9958-66cdec901381/BACKFILL_WORKFLOW.md)
+[6](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/10459886/9ff2796e-72ba-4a39-83df-f210c4461207/CHANGELOG.md)
+[7](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/10459886/e8ca2fc0-46e8-4d0b-99a5-fa7c664c3cc1/SUMMARY.md)
+
+Assist with check I have the arrest visuals exported to C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\output
+
+---
+
+**Cursor**
+
+
+Checking the output folder for arrest visual exports:
+
+
+
+All three required arrest visual exports are present in the output folder:
+
+
+
+All three required arrest visual exports are present. Verifying the verification framework setup:
+
+
+
+All three arrest visual exports are present. Summary:
+
+
+
+The framework expects files in `outputs`, but they're in `output`. Checking the exact path and preparing a summary:
+
+
+
+## Arrest visual exports status
+
+### Files found in `output` folder
+
+All three required files are present:
+
+1. `2025_12_Arrest Categories by Type and Gender.csv` (324 bytes, exported 01/13/2026 18:12:30)
+2. `2025_12_Arrest Distribution by Local, State & Out of State.csv` (227 bytes, exported 01/13/2026 18:12:42)
+3. `2025_12_TOP 5 ARREST LEADERS.csv` (122 bytes, exported 01/13/2026 18:12:53)
+
+### Path issue
+
+The verification framework expects files in:
+- `Master_Automation\outputs\` (expected)
+- But your files are in: `Master_Automation\output\` (current)
+
+### Fix options
+
+Option 1: Copy files to the expected location (recommended)
+```powershell
+Copy-Item "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\output\2025_12_*Arrest*.csv" -Destination "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\outputs\"
+```
+
+Option 2: Move files
+```powershell
+Move-Item "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\output\2025_12_*Arrest*.csv" -Destination "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\outputs\"
+```
+
+### Next steps
+
+1. Copy/move the files to `outputs\` folder
+2. Run verification:
+   ```powershell
+   cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\verifications"
+   python run_all_verifications.py
+   ```
+
+Should I copy the files to the `outputs` folder now? ```powershell
+Copy-Item "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\output\2025_12_*Arrest*.csv" -Destination "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\outputs\"
+```
+
+```powershell
+Move-Item "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\output\2025_12_*Arrest*.csv" -Destination "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\outputs\"
+```
+
+```powershell
+   cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\verifications"
+   python run_all_verifications.py
+```
+
+---
+
+**User**
+
+do option 1 and run verification
+
+---
+
+**Cursor**
+
+
+Copying the arrest files to `outputs\`, then running the verification:
+
+
+
+Verification completed. Reviewing the arrest verification report:
+
+
+
+The framework expects files without the `2025_12_` prefix, but the files have it. Checking how the framework handles file naming:
+
+
+
+The framework expects files without the `2025_12_` prefix, but it also checks for prefixed versions. Checking the code that handles this:
+
+
+
+The framework's `load_current_export` doesn't check for prefixed files. Updating it to also check for prefixed files:
+
+
+```python
+"""
+ETL Verification Framework
+
+Generic base class for verifying monthly ETL scripts. Extracts common patterns from successful Overtime & Time Off verification. Version: 1.0.0
+Created: 2026-01-13
+"""
+
+import pandas as pd
+import numpy as np
+from pathlib import Path
+from typing import Dict, List, Tuple, Optional
+from datetime import datetime
+import re
+
+
+class ETLVerifier:
+    """Base class for all ETL verifications.""" def __init__(
+        self,
+        script_name: str,
+        output_files: List[str],
+        backfill_category: str,
+        backfill_month: str = "2025_11",
+        current_month: str = "2025_12",
+        tolerance: float = 0.01
+    ):
+        """
+        Initialize ETL verifier. Args:
+            script_name: Name of the ETL script (e.g., "arrests_monthly")
+            output_files: List of expected output CSV files
+            backfill_category: Category folder in backfill (e.g., "01_Arrest")
+            backfill_month: Previous month for comparison (default: "2025_11")
+            current_month: Current month being verified (default: "2025_12")
+            tolerance: Numeric comparison tolerance (default: 0.01)
+        """
+        self.script_name = script_name
+        self.output_files = output_files
+        self.backfill_category = backfill_category
+        self.backfill_month = backfill_month
+        self.current_month = current_month
+        self.tolerance = tolerance
+
+        # Paths
+        self.master_automation_root = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation")
+        self.outputs_dir = self.master_automation_root / "outputs"
+        self.backfill_root = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\projects\PowerBI_Date\Backfill")
+        self.reports_dir = self.master_automation_root / "verification_reports"
+
+        # Results
+        self.results = {
+            "script_name": script_name,
+            "verification_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "current_month": current_month,
+            "backfill_month": backfill_month,
+            "comparisons": [],
+            "issues": [],
+            "status": "PENDING"
+        }
+
+    def parse_long_format(self, filepath: str) -> pd.DataFrame:
+        """Parse long-format export (e.g., Overtime style).""" try:
+            df = pd.read_csv(filepath, encoding='utf-8-sig')
+            return df
+        except Exception as e:
+            self.add_issue("ERROR", "File Loading", f"Failed to load {filepath}: {e}")
+            return pd.DataFrame()
+
+    def parse_wide_format(self, filepath: str) -> pd.DataFrame:
+        """
+        Parse wide-format export and convert to long format. Handles quoted CSV lines with comma-separated values.
+        """ try:
+            rows = []
+            with open(filepath, 'r', encoding='utf-8-sig') as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    # Remove outer quotes and split by comma
+                    line = line.strip('"')
+                    values = [v.strip() for v in line.split(',')]
+                    rows.append(values)
+
+            if not rows:
+                return pd.DataFrame()
+
+            # First row is header, rest is data
+            header = rows[0]
+            data_rows = rows[1:]
+
+            # Convert to DataFrame (wide format)
+            df_wide = pd.DataFrame(data_rows, columns=header)
+
+            # Convert to long format
+            time_category_col = header[0]
+            month_cols = [col for col in header if col != time_category_col and col not in ['Sum of 11-25', '']]
+
+            long_rows = []
+            for _, row in df_wide.iterrows():
+                category = row[time_category_col]
+                for month_col in month_cols:
+                    if month_col in row and row[month_col]:
+                        try:
+                            value = float(row[month_col])
+                            long_rows.append({
+                                'Category': category,
+                                'Value': value,
+                                'Month': month_col
+                            })
+                        except (ValueError, TypeError):
+                            continue
+
+            return pd.DataFrame(long_rows)
+
+        except Exception as e:
+            self.add_issue("ERROR", "File Parsing", f"Failed to parse {filepath}: {e}")
+            return pd.DataFrame()
+
+    def load_current_export(self, filename: str) -> pd.DataFrame:
+        """Load current month export from outputs directory.""" filepath = self.outputs_dir / filename
+        if not filepath.exists():
+            # Try with current month prefix
+            prefixed_name = f"{self.current_month}_{filename}"
+            filepath = self.outputs_dir / prefixed_name
+            if not filepath.exists():
+                self.add_issue("ERROR", "File Missing", f"Current export not found: {self.outputs_dir / filename} or {prefixed_name}")
+                return pd.DataFrame()
+
+        # Try long format first
+        df = self.parse_long_format(str(filepath))
+        if not df.empty and 'PeriodLabel' in df.columns:
+            return df
+
+        # Try wide format
+        return self.parse_wide_format(str(filepath))
+
+    def load_backfill_export(self, filename: str) -> pd.DataFrame:
+        """Load previous month backfill for comparison.""" # Try with backfill month prefix
+        prefixed_name = f"{self.backfill_month}_{filename}"
+        filepath = self.backfill_root / self.backfill_month / self.backfill_category / prefixed_name
+
+        if not filepath.exists():
+            # Try without prefix
+            filepath = self.backfill_root / self.backfill_month / self.backfill_category / filename
+
+        if not filepath.exists():
+            self.add_issue("WARNING", "File Missing", f"Backfill not found: {filepath}")
+            return pd.DataFrame()
+
+        # Try long format first
+        df = self.parse_long_format(str(filepath))
+        if not df.empty and ('PeriodLabel' in df.columns or 'Month' in df.columns):
+            return df
+
+        # Try wide format
+        return self.parse_wide_format(str(filepath))
+
+    def compare_month_overlap(
+        self,
+        current_df: pd.DataFrame,
+        backfill_df: pd.DataFrame,
+        category_col: str = "Time Category",
+        value_col: str = "Sum of Value",
+        month_col: str = "PeriodLabel"
+    ) -> Dict:
+        """
+        Compare overlapping months between current and backfill exports. Args:
+            current_df: Current month export
+            backfill_df: Previous month backfill
+            category_col: Column name for category
+            value_col: Column name for numeric value
+            month_col: Column name for month/period
+
+        Returns:
+            Dict with comparison results
+        """
+        if current_df.empty or backfill_df.empty:
+            return {
+                "total": 0,
+                "matches": 0,
+                "differences": 0,
+                "comparisons": []
+            }
+
+        # Standardize column names if different
+        if 'Category' in current_df.columns and category_col not in current_df.columns:
+            current_df = current_df.rename(columns={'Category': category_col})
+        if 'Value' in current_df.columns and value_col not in current_df.columns:
+            current_df = current_df.rename(columns={'Value': value_col})
+        if 'Month' in current_df.columns and month_col not in current_df.columns:
+            current_df = current_df.rename(columns={'Month': month_col})
+
+        if 'Category' in backfill_df.columns and category_col not in backfill_df.columns:
+            backfill_df = backfill_df.rename(columns={'Category': category_col})
+        if 'Value' in backfill_df.columns and value_col not in backfill_df.columns:
+            backfill_df = backfill_df.rename(columns={'Value': value_col})
+        if 'Month' in backfill_df.columns and month_col not in backfill_df.columns:
+            backfill_df = backfill_df.rename(columns={'Month': month_col})
+
+        # Get overlapping months
+        current_months = set(current_df[month_col].unique())
+        backfill_months = set(backfill_df[month_col].unique())
+        overlap_months = sorted(current_months & backfill_months)
+
+        print(f"\n[INFO] Current export months: {sorted(current_months)}")
+        print(f"[INFO] Backfill months: {sorted(backfill_months)}")
+        print(f"[INFO] Overlapping months ({len(overlap_months)}): {overlap_months}")
+
+        results = {
+            "total": 0,
+            "matches": 0,
+            "differences": 0,
+            "comparisons": []
+        }
+
+        # Get all categories
+        categories = sorted(set(current_df[category_col].unique()) | set(backfill_df[category_col].unique()))
+
+        # Compare each category for each overlapping month
+        for category in categories:
+            for month in overlap_months:
+                current_val = current_df[
+                    (current_df[category_col] == category) &
+                    (current_df[month_col] == month)
+                ][value_col].values
+
+                backfill_val = backfill_df[
+                    (backfill_df[category_col] == category) &
+                    (backfill_df[month_col] == month)
+                ][value_col].values
+
+                current_value = float(current_val[0]) if len(current_val) > 0 else 0.0
+                backfill_value = float(backfill_val[0]) if len(backfill_val) > 0 else 0.0
+
+                diff = abs(current_value - backfill_value)
+                match = diff <= self.tolerance
+
+                results['comparisons'].append({
+                    'Category': category,
+                    'Month': month,
+                    'Current_Value': current_value,
+                    'Backfill_Value': backfill_value,
+                    'Difference': current_value - backfill_value,
+                    'Abs_Difference': diff,
+                    'Match': match
+                })
+
+                results['total'] += 1
+                if match:
+                    results['matches'] += 1
+                else:
+                    results['differences'] += 1
+
+        return results
+
+    def check_data_integrity(self, df: pd.DataFrame, filename: str) -> List[Dict]:
+        """
+        Run common data integrity checks. Returns:
+            List of issues found
+        """
+        issues = []
+
+        if df.empty:
+            issues.append({
+                "severity": "ERROR",
+                "category": "Data Integrity",
+                "description": f"{filename} is empty"
+            })
+            return issues
+
+        # Check for null values
+        null_cols = df.columns[df.isnull().any()].tolist()
+        if null_cols:
+            for col in null_cols:
+                null_count = df[col].isnull().sum()
+                null_pct = (null_count / len(df)) * 100
+                if null_pct > 10:
+                    issues.append({
+                        "severity": "WARNING",
+                        "category": "Data Integrity",
+                        "description": f"{filename} - {col}: {null_count} nulls ({null_pct:.1f}%)"
+                    })
+
+        # Check for completely empty columns
+        empty_cols = df.columns[df.isnull().all()].tolist()
+        if empty_cols:
+            issues.append({
+                "severity": "ERROR",
+                "category": "Data Integrity",
+                "description": f"{filename} - All-null columns: {empty_cols}"
+            })
+
+        # Check numeric columns for suspicious values
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        for col in numeric_cols:
+            if (df[col] < 0).any():
+                neg_count = (df[col] < 0).sum()
+                issues.append({
+                    "severity": "WARNING",
+                    "category": "Data Integrity",
+                    "description": f"{filename} - {col}: {neg_count} negative values"
+                })
+
+        return issues
+
+    def validate_processing_rules(self) -> List[Dict]:
+        """
+        Override in subclass with script-specific processing rules. Returns:
+            List of validation results
+        """
+        raise NotImplementedError(
+            "Subclass must implement validate_processing_rules()"
+        )
+
+    def add_issue(self, severity: str, category: str, description: str):
+        """Add an issue to results.""" self.results["issues"].append({
+            "severity": severity,
+            "category": category,
+            "description": description
+        })
+
+    def generate_report(self, comparison_results: Dict) -> str:
+        """
+        Generate standardized markdown verification report. Args:
+            comparison_results: Results from compare_month_overlap()
+
+        Returns:
+            Path to generated report file
+        """
+        report_lines = []
+
+        # Header
+        report_lines.append(f"# {self.script_name.replace('_', ' ').title()} Verification Report")
+        report_lines.append("")
+        report_lines.append(f"**Date:** {self.results['verification_date']}")
+        report_lines.append(f"**Verified By:** Claude Code AI - ETL Verification Framework")
+        report_lines.append(f"**Current Month:** {self.current_month}")
+        report_lines.append(f"**Comparison Baseline:** {self.backfill_month}")
+        report_lines.append("")
+        report_lines.append("---")
+        report_lines.append("")
+
+        # Executive Summary
+        pass_rate = (comparison_results['matches'] / comparison_results['total'] * 100) if comparison_results['total'] > 0 else 0
+        status = "PASS" if pass_rate >= 95 else "REVIEW" if pass_rate >= 90 else "FAIL"
+
+        report_lines.append("## Executive Summary")
+        report_lines.append("")
+        report_lines.append(f"**VERIFICATION STATUS: {status}**")
+        report_lines.append("")
+        report_lines.append(f"- **Pass Rate:** {pass_rate:.1f}% ({comparison_results['matches']}/{comparison_results['total']} comparisons)")
+        report_lines.append(f"- **Differences Found:** {comparison_results['differences']}")
+        report_lines.append(f"- **Issues:** {len(self.results['issues'])}")
+        report_lines.append("")
+        report_lines.append("---")
+        report_lines.append("")
+
+        # Comparison Results
+        report_lines.append("## Month-to-Month Comparison Results")
+        report_lines.append("")
+        report_lines.append(f"**Tolerance:** ±{self.tolerance} (numeric values)")
+        report_lines.append("")
+
+        report_lines.append("| Metric | Result |")
+        report_lines.append("|--------|--------|")
+        report_lines.append(f"| Total Comparisons | {comparison_results['total']} |")
+        report_lines.append(f"| **Matches** | **{comparison_results['matches']}** |")
+        report_lines.append(f"| Differences | {comparison_results['differences']} |")
+        report_lines.append(f"| Pass Rate | **{pass_rate:.1f}%** |")
+        report_lines.append("")
+
+        # Differences detail
+        if comparison_results['differences'] > 0:
+            report_lines.append("### Differences Found")
+            report_lines.append("")
+            comp_df = pd.DataFrame(comparison_results['comparisons'])
+            diffs = comp_df[~comp_df['Match']]
+
+            report_lines.append("| Category | Month | Current | Backfill | Difference |")
+            report_lines.append("|----------|-------|---------|----------|------------|")
+            for _, row in diffs.head(20).iterrows():
+                report_lines.append(
+                    f"| {row['Category']} | {row['Month']} | {row['Current_Value']:.2f} | "
+                    f"{row['Backfill_Value']:.2f} | {row['Difference']:.2f} |"
+                )
+            report_lines.append("")
+
+        # Issues
+        if self.results['issues']:
+            report_lines.append("## Issues Found")
+            report_lines.append("")
+
+            # Group by severity
+            critical = [i for i in self.results['issues'] if i['severity'] == 'CRITICAL']
+            errors = [i for i in self.results['issues'] if i['severity'] == 'ERROR']
+            warnings = [i for i in self.results['issues'] if i['severity'] == 'WARNING']
+
+            if critical:
+                report_lines.append("### CRITICAL")
+                for issue in critical:
+                    report_lines.append(f"- **[{issue['category']}]** {issue['description']}")
+                report_lines.append("")
+
+            if errors:
+                report_lines.append("### ERRORS")
+                for issue in errors:
+                    report_lines.append(f"- **[{issue['category']}]** {issue['description']}")
+                report_lines.append("")
+
+            if warnings:
+                report_lines.append("### WARNINGS")
+                for issue in warnings:
+                    report_lines.append(f"- **[{issue['category']}]** {issue['description']}")
+                report_lines.append("")
+
+        # Conclusion
+        report_lines.append("---")
+        report_lines.append("")
+        report_lines.append("## Conclusion")
+        report_lines.append("")
+        if status == "PASS":
+            report_lines.append(f"**The {self.script_name} ETL script correctly processed {self.current_month} data. **")
+        elif status == "REVIEW":
+            report_lines.append(f"**The {self.script_name} ETL script requires review for {self.current_month} data. **")
+        else:
+            report_lines.append(f"**The {self.script_name} ETL script FAILED verification for {self.current_month} data. **")
+        report_lines.append("")
+
+        # Write report
+        report_filename = f"{self.script_name.upper()}_VERIFICATION_REPORT.md"
+        report_path = self.reports_dir / report_filename
+        self.reports_dir.mkdir(parents=True, exist_ok=True)
+
+        with open(report_path, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(report_lines))
+
+        print(f"\n[REPORT] Generated: {report_path}")
+        return str(report_path)
+
+    def run_verification(self) -> Dict:
+        """
+        Main verification workflow.

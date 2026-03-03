@@ -1,0 +1,790 @@
+03-25 → 2025-03-01)
+    #"Add SortKey" = Table.AddColumn(
+        #"Renamed Columns",
+        "SortKey",
+        each 
+            let
+                parts = Text.Split([Period], "-"),
+                month = Number.FromText(parts{0}),
+                year = 2000 + Number.FromText(parts{1})
+            in
+                #date(year, month, 1),
+        type date
+    ),
+
+    // Set column types
+    #"Changed Type" = Table.TransformColumnTypes(#"Add SortKey", {
+        {"Period", type text},
+        {"Type", type text},
+        {"Value", Int64.Type},
+        {"SortKey", type date}
+    }),
+
+    // Reorder columns
+    #"Reordered Columns" = Table.SelectColumns(#"Changed Type", {"Period", "SortKey", "Type", "Value"}),
+    #"Filtered Rows" = Table.SelectRows(#"Reordered Columns", each ([Period] <> "Total"))
+in
+    #"Filtered Rows"
+
+// Top_5_Arrest_Diagnostic
+// ___Top_5_Arrests_DIAGNOSTIC
+// 🕒 2025-01-05-14-45-00
+// Project: Arrest_Analysis/Top_5_Arrest_Diagnostic
+// Author: R. A. Carucci
+// Purpose: Diagnostic version to identify where data is being lost
+
+let
+    // ═══ DIAGNOSTIC: Check folder and files ═══════════════════════
+    FolderFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"),
+    
+    PowerBIFiles = Table.SelectRows(
+        FolderFiles,
+        each [Extension] = ".xlsx" and Text.Contains([Name], "PowerBI_Ready")
+    ),
+    
+    // DIAGNOSTIC INFO: How many PowerBI_Ready files found? FileCount = Table.RowCount(PowerBIFiles),
+    
+    Sorted = Table.Sort(PowerBIFiles, {{"Date modified", Order.Descending}}),
+    
+    // DIAGNOSTIC INFO: Latest file name and date
+    LatestFileName = if FileCount > 0 then Sorted{0}[Name] else "NO FILES FOUND",
+    LatestFileDate = if FileCount > 0 then Sorted{0}[Date modified] else null,
+
+    // Load the latest file
+    Source = if FileCount > 0 then
+        Excel.Workbook(Sorted{0}[Content], null, true){0}[Data]
+    else
+        error "No Power BI ready files found",
+
+    // ═══ DIAGNOSTIC: Check raw data ═══════════════════════════════
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+    
+    // DIAGNOSTIC INFO: Total rows BEFORE any filtering
+    TotalRowsBeforeFilter = Table.RowCount(Headers),
+    
+    // DIAGNOSTIC INFO: What columns are actually in the data? ActualColumns = Table.ColumnNames(Headers),
+
+    // Check if columns exist and rename safely
+    SafeRename = if Table.HasColumns(Headers, "Officer of Record") then
+        Table.RenameColumns(Headers, {{"Officer of Record", "OfficerOfRecord"}})
+    else if Table.HasColumns(Headers, "Officer_of_Record") then
+        Table.RenameColumns(Headers, {{"Officer_of_Record", "OfficerOfRecord"}})
+    else if Table.HasColumns(Headers, "OfficerOfRecord") then
+        Headers
+    else
+        error "Officer column not found in data",
+
+    SafeRename2 = if Table.HasColumns(SafeRename, "Arrest Date") then
+        Table.RenameColumns(SafeRename, {{"Arrest Date", "ArrestDate"}})
+    else if Table.HasColumns(SafeRename, "Arrest_Date") then
+        Table.RenameColumns(SafeRename, {{"Arrest_Date", "ArrestDate"}})
+    else if Table.HasColumns(SafeRename, "ArrestDate") then
+        SafeRename
+    else
+        error "Arrest Date column not found in data",
+
+    // ═══ DIAGNOSTIC: Check date filtering ═════════════════════════
+    Current = Date.From(DateTime.LocalNow()),
+    PreviousMonth = Date.AddMonths(Current, -1),
+    TargetYear = Date.Year(PreviousMonth),
+    TargetMonth = Date.Month(PreviousMonth),
+    MonthYearDisplay = Date.MonthName(PreviousMonth) & " " & Text.From(TargetYear),
+    
+    // DIAGNOSTIC INFO: What dates are we looking for? DiagnosticInfo = #table(
+        {"Metric", "Value"},
+        {
+            {"Latest File", LatestFileName},
+            {"File Modified Date", Text.From(LatestFileDate)},
+            {"Total Files Found", Text.From(FileCount)},
+            {"Total Rows in Source", Text.From(TotalRowsBeforeFilter)},
+            {"Columns in Data", Text.Combine(ActualColumns, ", ")},
+            {"Target Year", Text.From(TargetYear)},
+            {"Target Month", Text.From(TargetMonth)},
+            {"Target Month Name", MonthYearDisplay},
+            {"Current Date", Text.From(Current)}
+        }
+    ),
+
+    // ═══ Check sample dates from the data ═════════════════════════
+    ToDate = (x) => if x = null or x = "" then
+        null
+    else
+        try Date.From(x) otherwise try Date.FromText(Text.From(x)) otherwise null,
+    
+    // Add a column showing what dates actually parsed
+    WithParsedDates = Table.AddColumn(
+        SafeRename2,
+        "Parsed_Date",
+        each ToDate([ArrestDate]),
+        type nullable date
+    ),
+    
+    // Add year and month columns to see what we actually have
+    WithDateParts = Table.AddColumn(
+        Table.AddColumn(
+            WithParsedDates,
+            "Year_From_Data",
+            each try Date.Year([Parsed_Date]) otherwise null,
+            type number
+        ),
+        "Month_From_Data",
+        each try Date.Month([Parsed_Date]) otherwise null,
+        type number
+    ),
+    
+    // DIAGNOSTIC: Show date distribution
+    DateDistribution = Table.Group(
+        WithDateParts,
+        {"Year_From_Data", "Month_From_Data"},
+        {{"Count", each Table.RowCount(_), Int64.Type}}
+    ),
+
+    PreviousMonthOnly = Table.SelectRows(
+        SafeRename2,
+        each let d = ToDate([ArrestDate]) in d <> null and Date.Year(d) = TargetYear and Date.Month(d) = TargetMonth
+    ),
+    
+    // DIAGNOSTIC INFO: Rows after date filter
+    RowsAfterDateFilter = Table.RowCount(PreviousMonthOnly),
+    
+    // Return DIAGNOSTIC INFO instead of empty table
+    FinalOutput = #table(
+        {"Metric", "Value"},
+        {
+            {"Latest File", LatestFileName},
+            {"File Modified Date", Text.From(LatestFileDate)},
+            {"Total Files Found", Text.From(FileCount)},
+            {"Total Rows in Source", Text.From(TotalRowsBeforeFilter)},
+            {"Columns in Data", Text.Combine(ActualColumns, ", ")},
+            {"Target Year", Text.From(TargetYear)},
+            {"Target Month", Text.From(TargetMonth)},
+            {"Target Month Name", MonthYearDisplay},
+            {"Rows After Date Filter", Text.From(RowsAfterDateFilter)},
+            {"Date Distribution", "See DateDistribution query below"}
+        }
+    )
+
+in
+    FinalOutput
+
+// Top_5_All_Time
+// ___Top_5_Arrests_ALL_TIME
+// 🕒 2025-01-05-14-45-00
+// Project: Arrest_Analysis/Top_5_All_Time
+// Author: R. A. Carucci
+// Purpose: Top 5 arrests WITHOUT date filter to verify query logic works
+
+let
+    // Load the latest Power BI ready file
+    FolderFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"),
+    
+    PowerBIFiles = Table.SelectRows(
+        FolderFiles,
+        each [Extension] = ".xlsx" and Text.Contains([Name], "PowerBI_Ready")
+    ),
+    
+    Sorted = Table.Sort(PowerBIFiles, {{"Date modified", Order.Descending}}),
+
+    Source = if Table.RowCount(Sorted) > 0 then
+        let
+            LatestFile = Sorted{0}[Content],
+            ExcelData = Excel.Workbook(LatestFile, null, true),
+            FirstSheet = ExcelData{0}[Data]
+        in
+            FirstSheet
+    else
+        error "No Power BI ready files found",
+
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+
+    // Check if columns exist and rename safely
+    SafeRename = if Table.HasColumns(Headers, "Officer of Record") then
+        Table.RenameColumns(Headers, {{"Officer of Record", "OfficerOfRecord"}})
+    else if Table.HasColumns(Headers, "Officer_of_Record") then
+        Table.RenameColumns(Headers, {{"Officer_of_Record", "OfficerOfRecord"}})
+    else if Table.HasColumns(Headers, "OfficerOfRecord") then
+        Headers
+    else
+        error "Officer column not found in data",
+
+    // *** NO DATE FILTERING - Use all data ***
+    AllData = SafeRename,
+
+    // Handle empty results gracefully
+    HasData = Table.RowCount(AllData) > 0,
+
+    VerifyData = if not HasData then
+        #table({"OfficerOfRecord", "Officer_Name_Clean", "Arrest_Count", "Rank", "Source_File"}, {})
+    else
+        AllData,
+
+    // Clean officer names
+    CleanOfficerNames = if not HasData then
+        VerifyData
+    else
+        Table.TransformColumns(
+            VerifyData,
+            {{"OfficerOfRecord", each
+                if _ = null or _ = "" then
+                    "UNKNOWN OFFICER"
+                else
+                    let
+                        original = Text.Upper(Text.Trim(Text.From(_))),
+                        // Remove common prefixes
+                        step1 = Text.Replace(
+                            Text.Replace(
+                                Text.Replace(
+                                    Text.Replace(original, "P.O. ", ""),
+                                    "PO ", ""
+                                ),
+                                "DET. ", ""
+                            ),
+                            "DETECTIVE ", ""
+                        ),
+                        // Clean up whitespace and special characters
+                        step2 = Text.Replace(
+                            Text.Replace(
+                                Text.Replace(
+                                    Text.Replace(
+                                        Text.Replace(step1, "  ", " "),
+                                        " - ", " "
+                                    ),
+                                    "(", ""
+                                ),
+                                ")", ""
+                            ),
+                            "#", ""
+                        ),
+                        // Simple badge number removal
+                        step3 = Text.Trim(
+                            if Text.Length(step2) > 0 then
+                                let
+                                    words = Text.Split(step2, " "),
+                                    lastWord = if List.Count(words) > 1 then List.Last(words) else "",
+                                    isNumber = try Number.From(lastWord) >= 0 otherwise false,
+                                    isBadgeNumber = Text.Length(lastWord) <= 4 and isNumber,
+                                    cleanWords = if isBadgeNumber then List.RemoveLastN(words, 1) else words
+                                in
+                                    Text.Combine(cleanWords, " ")
+                            else
+                                step2
+                        )
+                    in
+                        if Text.Length(step3) > 0 then step3 else "UNKNOWN OFFICER",
+                type text
+            }}
+        ),
+
+    // Group by officer and count arrests
+    GroupedByOfficer = if not HasData then
+        #table({"OfficerOfRecord", "Arrest_Count"}, {})
+    else
+        Table.Group(
+            CleanOfficerNames,
+            {"OfficerOfRecord"},
+            {{"Arrest_Count", each Table.RowCount(_), Int64.Type}}
+        ),
+
+    // Sort and get top 5
+    SortedByCount = if not HasData then
+        GroupedByOfficer
+    else
+        Table.Sort(GroupedByOfficer, {{"Arrest_Count", Order.Descending}}),
+
+    Top5Officers = if not HasData then
+        GroupedByOfficer
+    else
+        Table.FirstN(SortedByCount, 5),
+
+    // Add metadata
+    WithRanking = Table.AddIndexColumn(Top5Officers, "Rank", 1, 1, Int64.Type),
+
+    // Rename for final output
+    FinalRenamed = Table.RenameColumns(WithRanking, {{"OfficerOfRecord", "Officer_Name_Clean"}}),
+
+    // Final type enforcement
+    TypedData = Table.TransformColumnTypes(
+        FinalRenamed,
+        {
+            {"Officer_Name_Clean", type text},
+            {"Arrest_Count", Int64.Type},
+            {"Rank", Int64.Type}
+        }
+    ),
+
+    // Add source file info
+    WithSourceInfo = if Table.RowCount(Sorted) > 0 then
+        Table.AddColumn(TypedData, "Source_File", each Sorted{0}[Name], type text)
+    else
+        TypedData
+
+in
+    WithSourceInfo
+
+// Raw_Data_Preview
+// ___Arrest_Raw_Data_Preview
+// 🕒 2025-01-05-14-45-00
+// Project: Arrest_Analysis/Raw_Data_Preview
+// Author: R. A. Carucci
+// Purpose: Show first 100 rows of raw arrest data to verify source file contents
+
+let
+    // Load the latest Power BI ready file
+    FolderFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"),
+    
+    PowerBIFiles = Table.SelectRows(
+        FolderFiles,
+        each [Extension] = ".xlsx" and Text.Contains([Name], "PowerBI_Ready")
+    ),
+    
+    Sorted = Table.Sort(PowerBIFiles, {{"Date modified", Order.Descending}}),
+    
+    Source = if Table.RowCount(Sorted) > 0 then
+        Excel.Workbook(Sorted{0}[Content], null, true){0}[Data]
+    else
+        error "No Power BI ready files found",
+
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+    
+    // Add source file info
+    WithSourceFile = Table.AddColumn(
+        Headers,
+        "Source_File",
+        each if Table.RowCount(Sorted) > 0 then Sorted{0}[Name] else "Unknown",
+        type text
+    ),
+    
+    // Take first 100 rows for preview
+    Preview = Table.FirstN(WithSourceFile, 100),
+    #"Changed Type" = Table.TransformColumnTypes(Preview,{{"Arrest Date", type date}})
+
+in
+    #"Changed Type"
+```
+
+## ✅ Phase 3 Complete: Combined Outreach Query Fixed
+
+### Root Cause
+The M code was looking in `Community_Engagment\output\` (parent output folder) but the ETL script outputs to `Community_Engagment\src\output\` (src subdirectory). Latest file from 12/10/25 was in the wrong location—the actual working ETL script creates files in `src/output/`. ### Fixes Applied
+
+1. **Ran Community Engagement ETL manually**: Processed 558 total records (166 Community Engagement, 296 STACP, 74 Patrol, 22 CSB)
+2. **Updated M code path**: Changed `OutputFolder` from `...\Community_Engagment\output\` to `...\Community_Engagment\src\output\`
+3. **Verified new output**: Latest file now `community_engagement_data_20260107_202123.csv` with today's timestamp (2026-01-07 8:21 PM)
+
+### Output Verification
+- **File location**: `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\src\output\`
+- **Latest file**: `community_engagement_data_20260107_202123.csv` (558 records)
+- **Processed date**: 2026-01-07 (current)
+- **Data range**: January 2025 through current records
+
+### Configuration Issue Found
+The Master Automation `config\scripts.json` points Community Engagement to `deploy_production.py`, which is a deployment/scheduling script, not the ETL processor itself. The actual ETL script is `src\main_processor.py`. **Recommendation**: Update `config\scripts.json` line 29 from:
+```json
+"script": "deploy_production.py",
+```
+to:
+```json
+"script": "src\\main_processor.py",
+```
+
+This ensures the orchestrator (`run_all_etl.ps1`) runs the correct ETL script automatically. ### Phase 3 Checkpoint: PASSED ✓
+
+- ✅ ETL script ran successfully (558 records processed)
+- ✅ Latest output file created with current timestamp
+- ✅ M code updated to point to correct output directory
+- ✅ Power BI query will now pick up latest CSV file
+
+**Ready to move to Phase 4** (Summons path errors fix). The Combined Outreach query will now refresh correctly with today's data. ```json
+"script": "deploy_production.py",
+```
+
+```json
+"script": "src\\main_processor.py",
+```
+
+---
+
+**User**
+
+## Response for Cursor AI
+
+**Proceed to Phase 4. ** Phase 3 checkpoint passed. ### Phase 3 Validation Complete ✓
+
+Your Power Query Agent work resolved the stale data issue:
+
+- **Root cause identified**: ETL output path mismatch (M code looked in `output/`, script wrote to `src/output/`)
+- **ETL executed successfully**: 558 records processed (166 CE, 296 STACP, 74 Patrol, 22 CSB)
+- **M code path corrected**: `OutputFolder` now points to `...\Community_Engagment\src\output\`
+- **Fresh data confirmed**: New CSV dated 2026-01-07 8:21 PM (replaces stale 12/10/25 file)
+
+### Critical Follow-Up Action
+
+**Update Master Automation config** to prevent future manual runs:
+
+In `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\config\scripts.json` (line 29):
+
+**Change**:
+```json
+"script": "deploy_production.py",
+```
+
+**To**:
+```json
+"script": "src\\main_processor.py",
+```
+
+**Why this matters**: Your orchestrator (`run_all_etl.ps1`) currently points to a deployment script instead of the actual ETL processor—this explains why Community Engagement data went stale. Fixing this ensures automated runs work correctly. [1]
+
+### Phase 4 Execution Guidance
+
+**For the Power Query Agent**, focus on Summons path errors (critical data issue):
+
+**Four queries to fix**:[1]
+1. `___Backfill` (line TBD) - `backfill_summons_summary.csv`
+2. `___wg3` (line TBD) - `wg2_movers_parkers_nov2025.csv` 
+3. `___TopMoving` (line TBD) - `top5_moving_1125.csv`
+4. `___TopParking` (line TBD) - `top5_parking_1125.csv`
+
+**Diagnostic approach**:
+
+1. **Determine file source**: These 4 files don't exist yet—decide if they should be:
+   - Generated from existing Summons ETL output (`summons_powerbi_latest.xlsx`)
+   - Created as new derived queries in Power BI
+   - Generated by a new Python script
+
+2. **Fix hardcoded dates**: 
+   - `nov2025`, `1125`, `1125` are static—make dynamic (use latest available data)
+   - Consider using same pattern as Combined Outreach (auto-detect latest file)
+
+3. **Verify Summons data flow**:
+   - Check if `summons_powerbi_latest.xlsx` exists and has current data
+   - Confirm it contains fields needed: `WG2`, `TYPE` (M/P), `TICKET_COUNT`
+   - Verify backfill data source for historical summons
+
+**Two implementation options**:
+
+**Option A: Python script approach** (recommended for your workflow):  DO THIS OPTION
+- Create `summons_derived_outputs.py` in Summons ETL folder
+- Read from `summons_powerbi_latest.xlsx`
+- Generate all 4 CSVs with dynamic filenames
+- Add to Master Automation orchestrator
+
+**Option B: Power Query approach**:
+- Create derived queries from existing Summons data
+- Use dynamic date logic (e.g., `Date.EndOfMonth(DateTime.LocalNow())`)
+- Keep all logic in M code (simpler to maintain)
+
+**Testing checkpoint**: After Phase 4, verify:
+- All 4 Summons queries refresh without path errors
+- Filenames are dynamic (not hardcoded to specific months)
+- Data matches expectations (top 5 counts, WG2 filtering works)
+- Backfill summary shows historical summons data
+
+### Phase 3 Documentation Note
+
+Add to your project log:
+- Community Engagement path mismatch resolved
+- ETL now outputs 558 records current through January 2026
+- **Action required**: Update `scripts.json` to fix orchestrator automation
+
+**Proceed to Phase 4. ** Summons path errors are the next critical priority. [2][1]
+
+[1](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/10459886/88376f25-6b5e-474e-ab72-79da411d9ad0/image.jpg)
+[2](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/10459886/62b427a4-b02b-4e50-9b54-bc4f4815bd19/image.jpg)
+[3](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/10459886/397da813-2b59-4e3e-980d-fddc85a4b88d/overtime_timeoff_with_backfill.py)
+
+---
+
+**Cursor**
+
+Got it—moving to **Phase 4 (Summons path errors)**. Next I’ll (1) confirm what the 4 Power Query tables currently expect, (2) locate the real Summons “source of truth” file (`summons_powerbi_latest.xlsx`), (3) generate the 4 missing CSVs via a new Python script, and (4) update the M queries + `config/scripts.json` so this stays automated. ```json
+*** Begin Patch
+*** Update File: Master_Automation/config/scripts.json
+@@
+     {
+       "name": "Community Engagement",
+       "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagment",
+-      "script": "deploy_production.py",
++      "script": "src\\main_processor.py",
+       "enabled": true,
+       "output_to_powerbi": true,
+       "order": 2,
+       "timeout_minutes": 15,
+       "output_patterns": [
+*** End Patch
+```
+
+Nice: we’ve identified exactly what the four Summons queries are doing—right now they’re hardwired to 4 CSVs under `PowerBI_Date\` that don’t exist (and include hardcoded months like `nov2025`/`1125`). Next step is to generate those CSVs from `03_Staging\Summons\summons_powerbi_latest.xlsx` and point the queries to the generated outputs, so refreshes are always month-dynamic. Nice—Summons M queries are clearly hardcoded to `PowerBI_Date\*.csv` (and there are literal `\` line-continuations in that section that will break Power Query). Next I’ll (1) fix the orchestrator config for Community Engagement, (2) inspect `summons_powerbi_latest.xlsx` schema, then (3) generate the 4 CSVs + repoint those 4 M queries to dynamically pick the latest derived outputs. ```json
+*** Begin Patch
+*** Update File: Master_Automation/config/scripts.json
+@@
+     {
+       "name": "Community Engagement",
+       "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagment",
+-      "script": "deploy_production.py",
++      "script": "src\\main_processor.py",
+       "enabled": true,
+       "output_to_powerbi": true,
+       "order": 2,
+       "timeout_minutes": 15,
+       "output_patterns": [
+         "*.csv"
+       ],
+       "keywords": [
+         "community",
+         "outreach",
+         "engagement"
+       ]
+     },
+*** End Patch
+```
+
+```json
+*** Begin Patch
+*** Update File: Master_Automation/config/scripts.json
+@@
+     {
+       "name": "Community Engagement",
+       "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagment",
+-      "script": "deploy_production.py",
++      "script": "src\\main_processor.py",
+       "enabled": true,
+       "output_to_powerbi": true,
+       "order": 2,
+       "timeout_minutes": 15,
+       "output_patterns": [
+         "*.csv"
+       ],
+       "keywords": [
+         "community",
+         "outreach",
+         "engagement"
+       ]
+     },
+*** End Patch
+```
+
+```json
+{
+  "settings": {
+    "powerbi_drop_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\_DropExports",
+    "log_directory": "logs",
+    "python_executable": "python",
+    "continue_on_error": true,
+    "cleanup_temp_files": true
+  },
+  "scripts": [
+    {
+      "name": "Arrests",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Arrests",
+      "script": "arrest_python_processor.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 1,
+      "timeout_minutes": 30,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "arrest",
+        "court"
+      ]
+    },
+    {
+      "name": "Community Engagement",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagment",
+      "script": "src\\main_processor.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 2,
+      "timeout_minutes": 15,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "community",
+        "outreach",
+        "engagement"
+      ]
+    },
+    {
+      "name": "Overtime TimeOff",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\scripts",
+      "script": "overtime_timeoff_with_backfill.py",
+      "enabled": true,
+      "output_to_powerbi": false,
+      "order": 3,
+      "timeout_minutes": 45,
+      "output_patterns": [
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\output\\FIXED_monthly_breakdown_*.csv",
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\analytics_output\\monthly_breakdown.csv",
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\analytics_output\\executive_summary.csv"
+      ],
+      "keywords": [
+        "vcs",
+        "time",
+        "overtime",
+        "accrual"
+      ]
+    },
+    {
+      "name": "Policy Training Monthly",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Policy_Training_Monthly",
+      "script": "main.py",
+      "enabled": false,
+      "output_to_powerbi": true,
+      "order": 4,
+      "timeout_minutes": 15,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "policy",
+        "training"
+      ]
+    },
+    {
+      "name": "Response Times",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Response_Times",
+      "script": "response_time_diagnostic.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 5,
+      "timeout_minutes": 30,
+      "output_patterns": [
+        "diagnostic_output\\response_time_comparison_*.xlsx",
+        "diagnostic_output\\supervisor_brief_*.txt",
+        "diagnostic_output\\unmapped_incidents*.csv"
+      ],
+      "keywords": [
+        "response",
+        "time"
+      ]
+    },
+    {
+      "name": "Summons",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Summons",
+      "script": "main_orchestrator.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 6,
+      "timeout_minutes": 15,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "summon",
+        "violation",
+        "moving",
+        "parking"
+      ]
+    },
+    {
+      "name": "Arrest Data Source",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\01_DataSources\\ARREST_DATA",
+      "script": "main.py",
+      "enabled": false,
+      "output_to_powerbi": false,
+      "order": 7,
+      "timeout_minutes": 20,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "arrest"
+      ]
+    },
+    {
+      "name": "NIBRS",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\01_DataSources\\NIBRS",
+      "script": "main.py",
+      "enabled": false,
+      "output_to_powerbi": true,
+      "order": 8,
+      "timeout_minutes": 25,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "nibrs"
+      ]
+    }
+  ]
+}
+
+
+```
+
+```python
+#!/usr/bin/env python3
+# 🕒 2026-01-08
+# Project: Summons / Derived Power BI CSV Outputs
+# Author: Cursor AI (for R. A. Carucci)
+# Purpose:
+#   Generate the CSVs that Power BI Summons visuals expect (wg3/top5/backfill),
+#   derived from the authoritative workbook:
+#     03_Staging\\Summons\\summons_powerbi_latest.xlsx (sheet: Summons_Data)
+#
+# Outputs (timestamped) are written to:
+#   02_ETL_Scripts\\Summons\\derived_output\\
+#     - backfill_summons_summary_<timestamp>.csv
+#     - wg2_movers_parkers_<timestamp>.csv
+#     - top5_moving_<timestamp>.csv
+#     - top5_parking_<timestamp>.csv
+#
+# Notes:
+# - Excludes IS_AGGREGATE=True rows so officer/WG2 breakdowns are correct. # - Backfill summary outputs TYPE rows: M, P, Total and month columns "MM-YY". from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
+
+import pandas as pd
+
+
+@dataclass(frozen=True)
+class Paths:
+    summons_latest_xlsx: Path
+    derived_output_dir: Path
+
+
+def _ts() -> str:
+    return datetime.now().strftime("%Y%m%d_%H%M%S")
+
+
+def _safe_int_series(s: pd.Series) -> pd.Series:
+    return pd.to_numeric(s, errors="coerce").fillna(0).round(0).astype("int64")
+
+
+def load_summons_df(xlsx_path: Path) -> pd.DataFrame:
+    if not xlsx_path.exists():
+        raise FileNotFoundError(f"Missing source workbook: {xlsx_path}")
+
+    df = pd.read_excel(xlsx_path, sheet_name="Summons_Data", engine="openpyxl")
+    required = {"YearMonthKey", "Month_Year", "TYPE", "TICKET_COUNT", "WG2", "OFFICER_DISPLAY_NAME", "IS_AGGREGATE"}
+    missing = sorted(required - set(df.columns))
+    if missing:
+        raise ValueError(f"Summons_Data missing required columns: {missing}")
+
+    df = df.copy()
+    df["TICKET_COUNT"] = _safe_int_series(df["TICKET_COUNT"])
+    df["YearMonthKey"] = _safe_int_series(df["YearMonthKey"])
+    df["Month_Year"] = df["Month_Year"].astype(str).str.strip()
+    df["TYPE"] = df["TYPE"].astype(str).str.strip().str.upper()
+    df["WG2"] = df["WG2"].astype(str).str.strip()
+    df["OFFICER_DISPLAY_NAME"] = df["OFFICER_DISPLAY_NAME"].astype(str).str.strip()
+    df["IS_AGGREGATE"] = df["IS_AGGREGATE"].fillna(False).astype(bool)
+
+    # Drop aggregate rows for officer/WG breakdowns; keep them out of backfill too to avoid double counting. df = df.loc[~df["IS_AGGREGATE"]].copy()
+    return df
+
+
+def compute_latest_month_key(df: pd.DataFrame) -> int:
+    if df.empty:
+        raise ValueError("No non-aggregate summons rows found; cannot compute latest month.") return int(df["YearMonthKey"].max())
+
+
+def build_backfill_summary(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Wide format for Power BI backfill query:
+      TYPE, <MM-YY>, <MM-YY>, ...

@@ -1,0 +1,177 @@
+{
+  "source_file": "Gemini-Summons Data Query Failures Explained.md",
+  "source_path": "C:\\_chunker\\02_data\\Gemini-Summons Data Query Failures Explained.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Gemini-Summons_Data_Query_Failures_Explained\\2026_03_03_16_52_10_Gemini-Summons_Data_Query_Failures_Explained.origin.json",
+  "created_at": "2026_03_03_16_52_10",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "bureau",
+      "traffic",
+      "nan",
+      "badge",
+      "2025",
+      "code"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Summons Data Query Failures Explained\n\n**Exported:** 3/3/2026 16:51:36  \n**Link:** [https://gemini.google.com/app/31b7e182991cb703](https://gemini.google.com/app/31b7e182991cb703)\n\n## Prompt:\n> Claude - MD\n\n> README - MD\n\n> SUMMARY - M...",
+    "first_line": "# Summons Data Query Failures Explained"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-03-03T16:52:10+00:00_Gemini-Summons_Data_Query_Failures_Explained_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "badge",
+        "code",
+        "columns",
+        "data",
+        "docs",
+        "excel",
+        "file",
+        "it-ops",
+        "json",
+        "legal",
+        "lower",
+        "markdown",
+        "police",
+        "print",
+        "python",
+        "sql"
+      ],
+      "key_terms": [
+        "col",
+        "print",
+        "lower",
+        "file",
+        "columns",
+        "badge"
+      ],
+      "summary": "# Summons Data Query Failures Explained\n\n**Exported:** 3/3/2026 16:51:36  \n**Link:** [https://gemini.google.com/app/31b7e182991cb703](https://gemini.google.com/app/31b7e182991cb703)\n\n## Prompt:\n> Claude - MD\n\n> README - MD\n\n> SUMMARY - M...",
+      "char_length": 14787,
+      "byte_length": 15040
+    },
+    {
+      "chunk_id": "2026-03-03T16:52:10+00:00_Gemini-Summons_Data_Query_Failures_Explained_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "ai",
+        "badge",
+        "bureau",
+        "code",
+        "data",
+        "docs",
+        "excel",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "name",
+        "parking",
+        "police",
+        "python",
+        "sql",
+        "traffic"
+      ],
+      "key_terms": [
+        "bureau",
+        "traffic",
+        "code",
+        "parking",
+        "name",
+        "badge"
+      ],
+      "summary": "```\n\nCode output\n\n```\n--- Columns identified ---\n['PADDED_BADGE_NUMBER', 'OFFICER_DISPLAY_NAME', 'WG2', 'TITLE', 'TYPE', 'YearMonthKey', 'Month_Year', 'Year', 'Month', 'VIOLATION_DATE', 'ISSUE_DATE', 'STATUTE', 'VIOLATION_CATEGORY', 'OFF...",
+      "char_length": 29994,
+      "byte_length": 30622
+    },
+    {
+      "chunk_id": "2026-03-03T16:52:10+00:00_Gemini-Summons_Data_Query_Failures_Explained_chunk3",
+      "chunk_index": 3,
+      "file": "chunk_00002.txt",
+      "tags": [
+        "2025",
+        "ai",
+        "code",
+        "data",
+        "docs",
+        "excel",
+        "it-ops",
+        "json",
+        "legal",
+        "logic",
+        "markdown",
+        "police",
+        "python",
+        "sql"
+      ],
+      "key_terms": [
+        "nan",
+        "code",
+        "data",
+        "json",
+        "logic",
+        "2025"
+      ],
+      "summary": "### Summary of Data Findings\n\n| Metric | Status | Result |\n| --- | --- | --- |\n| **13-Month Window** | ✅ Correct | Feb 2025 – March 2026 present |\n| **Title 39 Moving (M)** | ✅ Correct | 5,787 violations |\n| **Title 39 Parking (P)** | ✅...",
+      "char_length": 30021,
+      "byte_length": 30241
+    },
+    {
+      "chunk_id": "2026-03-03T16:52:10+00:00_Gemini-Summons_Data_Query_Failures_Explained_chunk4",
+      "chunk_index": 4,
+      "file": "chunk_00003.txt",
+      "tags": [
+        "ai",
+        "badge",
+        "code",
+        "data",
+        "docs",
+        "excel",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sql",
+        "ssocc",
+        "upper"
+      ],
+      "key_terms": [
+        "nan",
+        "upper",
+        "badge",
+        "ssocc",
+        "str",
+        "row"
+      ],
+      "summary": "M               False          DIRECT_BADGE                 100                 NaN  ETICKET_2025_02_ETICKET_EXPORT  YYYY-40-DD 01:40:SS          2.1              223.0     E25003226             ACTI              P   2025-02-01  2025-02-...",
+      "char_length": 12340,
+      "byte_length": 12558
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

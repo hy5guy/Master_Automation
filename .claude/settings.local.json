@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(ls:*)",
+      "Bash(wc:*)",
+      "Bash(head:*)",
+      "Bash(tee:*)",
+      "Bash(powershell:*)",
+      "Bash(tree:*)",
+      "Bash(dir \"C:\\\\Users\\\\carucci_r\\\\OneDrive - City of Hackensack\\\\Master_Automation\\\\outputs\")",
+      "Bash(findstr:*)",
+      "Bash(dir:*)",
+      "Bash(attrib:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "source_file": "CLAUDE_CODE_PROMPT_RESPONSE_TIME_ETL_FIX.md",
+  "source_path": "C:\\_chunker\\02_data\\CLAUDE_CODE_PROMPT_RESPONSE_TIME_ETL_FIX.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\CLAUDE_CODE_PROMPT_RESPONSE_TIME_ETL_FIX\\2026_02_04_23_57_16_CLAUDE_CODE_PROMPT_RESPONSE_TIME_ETL_FIX.origin.json",
+  "created_at": "2026_02_04_23_57_16",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "script",
+      "file",
+      "etl",
+      "files",
+      "data",
+      "code"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Claude Code Prompt: Fix Response Time ETL and Power BI Query\n\n## Executive Summary\n\nThe Response Time Power BI query (`response_time_calculator`) contains incorrect calculations and uses outdated file paths. The ETL script has not been...",
+    "first_line": "# Claude Code Prompt: Fix Response Time ETL and Power BI Query"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-04T23:57:16+00:00_CLAUDE_CODE_PROMPT_RESPONSE_TIME_ETL_FIX_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "docs",
+        "excel",
+        "file",
+        "files",
+        "json",
+        "markdown",
+        "police",
+        "powershell",
+        "python",
+        "script",
+        "sql"
+      ],
+      "key_terms": [
+        "script",
+        "file",
+        "etl",
+        "files",
+        "data",
+        "code"
+      ],
+      "summary": "# Claude Code Prompt: Fix Response Time ETL and Power BI Query\n\n## Executive Summary\n\nThe Response Time Power BI query (`response_time_calculator`) contains incorrect calculations and uses outdated file paths.",
+      "char_length": 17902,
+      "byte_length": 18365
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

@@ -1,0 +1,429 @@
+# CSV file structure and data discrepancies
+_Exported on 2/10/2026 at 18:46:58 EST from Cursor (2.4.31)_
+
+---
+
+**User**
+
+In addition to reading the below files for context also search @kb to reseach how we dealt with the visual not properly adding backfilled data from the previous month which results  in several ull values see the recient visual@data/visual_export/2026_12/2026_02_10_Monthly Accrual and Usage Summary.csv
+Export files: I see that C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\export\month\2026 has three versions of the 01/2026 data and they all have different sizes
+same thing for the 2025 C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\export\full_year\2025
+C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\month\2026
+C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\full_year\2025
+
+In the past there was an issue with the .csv having an incorrect structure, is that the case where the .cvs files structure are off? C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\USAGE_HIGH_VALUES_REPORT.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\ETL_COMPLETION_REPORT.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\DECEMBER_HIGH_VALUES_INVESTIGATION_REPORT.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\COMPLETE_AI_VERIFICATION_PACKAGE.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\VERIFICATION_SUMMARY.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\SYNTAX_ERRORS_SUMMARY.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\config.json
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\README.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\run_all.bat
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\SUMMARY.md
+
+
+---
+
+**Cursor**
+
+
+Gathering context: searching the knowledge base for backfilled-data/visual null issues and reading the listed files and the recent visual export. Searching the repo for backfill/visual/null handling and reading ETL docs. Checking export file sizes. Searching for Overtime/TimeOff backfill logic and CSV structure issues, and retrieving export file sizes. Reading the backfill wrapper and ETL scripts and checking for CSV structure issues:
+
+
+
+Reading the backfill wrapper and restore script and checking for CSV structure/format issues. Checking for a 2025_12/2026_01 backfill and ETL output structure; inspecting the December visual diagnostic. Checking the 2026_01 Time Off file content and whether a FIXED file exists for the 2025-01–2026-01 window:
+
+
+
+Creating a short findings report and checking the Overtime 2026 files for structure issues. Having the full picture, creating the findings report. Here’s a concise summary of what’s going on and what’s in the report. ---
+
+## 1. **Visual “null/0” for 01-26 (and backfill)**
+
+- The **recent visual** (`2026_02_10_Monthly Accrual and Usage Summary.csv`) shows **0** for January 2026 **usage** (Comp, Sick, SAT, Military, IOD) but **non-zero** for January 2026 **accruals**. - That’s not because backfill “isn’t adding” data. Usage for **01-26** comes from the **current month** Time Off export. The pipeline is working as designed; the problem is the **source file** for Jan 2026. **Root cause:**  
+`05_EXPORTS\_Time_Off\export\month\2026\2026_01_timeoffactivity.csv` does **not** contain January 2026 data. It has only 9 rows, all from **December 2022**. So the ETL correctly outputs 0 for 01-26 usage. Overtime 2026_01 is fine (`2026_01_otactivity.csv` has real Jan 2026 dates). **Backfill (from repo/kb-style docs):**  
+- Backfill is used to fill **prior** months in the FIXED file and in `monthly_breakdown.csv` from `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\*Monthly Accrual and Usage Summary*.csv`. - The scripts support both **LONG** (Time Category, Sum of Value, PeriodLabel) and **WIDE** (Time_Category + month columns) backfill CSVs. - So “visual not properly adding backfilled data” in the past was when the **saved** backfill export was incomplete (e.g. VERIFICATION_SUMMARY: November backfill only had October data). For **01-26**, the zeros are from **missing/wrong current-month Time Off data**, not from backfill logic. **Action:** Replace the 2026_01 Time Off export (and .xlsx if it’s the same) with the **real** January 2026 Time Off export from your source system, then re-run the pipeline and refresh the visual. ---
+
+## 2. **Export “three versions” and different sizes**
+
+- Under `05_EXPORTS\_Overtime\export\month\2026` you have **three file types** for 01/2026: **.csv**, **.xls**, **.xlsx** (different sizes are normal). Same idea for Time Off and full_year 2025 (e.g. .csv + .xlsx). - So the “three versions” are **three formats** for the same period, not three different CSV structures. The ETL prefers .xlsx over .csv over .xls; different sizes across formats are expected and don’t by themselves mean the CSV structure is wrong. ---
+
+## 3. **Past CSV structure issue**
+
+- The **documented** CSV structure issue was in **Response Time**: visual_exports had column names that didn’t match the M code (e.g. `First Response_Time_MMSS` vs `Response_Time_MMSS`), causing many null/empty values. That was fixed in the Response Time M code (e.g. v2.5.0) and is unrelated to Overtime/TimeOff. - For **Overtime/TimeOff**, the ETL and backfill scripts **do** handle two CSV shapes (LONG and WIDE). The 2025_12 backfill is WIDE; the 2026_02_10 visual export is LONG; both are supported. So the 01-26 zeros are **not** due to an “incorrect CSV structure” in the Overtime/TimeOff pipeline—they’re due to the wrong/missing 2026_01 Time Off data. ---
+
+A full write-up with references and recommendations is in:
+
+**`docs/VISUAL_BACKFILL_AND_EXPORTS_FINDINGS_2026_02_10.md`**
+
+If you want, next step can be: (1) a small script to validate 2026_01 Time Off files (date range + row count), or (2) exact steps to re-export from your source and re-run the backfill pipeline. ---
+
+**User**
+
+I will export a new version of the time off. please advise what reasons for the time off is the script looking for. the full list is 
+Adjustment
+Admin Leave
+AWOL
+Comp (Hours)
+Death in Family
+Dispatch SAT time
+Floating Holiday (hours)
+FMLA
+Holiday
+Injured on Duty
+Jury Duty
+Marriage Leave
+Maternity/Paternity
+Military Leave
+PEO Sick (Hours)
+Personal Day
+Pool Day
+Regular Day Off
+SAT (Hours)
+Sick (Days)
+SLEO Ill Sick (Hours)
+Suspended
+Unpaid
+Vacation (Hours)
+
+---
+
+**Cursor**
+
+
+Searching the ETL script for which Time Off reasons it uses for usage categories. Adding a short "Time Off reasons" section to the findings doc so we have a single reference. Removing "Floating Holiday" from the vacation row since the script doesn't match it. Here’s what the script uses and what’s in the doc. ---
+
+## Reasons that feed the visual (script is looking for these)
+
+The script uses the **Reason** column (and sometimes other text) to put each row into one of **six usage buckets** that drive the Monthly Accrual and Usage Summary:
+
+| Visual category | Reasons from your list that count |
+|-----------------|-----------------------------------|
+| **Comp (Hours)** | Comp (Hours) |
+| **Employee Sick Time (Hours)** | Sick (Days), PEO Sick (Hours), SLEO Ill Sick (Hours) |
+| **Used SAT Time (Hours)** | SAT (Hours), Dispatch SAT time |
+| **Military Leave (Hours)** | Military Leave |
+| **Injured on Duty (Hours)** | Injured on Duty |
+| **Vacation (Hours)** | Vacation (Hours), Personal Day |
+
+So for the new export, the script is effectively “looking for” these reason values (and similar text) in the **Reason** column. ---
+
+## Reasons that do **not** feed the six usage totals
+
+These are not mapped to any of the six buckets above, so they don’t affect the visual’s usage numbers:
+
+- Adjustment  
+- Admin Leave  
+- AWOL  
+- Death in Family  
+- FMLA  
+- **Floating Holiday (hours)**  
+- Holiday  
+- Jury Duty  
+- Marriage Leave  
+- Maternity/Paternity  
+- Pool Day  
+- Regular Day Off  
+- Suspended  
+- Unpaid  
+
+---
+
+## Export requirements
+
+- Include a **Reason** column with values as they appear in your system (e.g. `Comp (Hours)`, `Sick (Days)`, `SAT (Hours)`, `Military Leave`, `Injured on Duty`, `Vacation (Hours)`). The script matches with regex (e.g. “starts with sick”, “contains sat”), so small wording differences can still match. - The script also expects **Date**, **Hours**, **Employee** (or similar), and **Status**; only **Approved** (and equivalent) rows are included. This mapping is also in **`docs/VISUAL_BACKFILL_AND_EXPORTS_FINDINGS_2026_02_10.md`** in the new “Appendix: Time Off reasons the script uses (v10)” section. Once you export the new Time Off file with January 2026 data and these reasons present, re-run the pipeline and refresh the visual to get 01-26 usage to show correctly. ---
+
+**User**
+
+I re-exported the OverTime and TimeOff data. I had the watchdog updated to reflect the new paths and the conversion of the file is only .xlsx. See attached for further @c:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Export_File_Watchdog\CHANGELOG.md @c:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Export_File_Watchdog\SUMMARY.md @c:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Export_File_Watchdog\README.md @docs/summary.md @docs/WATCHDOG_OT_TIMEOFF_CONVERSION_AND_PATHS.md 
+
+---
+
+**Cursor**
+
+
+Reading the watchdog and docs to align the pipeline with the new paths and .xlsx-only conversion. Checking whether the Overtime/TimeOff pipeline references `full_year` or expects CSV so we can align with the watchdog's `yearly` path and .xlsx-only output. Checking v10's load logic and updating any references from `full_year` to `yearly`. Applying updates so the pipeline and docs match the watchdog's `yearly` path and .xlsx-only conversion. Summary of what’s aligned with the watchdog v2.1.2 changes:
+
+---
+
+## Watchdog v2.1.2 (what you have)
+
+- **Conversion**: OTActivity / TimeOffActivity → **.xlsx only** (no CSV). - **Paths** (under `05_EXPORTS`):
+  - **Monthly**: `_Overtime/export/month/YYYY`, `_Time_Off/export/month/YYYY`
+  - **Yearly**: `_Overtime/export/yearly/YYYY`, `_Time_Off/export/yearly/YYYY`  
+  (replacing the old `full_year`.) `docs/summary.md` and `docs/WATCHDOG_OT_TIMEOFF_CONVERSION_AND_PATHS.md` already matched this. ---
+
+## Changes made in Master_Automation / Overtime_TimeOff
+
+1. **`02_ETL_Scripts/Overtime_TimeOff/analyze_december_data.py`**  
+   - Paths for “all” files: `export/full_year/2025` → `export/yearly/2025`. 2. **`02_ETL_Scripts/Overtime_TimeOff/check_december_duplicates.py`**  
+   - Same: `full_year` → `yearly`. 3. **`02_ETL_Scripts/Overtime_TimeOff/DECEMBER_HIGH_VALUES_INVESTIGATION_REPORT.md`**  
+   - Example path updated to `export/yearly/2025`. 4. **`02_ETL_Scripts/Overtime_TimeOff/overtime_timeoff_13month_sworn_breakdown_v10.py`**  
+   - Comment updated: watchdog now “converts .xls to .xlsx only (no CSV)” and uses `export/month/YYYY` and `export/yearly/YYYY`. 5. **`docs/VISUAL_BACKFILL_AND_EXPORTS_FINDINGS_2026_02_10.md`**  
+   - Export paths and wording: `full_year` → `yearly`, and note that conversion is .xlsx-only. 6. **`docs/WATCHDOG_OT_TIMEOFF_CONVERSION_AND_PATHS.md`**  
+   - New **“Pipeline alignment”** section: ETL uses rglob under `_Overtime` and `_Time_Off`, so it picks up both `export/month/YYYY` and `export/yearly/YYYY`; backfill only needs `export/month` for the current month; .xlsx-only is compatible with v10. ---
+
+## No change needed
+
+- **`overtime_timeoff_with_backfill.py`**  
+  - Only uses `export/month/{year}` for the current month; it does not reference yearly or full_year paths. - **v10 `load_folder`**  
+  - Uses `rglob` from the export root, so it finds files in both `export/month/YYYY` and `export/yearly/YYYY` automatically. With the new re-exports in place and the watchdog writing to `export/month/YYYY` and `export/yearly/YYYY` as .xlsx (and optional .xls), the pipeline will use the new paths and .xlsx-only conversion without further code changes. ---
+
+**User**
+
+run the processing script to generate a new version for the query to import. Please
+
+---
+
+**Cursor**
+
+
+Running the Overtime/TimeOff pipeline wrapper to generate the FIXED and monthly breakdown files for the query. The pipeline finished successfully. Here’s what was generated and where to point the query. ---
+
+## Outputs for the query
+
+**1. FIXED monthly breakdown (usage rows for the visual)**  
+`C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_2025-01_2026-01.csv`  
+- 13 months (2025-01 → 2026-01). - Backfill applied: 10 of 13 rows updated from the Dec 2025 backfill (50 cells). - A `.bak` was created before overwriting. **2. Monthly breakdown (accrual rows)**  
+`C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\analytics_output\monthly_breakdown.csv`  
+- Accrual history backfilled for the same 13-month window. ---
+
+## January 2026 usage (no longer zeros)
+
+With the new Time Off export, January 2026 usage is now populated:
+
+- **Sick**: 1,635.00  
+- **SAT**: 497.50  
+- **Vacation**: 905.50  
+- **Comp used**: 318.00  
+- **Military**: 66.00  
+- **IOD**: 269.00  
+
+---
+
+## What to do in Power BI
+
+1. Point the **Monthly Accrual and Usage Summary** query to:
+   - **FIXED**:  
+     `...\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_2025-01_2026-01.csv`
+   - **Accruals**:  
+     `...\02_ETL_Scripts\Overtime_TimeOff\analytics_output\monthly_breakdown.csv`
+2. Refresh the report (e.g. **Refresh** or Ctrl+R). The new version for the query to import is the updated **FIXED_monthly_breakdown_2025-01_2026-01.csv** (and the backfilled **monthly_breakdown.csv** for accruals). ---
+
+**User**
+
+@m_code/2026_02_10_Overtime_Timeoff_v3.m please update the m code as needed also will the import source logic be dynamic? So i do not have to change paths each week? ---
+
+**Cursor**
+
+
+Updating the M code to fix the path typo (Overtime_TimeOff), add a single BasePath so we don't have to change paths each week, and keep the existing "latest file" logic. Adding a short comment at the top that explains the dynamic behavior and converting the 13-month window to use the latest FIXED file's date range when available:
+
+
+
+Summary of what was updated:
+
+---
+
+## 1. **Dynamic import source (no weekly path changes)**
+
+- **Single `BasePath`**  
+  All paths are built from one variable at the top:
+  - `BasePath = "C:\Users\carucci_r\OneDrive - City of Hackensack"`
+  - `OutputFolder = BasePath & "\02_ETL_Scripts\Overtime_TimeOff\output"`
+  - `AnalyticsFolder = BasePath & "\02_ETL_Scripts\Overtime_TimeOff\analytics_output"`
+
+- **When to change something**  
+  You only change **`BasePath`** if your root folder changes (e.g. different machine or OneDrive path). You do **not** change paths each week. - **How “latest” is chosen**  
+  - **FIXED file**: The query already uses `Folder.Files(OutputFolder)`, filters to `FIXED_monthly_breakdown*.csv`, sorts by **Date modified** descending, and takes the first row. So it always uses the **latest** FIXED file produced by the pipeline. - **monthly_breakdown**: Always reads `monthly_breakdown.csv` from `analytics_output` (single fixed filename). So the import source is **dynamic**: same paths every week, and the latest run’s output is used automatically. ---
+
+## 2. **Edits made in the M code**
+
+- **Lines 1–6**:  
+  - Added a short header comment that the import is dynamic and that you don’t need to change paths weekly. - Introduced `BasePath` and built `OutputFolder` and `AnalyticsFolder` from it. - Noted in a comment that `BasePath` is only set when the root folder changes. - **FIXED load section**:  
+  - Comment clarified that the query always uses the most recently modified `FIXED_*.csv` in the output folder. No other logic was changed (rolling 13-month window, anchoring, combine, etc.). If you want, we can next turn `BasePath` into a Power Query **Parameter** so you can change it from the Power BI UI without editing the M code. ---
+
+**User**
+
+When including updated code or script artifacts, insert the following header at the top. please add a header to the m code like the example below:
+
+The format must adjust the comment characters based on the language in use:
+
+🔹 Standard Header Components:
+
+Timestamp (EST): YYYY-MM-DD-HH-MM-SS
+Project Name
+File Name
+Author: R. A. Carucci
+Purpose: One-line, AI-generated purpose
+
+🧠 Comment Style by Language:
+
+Language
+Comment Symbol
+Example
+M Code
+//
+// # ArrestAnalysis/lookup_zip.m
+Python
+#
+# ArrestAnalysis/arrest_processor.py
+VBA
+'
+' ArrestAnalysis/ExportQueries.bas
+SQL
+--
+-- ArrestAnalysis/daily_extract.sql
+JavaScript
+//
+// CrimeMap/init.js
+
+📌 Format for Header Insertion:
+
+(Adjust based on language’s commenting symbol)
+
+🔸 M Code or JavaScript:
+
+// 🕒 2025-06-15-18-45-12
+// # ArrestAnalysis/lookup_zip.m
+// # Author: R. A. Carucci
+// # Purpose: Load and process ZIP code lookups for mapping arrests to county and municipality. 🔸 Python:
+
+# 🕒 2025-06-15-18-45-12
+# ArrestAnalysis/arrest_processor.py
+# Author: R. A. Carucci
+# Purpose: Clean and process arrest data, including ZIP-to-county matching and gender aggregation. 🔸 VBA:
+
+' 🕒 2025-06-15-18-45-12
+' ArrestAnalysis/ExportQueries.bas
+' Author: R. A. Carucci
+' Purpose: Export M code from all queries in workbook to individual files for audit and backup. ✅ Summary for Implementation
+Insert this header above all code in each file
+Use correct comment symbol per language
+Timestamp must be current and in Eastern Standard Time (EST)
+Ensure R. A. Carucci is used exactly as written
+Purpose should be clear, professional, and concise
+
+---
+
+**Cursor**
+
+
+Added the standard header at the top of the M code:
+
+```m
+// 🕒 2026-02-10-14-30-00
+// # Master_Automation/m_code/2026_02_10_Overtime_Timeoff_v3.m
+// # Author: R. A. Carucci
+// # Purpose: Load latest FIXED and monthly_breakdown CSVs, combine legacy usage and accrual rows, and output a long table for the Monthly Accrual and Usage Summary visual. //
+```
+
+It uses M comment style (`//`), EST-style timestamp, project/file path, **Author: R. A. Carucci**, and a one-line **Purpose**. The blank `//` line keeps a clear break before the `let`. If you want the timestamp set to a specific EST time, say what it should be and I’ll update it. ---
+
+**User**
+
+make the timestamp EST please
+
+---
+
+**Cursor**
+
+
+Getting current time in Eastern (EST/EDT):
+
+
+
+Updated the header timestamp to the current Eastern time and labeled it EST:
+
+```text
+// 🕒 2026-02-10-17-28-15 EST
+```
+
+This uses the Eastern time zone (EST when daylight saving isn’t in effect, EDT when it is). The value was generated at run time (2026-02-10 17:28:15 Eastern). ---
+
+**User**
+
+m code returned an error
+
+Formula.Firewall: Query '___Overtime_Timeoff_v3' (step 'CombinedLong') references other queries or steps, so it may not directly access a data source. Please rebuild this data combination. ---
+
+**Cursor**
+
+
+Splitting the query so data source access lives in separate queries and the main query only references them to fix the Formula.Firewall error. Buffering the tables we combine so the query doesn't mix data-source access with step references and trigger the Formula.Firewall. Two changes were made to address the Formula.Firewall error:
+
+1. **Buffer before combine**  
+   The tables fed into `Table.Combine` are now buffered:
+   - `LegacyLongFiltered = Table.Buffer(Table.SelectRows(...))`
+   - `MBFinalBuf = Table.Buffer(MBFinal)`
+   - `CombinedLong = Table.Combine({LegacyLongFiltered, MBFinalBuf})`
+
+2. **Comment**  
+   A short comment was added explaining that the buffers are there to satisfy the Formula.Firewall rule. Buffering makes Power Query treat these as in-memory tables at the combine step, so the engine no longer sees “data source + combine” in a way that triggers the firewall. **What to do:**  
+Paste the updated M into your query, then **Close & Apply**. If the error persists, the next step is to split the load into two helper queries (one that only loads the FIXED CSV, one that only loads `monthly_breakdown.csv`) and have the main query reference those. If you still get the error after this change, say so and we can do that split. ---
+
+**User**
+
+new version of the m code returned the same error:
+
+gemini offered 
+The **Formula.Firewall** error in Power Query occurs when a single query attempts to combine data from an external source (like your OneDrive folders) and a local query or step simultaneously. Excel prevents this to ensure sensitive data from one source isn't inadvertently sent to another. Since you didn't provide the specific M code, I have outlined the standard fix for the `CombinedLong` step below. ### The Fix: Staging Queries
+
+To resolve this, you must separate the **Data Loading** from the **Data Transformation**. 1. **Create Staging Queries**: Create two separate queries (e.g., `Stage_Overtime` and `Stage_Timeoff`) that only connect to your folders and do basic cleanup. 2. **Reference in Main Query**: In your main query `___Overtime_Timeoff_v3`, reference those staging queries instead of using the `Folder.Files` or `File.Contents` functions directly. ---
+
+### Example Solution
+
+If your `CombinedLong` step currently looks like this (which causes the error):
+
+```powerquery
+// BAD CODE (Causes Firewall Error)
+let
+    Source = Folder.Files("C:\Your\Path"), // External Source
+    OtherData = LocalQuery,               // Local Query
+    CombinedLong = Table.Combine({Source, OtherData}) 
+in
+    CombinedLong
+
+```
+
+**Change it to this structure:**
+
+#### Query 1: `Staged_External_Data`
+
+```powerquery
+let
+    Source = Folder.Files("C:\Your\Path"),
+    // Do your filtering/loading here
+    Data = ... 
+in
+    Data
+
+```
+
+#### Query 2: `___Overtime_Timeoff_v3`
+
+```powerquery
+let
+    // Reference the staging query instead of the folder path
+    ExternalData = Staged_External_Data, 
+    LocalData = SomeLocalStep,
+    CombinedLong = Table.Combine({ExternalData, LocalData})
+in
+    CombinedLong
+
+```
+
+---
+
+### Why this works
+
+* 
+**Isolation**: By moving the `Folder.Files` logic into its own named query, Power Query considers it a "Privacy Level" entity. * 
+**Security**: The firewall now sees you are combining two pre-existing internal tables rather than reaching outside to a folder and mixing it with local data in one breath. ### Quick Workaround (Not recommended for shared files)
+
+If you are working locally and want an immediate fix without rewriting code:
+
+1. Go to **File** > **Options and settings** > **Query Options**. 2. Under **Global** > **Privacy**, select **"Always ignore Privacy Level settings"**. 3. *Note: This makes the error go away but lowers the security of your data connections. *
+
+**Would you like me to rewrite your specific M code? ** If so, please paste the full script from your Advanced Editor here!

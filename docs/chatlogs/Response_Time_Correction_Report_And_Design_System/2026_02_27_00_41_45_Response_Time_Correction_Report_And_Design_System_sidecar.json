@@ -1,0 +1,148 @@
+{
+  "source_file": "Response_Time_Correction_Report_And_Design_System.md",
+  "source_path": "C:\\_chunker\\02_data\\Response_Time_Correction_Report_And_Design_System.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Response_Time_Correction_Report_And_Design_System\\2026_02_27_00_41_45_Response_Time_Correction_Report_And_Design_System.origin.json",
+  "created_at": "2026_02_27_00_41_45",
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "finance",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "time",
+      "response",
+      "all",
+      "dax",
+      "docs",
+      "response_time"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Response time calculator and visualization\n_Exported on 2/27/2026 at 00:41:26 EST from Cursor (2.5.20)_\n\n---\n\n**User**\n\nread the chunks of C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\docs\\chatlogs\\Response_Time_E...",
+    "first_line": "# Response time calculator and visualization"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-27T00:41:45+00:00_Response_Time_Correction_Report_And_Design_System_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "call",
+        "code",
+        "conversation",
+        "data",
+        "docs",
+        "finance",
+        "json",
+        "legal",
+        "markdown",
+        "measures",
+        "police",
+        "python",
+        "response",
+        "sql",
+        "time",
+        "title",
+        "training"
+      ],
+      "key_terms": [
+        "time",
+        "dax",
+        "response",
+        "call",
+        "measures",
+        "title"
+      ],
+      "summary": "# Response time calculator and visualization\n_Exported on 2/27/2026 at 00:41:26 EST from Cursor (2.5.20)_\n\n---\n\n**User**\n\nread the chunks of C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\docs\\chatlogs\\Response_Time_E...",
+      "char_length": 18995,
+      "byte_length": 19460
+    },
+    {
+      "chunk_id": "2026-02-27T00:41:45+00:00_Response_Time_Correction_Report_And_Design_System_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "admin",
+        "ai",
+        "code",
+        "conversation",
+        "data",
+        "docs",
+        "finance",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "routine",
+        "sql",
+        "time",
+        "training",
+        "update"
+      ],
+      "key_terms": [
+        "all",
+        "now",
+        "time",
+        "routine",
+        "update",
+        "admin"
+      ],
+      "summary": "4.",
+      "char_length": 27696,
+      "byte_length": 28363
+    },
+    {
+      "chunk_id": "2026-02-27T00:41:45+00:00_Response_Time_Correction_Report_And_Design_System_chunk3",
+      "chunk_index": 3,
+      "file": "chunk_00002.txt",
+      "tags": [
+        "ai",
+        "code",
+        "conversation",
+        "data",
+        "docs",
+        "finance",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "print",
+        "python",
+        "sql",
+        "training",
+        "version",
+        "what"
+      ],
+      "key_terms": [
+        "all",
+        "now",
+        "version",
+        "docs",
+        "print",
+        "what"
+      ],
+      "summary": "**\n\n| Query | M Code Update?",
+      "char_length": 13233,
+      "byte_length": 13580
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

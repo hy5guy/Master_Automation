@@ -1,0 +1,816 @@
+Your **legacy usage** rows (Comp/Sick/IOD/Mil/SAT) come from the **FIXED** file and were already getting backfilled correctly. ### What I changed (so accrual history is filled too)
+I updated `scripts/overtime_timeoff_with_backfill.py` so that after it:
+1) runs v10, and  
+2) restores legacy history into `output\FIXED_monthly_breakdown_*.csv`,  
+
+…it now also **backfills**:
+
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\analytics_output\monthly_breakdown.csv`
+
+using the same backfill export for the prior 12 months, while **preserving 11‑25 from v10**. ### Verified result
+`analytics_output\monthly_breakdown.csv` now contains the full 13‑month history (11‑24 through 11‑25), e.g. :
+
+```2:13:C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\analytics_output\monthly_breakdown.csv
+2024-11,NonSworn,Accrued Comp. Time,80.25
+2024-11,Sworn,Accrued Comp. Time,181.5
+2024-11,NonSworn,Accrued Overtime,199.11522872032427
+2024-11,Sworn,Accrued Overtime,664.8847712796758
+...
+```
+
+### What you should do now
+- **Refresh `___Overtime_Timeoff`** again in Power BI. - Re-export the visual: the 11/24–10/25 months should now be populated for **all 9 categories** (no more 4/9 blanks). ```plaintext
+2024-11,NonSworn,Accrued Comp. Time,80.25
+2024-11,Sworn,Accrued Comp. Time,181.5
+2024-11,NonSworn,Accrued Overtime,199.11522872032427
+2024-11,Sworn,Accrued Overtime,664.8847712796758
+...
+```
+
+---
+
+**User**
+
+@2025_12_11_Monthly Accrual and Usage Summary.csv  this is the visuals data after a refresh now compare the all the values for 11-24 through 10-24 gainst C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\Backfill\2025_11\vcs_time_report\2025_11_Monthly Accrual and Usage Summary.csv  there should no diffrence at all. ---
+
+**Cursor**
+
+### Plan
+- Load your refreshed LONG export (`2025_12_11_Monthly Accrual and Usage Summary.csv`) and the older WIDE backfill export (`...\00_dev\PowerBI_Date\Backfill\2025_11\...`). - Normalize both into the same shape: `(Time_Category, PeriodLabel) -> value` for **11-24 through 10-25**. - Produce a diff report: **any value mismatches + any missing categories/months**. Then we can decide whether it’s data drift or a parsing/labeling issue. ```python
+#!/usr/bin/env python3
+"""
+Compare two "Monthly Accrual and Usage Summary" exports. Supports both shapes:
+- WIDE: one row per Time_Category, month labels as columns (e.g. 11-24, 12-24, ...),
+        sometimes with headers like "Sum of 11-25". - LONG: one row per (Time_Category, PeriodLabel) with a value column
+        (e.g. Time_Category, Sum of Value, PeriodLabel).
+""" from __future__ import annotations
+
+import argparse
+import csv
+import math
+import re
+from pathlib import Path
+from typing import Dict, Iterable, Tuple
+
+
+MONTH_RE = re.compile(r"^(? :Sum of\s+)? (\d{2}-\d{2})$")
+
+
+def norm_month_label(s: str) -> str:
+    s = (s or "").strip()
+    m = MONTH_RE.match(s)
+    if not m:
+        return s
+    return m.group(1)
+
+
+def load_any_export(path: Path) -> Dict[Tuple[str, str], float]:
+    """
+    Return mapping: (Time_Category, PeriodLabel) -> value
+    """
+    with path.open("r", newline="", encoding="utf-8-sig") as f:
+        r = csv.DictReader(f)
+        if not r.fieldnames:
+            raise ValueError(f"{path} has no headers")
+
+        fields = set(r.fieldnames)
+
+        time_col = None
+        for c in ("Time_Category", "Time Category", "TimeCategory"):
+            if c in fields:
+                time_col = c
+                break
+        if not time_col:
+            raise ValueError(f"{path} missing Time_Category column. Found: {r.fieldnames}")
+
+        is_long = "PeriodLabel" in fields and (
+            "Value" in fields or "Sum of Value" in fields or "Sum ofValue" in fields or "Sum of  Value" in fields
+        )
+
+        out: Dict[Tuple[str, str], float] = {}
+
+        if is_long:
+            val_col = None
+            for c in ("Value", "Sum of Value", "Sum ofValue", "Sum of  Value"):
+                if c in fields:
+                    val_col = c
+                    break
+            if not val_col:
+                raise ValueError(f"{path} long format but no value column found. Found: {r.fieldnames}")
+
+            for row in r:
+                cat = (row.get(time_col) or "").strip()
+                pl = norm_month_label(row.get("PeriodLabel") or "")
+                raw = (row.get(val_col) or "").strip()
+                if not cat or not pl or raw == "":
+                    continue
+                try:
+                    v = float(raw)
+                except ValueError:
+                    continue
+                out[(cat, pl)] = v
+            return out
+
+        # WIDE
+        month_cols = []
+        for col in r.fieldnames:
+            if col == time_col:
+                continue
+            m = MONTH_RE.match((col or "").strip())
+            if m:
+                month_cols.append(col)
+
+        for row in r:
+            cat = (row.get(time_col) or "").strip()
+            if not cat:
+                continue
+            for col in month_cols:
+                pl = norm_month_label(col)
+                raw = (row.get(col) or "").strip()
+                if raw == "":
+                    continue
+                try:
+                    v = float(raw)
+                except ValueError:
+                    continue
+                out[(cat, pl)] = v
+        return out
+
+
+def fmt_float(x: float) -> str:
+    if x is None:
+        return "∅"
+    if math.isfinite(x) and abs(x - round(x)) < 1e-9:
+        return str(int(round(x)))
+    return f"{x:.6g}"
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--a", required=True, help="Path to export A (ref)")
+    ap.add_argument("--b", required=True, help="Path to export B (compare)")
+    ap.add_argument(
+        "--months",
+        default="11-24,12-24,01-25,02-25,03-25,04-25,05-25,06-25,07-25,08-25,09-25,10-25",
+        help="Comma-separated PeriodLabel months to compare (MM-YY). Default is 11-24..10-25. ",
+    )
+    ap.add_argument("--tolerance", type=float, default=1e-6, help="Numeric tolerance for comparisons.") args = ap.parse_args()
+
+    a_path = Path(args.a)
+    b_path = Path(args.b)
+    months = [m.strip() for m in (args.months or "").split(",") if m.strip()]
+    month_set = set(months)
+
+    A = load_any_export(a_path)
+    B = load_any_export(b_path)
+
+    cats = sorted({c for (c, m) in set(A.keys()) | set(B.keys()) if m in month_set})
+    if not cats:
+        print("[WARN] No rows found for requested months in either file.") return 0
+
+    missing_in_a = []
+    missing_in_b = []
+    diffs = []
+
+    for cat in cats:
+        for m in months:
+            ka = (cat, m)
+            va = A.get(ka)
+            vb = B.get(ka)
+            if va is None:
+                missing_in_a.append(ka)
+                continue
+            if vb is None:
+                missing_in_b.append(ka)
+                continue
+            if abs(va - vb) > args.tolerance:
+                diffs.append((cat, m, va, vb, vb - va))
+
+    print("=== Comparison Summary ===")
+    print(f"A: {a_path}")
+    print(f"B: {b_path}")
+    print(f"Months compared: {', '.join(months)}")
+    print(f"Categories seen: {len(cats)}")
+    print(f"Missing in A: {len(missing_in_a)}")
+    print(f"Missing in B: {len(missing_in_b)}")
+    print(f"Value diffs (>|tol|): {len(diffs)} (tol={args.tolerance})")
+
+    if missing_in_a:
+        print("\n--- Missing in A (first 25) ---")
+        for cat, m in missing_in_a[:25]:
+            print(f"{m}\t{cat}")
+        if len(missing_in_a) > 25:
+            print(f"... ({len(missing_in_a) - 25} more)")
+
+    if missing_in_b:
+        print("\n--- Missing in B (first 25) ---")
+        for cat, m in missing_in_b[:25]:
+            print(f"{m}\t{cat}")
+        if len(missing_in_b) > 25:
+            print(f"... ({len(missing_in_b) - 25} more)")
+
+    if diffs:
+        print("\n--- Diffs (first 50) ---")
+        for cat, m, va, vb, d in diffs[:50]:
+            print(f"{m}\t{cat}\tA={fmt_float(va)}\tB={fmt_float(vb)}\t(B-A)={fmt_float(d)}")
+        if len(diffs) > 50:
+            print(f"... ({len(diffs) - 50} more)")
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+```
+
+### Comparison result (your expectation vs what the files actually contain)
+I compared your refreshed visual export:
+
+- `Master_Automation\2025_12_11_Monthly Accrual and Usage Summary.csv` (LONG)
+
+against:
+
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\Backfill\2025_11\vcs_time_report\2025_11_Monthly Accrual and Usage Summary.csv` (WIDE)
+
+for months **11-24 through 10-25**. ### What we found (why there *is* a difference)
+- **Your “old backfill” file has zeros for the 5 legacy usage rows** (Comp/Sick/IOD/Mil/SAT) for historical months. - Your refreshed export has **real historical values** for those same rows. - Also, the old backfill file is **missing the entire `12-24` column**, so it can’t match that month at all. That means: **they cannot be identical**, because the old file literally contains different (zero) history for those 5 rows and is missing one month column. ### High-signal diff summary
+- **Missing month in old backfill**:
+  - `12-24` is missing entirely (all 9 categories missing for that month)
+
+- **Legacy usage rows differ (old backfill shows 0, refreshed shows real values)**:
+  - `Comp (Hours)` differs for 11-24, 01-25…10-25
+  - `Employee Sick Time (Hours)` differs for 11-24, 01-25…10-25
+  - `Injured on Duty (Hours)` differs for 11-24, 01-25…10-25
+  - `Military Leave (Hours)` differs for 11-24, 01-25…10-25
+  - `Used SAT Time (Hours)` differs for 11-24, 01-25…10-25
+
+### So what should be “the source of truth”? If the goal is “no differences”, you’ll need to compare against the **correct backfill export** that already had real history (the one we used under `PowerBI_Date\Backfill\2025_10\...`), not this `00_dev\2025_11` file—which appears to be an export taken when the visual was still broken (or is missing columns / filtered). ### Next question for you (so I compare the right thing)
+When you say “compare 11-24 through 10-24”, did you mean **through 10-25** (the prior 12 months before 11-25)? And do you want me to compare against:
+- `PowerBI_Date\Backfill\2025_10\vcs_time_report\2025_10_Monthly Accrual and Usage Summary.csv` (the good one), **or**
+- a different “known-good” file for 2025_11 that includes 12-24 and non-zero legacy rows? If you tell me which file is the intended baseline, I’ll rerun the diff and we should see **zero differences** for the historical months. ---
+
+**User**
+
+My mistake check the exported data from oct-24 monthly @c:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\Backfill\2025_10\vcs_time_report\2025_10_Monthly Accrual and Usage Summary.csv vs
+@2025_12_11_Monthly Accrual and Usage Summary.csv  
+
+---
+
+**Cursor**
+
+You’re right to use the **2025_10** export as the baseline—*that’s* the one that has the correct historical legacy rows. Next I’ll tweak the comparison script to understand the `24-Nov / 25-Jan` style month headers in that file, then I’ll rerun the diff against your refreshed `2025_12_11` export for months **11-24 through 10-25** and report any mismatches. ```python
+#!/usr/bin/env python3
+"""
+Compare two "Monthly Accrual and Usage Summary" exports. Supports both shapes:
+- WIDE: one row per Time_Category, month labels as columns (e.g. 11-24, 12-24, ...),
+        sometimes with headers like "Sum of 11-25". - LONG: one row per (Time_Category, PeriodLabel) with a value column
+        (e.g. Time_Category, Sum of Value, PeriodLabel).
+""" from __future__ import annotations
+
+import argparse
+import csv
+import math
+import re
+from pathlib import Path
+from typing import Dict, Iterable, Tuple
+
+
+MONTH_RE = re.compile(r"^(? :Sum of\s+)? (\d{2}-\d{2})$")
+MMMYY_RE = re.compile(r"^(\d{2})-([A-Za-z]{3})$")
+MMM_TO_MM = {
+    "jan": "01",
+    "feb": "02",
+    "mar": "03",
+    "apr": "04",
+    "may": "05",
+    "jun": "06",
+    "jul": "07",
+    "aug": "08",
+    "sep": "09",
+    "oct": "10",
+    "nov": "11",
+    "dec": "12",
+}
+
+
+def norm_month_label(s: str) -> str:
+    s = (s or "").strip()
+    m = MONTH_RE.match(s)
+    if not m:
+        m2 = MMMYY_RE.match(s)
+        if m2:
+            yy = m2.group(1)
+            mon = MMM_TO_MM.get(m2.group(2).lower())
+            if mon:
+                return f"{mon}-{yy}"
+        return s
+    return m.group(1)
+
+
+def load_any_export(path: Path) -> Dict[Tuple[str, str], float]:
+    """
+    Return mapping: (Time_Category, PeriodLabel) -> value
+    """
+    with path.open("r", newline="", encoding="utf-8-sig") as f:
+        r = csv.DictReader(f)
+        if not r.fieldnames:
+            raise ValueError(f"{path} has no headers")
+
+        fields = set(r.fieldnames)
+
+        time_col = None
+        for c in ("Time_Category", "Time Category", "TimeCategory"):
+            if c in fields:
+                time_col = c
+                break
+        if not time_col:
+            raise ValueError(f"{path} missing Time_Category column. Found: {r.fieldnames}")
+
+        is_long = "PeriodLabel" in fields and (
+            "Value" in fields or "Sum of Value" in fields or "Sum ofValue" in fields or "Sum of  Value" in fields
+        )
+
+        out: Dict[Tuple[str, str], float] = {}
+
+        if is_long:
+            val_col = None
+            for c in ("Value", "Sum of Value", "Sum ofValue", "Sum of  Value"):
+                if c in fields:
+                    val_col = c
+                    break
+            if not val_col:
+                raise ValueError(f"{path} long format but no value column found. Found: {r.fieldnames}")
+
+            for row in r:
+                cat = (row.get(time_col) or "").strip()
+                pl = norm_month_label(row.get("PeriodLabel") or "")
+                raw = (row.get(val_col) or "").strip()
+                if not cat or not pl or raw == "":
+                    continue
+                try:
+                    v = float(raw)
+                except ValueError:
+                    continue
+                out[(cat, pl)] = v
+            return out
+
+        # WIDE
+        month_cols = []
+        for col in r.fieldnames:
+            if col == time_col:
+                continue
+            m = MONTH_RE.match((col or "").strip())
+            if m:
+                month_cols.append(col)
+
+        for row in r:
+            cat = (row.get(time_col) or "").strip()
+            if not cat:
+                continue
+            for col in month_cols:
+                pl = norm_month_label(col)
+                raw = (row.get(col) or "").strip()
+                if raw == "":
+                    continue
+                try:
+                    v = float(raw)
+                except ValueError:
+                    continue
+                out[(cat, pl)] = v
+        return out
+
+
+def fmt_float(x: float) -> str:
+    if x is None:
+        return "∅"
+    if math.isfinite(x) and abs(x - round(x)) < 1e-9:
+        return str(int(round(x)))
+    return f"{x:.6g}"
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--a", required=True, help="Path to export A (ref)")
+    ap.add_argument("--b", required=True, help="Path to export B (compare)")
+    ap.add_argument(
+        "--months",
+        default="11-24,12-24,01-25,02-25,03-25,04-25,05-25,06-25,07-25,08-25,09-25,10-25",
+        help="Comma-separated PeriodLabel months to compare (MM-YY). Default is 11-24..10-25. ",
+    )
+    ap.add_argument("--tolerance", type=float, default=1e-6, help="Numeric tolerance for comparisons.") args = ap.parse_args()
+
+    a_path = Path(args.a)
+    b_path = Path(args.b)
+    months = [m.strip() for m in (args.months or "").split(",") if m.strip()]
+    month_set = set(months)
+
+    A = load_any_export(a_path)
+    B = load_any_export(b_path)
+
+    cats = sorted({c for (c, m) in set(A.keys()) | set(B.keys()) if m in month_set})
+    if not cats:
+        print("[WARN] No rows found for requested months in either file.") return 0
+
+    missing_in_a = []
+    missing_in_b = []
+    diffs = []
+
+    for cat in cats:
+        for m in months:
+            ka = (cat, m)
+            va = A.get(ka)
+            vb = B.get(ka)
+            if va is None:
+                missing_in_a.append(ka)
+                continue
+            if vb is None:
+                missing_in_b.append(ka)
+                continue
+            if abs(va - vb) > args.tolerance:
+                diffs.append((cat, m, va, vb, vb - va))
+
+    print("=== Comparison Summary ===")
+    print(f"A: {a_path}")
+    print(f"B: {b_path}")
+    print(f"Months compared: {', '.join(months)}")
+    print(f"Categories seen: {len(cats)}")
+    print(f"Missing in A: {len(missing_in_a)}")
+    print(f"Missing in B: {len(missing_in_b)}")
+    print(f"Value diffs (>|tol|): {len(diffs)} (tol={args.tolerance})")
+
+    if missing_in_a:
+        print("\n--- Missing in A (first 25) ---")
+        for cat, m in missing_in_a[:25]:
+            print(f"{m}\t{cat}")
+        if len(missing_in_a) > 25:
+            print(f"... ({len(missing_in_a) - 25} more)")
+
+    if missing_in_b:
+        print("\n--- Missing in B (first 25) ---")
+        for cat, m in missing_in_b[:25]:
+            print(f"{m}\t{cat}")
+        if len(missing_in_b) > 25:
+            print(f"... ({len(missing_in_b) - 25} more)")
+
+    if diffs:
+        print("\n--- Diffs (first 50) ---")
+        for cat, m, va, vb, d in diffs[:50]:
+            print(f"{m}\t{cat}\tA={fmt_float(va)}\tB={fmt_float(vb)}\t(B-A)={fmt_float(d)}")
+        if len(diffs) > 50:
+            print(f"... ({len(diffs) - 50} more)")
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+
+```
+
+Good catch: the comparison logic can now *normalize* `24-Nov` → `11-24`, but it still wasn’t *treating* `24-Nov` as a “month column” in the wide file, so everything showed as “missing in B”. I’ll patch the script to recognize MMM-YY columns as months too, rerun the diff, and then we’ll have a trustworthy “no differences” (or a precise list of any). ```python
+#!/usr/bin/env python3
+"""
+Compare two "Monthly Accrual and Usage Summary" exports. Supports both shapes:
+- WIDE: one row per Time_Category, month labels as columns (e.g. 11-24, 12-24, ...),
+        sometimes with headers like "Sum of 11-25". - LONG: one row per (Time_Category, PeriodLabel) with a value column
+        (e.g. Time_Category, Sum of Value, PeriodLabel).
+""" from __future__ import annotations
+
+import argparse
+import csv
+import math
+import re
+from pathlib import Path
+from typing import Dict, Iterable, Tuple
+
+
+MONTH_RE = re.compile(r"^(? :Sum of\s+)? (\d{2}-\d{2})$")
+MMMYY_RE = re.compile(r"^(\d{2})-([A-Za-z]{3})$")
+MMM_TO_MM = {
+    "jan": "01",
+    "feb": "02",
+    "mar": "03",
+    "apr": "04",
+    "may": "05",
+    "jun": "06",
+    "jul": "07",
+    "aug": "08",
+    "sep": "09",
+    "oct": "10",
+    "nov": "11",
+    "dec": "12",
+}
+
+
+def norm_month_label(s: str) -> str:
+    s = (s or "").strip()
+    m = MONTH_RE.match(s)
+    if not m:
+        m2 = MMMYY_RE.match(s)
+        if m2:
+            yy = m2.group(1)
+            mon = MMM_TO_MM.get(m2.group(2).lower())
+            if mon:
+                return f"{mon}-{yy}"
+        return s
+    return m.group(1)
+
+
+def load_any_export(path: Path) -> Dict[Tuple[str, str], float]:
+    """
+    Return mapping: (Time_Category, PeriodLabel) -> value
+    """
+    with path.open("r", newline="", encoding="utf-8-sig") as f:
+        r = csv.DictReader(f)
+        if not r.fieldnames:
+            raise ValueError(f"{path} has no headers")
+
+        fields = set(r.fieldnames)
+
+        time_col = None
+        for c in ("Time_Category", "Time Category", "TimeCategory"):
+            if c in fields:
+                time_col = c
+                break
+        if not time_col:
+            raise ValueError(f"{path} missing Time_Category column. Found: {r.fieldnames}")
+
+        is_long = "PeriodLabel" in fields and (
+            "Value" in fields or "Sum of Value" in fields or "Sum ofValue" in fields or "Sum of  Value" in fields
+        )
+
+        out: Dict[Tuple[str, str], float] = {}
+
+        if is_long:
+            val_col = None
+            for c in ("Value", "Sum of Value", "Sum ofValue", "Sum of  Value"):
+                if c in fields:
+                    val_col = c
+                    break
+            if not val_col:
+                raise ValueError(f"{path} long format but no value column found. Found: {r.fieldnames}")
+
+            for row in r:
+                cat = (row.get(time_col) or "").strip()
+                pl = norm_month_label(row.get("PeriodLabel") or "")
+                raw = (row.get(val_col) or "").strip()
+                if not cat or not pl or raw == "":
+                    continue
+                try:
+                    v = float(raw)
+                except ValueError:
+                    continue
+                out[(cat, pl)] = v
+            return out
+
+        # WIDE
+        month_cols = []
+        for col in r.fieldnames:
+            if col == time_col:
+                continue
+            c = (col or "").strip()
+            if MONTH_RE.match(c) or MMMYY_RE.match(c):
+                month_cols.append(col)
+
+        for row in r:
+            cat = (row.get(time_col) or "").strip()
+            if not cat:
+                continue
+            for col in month_cols:
+                pl = norm_month_label(col)
+                raw = (row.get(col) or "").strip()
+                if raw == "":
+                    continue
+                try:
+                    v = float(raw)
+                except ValueError:
+                    continue
+                out[(cat, pl)] = v
+        return out
+
+
+def fmt_float(x: float) -> str:
+    if x is None:
+        return "∅"
+    if math.isfinite(x) and abs(x - round(x)) < 1e-9:
+        return str(int(round(x)))
+    return f"{x:.6g}"
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--a", required=True, help="Path to export A (ref)")
+    ap.add_argument("--b", required=True, help="Path to export B (compare)")
+    ap.add_argument(
+        "--months",
+        default="11-24,12-24,01-25,02-25,03-25,04-25,05-25,06-25,07-25,08-25,09-25,10-25",
+        help="Comma-separated PeriodLabel months to compare (MM-YY). Default is 11-24..10-25. ",
+    )
+    ap.add_argument("--tolerance", type=float, default=1e-6, help="Numeric tolerance for comparisons.") args = ap.parse_args()
+
+    a_path = Path(args.a)
+    b_path = Path(args.b)
+    months = [m.strip() for m in (args.months or "").split(",") if m.strip()]
+    month_set = set(months)
+
+    A = load_any_export(a_path)
+    B = load_any_export(b_path)
+
+    cats = sorted({c for (c, m) in set(A.keys()) | set(B.keys()) if m in month_set})
+    if not cats:
+        print("[WARN] No rows found for requested months in either file.") return 0
+
+    missing_in_a = []
+    missing_in_b = []
+    diffs = []
+
+    for cat in cats:
+        for m in months:
+            ka = (cat, m)
+            va = A.get(ka)
+            vb = B.get(ka)
+            if va is None:
+                missing_in_a.append(ka)
+                continue
+            if vb is None:
+                missing_in_b.append(ka)
+                continue
+            if abs(va - vb) > args.tolerance:
+                diffs.append((cat, m, va, vb, vb - va))
+
+    print("=== Comparison Summary ===")
+    print(f"A: {a_path}")
+    print(f"B: {b_path}")
+    print(f"Months compared: {', '.join(months)}")
+    print(f"Categories seen: {len(cats)}")
+    print(f"Missing in A: {len(missing_in_a)}")
+    print(f"Missing in B: {len(missing_in_b)}")
+    print(f"Value diffs (>|tol|): {len(diffs)} (tol={args.tolerance})")
+
+    if missing_in_a:
+        print("\n--- Missing in A (first 25) ---")
+        for cat, m in missing_in_a[:25]:
+            print(f"{m}\t{cat}")
+        if len(missing_in_a) > 25:
+            print(f"... ({len(missing_in_a) - 25} more)")
+
+    if missing_in_b:
+        print("\n--- Missing in B (first 25) ---")
+        for cat, m in missing_in_b[:25]:
+            print(f"{m}\t{cat}")
+        if len(missing_in_b) > 25:
+            print(f"... ({len(missing_in_b) - 25} more)")
+
+    if diffs:
+        print("\n--- Diffs (first 50) ---")
+        for cat, m, va, vb, d in diffs[:50]:
+            print(f"{m}\t{cat}\tA={fmt_float(va)}\tB={fmt_float(vb)}\t(B-A)={fmt_float(d)}")
+        if len(diffs) > 50:
+            print(f"... ({len(diffs) - 50} more)")
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+
+```
+
+### Result: they match exactly (11-24 through 10-25)
+I compared:
+
+- **A (refreshed visual export)**: `Master_Automation\2025_12_11_Monthly Accrual and Usage Summary.csv` (LONG)
+- **B (Oct-24 monthly baseline)**: `...\00_dev\PowerBI_Date\Backfill\2025_10\vcs_time_report\2025_10_Monthly Accrual and Usage Summary.csv` (WIDE, with `24-Nov` style headers)
+
+for months **11-24, 12-24, 01-25 … 10-25** across all **9 categories**. **Outcome:**
+- **Missing in A**: 0  
+- **Missing in B**: 0  
+- **Value differences**: **0** (within tolerance)
+
+So for **11-24 through 10-25** there is **no difference at all** between the refreshed export and the Oct-24 baseline. ---
+
+**User**
+
+great so we finally were able to get the back fill data and the processed data to correcly be imported and shown in a visual. makew note of this for later when we have to review the data obtained by backfill and python scripts. Then Make changes to the README, SUMMARY and changelog files to reflect recent updates. ---
+
+**Cursor**
+
+### Plan
+- Save a short **“lesson learned”** memory: the Overtime TimeOff visual needs *both* FIXED (legacy) + monthly_breakdown (accrual) histories populated; we now have a repeatable workflow and a diff tool to validate against the Oct-24 baseline. - Update `README.md`, `SUMMARY.md`, and `CHANGELOG.md` to document:
+  - the updated backfill root path,
+  - the wrapper’s new behavior (backfills `monthly_breakdown.csv` too),
+  - the restore script’s support for LONG exports + `--include-accruals`,
+  - the new comparison tool and validation step. Nice—now that we’ve proven the backfill + processed-month pipeline is stable *and* we can validate it against the Oct-24 baseline, I’ll update the docs to capture the workflow, the new scripts, and the validation steps so future monthly reviews are repeatable and low-risk. ```markdown
+# Master ETL Automation
+
+Centralized automation hub for running all Python ETL scripts that feed into Power BI reports. ## Overview
+
+This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. ## Directory Structure
+
+```
+Master_Automation/
+├── README.md                    # This file
+├── CHANGELOG.md                 # Version history and updates
+├── verify_migration.ps1         # Automated verification script
+├── SUMMARY.md                   # Project summary / quick reference
+├── config/
+│   ├── scripts.json            # Configuration for all ETL scripts
+│   └── scripts.json.bak        # Backup of previous config
+├── scripts/
+│   ├── run_all_etl.ps1         # PowerShell orchestrator (recommended)
+│   ├── run_all_etl.bat         # Batch file orchestrator
+│   └── run_etl_script.ps1      # Helper script to run individual scripts
+│   ├── overtime_timeoff_with_backfill.py     # Overtime/TimeOff monthly wrapper (v10 + backfill)
+│   ├── restore_fixed_from_backfill.py        # Restores history into FIXED_monthly_breakdown
+│   └── compare_vcs_time_report_exports.py    # Diff tool for visual exports/backfill validation
+├── docs/                        # Project documentation (migration, verification, guides)
+└── logs/
+    └── .gitkeep                # ETL execution logs go here (auto-created)
+```
+
+## Quick Start
+
+### Run All ETL Scripts
+
+**PowerShell (Recommended):**
+```powershell
+cd C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation
+.\scripts\run_all_etl.ps1
+```
+
+**Batch File:**
+```batch
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+scripts\run_all_etl.bat
+```
+
+### Run Specific Script
+
+```powershell
+.\scripts\run_etl_script.ps1 -ScriptName "Arrests"
+```
+
+## Configuration
+
+Edit `config/scripts.json` to add, remove, or modify ETL scripts:
+
+```json
+{
+  "scripts": [
+    {
+      "name": "Arrests",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Arrests",
+      "script": "arrest_python_processor.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 1
+    },
+    {
+      "name": "Community Engagement",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagment",
+      "script": "deploy_production.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 2
+    },
+    {
+      "name": "Overtime TimeOff",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\scripts",
+      "script": "overtime_timeoff_with_backfill.py",
+      "enabled": true,
+      "output_to_powerbi": false,
+      "order": 3
+    }
+  ]
+}
+```
+
+## Features
+
+- **Sequential Execution:** Runs scripts in specified order
+- **Error Handling:** Continues on errors, logs failures
+- **Logging:** Detailed logs for each script execution
+- **Power BI Integration:** Automatically copies outputs to Power BI drop folder
+- **Selective Execution:** Run all, or specific scripts
+- **Status Reporting:** Summary of what succeeded/failed
+
+## Workflow
+
+1. **Configure:** Edit `config/scripts.json` with your script paths
+2. **Run:** Execute `run_all_etl.ps1` or `run_all_etl.bat`
+3. **Process:** Scripts execute in order, outputs logged
+4. **Integrate:** Successful outputs copied to Power BI Date repository
+5. **Review:** Check logs for any failures or warnings
+
+## Output Integration
+
+All successful outputs are automatically:
+1. Validated (CSV format, proper structure)
+2. Copied to `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\`
+3.

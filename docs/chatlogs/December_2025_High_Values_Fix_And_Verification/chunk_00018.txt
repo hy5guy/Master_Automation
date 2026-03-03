@@ -1,0 +1,501 @@
+wide: Dict[str, Tuple[str,str]] = {}
+    for col in d.columns:
+        cname = str(col)
+        if cname in BASE_NAME_CANDS or cname in BASE_DATE_CANDS or cname in STATUS_CANDS:
+            continue
+        if WIDE_EXCLUDE_PAT.search(cname):
+            continue
+
+        ser = pd.to_numeric(d[col], errors="coerce")
+        if ser.notna().sum() == 0 or ser.abs().sum() <= 0:
+            continue
+
+        # Manual override
+        key = _norm_header(cname)
+        if key in MANUAL_WIDE_OVERRIDES:
+            wide[col] = MANUAL_WIDE_OVERRIDES[key]
+            continue
+
+        category, rate = "", ""
+        if WIDE_COMP_PAT.search(cname):
+            category = "COMP"
+        elif WIDE_OT_PAT.search(cname):
+            category = "OT"
+        else:
+            # Rate-only headers, treat as OT if >= 1.5
+            if RATE_25_PAT.search(cname): category, rate = "OT", "25"
+            elif RATE_20_PAT.search(cname): category, rate = "OT", "20"
+            elif RATE_15_PAT.search(cname): category, rate = "OT", "15"
+            elif RATE_10_PAT.search(cname): category, rate = "", "10"  # not OT unless explicitly OT
+
+        # Rate detection if not already set
+        if rate == "":
+            if RATE_25_PAT.search(cname): rate = "25"
+            elif RATE_20_PAT.search(cname): rate = "20"
+            elif RATE_15_PAT.search(cname): rate = "15"
+            elif RATE_10_PAT.search(cname): rate = "10"
+
+        if category:
+            wide[col] = (category, rate)
+    return wide
+
+def classify_from_textframe(d: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
+    text_cols = [c for c in d.columns if d[c].dtype == object]
+    if not text_cols:
+        n = len(d)
+        return pd.Series([""]*n, index=d.index), pd.Series([""]*n, index=d.index)
+    t = d[text_cols].astype(str).agg(" ".join, axis=1).str.lower()
+    is_comp = t.str.contains(r"\bcomp(\.|ensatory)? (\s*time)?\b|\bct\b|\bcompensatory\b|\bcomp time earned\b|\baccrued comp\b", regex=True)
+    is_ot   = t.str.contains(r"\bovertime\b|\bo/?t\b|double ?time|\bdt\b", regex=True)
+    is_25   = t.str.contains(r"2[., ]?5|250%|x\s*2[., ]?5|double\s*time\s*and\s*a\s*half", regex=True)
+    is_20   = t.str.contains(r"2[., ]?0|200%|x\s*2[., ]?0|double ?time|\bdt\b", regex=True)
+    is_15   = t.str.contains(r"1[., ]?5|150%|x\s*1[., ]?5|time and a half", regex=True)
+    is_10   = t.str.contains(r"1[., ]?0|100%|x\s*1[., ]?0|straight time", regex=True)
+
+    cat = pd.Series("", index=d.index)
+    rate = pd.Series("", index=d.index)
+    cat.loc[is_comp] = "COMP"
+    cat.loc[is_ot]   = "OT"
+
+    rate.loc[is_25] = "25"
+    rate.loc[(rate == "") & is_20] = "20"
+    rate.loc[(rate == "") & is_15] = "15"
+    rate.loc[(rate == "") & is_10] = "10"
+    return cat, rate
+
+# ===== COERCE TO LONG =====
+def coerce_common(df: pd.DataFrame, src_name: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    d = df.copy()
+
+    def pick_c(df, cands):
+        lm = {c.lower(): c for c in df.columns}
+        for c in cands:
+            if c.lower() in lm: return lm[c.lower()]
+        nm = {re.sub(r"[\s_]", "", c.lower()): c for c in df.columns}
+        for c in cands:
+            key = re.sub(r"[\s_]", "", c.lower())
+            if key in nm: return nm[key]
+        return None
+
+    name_col   = pick_c(d, BASE_NAME_CANDS)
+    date_col   = pick_c(d, BASE_DATE_CANDS)
+    status_col = pick_c(d, STATUS_CANDS)
+    if not (name_col and date_col):
+        raise ValueError(f"{src_name}: missing required name/date columns")
+
+    # Wide columns
+    wide = detect_wide_cols(d)
+    wide_cols_df = pd.DataFrame([{"File": src_name, "Column": k, "Category": v[0], "Rate": v[1]} for k, v in wide.items()]) if wide else pd.DataFrame(columns=["File","Column","Category","Rate"])
+
+    # Column sums diagnostic
+    numeric_summaries = []
+    for c in d.columns:
+        ser = pd.to_numeric(d[c], errors="coerce")
+        if ser.notna().sum() > 0:
+            numeric_summaries.append({"File": src_name, "Column": str(c), "AbsSum": float(ser.abs().sum())})
+    sums_df = pd.DataFrame(numeric_summaries).sort_values("AbsSum", ascending=False) if numeric_summaries else pd.DataFrame(columns=["File","Column","AbsSum"])
+
+    if wide:
+        base_cols = [name_col, date_col] + ([status_col] if status_col else [])
+        base = d[base_cols].copy()
+        base.columns = ["EmployeeName","Date"] + (["Status"] if status_col else [])
+        long_rows = []
+        for col, (cat, rate) in wide.items():
+            ser = pd.to_numeric(d[col], errors="coerce").fillna(0)
+            tmp = base.copy()
+            tmp.loc[:, "Hours"] = ser
+            tmp = tmp.loc[tmp["Hours"] != 0]
+            if tmp.empty:
+                continue
+            tmp.loc[:, "Category"] = cat
+            tmp.loc[:, "Rate"] = rate
+            tmp.loc[:, "_pay_detect_source"] = f"wide:{col}"
+            long_rows.append(tmp)
+        out = pd.concat(long_rows, ignore_index=True) if long_rows else pd.DataFrame(columns=["EmployeeName","Date","Status","Hours","Category","Rate","_pay_detect_source"])
+        if "Status" not in out.columns:
+            out["Status"] = "Approved"
+        out["_src_file"] = src_name
+        return out, wide_cols_df, sums_df
+
+    # Long form
+    hours_col = pick_c(d, BASE_HOURS_CANDS)
+    pay_col   = pick_c(d, PAY_COL_CANDS)
+    if hours_col:
+        base = pd.DataFrame({
+            "EmployeeName": d[name_col],
+            "Date": pd.to_datetime(d[date_col], errors="coerce"),
+            "Status": d[status_col] if status_col else "Approved",
+            "Hours": pd.to_numeric(d[hours_col], errors="coerce").fillna(0)
+        })
+        if pay_col:
+            t = d[pay_col].astype(str)
+            # Enhanced comp time detection - includes rate-based patterns
+            comp_mask = t.str.contains(r"\bcomp|compensatory|\bct\b|\d+[., ]?\d*\s+comp\s+time", case=False, regex=True)
+
+            # Enhanced overtime detection - includes rate-based cash patterns and traditional overtime terms
+            ot_mask = t.str.contains(r"\bovertime\b|\bover\s*time\b|\bot\b|\bo/t\b|double ?time|\bdt\b", case=False, regex=True)
+            # Add rate-based cash patterns for overtime (1.5 Cash, 2.0 Cash, etc. with rate >= 1.5)
+            cash_rate_ot = t.str.contains(r"(? :1[., ]? [5-9]|[2-9][., ]?\d*)\s+cash", case=False, regex=True)
+            ot_mask = ot_mask | cash_rate_ot
+
+            # Rate detection patterns
+            r25 = t.str.contains(r"2[., ]?5|250%|x\s*2[., ]?5|double\s*time\s*and\s*a\s*half", case=False, regex=True)
+            r20 = t.str.contains(r"2[., ]?0|200%|x\s*2[., ]?0|double ?time|\bdt\b", case=False, regex=True)
+            r15 = t.str.contains(r"1[., ]?5|150%|x\s*1[., ]?5|time and a half", case=False, regex=True)
+            r10 = t.str.contains(r"1[., ]?0|100%|x\s*1[., ]?0|straight time", case=False, regex=True)
+
+            # Set categories
+            base.loc[:, "Category"] = ""
+            base.loc[comp_mask, "Category"] = "COMP"
+            base.loc[ot_mask,   "Category"] = "OT"
+
+            # Set rates
+            base.loc[:, "Rate"] = ""
+            base.loc[r25, "Rate"] = "25"
+            base.loc[(base["Rate"] == "") & r20, "Rate"] = "20"
+            base.loc[(base["Rate"] == "") & r15, "Rate"] = "15"
+            base.loc[(base["Rate"] == "") & r10, "Rate"] = "10"
+            base.loc[:, "_pay_detect_source"] = pay_col
+        else:
+            cat, rate = classify_from_textframe(d)
+            base.loc[:, "Category"] = cat
+            base.loc[:, "Rate"] = rate
+            base.loc[:, "_pay_detect_source"] = "_inferred_from_text"
+
+        base["_src_file"] = src_name
+        base = base.loc[base["Hours"] != 0]
+
+        # CRITICAL FIX: Exclude comp time from Time Off files to prevent double-counting
+        # Time Off comp time = hours USED, Overtime comp time = hours ACCRUED
+        # Reference targets only track ACCRUED comp time
+        if "_Time_Off:" in src_name or "Time_Off:" in src_name or "TimeOff:" in src_name:
+            comp_exclude_mask = base["Category"] == "COMP"
+            if comp_exclude_mask.any():
+                excluded_count = comp_exclude_mask.sum()
+                excluded_hours = base.loc[comp_exclude_mask, "Hours"].sum()
+                print(f"[INFO] Excluding {excluded_count} comp time records ({excluded_hours:.2f} hours) from {src_name}")
+                base = base.loc[~comp_exclude_mask]
+
+        return base, wide_cols_df, sums_df
+
+    # Nothing usable
+    return pd.DataFrame(columns=["EmployeeName","Date","Status","Hours","Category","Rate","_pay_detect_source","_src_file"]), wide_cols_df, sums_df
+
+def load_folder(folder: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Load all Excel/CSV files from folder (recursively searches subdirectories). Files may be in root or in export/month/{year}/ subdirectories.
+    """ base = Path(folder)
+    rows, inv, wide_maps, sums_all = [], [], [], []
+    # Search recursively for Excel and CSV files
+    for p in list(base.rglob("*.xlsx")) + list(base.rglob("*.csv")):
+        try:
+            df = read_any(p)
+            # Pass folder context to identify Time Off vs Overtime files
+            src_identifier = f"{base.name}:{p.name}"
+            coerced, wide_df, sums_df = coerce_common(df, src_identifier)
+            inv.append({
+                "File": p.name,
+                "RowsOut": len(coerced),
+                "MinDate": str(coerced["Date"].min()) if "Date" in coerced else "",
+                "MaxDate": str(coerced["Date"].max()) if "Date" in coerced else "",
+                "Detected": ", ".join(sorted(set(coerced.get("_pay_detect_source", pd.Series()).astype(str))))
+            })
+            if not wide_df.empty:  wide_maps.append(wide_df)
+            if not sums_df.empty:  sums_all.append(sums_df)
+            rows.append(coerced)
+        except Exception as e:
+            inv.append({"File": p.name, "RowsOut": 0, "MinDate": "", "MaxDate": "", "Detected": f"ERROR: {e}"})
+    inv_df = pd.DataFrame(inv)
+    wide_map_all = pd.concat(wide_maps, ignore_index=True) if wide_maps else pd.DataFrame(columns=["File","Column","Category","Rate"])
+    sums_all_df  = pd.concat(sums_all, ignore_index=True) if sums_all else pd.DataFrame(columns=["File","Column","AbsSum"])
+    if rows:
+        return pd.concat(rows, ignore_index=True), inv_df, wide_map_all, sums_all_df
+    return pd.DataFrame(columns=["EmployeeName","Date","Status","Hours","Category","Rate","_pay_detect_source","_src_file"]), inv_df, wide_map_all, sums_all_df
+
+def load_personnel(path: str) -> pd.DataFrame:
+    # Try CSV first, then Excel
+    if path.lower().endswith('.csv'):
+        pdf = pd.read_csv(path)
+    else:
+        pdf = pd.read_excel(path, engine="openpyxl")
+    def pick_c(pdf, cands):
+        lm = {c.lower(): c for c in pdf.columns}
+        for c in cands:
+            if c.lower() in lm: return lm[c.lower()]
+        nm = {re.sub(r"[\s_]", "", c.lower()): c for c in pdf.columns}
+        for c in cands:
+            key = re.sub(r"[\s_]", "", c.lower())
+            if key in nm: return nm[key]
+        return None
+    name_col = pick_c(pdf, ["FULL_NAME","FullName","EmployeeName","Name"])
+    title_col = pick_c(pdf, ["TITLE","Title","Rank","JobTitle","Job Title"])
+    if not (name_col and title_col):
+        raise ValueError("Assignment Master needs FullName and Title columns.") out = pd.DataFrame({"FullName": pdf[name_col], "Title": pdf[title_col]})
+    out["FullName_norm"] = out["FullName"].astype(str).map(normalize_name)
+    out["MemberClass"]   = out["Title"].astype(str).map(classify_title)
+    return out[["FullName_norm","Title","MemberClass"]]
+
+def filter_approved(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    s_norm = df["Status"].astype(str).map(normalize_status)
+    before = s_norm.value_counts(dropna=False).rename_axis("Status").reset_index(name="Rows")
+    mask = s_norm.isin(APPROVED_STATUSES_NORM)
+    after = s_norm[mask].value_counts(dropna=False).rename_axis("Status").reset_index(name="Rows")
+    return df.loc[mask].copy(), before, after
+
+def apply_window(df: pd.DataFrame, date_col="Date", today: pd.Timestamp | None = None) -> Tuple[pd.DataFrame, pd.Timestamp, pd.Timestamp]:
+    start_d, end_d = month_window_13(today)
+    mask = (df[date_col] >= start_d) & (df[date_col] <= end_d)
+    return df.loc[mask].copy(), start_d, end_d
+
+def merge_personnel(df: pd.DataFrame, personnel: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    df["Employee_norm"] = df["EmployeeName"].astype(str).map(normalize_name)
+
+    # Apply manual name overrides for specific problematic names
+    for original_name, corrected_name in MANUAL_NAME_OVERRIDES.items():
+        df.loc[df["Employee_norm"] == original_name, "Employee_norm"] = corrected_name
+
+    merged = df.merge(personnel, how="left", left_on="Employee_norm", right_on="FullName_norm")
+    merged["MemberClass"] = merged["MemberClass"].fillna("Unknown")
+    return merged
+
+def add_month_key(df: pd.DataFrame, date_col: str) -> pd.DataFrame:
+    """Add month key columns to dataframe for monthly aggregation.""" df = df.copy()
+    df["MonthStart"] = df[date_col].dt.to_period("M").dt.to_timestamp()
+    df["Year"] = df["MonthStart"].dt.year
+    df["Month"] = df["MonthStart"].dt.month
+    df["Month_Name"] = df["MonthStart"].dt.month_name()
+    df["Period"] = df["MonthStart"].dt.strftime("%Y-%m")
+    df["Date"] = df["MonthStart"].dt.strftime("%Y-%m-%d")
+    return df
+
+def build_usage_from_timeoff(raw_df: pd.DataFrame, pay_text_cols: list[str]) -> pd.DataFrame:
+    """
+    From the *raw* Time Off dataframe (before comp-exclusion), classify rows into
+    usage buckets and return monthly sums per bucket.
+    """ if raw_df.empty:
+        return pd.DataFrame(columns=[
+            "Year","Month","Month_Name","Period","Date",
+            "Employee_Sick_Time_Hours","Used_SAT_Time_Hours","Vacation_Hours",
+            "Used_Comp_Time","Military_Leave_Hours","Injured_on_Duty_Hours"
+        ])
+
+    # Build text column for fallback (comments, description)
+    tcols = [c for c in pay_text_cols if c in raw_df.columns]
+    if not tcols:
+        # fallback: try all object cols
+        tcols = [c for c in raw_df.columns if raw_df[c].dtype == object]
+    TX = raw_df[tcols].astype(str).agg(" ".join, axis=1)
+
+    dfu = raw_df.copy()
+    
+    # Reason-first classification (Reason column has structured values like "Sick (Days)", "Comp (Hours)")
+    reason_s = dfu["Reason"].astype(str) if "Reason" in dfu.columns else pd.Series([""], index=dfu.index)
+    
+    # Reason-first masks
+    m_sick_r = reason_s.str.contains(RE_SICK, na=False)
+    m_sat_r  = reason_s.str.contains(RE_SAT, na=False)
+    m_comp_r = reason_s.str.contains(RE_COMP, na=False)  # Comp (Hours|Days) => Used_Comp_Time
+    m_mil_r  = reason_s.str.contains(RE_MIL, na=False)
+    m_vac_r  = reason_s.str.contains(RE_VAC, na=False)
+    
+    # Fallback text masks (only where Reason didn't match that bucket)
+    m_sick = m_sick_r | (~m_sick_r & TX.str.contains(TX_SICK, na=False))
+    m_sat  = m_sat_r  | (~m_sat_r  & TX.str.contains(TX_SAT,  na=False))
+    m_comp = m_comp_r | (~m_comp_r & TX.str.contains(TX_COMP, na=False))
+    m_mil  = m_mil_r  | (~m_mil_r  & TX.str.contains(TX_MIL,  na=False))
+    m_vac  = m_vac_r  | (~m_vac_r  & TX.str.contains(TX_VAC,  na=False))
+    m_iod  = TX.str.contains(TX_IOD, na=False)  # IOD often appears only in comments/text
+    
+    dfu["__sick"]  = m_sick.fillna(False)
+    dfu["__sat"]   = m_sat.fillna(False)
+    dfu["__compu"] = m_comp.fillna(False)
+    dfu["__mil"]   = m_mil.fillna(False)
+    dfu["__vac"]   = m_vac.fillna(False)
+    dfu["__iod"]   = m_iod.fillna(False)
+
+    # Hours column detection
+    hrs_col = pick_col(dfu, BASE_HOURS_CANDS) or "Hours"
+    dfu["Hours"] = pd.to_numeric(dfu[hrs_col], errors="coerce").fillna(0.0)
+
+    # Date column detection
+    dt_col = pick_col(dfu, BASE_DATE_CANDS) or "Date"
+    dfu["Date"] = pd.to_datetime(dfu[dt_col], errors="coerce")
+
+    # Month keys
+    dfu = add_month_key(dfu, "Date")
+
+    # Aggregate per bucket
+    def sum_bucket(mask_col, out_col):
+        grp = dfu.loc[dfu[mask_col], ["Year","Month","Month_Name","Period","Date","Hours"]] \
+                 .groupby(["Year","Month","Month_Name","Period","Date"], as_index=False)["Hours"].sum()
+        return grp.rename(columns={"Hours": out_col})
+
+    sick   = sum_bucket("__sick",  "Employee_Sick_Time_Hours")
+    sat    = sum_bucket("__sat",   "Used_SAT_Time_Hours")
+    vac    = sum_bucket("__vac",   "Vacation_Hours")
+    compu  = sum_bucket("__compu", "Used_Comp_Time")
+    mil    = sum_bucket("__mil",   "Military_Leave_Hours")
+    iod    = sum_bucket("__iod",   "Injured_on_Duty_Hours")
+
+    # Outer-join all usage buckets
+    out = sick.merge(sat, how="outer", on=["Year","Month","Month_Name","Period","Date"]) \
+              .merge(vac,   how="outer", on=["Year","Month","Month_Name","Period","Date"]) \
+              .merge(compu, how="outer", on=["Year","Month","Month_Name","Period","Date"]) \
+              .merge(mil,   how="outer", on=["Year","Month","Month_Name","Period","Date"]) \
+              .merge(iod,   how="outer", on=["Year","Month","Month_Name","Period","Date"])
+    for c in ["Employee_Sick_Time_Hours","Used_SAT_Time_Hours","Vacation_Hours",
+              "Used_Comp_Time","Military_Leave_Hours","Injured_on_Duty_Hours"]:
+        out[c] = out[c].fillna(0.0)
+    return out
+
+# ===== METRICS =====
+def compute_metrics(df: pd.DataFrame) -> Dict[str, pd.DataFrame]:
+    df = df.copy()
+    comp = df.loc[df["Category"] == "COMP"]
+    ot   = df.loc[df["Category"] == "OT"]
+
+    comp_by_class = comp.groupby("MemberClass", dropna=False)["Hours"].sum().reindex(["Sworn","NonSworn","Unknown"], fill_value=0)
+    ot_by_class   = ot.groupby("MemberClass", dropna=False)["Hours"].sum().reindex(["Sworn","NonSworn","Unknown"], fill_value=0)
+
+    comp_total = float(comp["Hours"].sum())
+    ot_total   = float(ot["Hours"].sum())
+
+    parts = []
+    if not comp.empty:
+        comp2 = comp.copy()
+        comp2.loc[:, "_ym"] = comp2["Date"].dt.to_period("M").dt.to_timestamp()
+        parts.append(comp2.assign(Metric="Accrued Comp. Time"))
+    if not ot.empty:
+        ot2 = ot.copy()
+        ot2.loc[:, "_ym"] = ot2["Date"].dt.to_period("M").dt.to_timestamp()
+        parts.append(ot2.assign(Metric="Accrued Overtime"))
+
+    if parts:
+        monthly = pd.concat(parts, ignore_index=True)
+        monthly = monthly.groupby(["_ym","MemberClass","Metric"], dropna=False)["Hours"].sum().reset_index()
+        monthly = monthly.rename(columns={"_ym":"YearMonth"})
+        monthly["YearMonth"] = monthly["YearMonth"].dt.strftime("%Y-%m")
+        monthly = monthly.rename(columns={"MemberClass":"Class"})
+        monthly = monthly[["YearMonth","Class","Metric","Hours"]].sort_values(["Metric","YearMonth","Class"])
+    else:
+        monthly = pd.DataFrame(columns=["YearMonth","Class","Metric","Hours"])
+
+    detect_src = df["_pay_detect_source"].value_counts(dropna=False).rename_axis("PayTypeDetectedFrom").reset_index(name="Rows")
+    uniques = pd.DataFrame([{
+        "StatusesNorm": ", ".join(sorted(set(df["Status"].astype(str).map(normalize_status)))),
+        "DetectSources": ", ".join(sorted(set(df["_pay_detect_source"]))),
+        "ColumnsUsedCount": df["_pay_detect_source"].nunique()
+    }])
+
+    return {
+        "comp_by_class": comp_by_class,
+        "ot_by_class": ot_by_class,
+        "comp_total": comp_total,
+        "ot_total": ot_total,
+        "monthly": monthly,
+        "uniques": uniques,
+        "detect_src": detect_src,
+        "all_df": df,
+    }
+
+# ===== GUARDRAILS =====
+TOL = 0.01
+def assert_reconcile(total: float, by_class: pd.Series, label: str, msgs: list[str]) -> None:
+    diff = float(by_class.sum() - total)
+    msgs.append(f"[OK]   {label}: {total:.2f} reconciles" if abs(diff) <= TOL
+                else f"[FAIL] {label}: class sum {by_class.sum():.2f} != total {total:.2f} (diff {diff:.2f})")
+
+def assert_monthly_reconcile(monthly: pd.DataFrame, label: str, msgs: list[str]) -> None:
+    if monthly.empty:
+        msgs.append("[WARN] No monthly rows after filters.") return
+    bad = monthly.groupby(["Metric","YearMonth"])["Hours"].sum()
+    neg = bad[bad < -TOL]
+    if not neg.empty:
+        for (metric, ym), v in neg.items():
+            msgs.append(f"[FAIL] {label} {metric} {ym}: negative total {v:.2f}")
+
+# ===== RUN =====
+def run(today: pd.Timestamp | None = None) -> None:
+    out_dir = ensure_dir(OUTPUT_DIR)
+    msgs: list[str] = []
+
+    # Load
+    ot_df, ot_inv, ot_wide, ot_sums = load_folder(OVERTIME_DIR)
+    to_df, to_inv, to_wide, to_sums = load_folder(TIME_OFF_DIR)
+    
+    # ---- RAW time-off for usage detection (not the coerced one) ----
+    # Search recursively to find files in export/month/{year}/ subdirectories
+    to_raw_rows = []
+    to_base = Path(TIME_OFF_DIR)
+    for p in list(to_base.rglob("*.xlsx")) + list(to_base.rglob("*.csv")):
+        try:
+            d = read_any(p)
+            d["_src_file"] = f"{to_base.name}:{p.name}"
+            to_raw_rows.append(d)
+        except Exception:
+            pass
+    to_raw = pd.concat(to_raw_rows, ignore_index=True) if to_raw_rows else pd.DataFrame()
+    
+    inv = pd.concat([ot_inv.assign(Source="_Overtime"), to_inv.assign(Source="_Time_Off")], ignore_index=True)
+    inv.to_csv(out_dir / "input_inventory.csv", index=False)
+    wide_map_all = pd.concat([ot_wide, to_wide], ignore_index=True) if not ot_wide.empty or not to_wide.empty else pd.DataFrame(columns=["File","Column","Category","Rate"])
+    wide_map_all.to_csv(out_dir / "wide_map_detected.csv", index=False)
+    sums_all = pd.concat([ot_sums, to_sums], ignore_index=True) if not ot_sums.empty or not to_sums.empty else pd.DataFrame(columns=["File","Column","AbsSum"])
+    sums_all.to_csv(out_dir / "numeric_column_sums_by_file.csv", index=False)
+
+    df = pd.concat([ot_df, to_df], ignore_index=True)
+    print(f"[INFO] Rows loaded. Overtime={len(ot_df)} TimeOff={len(to_df)} Combined={len(df)}")
+
+    if df.empty:
+        print("No rows found in Overtime/Time_Off folders.") return
+
+    # Deduplication: Remove duplicate records across files
+    # This prevents double-counting when both month-specific and ALL files contain the same records
+    before_dedup = len(df)
+    dedup_cols = ["EmployeeName", "Date", "Hours"]
+    if "Category" in df.columns:
+        dedup_cols.append("Category")
+    if "Rate" in df.columns:
+        dedup_cols.append("Rate")
+    
+    # Keep first occurrence (prefer month-specific files over ALL files if loaded first)
+    df = df.drop_duplicates(subset=dedup_cols, keep="first")
+    after_dedup = len(df)
+    removed = before_dedup - after_dedup
+    if removed > 0:
+        print(f"[INFO] Deduplication: Removed {removed} duplicate records ({before_dedup} -> {after_dedup} rows)")
+
+    # Status filter
+    status_before = df["Status"].astype(str).map(normalize_status).value_counts(dropna=False).rename_axis("Status").reset_index(name="Rows")
+    status_before.to_csv(out_dir / "statuses_before_filter.csv", index=False)
+    print(f"[INFO] Unique statuses before filter: {len(status_before)}")
+
+    df["Hours"] = pd.to_numeric(df["Hours"], errors="coerce").fillna(0.0)
+    df = df.dropna(subset=["Date"])
+    df, status_before_f, status_after_f = filter_approved(df)
+    status_before_f.to_csv(out_dir / "statuses_before_filter_normed.csv", index=False)
+    status_after_f.to_csv(out_dir / "statuses_after_filter.csv", index=False)
+    print(f"[INFO] Rows after approved filter: {len(df)}")
+
+    # Window
+    df, start_d, end_d = apply_window(df, date_col="Date", today=today)
+    print(f"[INFO] Rows in 13-month window {start_d:%Y-%m-%d} to {end_d:%Y-%m-%d}: {len(df)}")
+
+    # Personnel
+    personnel = load_personnel(PERSONNEL_XLSX)
+    df = merge_personnel(df, personnel)
+
+    # Metrics
+    res = compute_metrics(df)
+
+    # Guardrails
+    assert_reconcile(res["comp_total"], res["comp_by_class"], "Comp (window)", msgs)
+    assert_reconcile(res["ot_total"],   res["ot_by_class"],   "Overtime (window)", msgs)
+    assert_monthly_reconcile(res["monthly"], "Monthly", msgs)
+
+    # Outputs
+    summary_rows = [{
+        "WindowStart": start_d.strftime("%Y-%m-%d"),
+        "WindowEnd":   end_d.strftime("%Y-%m-%d"),
+        "Metric": "Accrued Comp.

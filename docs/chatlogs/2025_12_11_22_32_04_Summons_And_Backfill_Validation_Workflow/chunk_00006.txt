@@ -1,0 +1,729 @@
+yyyy, mm = period_yyyy_mm.split("-")
+    return f"{mm}-{yyyy[2:]}"
+
+
+@dataclass(frozen=True)
+class BackfillValues:
+    by_category: Dict[str, Dict[str, float]]
+
+    def get(self, category: str, label: str) -> Optional[float]:
+        d = self.by_category.get(category)
+        if not d:
+            return None
+        return d.get(label)
+
+
+def load_backfill_csv(path: Path) -> BackfillValues:
+    if not path.exists():
+        raise FileNotFoundError(f"Backfill CSV not found: {path}")
+
+    with path.open("r", newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        if not reader.fieldnames:
+            raise ValueError("Backfill CSV has no headers")
+
+        # Detect Time_Category column name
+        time_col = None
+        for candidate in ("Time_Category", "Time Category", "TimeCategory"):
+            if candidate in reader.fieldnames:
+                time_col = candidate
+                break
+        if not time_col:
+            raise ValueError(
+                f"Backfill CSV missing Time Category column. Found: {reader.fieldnames}"
+            )
+
+        month_cols: List[Tuple[str, str]] = []
+        for col in reader.fieldnames:
+            if col == time_col:
+                continue
+            month_cols.append((col, _norm_month_label(col)))
+
+        by_cat: Dict[str, Dict[str, float]] = {}
+        for row in reader:
+            cat = (row.get(time_col) or "").strip()
+            if not cat:
+                continue
+            out: Dict[str, float] = {}
+            for raw_col, norm_col in month_cols:
+                raw_val = (row.get(raw_col) or "").strip()
+                if raw_val == "":
+                    continue
+                try:
+                    out[norm_col] = float(raw_val)
+                except ValueError:
+                    continue
+            by_cat[cat] = out
+
+    return BackfillValues(by_category=by_cat)
+
+
+def read_fixed_rows(path: Path) -> Tuple[List[str], List[Dict[str, str]]]:
+    if not path.exists():
+        raise FileNotFoundError(f"FIXED CSV not found: {path}")
+    with path.open("r", newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        if not reader.fieldnames:
+            raise ValueError("FIXED CSV has no headers")
+        rows = list(reader)
+        return list(reader.fieldnames), rows
+
+
+def write_fixed_rows(path: Path, fieldnames: List[str], rows: List[Dict[str, str]]) -> None:
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        for r in rows:
+            writer.writerow(r)
+
+
+def restore_fixed_from_backfill(fixed_path: Path, backfill_path: Path, inplace: bool) -> Path:
+    backfill = load_backfill_csv(backfill_path)
+    fieldnames, rows = read_fixed_rows(fixed_path)
+
+    required_fixed_cols = [
+        "Period",
+        "Accrued_Comp_Time",
+        "Accrued_Overtime_Paid",
+        "Employee_Sick_Time_Hours",
+        "Used_SAT_Time_Hours",
+        "Used_Comp_Time",
+        "Military_Leave_Hours",
+        "Injured_on_Duty_Hours",
+        "Vacation_Hours",
+    ]
+    missing_fixed = [c for c in required_fixed_cols if c not in fieldnames]
+    if missing_fixed:
+        raise ValueError(f"FIXED CSV missing required columns: {missing_fixed}")
+
+    legacy_map = {
+        "Employee Sick Time (Hours)": "Employee_Sick_Time_Hours",
+        "Used SAT Time (Hours)": "Used_SAT_Time_Hours",
+        "Comp (Hours)": "Used_Comp_Time",
+        "Military Leave (Hours)": "Military_Leave_Hours",
+        "Injured on Duty (Hours)": "Injured_on_Duty_Hours",
+        "Vacation (Hours)": "Vacation_Hours",
+    }
+
+    accrual_pairs = {
+        "Accrued_Comp_Time": (
+            "Accrued Comp. Time - Non-Sworn",
+            "Accrued Comp. Time - Sworn",
+        ),
+        "Accrued_Overtime_Paid": (
+            "Accrued Overtime - Non-Sworn",
+            "Accrued Overtime - Sworn",
+        ),
+    }
+
+    updated = 0
+    skipped_missing_label = 0
+    for r in rows:
+        period = (r.get("Period") or "").strip()
+        if not period:
+            continue
+        label = _period_to_mmyy(period)
+
+        # If this month label is not in the backfill export (e.g. 11-25),
+        # we cannot restore it from this file. label_exists = any(
+            backfill.get(cat, label) is not None
+            for cat in list(legacy_map.keys())
+            + [p for pair in accrual_pairs.values() for p in pair]
+        )
+        if not label_exists:
+            skipped_missing_label += 1
+            continue
+
+        for backfill_cat, fixed_col in legacy_map.items():
+            val = backfill.get(backfill_cat, label)
+            if val is None:
+                continue
+            r[fixed_col] = f"{val}"
+
+        for fixed_col, (cat_a, cat_b) in accrual_pairs.items():
+            a = backfill.get(cat_a, label)
+            b = backfill.get(cat_b, label)
+            if a is None or b is None:
+                continue
+            r[fixed_col] = f"{(a + b)}"
+
+        updated += 1
+
+    if inplace:
+        backup = fixed_path.with_suffix(fixed_path.suffix + ".bak")
+        shutil.copy2(fixed_path, backup)
+        out_path = fixed_path
+    else:
+        out_path = fixed_path.with_name(fixed_path.stem + "_RESTORED.csv")
+        backup = None
+
+    write_fixed_rows(out_path, fieldnames, rows)
+
+    print(f"[OK] Backfill used: {backfill_path}")
+    if backup:
+        print(f"[OK] Backup created: {backup}")
+    print(f"[OK] FIXED written: {out_path}")
+    print(f"[OK] Rows updated (month label present in backfill): {updated}/{len(rows)}")
+    if skipped_missing_label:
+        print(
+            f"[WARN] Rows skipped (month label not present in backfill export): {skipped_missing_label} "
+            f"(e.g., 11-25 isn't present in a 2025_10 export)"
+        )
+
+    return out_path
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--fixed", required=True, help="Path to FIXED_monthly_breakdown_*.csv")
+    parser.add_argument("--backfill", required=True, help="Path to backfill visual export CSV")
+    parser.add_argument("--inplace", action="store_true", help="Overwrite FIXED file (creates .bak)")
+    args = parser.parse_args()
+
+    restore_fixed_from_backfill(Path(args.fixed), Path(args.backfill), bool(args.inplace))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+
+```
+
+## What was wrong
+Your Power Query pulls these rows from the latest `FIXED_monthly_breakdown_*.csv`:
+- **Comp (Hours)**
+- **Employee Sick Time (Hours)**
+- **Injured on Duty (Hours)**
+- **Military Leave (Hours)**
+- **Used SAT Time (Hours)**
+
+The newest FIXED file (`FIXED_monthly_breakdown_2024-11_2025-11.csv`) had **zeros for those fields for 2024-11 → 2025-09**, which is why you saw null/0 in the visual. ## What we changed (the fix)
+We restored the historical months from your backfill export:
+
+`C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\Backfill\2025_10\vcs_time_report\2025_10_Monthly Accrual and Usage Summary.csv`
+
+Using the helper script (now in this repo):
+- `Master_Automation\scripts\restore_fixed_from_backfill.py`
+
+It:
+- **Backed up** the FIXED file to `.bak`
+- **Overwrote** months present in the backfill export (10-24 → 10-25)
+- Result: **12/13 rows updated** (2024-11 through 2025-10)
+
+### Verification (now correct)
+After restore, the FIXED file shows non-zero values for **2024-11 → 2025-09** (and 2025-10), matching the backfill. ## Why 11-25 is still 0
+Your **2025_10** backfill export only contains columns through **10-25**. It does **not** contain **11-25**, so the script correctly skipped that month. ### To fix 11-25
+You need a newer export that includes **11-25** (typically saved under `Backfill\2025_11\vcs_time_report\...`), then rerun:
+
+```powershell
+python .\scripts\restore_fixed_from_backfill.py --fixed "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_2024-11_2025-11.csv" --backfill "C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\Backfill\2025_11\vcs_time_report\2025_11_Monthly Accrual and Usage Summary.csv" --inplace
+```
+
+If you tell me where your **11-25** export CSV is (or export it and give the path), I’ll run the restore again and you’ll be fully correct through **11-25**. ```powershell
+python .\scripts\restore_fixed_from_backfill.py --fixed "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_2024-11_2025-11.csv" --backfill "C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\Backfill\2025_11\vcs_time_report\2025_11_Monthly Accrual and Usage Summary.csv" --inplace
+```
+
+---
+
+**User**
+
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff@c:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\config.json @c:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\DOCUMENTATION_INDEX.md @c:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\overtime_timeoff_13month_sworn_breakdown_v11.py @c:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\PROJECT_DOCUMENTATION.md @c:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\README.md @c:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\SUMMARY.md @c:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\PYTHON_WORKSPACE_AI_GUIDE.md @c:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\PYTHON_WORKSPACE_TEMPLATE.md 
+
+---
+
+**Cursor**
+
+You’re right to pull history from the backfill export — and we just proved the *real* issue: `FIXED_monthly_breakdown_2024-11_2025-11.csv` had zeros for the legacy categories for 11-24→09-25. Next I’m going to (1) fix the orchestrator config so it runs the **production** overtime script (v10, not the v11 template), and (2) enhance the orchestrator output collection so it can pick up outputs from subfolders like `output\` and `analytics_output\`. ```json
+{
+  "settings": {
+    "powerbi_drop_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\_DropExports",
+    "log_directory": "logs",
+    "python_executable": "python",
+    "continue_on_error": true,
+    "cleanup_temp_files": true
+  },
+  "scripts": [
+    {
+      "name": "Arrests",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Arrests",
+      "script": "arrest_python_processor.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 1,
+      "timeout_minutes": 30,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "arrest",
+        "court"
+      ]
+    },
+    {
+      "name": "Community Engagement",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagment",
+      "script": "deploy_production.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 2,
+      "timeout_minutes": 15,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "community",
+        "outreach",
+        "engagement"
+      ]
+    },
+    {
+      "name": "Overtime TimeOff",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff",
+      "script": "overtime_timeoff_13month_sworn_breakdown_v10.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 3,
+      "timeout_minutes": 45,
+      "output_patterns": [
+        "output\\FIXED_monthly_breakdown_*.csv",
+        "analytics_output\\monthly_breakdown.csv",
+        "analytics_output\\executive_summary.csv"
+      ],
+      "keywords": [
+        "vcs",
+        "time",
+        "overtime",
+        "accrual"
+      ]
+    },
+    {
+      "name": "Policy Training Monthly",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Policy_Training_Monthly",
+      "script": "main.py",
+      "enabled": false,
+      "output_to_powerbi": true,
+      "order": 4,
+      "timeout_minutes": 15,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "policy",
+        "training"
+      ]
+    },
+    {
+      "name": "Response Times",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Response_Times",
+      "script": "response_time_diagnostic.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 5,
+      "timeout_minutes": 10,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "response",
+        "time"
+      ]
+    },
+    {
+      "name": "Summons",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Summons",
+      "script": "main_orchestrator.py",
+      "enabled": true,
+      "output_to_powerbi": true,
+      "order": 6,
+      "timeout_minutes": 15,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "summon",
+        "violation",
+        "moving",
+        "parking"
+      ]
+    },
+    {
+      "name": "Arrest Data Source",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\01_DataSources\\ARREST_DATA",
+      "script": "main.py",
+      "enabled": false,
+      "output_to_powerbi": false,
+      "order": 7,
+      "timeout_minutes": 20,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "arrest"
+      ]
+    },
+    {
+      "name": "NIBRS",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\01_DataSources\\NIBRS",
+      "script": "main.py",
+      "enabled": false,
+      "output_to_powerbi": true,
+      "order": 8,
+      "timeout_minutes": 25,
+      "output_patterns": [
+        "*.csv"
+      ],
+      "keywords": [
+        "nibrs"
+      ]
+    }
+  ]
+}
+
+
+```
+
+```powershell
+# Master ETL Orchestrator
+# Runs all configured Python ETL scripts in order
+
+param(
+    [string[]]$ScriptNames = @(),  # Run only specified scripts (empty = all)
+    [switch]$DryRun,  # Preview what would run
+    [switch]$SkipPowerBI  # Skip Power BI integration step
+)
+
+$ErrorActionPreference = 'Stop'
+
+# Get script directory
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$automationDir = Split-Path -Parent $scriptDir
+$configPath = Join-Path $automationDir "config\scripts.json"
+
+# Colors
+$Green = "`e[32m"
+$Yellow = "`e[33m"
+$Red = "`e[31m"
+$Cyan = "`e[34m"
+$Reset = "`e[0m"
+
+function Write-Step([string]$msg) { Write-Host "$Cyan>> $msg$Reset" }
+function Write-Success([string]$msg) { Write-Host "$Green[OK] $msg$Reset" }
+function Write-Warn([string]$msg) { Write-Host "$Yellow[WARN] $msg$Reset" }
+function Write-Fail([string]$msg) { Write-Host "$Red[FAIL] $msg$Reset" }
+
+# Load configuration
+if (-not (Test-Path $configPath)) {
+    Write-Fail "Configuration file not found: $configPath"
+    exit 1
+}
+
+$config = Get-Content $configPath | ConvertFrom-Json
+$settings = $config.settings
+$scripts = $config.scripts | Where-Object { $_.enabled -eq $true } | Sort-Object order
+
+# Filter to specific scripts if requested
+if ($ScriptNames.Count -gt 0) {
+    $scripts = $scripts | Where-Object { $_.name -in $ScriptNames }
+    if ($scripts.Count -eq 0) {
+        Write-Fail "No matching enabled scripts found"
+        exit 1
+    }
+}
+
+# Create log directory
+$logDir = Join-Path $automationDir $settings.log_directory
+if (-not (Test-Path $logDir)) {
+    New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+}
+
+# Create timestamp
+$timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+$logFile = Join-Path $logDir "${timestamp}_ETL_Run.log"
+
+function Write-Log([string]$message) {
+    $logMessage = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - $message"
+    Add-Content -Path $logFile -Value $logMessage
+    Write-Host $message
+}
+
+Write-Log "=== Master ETL Orchestrator Started ==="
+Write-Log "Timestamp: $timestamp"
+Write-Log "Scripts to run: $($scripts.Count)"
+Write-Log ""
+
+if ($DryRun) {
+    Write-Warn "DRY RUN MODE - No scripts will execute"
+    Write-Log "DRY RUN MODE"
+}
+
+# Track results
+$results = @()
+$startTime = Get-Date
+
+foreach ($scriptConfig in $scripts) {
+    $scriptName = $scriptConfig.name
+    $scriptPath = $scriptConfig.path
+    $scriptFile = $scriptConfig.script
+    $fullScriptPath = Join-Path $scriptPath $scriptFile
+    
+    Write-Log ""
+    Write-Step "Processing: $scriptName"
+    Write-Log "  Script: $fullScriptPath"
+    Write-Log "  Order: $($scriptConfig.order)"
+    
+    if ($DryRun) {
+        Write-Host "  [DRY RUN] Would execute: $fullScriptPath" -ForegroundColor Gray
+        continue
+    }
+    
+    # Check if script exists
+    if (-not (Test-Path $fullScriptPath)) {
+        Write-Fail "  Script not found: $fullScriptPath"
+        Write-Log "  ERROR: Script file not found"
+        $results += @{
+            Name     = $scriptName
+            Status   = "Failed"
+            Error    = "Script file not found"
+            Duration = 0
+        }
+        if (-not $settings.continue_on_error) {
+            Write-Fail "Stopping due to error (continue_on_error = false)"
+            break
+        }
+        continue
+    }
+    
+    # Change to script directory
+    Push-Location $scriptPath
+    
+    try {
+        $scriptStartTime = Get-Date
+        $scriptLogFile = Join-Path $logDir "${timestamp}_${scriptName}.log"
+        
+        Write-Log "  Executing Python script..."
+        Write-Log "  Log: $scriptLogFile"
+        
+        # Run Python script
+        $pythonCmd = $settings.python_executable
+        $timeoutSeconds = $scriptConfig.timeout_minutes * 60
+        
+        # Execute with timeout
+        $process = Start-Process -FilePath $pythonCmd -ArgumentList $scriptFile -WorkingDirectory $scriptPath -NoNewWindow -PassThru -RedirectStandardOutput $scriptLogFile -RedirectStandardError "$scriptLogFile.err"
+        
+        # Wait with timeout
+        $process.WaitForExit($timeoutSeconds * 1000)
+        
+        if (-not $process.HasExited) {
+            Stop-Process -Id $process.Id -Force
+            throw "Script exceeded timeout of $($scriptConfig.timeout_minutes) minutes"
+        }
+        
+        $scriptDuration = (Get-Date) - $scriptStartTime
+        
+        if ($process.ExitCode -eq 0) {
+            Write-Success "  Completed in $([math]::Round($scriptDuration.TotalSeconds, 2)) seconds"
+            Write-Log "  SUCCESS: Exit code 0"
+            
+            # Find output files
+            # Supports:
+            # - Simple patterns like "*.csv" (searched in script root)
+            # - Relative subpaths like "output\FIXED_*.csv" (joined to script root)
+            $outputFiles = @()
+            foreach ($pattern in $scriptConfig.output_patterns) {
+                if ([string]::IsNullOrWhiteSpace($pattern)) { continue }
+
+                $hasSeparator = ($pattern -like "*\*" -or $pattern -like "*/*")
+
+                if ($hasSeparator) {
+                    $globPath = Join-Path $scriptPath $pattern
+                    $found = Get-ChildItem -Path $globPath -File -ErrorAction SilentlyContinue
+                }
+                else {
+                    $found = Get-ChildItem -Path $scriptPath -Filter $pattern -File -ErrorAction SilentlyContinue
+                }
+
+                if ($found) { $outputFiles += $found }
+            }
+            
+            Write-Log "  Output files found: $($outputFiles.Count)"
+            
+            # Copy to Power BI drop folder if enabled
+            if ($scriptConfig.output_to_powerbi -and -not $SkipPowerBI) {
+                $dropPath = $settings.powerbi_drop_path
+                if (-not (Test-Path $dropPath)) {
+                    Write-Warn "  Power BI drop folder not found: $dropPath"
+                    Write-Log "  WARNING: Power BI drop folder not found"
+                }
+                else {
+                    foreach ($file in $outputFiles) {
+                        $destPath = Join-Path $dropPath $file.Name
+                        Copy-Item -Path $file.FullName -Destination $destPath -Force
+                        Write-Log "  Copied to Power BI: $($file.Name)"
+                    }
+                    Write-Success "  Copied $($outputFiles.Count) file(s) to Power BI drop folder"
+                }
+            }
+            
+            $results += @{
+                Name        = $scriptName
+                Status      = "Success"
+                Error       = $null
+                Duration    = $scriptDuration.TotalSeconds
+                OutputFiles = $outputFiles.Count
+            }
+        }
+        else {
+            throw "Script exited with code $($process.ExitCode)"
+        }
+        
+    }
+    catch {
+        $scriptDuration = (Get-Date) - $scriptStartTime
+        Write-Fail "  Error: $_"
+        Write-Log "  ERROR: $_"
+        
+        $results += @{
+            Name     = $scriptName
+            Status   = "Failed"
+            Error    = $_.Exception.Message
+            Duration = $scriptDuration.TotalSeconds
+        }
+        
+        if (-not $settings.continue_on_error) {
+            Write-Fail "Stopping due to error (continue_on_error = false)"
+            break
+        }
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+# Summary
+$totalDuration = (Get-Date) - $startTime
+$successCount = ($results | Where-Object { $_.Status -eq "Success" }).Count
+$failCount = ($results | Where-Object { $_.Status -eq "Failed" }).Count
+
+Write-Log ""
+Write-Log "=== Execution Summary ==="
+Write-Log "Total duration: $([math]::Round($totalDuration.TotalMinutes, 2)) minutes"
+Write-Log "Success: $successCount"
+Write-Log "Failed: $failCount"
+Write-Log ""
+
+Write-Host ""
+Write-Host "=== Execution Summary ===" -ForegroundColor Cyan
+Write-Host "Total duration: $([math]::Round($totalDuration.TotalMinutes, 2)) minutes" -ForegroundColor Cyan
+Write-Host ""
+
+Write-Host "Results:" -ForegroundColor Yellow
+foreach ($result in $results) {
+    if ($result.Status -eq "Success") {
+        Write-Success "$($result.Name): Success ($([math]::Round($result.Duration, 2))s, $($result.OutputFiles) file(s))"
+    }
+    else {
+        Write-Fail "$($result.Name): Failed - $($result.Error)"
+    }
+}
+
+Write-Log "=== Master ETL Orchestrator Completed ==="
+Write-Host ""
+Write-Host "Full log: $logFile" -ForegroundColor Gray
+
+if ($successCount -eq $results.Count) {
+    Write-Success "All scripts completed successfully!" if (-not $SkipPowerBI) {
+        Write-Host ""
+        Write-Host "Next step: Run Power BI organization script" -ForegroundColor Cyan
+        Write-Host "  cd `"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date`"" -ForegroundColor Gray
+        Write-Host "  .\tools\organize_backfill_exports.ps1" -ForegroundColor Gray
+    }
+    exit 0
+}
+else {
+    Write-Warn "Some scripts failed. Check logs for details." exit 1
+}
+
+
+```
+
+## What I did with those Overtime_TimeOff files (and why)
+
+### 1) Fixed the **actual cause** of the null/zero legacy rows
+Your M code pulls **Comp/Sick/IOD/Military/SAT** from the latest `FIXED_monthly_breakdown_*.csv`. The latest file had **0’s for 11-24 → 09-25**, so those rows displayed as null/0. We already restored the FIXED file from your backfill export (and created a `.bak` backup). The only remaining “all zero” month is **11-25**, because a **2025_10** backfill export cannot contain 11-25. ### 2) Fixed the orchestrator config (this was a ticking bomb)
+Your `config/scripts.json` had Overtime TimeOff pointing to **v11**, but `overtime_timeoff_13month_sworn_breakdown_v11.py` is a **template that exits with an error**. I changed it to the **production script v10** and increased timeout:
+
+- **Overtime TimeOff now runs:** `overtime_timeoff_13month_sworn_breakdown_v10.py`
+- **Timeout:** 45 minutes
+
+### 3) Fixed the orchestrator’s output collection for subfolders
+`run_all_etl.ps1` previously only looked for outputs in the script root with `-Filter "*.csv"`, so it would miss outputs written to `output\` and `analytics_output\`. I updated it to support output patterns like:
+- `output\FIXED_monthly_breakdown_*.csv`
+- `analytics_output\monthly_breakdown.csv`
+- `analytics_output\executive_summary.csv`
+
+…and updated the Overtime TimeOff entry accordingly. ### 4) Verified via Dry Run
+A dry run now correctly shows:
+
+- `Overtime TimeOff` would execute `overtime_timeoff_13month_sworn_breakdown_v10.py`
+
+## What you still need for **11-25**
+To populate **11-25** (your newest column), you must export a newer visual/backfill that includes **11-25**, e.g. :
+
+- `...\PowerBI_Date\Backfill\2025_11\vcs_time_report\2025_11_Monthly Accrual and Usage Summary.csv`
+
+Once you have that file, you can run:
+
+```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+python .\scripts\restore_fixed_from_backfill.py --fixed "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_2024-11_2025-11.csv" --backfill "C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\Backfill\2025_11\vcs_time_report\2025_11_Monthly Accrual and Usage Summary.csv" --inplace
+```
+
+If you paste the exact path to your **2025_11** backfill CSV (or tell me it doesn’t exist yet), I’ll tell you the quickest way to create it and then we’ll finish the 11-25 fix. ```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+python .\scripts\restore_fixed_from_backfill.py --fixed "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output\FIXED_monthly_breakdown_2024-11_2025-11.csv" --backfill "C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\Backfill\2025_11\vcs_time_report\2025_11_Monthly Accrual and Usage Summary.csv" --inplace
+```
+
+---
+
+**User**
+
+C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\PowerBI_Date\Backfill\2025_11\vcs_time_report\2025_11_Monthly Accrual and Usage Summary.csv
+i exported the current visual with the nulls to the above path
+
+---
+
+**Cursor**
+
+Got it. Next I’ll (1) inspect that `2025_11_Monthly Accrual and Usage Summary.csv` to see whether it actually contains **11-25 values** (or if it’s exporting the same null/0s), then (2) rerun the restore against the FIXED file and confirm whether the 2025-11 row is now populated. Your `2025_11` export **does include** a `Sum of 11-25` column, but it contains **0 for every non‑accrual row** (Comp/Sick/IOD/Military/SAT). So restoring from that file cannot fix 11‑25. ### What’s fixed now
+- **11‑24 → 10‑25**: restored correctly into `FIXED_monthly_breakdown_2024-11_2025-11.csv` from the backfill history (those months now have the right values again). ### What’s still wrong (and why)
+- **11‑25** is still 0 because the visual you exported is already showing null/0 for 11‑25, and your export reflects that:
+  - `Comp (Hours): 0`
+  - `Employee Sick Time (Hours): 0`
+  - `Injured on Duty (Hours): 0`
+  - `Military Leave (Hours): 0`
+  - `Used SAT Time (Hours): 0`
+
+And the FIXED file’s **2025‑11 row** remains all zeros. ### Next step to truly fix 11‑25
+We need **real November 2025 source data** (or a correct output generated from it), not an export of the broken visual. Concretely:
+
+1. Ensure the November files exist in:
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\` (e.g. `25_11_OTActivity.xlsx`)
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\` (e.g. `25_11_TimeOffActivity.xlsx`)
+
+2. Run the **production** script (v10) so it generates a correct `FIXED_monthly_breakdown_2024-11_2025-11.csv` with non‑zero 2025‑11 values. If you want, tell me whether you have the two files for **25_11** (and their exact filenames), and I’ll guide you to run just the Overtime_TimeOff step and verify the 2025‑11 row populates. ---
+
+**User**
+
+python project in C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff take the exports from C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\2025_11_TimeOffActivity.xls
+and 
+C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\2025_11_OTActivity.xls
+the processed data gets imported to the power query     OutputFolder     = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output",
+    AnalyticsFolder  = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\analytics_output",
+
+---
+
+**Cursor**
+
+Got it. Next I’m going to verify two things in the **v10** overtime pipeline: (1) whether it actually *picks up* your `2025_11_*.xls` files (extension + naming), and (2) whether it’s reading from a config file or just scanning folders—because if it’s scanning only `*.xlsx` or expects `25_11_*`, it will silently miss your exports and produce zeros for 11‑25. Nice—both **2025_11** source files exist, so we can generate a real November row instead of exporting the broken visual. Next step is to confirm whether the Overtime_TimeOff pipeline can read `.xls` directly; if not, we’ll auto-convert those two exports to `.xlsx` and then run the v10 script to regenerate the FIXED file (which will populate 11‑25). Plan: convert the two `.xls` exports to `.xlsx` (v10 only reads `.xlsx`/`.csv`), run `overtime_timeoff_13month_sworn_breakdown_v10.py` to regenerate the FIXED file for the Nov 2025 window, then re-check the `2025-11` row in `FIXED_monthly_breakdown_2024-11_2025-11.csv`. The November inputs were fine — the issue was that they were **`.xls`**, and the v10 pipeline only reads **`.xlsx` / `.csv`**, so it was never ingesting your 11‑25 data.

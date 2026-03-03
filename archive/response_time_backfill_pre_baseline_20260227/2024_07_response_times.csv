@@ -1,0 +1,10 @@
+Response_Type,MM-YY,Metric_Type,First_Response_Time_MMSS,Avg_Minutes,Record_Count,Median_Minutes
+Emergency,07-24,Time Out - Time Dispatched,2:23,2.3829,294,2.25
+Routine,07-24,Time Out - Time Dispatched,2:43,2.7168,695,2.1666666666666665
+Urgent,07-24,Time Out - Time Dispatched,3:22,3.3723,502,3.183333333333333
+Emergency,07-24,Time Out - Time of Call,5:02,5.0307,253,4.85
+Routine,07-24,Time Out - Time of Call,4:38,4.6261,492,4.266666666666667
+Urgent,07-24,Time Out - Time of Call,5:35,5.5768,358,5.633333333333334
+Emergency,07-24,Time Dispatched - Time of Call,3:09,3.1559,275,2.6
+Routine,07-24,Time Dispatched - Time of Call,3:20,3.3259,616,2.566666666666667
+Urgent,07-24,Time Dispatched - Time of Call,3:33,3.5487,465,3.05

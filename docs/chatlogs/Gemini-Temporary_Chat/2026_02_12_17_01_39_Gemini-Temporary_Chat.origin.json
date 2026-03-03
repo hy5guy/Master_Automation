@@ -1,0 +1,35 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "dataset",
+    "it-ops",
+    "json",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "data",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "you",
+        "boot",
+        "your",
+        "say",
+        "windows",
+        "role"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "{\n  \"metadata\": {\n    \"title\": \"Temporary Chat\",\n    \"user\": {\n      \"name\": \"RAC\"\n    },\n    \"dates\": {\n      \"exported\": \"2/12/2026 17:01:26\"\n    },\n    \"link\": \"https://gemini.google.com/app/9aeb368a23666891\",\n    \"powered_by\": \"Gemin...",
+      "first_line": "{"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-12T17:01:39.400599",
+  "department": "admin"
+}

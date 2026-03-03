@@ -1,0 +1,621 @@
+current_rows: dict[tuple[str, str, str], float] = {}
+    if target.exists():
+        with target.open("r", newline="", encoding="utf-8-sig") as f:
+            r = csv.DictReader(f)
+            for row in r:
+                ym = (row.get("YearMonth") or "").strip()
+                cls = (row.get("Class") or "").strip()
+                met = (row.get("Metric") or "").strip()
+                hrs = (row.get("Hours") or "").strip()
+                if not ym or not cls or not met or hrs == "":
+                    continue
+                try:
+                    v = float(hrs)
+                except ValueError:
+                    continue
+                current_rows[(ym, cls, met)] = v
+
+    # Parse backfill (WIDE expected; LONG also supported)
+    with backfill_csv.open("r", newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        if not reader.fieldnames:
+            raise ValueError("Backfill CSV has no headers")
+
+        time_col = "Time_Category" if "Time_Category" in reader.fieldnames else ("Time Category" if "Time Category" in reader.fieldnames else None)
+        if not time_col:
+            raise ValueError(f"Backfill CSV missing Time_Category column. Found: {reader.fieldnames}")
+
+        is_long = ("PeriodLabel" in reader.fieldnames) and any(c in reader.fieldnames for c in ("Value", "Sum of Value"))
+        value_col = None
+        if is_long:
+            value_col = "Value" if "Value" in reader.fieldnames else "Sum of Value"
+
+        # Collect accrual backfill values: (YearMonth, Class, Metric) -> Hours
+        backfill_rows: dict[tuple[str, str, str], float] = {}
+
+        def add_value(period_label: str, category: str, value: float) -> None:
+            # Only accrual categories
+            if not category.startswith("Accrued "):
+                return
+            # Skip window-external months
+            ym = _periodlabel_to_yearmonth(period_label)
+            if ym not in window_set:
+                return
+            # Map to monthly_breakdown schema
+            metric = "Accrued Comp. Time" if category.startswith("Accrued Comp. Time") else "Accrued Overtime"
+            cls = "NonSworn" if "Non-Sworn" in category else "Sworn"
+            backfill_rows[(ym, cls, metric)] = float(value)
+
+        if is_long:
+            for row in reader:
+                cat = (row.get(time_col) or "").strip()
+                pl = (row.get("PeriodLabel") or "").strip()
+                raw = (row.get(value_col) or "").strip()
+                if not cat or not pl or raw == "":
+                    continue
+                try:
+                    v = float(raw)
+                except ValueError:
+                    continue
+                add_value(pl, cat, v)
+        else:
+            # WIDE: month columns + Time_Category column
+            month_cols = [c for c in reader.fieldnames if c and c != time_col]
+            for row in reader:
+                cat = (row.get(time_col) or "").strip()
+                if not cat:
+                    continue
+                for col in month_cols:
+                    if col == time_col:
+                        continue
+                    pl = col.strip()
+                    raw = (row.get(col) or "").strip()
+                    if raw == "":
+                        continue
+                    try:
+                        v = float(raw)
+                    except ValueError:
+                        continue
+                    add_value(pl, cat, v)
+
+    # Compose final file rows:
+    # - For months prior to end_month: use backfill (must exist for full history)
+    # - For end_month: prefer current (v10) values; fallback to backfill if missing
+    end_ym = f"{end_month.year:04d}-{end_month.month:02d}"
+    keys: list[tuple[str, str, str]] = []
+    for m in months:
+        ym = f"{m.year:04d}-{m.month:02d}"
+        for cls in ("NonSworn", "Sworn"):
+            for metric in ("Accrued Comp. Time", "Accrued Overtime"):
+                keys.append((ym, cls, metric))
+
+    out_lines: list[tuple[str, str, str, float]] = []
+    missing: list[tuple[str, str, str]] = []
+    for k in keys:
+        ym, cls, metric = k
+        if ym == end_ym and k in current_rows:
+            out_lines.append((ym, cls, metric, current_rows[k]))
+        elif k in backfill_rows:
+            out_lines.append((ym, cls, metric, backfill_rows[k]))
+        elif k in current_rows:
+            out_lines.append((ym, cls, metric, current_rows[k]))
+        else:
+            missing.append(k)
+            out_lines.append((ym, cls, metric, 0.0))
+
+    if dry_run:
+        print(f"[DRY RUN] Would write accrual history to: {target}")
+        if missing:
+            print(f"[DRY RUN][WARN] Missing accrual backfill values for {len(missing)} keys (will write 0.0).") return
+
+    analytics_folder.mkdir(parents=True, exist_ok=True)
+    with target.open("w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(["YearMonth", "Class", "Metric", "Hours"])
+        for ym, cls, metric, hrs in out_lines:
+            w.writerow([ym, cls, metric, f"{hrs}"])
+
+    print(f"[OK] monthly_breakdown.csv backfilled: {target}")
+    if missing:
+        print(f"[WARN] Missing accrual values for {len(missing)} month/class/metric keys; wrote 0.0 for those cells.") def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--backfill-root",
+        default=r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill",
+        help="Root folder containing Backfill\\YYYY_MM\\vcs_time_report\\... CSVs",
+    )
+    parser.add_argument("--dry-run", action="store_true", help="Show what would happen without executing.") args = parser.parse_args()
+
+    overtime_timeoff_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff")
+    overtime_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime")
+    time_off_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off")
+    backfill_root = Path(args.backfill_root)
+
+    paths = Paths(
+        overtime_timeoff_dir=overtime_timeoff_dir,
+        overtime_dir=overtime_dir,
+        time_off_dir=time_off_dir,
+        backfill_root=backfill_root,
+        v10_script=overtime_timeoff_dir / "overtime_timeoff_13month_sworn_breakdown_v10.py",
+        xls_to_xlsx_multi=overtime_dir / "xls_to_xlsx_archiver_com_multi.py",
+        restore_script=Path(__file__).resolve().parent / "restore_fixed_from_backfill.py",
+    )
+
+    today = date.today()
+    # v10 window ends on previous month
+    end_month = prev_month(today)
+    start_month = end_month.replace(year=end_month.year - 1)  # 13-month window start month
+
+    # Backfill should come from the month BEFORE end_month (e.g., if end is 2025_11, backfill is 2025_10)
+    backfill_month = prev_month(end_month)
+
+    fixed_path = paths.overtime_timeoff_dir / "output" / expected_fixed_filename(start_month, end_month)
+
+    print(f"[INFO] Window end month: {month_key_yyyy_mm_dash(end_month)}")
+    print(f"[INFO] Expected FIXED: {fixed_path}")
+    print(f"[INFO] Backfill month: {month_key_yyyy_mm(backfill_month)}")
+
+    ensure_month_exports_are_xlsx(paths, end_month, dry_run=bool(args.dry_run))
+    run_v10(paths, dry_run=bool(args.dry_run))
+
+    if not fixed_path.exists() and not args.dry_run:
+        # Fallback: pick newest FIXED file if name differs for any reason
+        out_dir = paths.overtime_timeoff_dir / "output"
+        candidates = sorted(out_dir.glob("FIXED_monthly_breakdown_*.csv"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if not candidates:
+            raise FileNotFoundError(f"No FIXED_monthly_breakdown_*.csv found in {out_dir}")
+        fixed_path = candidates[0]
+        print(f"[WARN] Expected FIXED not found; using newest: {fixed_path}")
+
+    backfill_csv = find_backfill_csv(paths.backfill_root, backfill_month)
+    print(f"[INFO] Using backfill CSV: {backfill_csv}")
+
+    restore_fixed(paths, fixed_path=fixed_path, backfill_csv=backfill_csv, dry_run=bool(args.dry_run))
+
+    # Backfill accrual history for the 13-month window so Power BI accrual rows are populated
+    backfill_monthly_breakdown_from_backfill(
+        backfill_csv=backfill_csv,
+        analytics_folder=paths.overtime_timeoff_dir / "analytics_output",
+        start_month=start_month,
+        end_month=end_month,
+        dry_run=bool(args.dry_run),
+    )
+
+    print("[OK] Pipeline complete.") return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+
+```
+
+Updating v10's `load_folder` to scan recursively so it finds files in subdirectories:
+
+
+```python
+# -*- coding: utf-8 -*-
+"""
+overtime_timeoff_13month_sworn_breakdown_v10.py
+
+13-month only. Sworn vs NonSworn. Long + wide exports. Adds:
+- Manual header overrides for OT/Comp columns. - Wider OT detection (OT, O.T., O/T, DT, Doubletime, 1.5x, 2.0x, 2.5x, 150%, 200%, 250%). - Fixes long-form pay label regex to match 'overtime' without a space. - Column-sum diagnostics and clear reporting. Deps:
+  pip install pandas openpyxl python-dateutil
+"""
+
+from __future__ import annotations
+import re
+from pathlib import Path
+from typing import List, Tuple, Dict
+import pandas as pd
+from dateutil.relativedelta import relativedelta
+
+# ===== PATHS =====
+OVERTIME_DIR   = r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime"
+TIME_OFF_DIR   = r"C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off"
+PERSONNEL_XLSX = r"C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_V2.xlsx"
+OUTPUT_DIR     = r"C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\analytics_output"
+
+# ===== TITLES =====
+SWORN_TITLES    = {"P.O. ", "CHIEF", "LT.", "SPO III", "SGT. ", "DET. ", "CAPT."} NONSWORN_TITLES = {"SPO II", "HCOP", "C.O. ", "DPW", "CLK", "PEO", "TM", "PLA"}
+
+# ===== MANUAL HEADER OVERRIDES =====
+# Key is a normalized column name: lowercase, strip spaces around, collapse spaces. # Value is (Category, Rate). Category in {"OT","COMP"}, Rate in {"10","15","20","25",""}. MANUAL_WIDE_OVERRIDES: Dict[str, Tuple[str, str]] = {
+    "ot hrs": ("OT", "15"),
+    "ot hours": ("OT", "15"),
+    "overtime hrs": ("OT", "15"),
+    "overtime hours": ("OT", "15"),
+    "dt hrs": ("OT", "20"),
+    "doubletime hrs": ("OT", "20"),
+    "double time hours": ("OT", "20"),
+    "comp time 1.0": ("COMP", "10"),
+    "comp time 1.5": ("COMP", "15"),
+}
+
+# ===== MANUAL NAME OVERRIDES =====
+# Key is normalized name from overtime data, Value is normalized name from personnel file
+MANUAL_NAME_OVERRIDES: Dict[str, str] = {
+    "MARIAH RAMIREZ DRAKEFORD": "MARIAH RAMIREZDRAKEFORD",
+    "MAXIMILIANO ANGUIZACAZHINDON": "PO MAXIMILIANO ANGUIZACAZHINDON",  # Personnel has "PO" prefix
+}
+
+# ===== TIME-OFF USAGE CLASSIFICATION =====
+# Reason-first patterns (designed for the "Reason" column)
+RE_SICK     = re.compile(r"^\s*sick\b", re.I)
+RE_SAT      = re.compile(r"^\s*sat\b", re.I)
+RE_COMP     = re.compile(r"^\s*comp\b", re.I)  # Comp (Hours|Days) -> Used Comp
+RE_MIL      = re.compile(r"^\s*mil(? :itary)?\s*leave\b", re.I)
+RE_VAC      = re.compile(r"^\s*vac(?:ation)?\b|^\s*annual\b|^\s*pto\b|^\s*personal\s*(? :time\s*off|day)\b", re.I)
+
+# Fallback (free-text) patterns used only when Reason is blank/unhelpful
+TX_SICK     = re.compile(r"\bsick\b|\bill(? :ness)?\b|\bsck\b", re.I)
+TX_SAT      = re.compile(r"\bsat\b", re.I)
+TX_COMP     = re.compile(r"\bcomp(?:\.|ensatory)?\s*(?:time)?\s*(?:used|taken|off|leave)\b|\bct\s*(? :used|taken|off)\b", re.I)
+TX_MIL      = re.compile(r"\bmil(? :itary)?\b", re.I)
+TX_VAC      = re.compile(r"\bvac(?:ation)?\b|\bannual\b|\bpto\b|personal\s*time(?:\s*off)?|\bp\.?t\.?o\. ?\b", re.I)
+TX_IOD      = re.compile(r"\biod\b|injur(? :ed|y)\s+on\s+duty", re.I)
+
+def _norm_header(s: str) -> str:
+    s = re.sub(r"\s+", " ", str(s).strip().lower())
+    return s
+
+# ===== STATUS =====
+def normalize_status(s: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", (s or "").strip().lower())
+
+APPROVED_STATUSES_NORM = {
+    "approved",
+    "approvedwstip",
+    "approvedwithstip",
+    "approvedwithstipend",
+    "approvedwithstipulation",
+}
+
+# ===== WINDOW =====
+def month_window_13(today: pd.Timestamp | None = None) -> Tuple[pd.Timestamp, pd.Timestamp]:
+    """
+    Rolling 13-month window that always ends on the last day of the previous month. Example (run on 2025-10-09): start=2024-09-01, end=2025-09-30
+    """
+    import pandas as pd
+    if today is None:
+        today = pd.Timestamp.today().normalize()
+
+    # last day of previous month
+    prev_month_last = (today.replace(day=1) - pd.Timedelta(days=1))
+    # first day of same month one year earlier
+    start_first = prev_month_last.replace(day=1) - pd.DateOffset(years=1)
+
+    return start_first.normalize(), prev_month_last.normalize()
+
+# ===== UTIL =====
+def ensure_dir(p: str | Path) -> Path:
+    pth = Path(p); pth.mkdir(parents=True, exist_ok=True); return pth
+
+def normalize_name(s: str) -> str:
+    s = (str(s) if pd.notna(s) else "").upper().strip()
+
+    # Handle "LastName, FirstName" format - convert to "FirstName LastName"
+    if "," in s:
+        parts = [p.strip() for p in s.split(",")]
+        if len(parts) == 2 and parts[0] and parts[1]:
+            s = f"{parts[1]} {parts[0]}"  # Convert to "FirstName LastName"
+
+    # Remove titles/ranks (C.O., P.O., SGT., LT., CAPT., etc.) titles = ["C.O. ", "P.O. ", "SGT. ", "LT.", "CAPT. ", "CHIEF", "DET. ", "SPO II", "SPO III", "HCOP", "DPW", "CLK", "PEO", "TM", "PLA"]
+    for title in titles:
+        s = s.replace(title, "").strip()
+
+    # Remove badge numbers (3-4 digits at the end)
+    s = re.sub(r"\s+\d{3,4}$", "", s)
+
+    # Remove extra characters and normalize spaces
+    s = re.sub(r"[^A-Z\s]", "", s)
+    return re.sub(r"\s+", " ", s).strip()
+
+def classify_title(title: str) -> str:
+    t = (title or "").strip().upper()
+    if t in SWORN_TITLES: return "Sworn"
+    if t in NONSWORN_TITLES: return "NonSworn"
+    return "Unknown"
+
+def read_any(path: Path) -> pd.DataFrame:
+    if path.suffix.lower() == ".xlsx": return pd.read_excel(path, engine="openpyxl")
+    if path.suffix.lower() == ".csv":  return pd.read_csv(path)
+    raise ValueError(f"Unsupported file type: {path.suffix}")
+
+# ===== PICKERS =====
+BASE_NAME_CANDS  = ["EmployeeName","Employee","Officer","Name","FullName","Employee Name"]
+BASE_DATE_CANDS  = ["Date","WorkDate","Work Date","TransactionDate","OccurredDate","Posting Date","Post Date","Trans Date"]
+BASE_HOURS_CANDS = ["Hours","Qty","Quantity","Duration","Hours Worked","Total Hours","Units","Total Qty"]
+STATUS_CANDS     = ["Status","ApprovalStatus","Approval Status","State"]
+PAY_COL_CANDS    = [
+    "PayType","Pay Type","EarningCode","Earnings Code","Earning Code","Earnings",
+    "Type","Earnings Type","EarningsType","Payroll Code","Pay Code","Code",
+    "Category","Subcategory","Leave Type","Time Off Type","TimeOffType","Time Off Category",
+    "Activity Type","Description","Detail","Reason","Notes","Memo","Item","Line Item","Record Type",
+    "Hours Type","Pay Name","Pay Description","Earning Name","Earnings Name","Earning Description"
+]
+
+def pick_col(df: pd.DataFrame, candidates: List[str]) -> str | None:
+    lm = {c.lower(): c for c in df.columns}
+    for c in candidates:
+        if c.lower() in lm: return lm[c.lower()]
+    nm = {re.sub(r"[\s_]", "", c.lower()): c for c in df.columns}
+    for c in candidates:
+        key = re.sub(r"[\s_]", "", c.lower())
+        if key in nm: return nm[key]
+    return None
+
+# ===== WIDE DETECTION =====
+WIDE_EXCLUDE_PAT = re.compile(r"(used|taken|vacation|sick|holiday|leave|pto|personal|bereavement|fmla)", re.I)
+WIDE_OT_PAT   = re.compile(r"(\bovertime\b|\bo\.?t\. ?\b|\bo/?t\b|\bdt\b|double ?time)", re.I)
+WIDE_COMP_PAT = re.compile(r"(\bcomp(\.|ensatory)?(\s*time)?\b|\bcomp\. ?\s*time\b|\bct\b|\bc/?t\b|\bcompensatory\b)", re.I)
+
+RATE_25_PAT = re.compile(r"(2[., ]?5|250%|x\s*2[., ]?5|double\s*time\s*and\s*a\s*half)", re.I)
+RATE_20_PAT = re.compile(r"(2[., ]?0|200%|x\s*2[., ]?0|double ?time|\bdt\b)", re.I)
+RATE_15_PAT = re.compile(r"(1[., ]?5|150%|x\s*1[., ]?5|time and a half)", re.I)
+RATE_10_PAT = re.compile(r"(1[., ]?0|100%|x\s*1[., ]?0|straight time)", re.I)
+
+def detect_wide_cols(d: pd.DataFrame) -> Dict[str, Tuple[str, str]]:
+    """
+    Return {col_name: (Category, Rate)} for numeric-like columns that look like OT/Comp. Heuristics:
+      - Manual overrides first. - If header matches COMP, mark COMP. - Else if header matches OT or DT, mark OT. - Else if header shows a rate >= 1.5 and column has numeric hours, mark OT. - 1.0 rate never marks OT unless header says OT.
+    """ wide: Dict[str, Tuple[str,str]] = {}
+    for col in d.columns:
+        cname = str(col)
+        if cname in BASE_NAME_CANDS or cname in BASE_DATE_CANDS or cname in STATUS_CANDS:
+            continue
+        if WIDE_EXCLUDE_PAT.search(cname):
+            continue
+
+        ser = pd.to_numeric(d[col], errors="coerce")
+        if ser.notna().sum() == 0 or ser.abs().sum() <= 0:
+            continue
+
+        # Manual override
+        key = _norm_header(cname)
+        if key in MANUAL_WIDE_OVERRIDES:
+            wide[col] = MANUAL_WIDE_OVERRIDES[key]
+            continue
+
+        category, rate = "", ""
+        if WIDE_COMP_PAT.search(cname):
+            category = "COMP"
+        elif WIDE_OT_PAT.search(cname):
+            category = "OT"
+        else:
+            # Rate-only headers, treat as OT if >= 1.5
+            if RATE_25_PAT.search(cname): category, rate = "OT", "25"
+            elif RATE_20_PAT.search(cname): category, rate = "OT", "20"
+            elif RATE_15_PAT.search(cname): category, rate = "OT", "15"
+            elif RATE_10_PAT.search(cname): category, rate = "", "10"  # not OT unless explicitly OT
+
+        # Rate detection if not already set
+        if rate == "":
+            if RATE_25_PAT.search(cname): rate = "25"
+            elif RATE_20_PAT.search(cname): rate = "20"
+            elif RATE_15_PAT.search(cname): rate = "15"
+            elif RATE_10_PAT.search(cname): rate = "10"
+
+        if category:
+            wide[col] = (category, rate)
+    return wide
+
+def classify_from_textframe(d: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
+    text_cols = [c for c in d.columns if d[c].dtype == object]
+    if not text_cols:
+        n = len(d)
+        return pd.Series([""]*n, index=d.index), pd.Series([""]*n, index=d.index)
+    t = d[text_cols].astype(str).agg(" ".join, axis=1).str.lower()
+    is_comp = t.str.contains(r"\bcomp(\.|ensatory)? (\s*time)?\b|\bct\b|\bcompensatory\b|\bcomp time earned\b|\baccrued comp\b", regex=True)
+    is_ot   = t.str.contains(r"\bovertime\b|\bo/?t\b|double ?time|\bdt\b", regex=True)
+    is_25   = t.str.contains(r"2[., ]?5|250%|x\s*2[., ]?5|double\s*time\s*and\s*a\s*half", regex=True)
+    is_20   = t.str.contains(r"2[., ]?0|200%|x\s*2[., ]?0|double ?time|\bdt\b", regex=True)
+    is_15   = t.str.contains(r"1[., ]?5|150%|x\s*1[., ]?5|time and a half", regex=True)
+    is_10   = t.str.contains(r"1[., ]?0|100%|x\s*1[., ]?0|straight time", regex=True)
+
+    cat = pd.Series("", index=d.index)
+    rate = pd.Series("", index=d.index)
+    cat.loc[is_comp] = "COMP"
+    cat.loc[is_ot]   = "OT"
+
+    rate.loc[is_25] = "25"
+    rate.loc[(rate == "") & is_20] = "20"
+    rate.loc[(rate == "") & is_15] = "15"
+    rate.loc[(rate == "") & is_10] = "10"
+    return cat, rate
+
+# ===== COERCE TO LONG =====
+def coerce_common(df: pd.DataFrame, src_name: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    d = df.copy()
+
+    def pick_c(df, cands):
+        lm = {c.lower(): c for c in df.columns}
+        for c in cands:
+            if c.lower() in lm: return lm[c.lower()]
+        nm = {re.sub(r"[\s_]", "", c.lower()): c for c in df.columns}
+        for c in cands:
+            key = re.sub(r"[\s_]", "", c.lower())
+            if key in nm: return nm[key]
+        return None
+
+    name_col   = pick_c(d, BASE_NAME_CANDS)
+    date_col   = pick_c(d, BASE_DATE_CANDS)
+    status_col = pick_c(d, STATUS_CANDS)
+    if not (name_col and date_col):
+        raise ValueError(f"{src_name}: missing required name/date columns")
+
+    # Wide columns
+    wide = detect_wide_cols(d)
+    wide_cols_df = pd.DataFrame([{"File": src_name, "Column": k, "Category": v[0], "Rate": v[1]} for k, v in wide.items()]) if wide else pd.DataFrame(columns=["File","Column","Category","Rate"])
+
+    # Column sums diagnostic
+    numeric_summaries = []
+    for c in d.columns:
+        ser = pd.to_numeric(d[c], errors="coerce")
+        if ser.notna().sum() > 0:
+            numeric_summaries.append({"File": src_name, "Column": str(c), "AbsSum": float(ser.abs().sum())})
+    sums_df = pd.DataFrame(numeric_summaries).sort_values("AbsSum", ascending=False) if numeric_summaries else pd.DataFrame(columns=["File","Column","AbsSum"])
+
+    if wide:
+        base_cols = [name_col, date_col] + ([status_col] if status_col else [])
+        base = d[base_cols].copy()
+        base.columns = ["EmployeeName","Date"] + (["Status"] if status_col else [])
+        long_rows = []
+        for col, (cat, rate) in wide.items():
+            ser = pd.to_numeric(d[col], errors="coerce").fillna(0)
+            tmp = base.copy()
+            tmp.loc[:, "Hours"] = ser
+            tmp = tmp.loc[tmp["Hours"] != 0]
+            if tmp.empty:
+                continue
+            tmp.loc[:, "Category"] = cat
+            tmp.loc[:, "Rate"] = rate
+            tmp.loc[:, "_pay_detect_source"] = f"wide:{col}"
+            long_rows.append(tmp)
+        out = pd.concat(long_rows, ignore_index=True) if long_rows else pd.DataFrame(columns=["EmployeeName","Date","Status","Hours","Category","Rate","_pay_detect_source"])
+        if "Status" not in out.columns:
+            out["Status"] = "Approved"
+        out["_src_file"] = src_name
+        return out, wide_cols_df, sums_df
+
+    # Long form
+    hours_col = pick_c(d, BASE_HOURS_CANDS)
+    pay_col   = pick_c(d, PAY_COL_CANDS)
+    if hours_col:
+        base = pd.DataFrame({
+            "EmployeeName": d[name_col],
+            "Date": pd.to_datetime(d[date_col], errors="coerce"),
+            "Status": d[status_col] if status_col else "Approved",
+            "Hours": pd.to_numeric(d[hours_col], errors="coerce").fillna(0)
+        })
+        if pay_col:
+            t = d[pay_col].astype(str)
+            # Enhanced comp time detection - includes rate-based patterns
+            comp_mask = t.str.contains(r"\bcomp|compensatory|\bct\b|\d+[., ]?\d*\s+comp\s+time", case=False, regex=True)
+
+            # Enhanced overtime detection - includes rate-based cash patterns and traditional overtime terms
+            ot_mask = t.str.contains(r"\bovertime\b|\bover\s*time\b|\bot\b|\bo/t\b|double ?time|\bdt\b", case=False, regex=True)
+            # Add rate-based cash patterns for overtime (1.5 Cash, 2.0 Cash, etc. with rate >= 1.5)
+            cash_rate_ot = t.str.contains(r"(? :1[., ]? [5-9]|[2-9][., ]?\d*)\s+cash", case=False, regex=True)
+            ot_mask = ot_mask | cash_rate_ot
+
+            # Rate detection patterns
+            r25 = t.str.contains(r"2[., ]?5|250%|x\s*2[., ]?5|double\s*time\s*and\s*a\s*half", case=False, regex=True)
+            r20 = t.str.contains(r"2[., ]?0|200%|x\s*2[., ]?0|double ?time|\bdt\b", case=False, regex=True)
+            r15 = t.str.contains(r"1[., ]?5|150%|x\s*1[., ]?5|time and a half", case=False, regex=True)
+            r10 = t.str.contains(r"1[., ]?0|100%|x\s*1[., ]?0|straight time", case=False, regex=True)
+
+            # Set categories
+            base.loc[:, "Category"] = ""
+            base.loc[comp_mask, "Category"] = "COMP"
+            base.loc[ot_mask,   "Category"] = "OT"
+
+            # Set rates
+            base.loc[:, "Rate"] = ""
+            base.loc[r25, "Rate"] = "25"
+            base.loc[(base["Rate"] == "") & r20, "Rate"] = "20"
+            base.loc[(base["Rate"] == "") & r15, "Rate"] = "15"
+            base.loc[(base["Rate"] == "") & r10, "Rate"] = "10"
+            base.loc[:, "_pay_detect_source"] = pay_col
+        else:
+            cat, rate = classify_from_textframe(d)
+            base.loc[:, "Category"] = cat
+            base.loc[:, "Rate"] = rate
+            base.loc[:, "_pay_detect_source"] = "_inferred_from_text"
+
+        base["_src_file"] = src_name
+        base = base.loc[base["Hours"] != 0]
+
+        # CRITICAL FIX: Exclude comp time from Time Off files to prevent double-counting
+        # Time Off comp time = hours USED, Overtime comp time = hours ACCRUED
+        # Reference targets only track ACCRUED comp time
+        if "_Time_Off:" in src_name or "Time_Off:" in src_name or "TimeOff:" in src_name:
+            comp_exclude_mask = base["Category"] == "COMP"
+            if comp_exclude_mask.any():
+                excluded_count = comp_exclude_mask.sum()
+                excluded_hours = base.loc[comp_exclude_mask, "Hours"].sum()
+                print(f"[INFO] Excluding {excluded_count} comp time records ({excluded_hours:.2f} hours) from {src_name}")
+                base = base.loc[~comp_exclude_mask]
+
+        return base, wide_cols_df, sums_df
+
+    # Nothing usable
+    return pd.DataFrame(columns=["EmployeeName","Date","Status","Hours","Category","Rate","_pay_detect_source","_src_file"]), wide_cols_df, sums_df
+
+def load_folder(folder: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Load all Excel/CSV files from folder (recursively searches subdirectories). Files may be in root or in export/month/{year}/ subdirectories.
+    """ base = Path(folder)
+    rows, inv, wide_maps, sums_all = [], [], [], []
+    # Search recursively for Excel and CSV files
+    for p in list(base.rglob("*.xlsx")) + list(base.rglob("*.csv")):
+        try:
+            df = read_any(p)
+            # Pass folder context to identify Time Off vs Overtime files
+            src_identifier = f"{base.name}:{p.name}"
+            coerced, wide_df, sums_df = coerce_common(df, src_identifier)
+            inv.append({
+                "File": p.name,
+                "RowsOut": len(coerced),
+                "MinDate": str(coerced["Date"].min()) if "Date" in coerced else "",
+                "MaxDate": str(coerced["Date"].max()) if "Date" in coerced else "",
+                "Detected": ", ".join(sorted(set(coerced.get("_pay_detect_source", pd.Series()).astype(str))))
+            })
+            if not wide_df.empty:  wide_maps.append(wide_df)
+            if not sums_df.empty:  sums_all.append(sums_df)
+            rows.append(coerced)
+        except Exception as e:
+            inv.append({"File": p.name, "RowsOut": 0, "MinDate": "", "MaxDate": "", "Detected": f"ERROR: {e}"})
+    inv_df = pd.DataFrame(inv)
+    wide_map_all = pd.concat(wide_maps, ignore_index=True) if wide_maps else pd.DataFrame(columns=["File","Column","Category","Rate"])
+    sums_all_df  = pd.concat(sums_all, ignore_index=True) if sums_all else pd.DataFrame(columns=["File","Column","AbsSum"])
+    if rows:
+        return pd.concat(rows, ignore_index=True), inv_df, wide_map_all, sums_all_df
+    return pd.DataFrame(columns=["EmployeeName","Date","Status","Hours","Category","Rate","_pay_detect_source","_src_file"]), inv_df, wide_map_all, sums_all_df
+
+def load_personnel(path: str) -> pd.DataFrame:
+    pdf = pd.read_excel(path, engine="openpyxl")
+    def pick_c(pdf, cands):
+        lm = {c.lower(): c for c in pdf.columns}
+        for c in cands:
+            if c.lower() in lm: return lm[c.lower()]
+        nm = {re.sub(r"[\s_]", "", c.lower()): c for c in pdf.columns}
+        for c in cands:
+            key = re.sub(r"[\s_]", "", c.lower())
+            if key in nm: return nm[key]
+        return None
+    name_col = pick_c(pdf, ["FULL_NAME","FullName","EmployeeName","Name"])
+    title_col = pick_c(pdf, ["TITLE","Title","Rank","JobTitle","Job Title"])
+    if not (name_col and title_col):
+        raise ValueError("Assignment Master needs FullName and Title columns.") out = pd.DataFrame({"FullName": pdf[name_col], "Title": pdf[title_col]})
+    out["FullName_norm"] = out["FullName"].astype(str).map(normalize_name)
+    out["MemberClass"]   = out["Title"].astype(str).map(classify_title)
+    return out[["FullName_norm","Title","MemberClass"]]
+
+def filter_approved(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    s_norm = df["Status"].astype(str).map(normalize_status)
+    before = s_norm.value_counts(dropna=False).rename_axis("Status").reset_index(name="Rows")
+    mask = s_norm.isin(APPROVED_STATUSES_NORM)
+    after = s_norm[mask].value_counts(dropna=False).rename_axis("Status").reset_index(name="Rows")
+    return df.loc[mask].copy(), before, after
+
+def apply_window(df: pd.DataFrame, date_col="Date", today: pd.Timestamp | None = None) -> Tuple[pd.DataFrame, pd.Timestamp, pd.Timestamp]:
+    start_d, end_d = month_window_13(today)
+    mask = (df[date_col] >= start_d) & (df[date_col] <= end_d)
+    return df.loc[mask].copy(), start_d, end_d
+
+def merge_personnel(df: pd.DataFrame, personnel: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    df["Employee_norm"] = df["EmployeeName"].astype(str).map(normalize_name)
+
+    # Apply manual name overrides for specific problematic names
+    for original_name, corrected_name in MANUAL_NAME_OVERRIDES.items():
+        df.loc[df["Employee_norm"] == original_name, "Employee_norm"] = corrected_name
+
+    merged = df.merge(personnel, how="left", left_on="Employee_norm", right_on="FullName_norm")
+    merged["MemberClass"] = merged["MemberClass"].fillna("Unknown")
+    return merged
+
+def add_month_key(df: pd.DataFrame, date_col: str) -> pd.DataFrame:
+    """Add month key columns to dataframe for monthly aggregation."""

@@ -1,0 +1,40 @@
+Updating the query and aggregation logic. Renaming output columns "M" and "P" to "Moving" and "Parking" so Power BI doesn't treat "M" as the M language and trigger "Fields that need to be fixed". Applying the change. Adding a short note to the logic guide and checking summons_13month_trend for the five errors:
+
+
+
+Adding a doc note about the column rename and summarizing:
+
+
+
+Summary of what was wrong and what was changed:
+
+**1. All Bureaus – “Fields that need to be fixed” (Bureau/Division, M, P)**  
+Power BI was complaining about the **M** and **P** columns. The name **M** is reserved (Power Query language name), so using it as a column name can break the model. **Change in `summons_all_bureaus.m`:**
+- Output columns are now **Moving** and **Parking** instead of **M** and **P**. - Aggregation still uses `TYPE = "M"` and `TYPE = "P"`; only the result column names changed. - `List.RemoveNulls` was added around the summed lists so nulls don’t make the sum null. **What you need to do**
+1. **Update the All Bureaus query** in Power BI with the M code from `m_code/summons/summons_all_bureaus.m`. 2. **Fix the All Bureaus visual**  
+   - Remove **M** and **P** (or “1.2 M” / “1.2 P”) from the values. - Add **Moving** and **Parking** as the value fields. Moving and parking totals will then come from the new columns. **2. Moving summons not showing correctly**  
+The logic for moving is unchanged: we still sum rows where `[TYPE] = "M"`. The problem was the **M** column name in the model. Once you use the updated query and bind the visual to **Moving** (and **Parking**), the moving sums should show correctly. **3. summons_13month_trend – “5 errors”**  
+That usually means a few rows (often backfill) have values that don’t match the types in the query (e.g. null or text where a number/date is expected). To fix it precisely:
+- In the Refresh dialog, click **View errors** and note which columns/rows are listed. - Share that (or a screenshot) and we can adjust the 13‑month query to handle those rows (e.g. optional types or replace errors). ---
+
+**User**
+
+I'm preparing to export this chat. Please generate a descriptive filename that summarizes the main topic or task of this conversation. Requirements:
+• 4-8 words
+• Title Case (capitalize major words)
+• Replace spaces with underscores
+• Include .md extension
+• No dates or special characters
+
+Output only the filename, with the suffix .md and nothing else. ---
+
+**Cursor**
+
+
+Summons_ETL_And_Power_BI_M_Code_Fixes.md
+
+---
+
+**User**
+
+update local git and all docs

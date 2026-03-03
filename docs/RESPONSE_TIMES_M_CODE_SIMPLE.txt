@@ -1,0 +1,48 @@
+// ==============================================================================
+// RESPONSE TIMES M CODE - SIMPLIFIED VERSION (Easier to Modify)
+// Query Name: ___ResponseTimeCalculator
+// ==============================================================================
+
+let
+    // Load Backfill Data (Nov 2024 - Oct 2025)
+    BackfillAvg = Csv.Document(
+        File.Contents("C:\Dev\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Average Response Times Values are in mmss.csv"),
+        [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]
+    ),
+    BackfillAvgHeaders = Table.PromoteHeaders(BackfillAvg, [PromoteAllScalars=true]),
+    
+    // Load November 2025 ETL Output
+    Nov2025Avg = Csv.Document(
+        File.Contents("C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\2025_12_Average_Response_Times__Values_are_in_mmss.csv"),
+        [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]
+    ),
+    Nov2025AvgHeaders = Table.PromoteHeaders(Nov2025Avg, [PromoteAllScalars=true]),
+    
+    // Combine Backfill + November 2025
+    Combined = Table.Combine({BackfillAvgHeaders, Nov2025AvgHeaders}),
+    
+    // Remove duplicates if needed (adjust based on your key columns)
+    // Result = Table.Distinct(Combined, {"YearMonth", "Response_Type"})  // Example
+    
+    Result = Combined
+in
+    Result
+
+// ==============================================================================
+// SEPARATE QUERY FOR RESPONSE TIMES BY PRIORITY:
+// Query Name: ResponseTimes_ByPriority
+// ==============================================================================
+let
+    BackfillPriority = Csv.Document(
+        File.Contents("C:\Dev\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Response Times by Priority.csv"),
+        [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]
+    ),
+    BackfillPriorityHeaders = Table.PromoteHeaders(BackfillPriority, [PromoteAllScalars=true]),
+    
+    // Add November 2025 priority data here when available
+    // Nov2025Priority = Csv.Document(...),
+    
+    Result = BackfillPriorityHeaders
+in
+    Result
+

@@ -1,0 +1,64 @@
+{
+  "source_file": "RESPONSE_TIMES_M_CODE_FINAL.txt",
+  "source_path": "C:\\_chunker\\02_data\\RESPONSE_TIMES_M_CODE_FINAL.txt",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\RESPONSE_TIMES_M_CODE_FINAL\\2026_02_04_23_52_38_RESPONSE_TIMES_M_CODE_FINAL.origin.json",
+  "created_at": "2026_02_04_23_52_38",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "json",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "notes",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "table",
+      "null",
+      "then",
+      "else",
+      "backfillresponsetimesbypriority",
+      "backfill"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "// ==============================================================================\n// RESPONSE TIMES M CODE - FINAL DROP-IN READY SCRIPT\n// Query Name: ___ResponseTimeCalculator\n// =========================================================...",
+    "first_line": "// =============================================================================="
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-04T23:52:38+00:00_RESPONSE_TIMES_M_CODE_FINAL_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "backfill",
+        "backfillresponsetimesbypriority",
+        "code",
+        "data",
+        "else",
+        "json",
+        "null",
+        "sql",
+        "table",
+        "then"
+      ],
+      "key_terms": [
+        "table",
+        "null",
+        "then",
+        "else",
+        "backfillresponsetimesbypriority",
+        "backfill"
+      ],
+      "summary": "// ==============================================================================\n// RESPONSE TIMES M CODE - FINAL DROP-IN READY SCRIPT\n// Query Name: ___ResponseTimeCalculator\n// =========================================================...",
+      "char_length": 8298,
+      "byte_length": 8465
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

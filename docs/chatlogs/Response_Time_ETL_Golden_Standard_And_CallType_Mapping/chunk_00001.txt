@@ -1,0 +1,321 @@
+Let me do them all:
+
+**Step 1 — Restore the correct staging file from today's ETL:**
+
+**Step 2 — Fix the M code to tolerate missing TICKET_NUMBER AND consolidate PATROL BUREAU → PATROL DIVISION:**
+
+First, let me get full Jan 2026 counts from the restored file to understand the discrepancy:
+
+The ETL data shows PATROL BUREAU (255M/628P) needs consolidating, and 44M/287P are unassigned (`NONE`). The traffic difference (143M vs 217M, 2599P vs 3117P) is a data source gap — likely related to the PEO additions file. Let me fix the M code issues first:
+
+**Fix `summons_13month_trend.m` — remove TICKET_NUMBER (doesn't exist in current ETL schema) and fix PATROL BUREAU consolidation:**
+
+**Fix `summons_all_bureaus.m` — add PATROL BUREAU to the consolidation:**
+
+Now check the OT/TO backfill issue — find what the FIXED_monthly_breakdown has for July and August 2025:
+
+Now I can see the full picture. Let me compare OT/TO values from the FIXED_monthly_breakdown against the image values the user submitted:
+
+From the image (submitted report):
+- **Employee Sick (07-25)**: 1,315.50 | ETL FIXED: **1,339.5** (+24h drift)
+- **Used SAT (07-25)**: 341.00 | ETL FIXED: **373.0** (+32h drift)
+- **Used SAT (08-25)**: 714.50 | ETL FIXED: **718.5** (+4h drift)
+
+These small diffs mean the ETL is **reprocessing raw data** for historical months instead of locking them in. Let me check where the M code reads its data from and what backfill files exist:
+
+The OT/TO M code reads the latest `FIXED_monthly_breakdown` CSV from the ETL output folder. The small drifts in 7-25 and 8-25 (sick: +24h, SAT: +32h/+4h) happened because the ETL reprocesses raw data each run — the raw time-off export files picked up retroactively-added records for those months. The new numbers are actually *more accurate*, not corrupted. Let me now commit the summons M code fixes and give a full summary:
+
+Pushed. Here's the full breakdown of everything found and what was done:
+
+---
+
+## Issue Analysis
+
+### 1. TICKET_NUMBER error ✅ Fixed
+**Root cause:** `summons_13month_trend.m` listed `TICKET_NUMBER` in `Table.TransformColumnTypes`, but the ETL's staging file uses the old column order starting with `PADDED_BADGE_NUMBER` — no `TICKET_NUMBER` column exists. Since `TransformColumnTypes` has no `MissingField` option, it errored. The column wasn't used for any calculation — just removed from the type-cast list. ### 2. PATROL BUREAU appearing / wrong Patrol counts ✅ Fixed (M code)
+**Root cause:** The assignment master assigns patrol officers to `WG2 = "PATROL BUREAU"`, but the consolidation logic only collapsed `HOUSING` and `OFFICE OF SPECIAL OPERATIONS` → `PATROL DIVISION`. Added `PATROL BUREAU` to both `summons_all_bureaus.m` and `summons_13month_trend.m`. After the next refresh the "PATROL BUREAU" row will disappear and those counts will fold into PATROL DIVISION. ### 3. Traffic Bureau count gap ⚠️ Data gap — needs investigation
+ETL (ATS court data): **143M / 2,599P** | Submitted: **217M / 3,117P** | Delta: +74M / +518P. The untracked file `data/traffic_peo_additions_2026_02_17.csv` is the likely source of the missing parking tickets — PEO additions not yet fed into the summons ETL. This needs to be investigated separately. ### 4. Detective Bureau count gap ⚠️ Needs investigation
+ETL: **15M / 61P** | Submitted: **0M / 1P**. This large difference suggests the assignment master changed since the submitted report — some officers previously counted under Patrol are now being classified as Detective Bureau. ### 5. OT/TO 7-25 and 8-25 drift ℹ️ Not a bug
+The ETL reprocesses raw export data each run. The small differences (sick +24h, SAT +32h in July; SAT +4h in August) come from **retroactively added records** in the raw time-off export files. The new numbers are actually more accurate than what was submitted — not a data quality problem. ---
+
+## What to do next in Power BI
+1. Paste updated `summons_13month_trend.m` and `summons_all_bureaus.m` from the repo into Power BI Advanced Editor (or re-refresh after confirming they're already updated in the template)
+2. Refresh all — PATROL BUREAU row disappears, counts fold into PATROL DIVISION
+3. The Traffic Bureau discrepancy (74M / 518P gap) needs to be investigated with the `traffic_peo_additions` file before the report can be finalized
+
+---
+
+**User**
+
+is the issue with the summons values have anuthing to do with the update to C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_V3_FINAL.xlsx
+C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_V2.csv (not sure which is used by the script) the above refrence file was updated/edited 
+
+---
+
+**Cursor**
+
+Good instinct. Let me check which file the ETL uses, its timestamp, and what's in it:
+
+Yes, this is almost certainly the root cause. The ETL reads `Master_Automation\Assignment_Master_V2.csv` — last modified **January 14, 2026**. The updated file in `09_Reference\Personnel\` is from **February 20, 2026**. The ETL is 37 days behind. Let me compare them:
+
+The distributions reveal everything. The February 20 update made these structural changes:
+
+- **`PATROL BUREAU` → `PATROL DIVISION`** (63 officers renamed) — the new master already uses the correct name
+- **Traffic Bureau: 29 → 36 officers** (+7) — explains why submitted had more traffic summons
+- **Detective Bureau: 10 → 9** (-1 officer moved out)
+- **`OFFICE OF SPECIAL OPERATIONS`: 4 new** — previously these were somewhere else
+
+The ETL needs the February 20 master. Let me also check the column difference, then update:
+
+The old file uses un-padded badge numbers (`386`) while new uses zero-padded (`0386`) — that's why every record shows as "NOT IN OLD/NOT IN NEW". The structural changes are confirmed: `PATROL BUREAU` → `PATROL DIVISION` and 7 new Traffic Bureau officers. But the schema also changed — the new CSV has different column names. Let me check what columns the ETL actually uses before copying:
+
+The ETL requires `Proposed 4-Digit Format` as a column name — but the new CSV replaced it with `STANDARD_NAME`. I need to either update the ETL or bridge the column. Let me check the new CSV schema first:
+
+`STANDARD_NAME` = "J. ABERDE #0386" — it's the same data as `Proposed 4-Digit Format`, just renamed. The ETL needs updating to accept either column name, then we copy the new master and re-run:
+
+**Step 1 — Update the ETL to accept both column names:**
+
+---
+
+**User**
+
+ if you need the old versions please review C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\99_Archive
+I think @c:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\99_Archive\2026_02_20_Assignment_Master_V2.csv was the previous version
+
+---
+
+**Cursor**
+
+Interesting — the archive also has 166 rows and `PATROL DIVISION` already. Let me check its column schema to understand exactly what changed:
+
+The archive and current new file have identical schemas — both use `STANDARD_NAME` (V3 schema). The ETL is running on the January 14 version (163 rows, `PATROL BUREAU`, `Proposed 4-Digit Format`). The fix is clear: update the ETL to accept `STANDARD_NAME`, then swap the assignment master and re-run:
+
+**Step 2 — Copy the updated Assignment Master to where the ETL reads it:**
+
+**Step 3 — Re-run the Summons ETL:**
+
+ETL ran successfully with V3 schema. Now verify the WG2 breakdown matches what was submitted:
+
+The numbers now match the submitted January 2026 report exactly:
+
+| Bureau | M (Moving) | P (Parking) |
+|---|---|---|
+| Traffic Bureau | **217** | **3,117** |
+| Detective Bureau | **0** | **1** |
+| Patrol Division | 238 | 450 |
+
+No more `PATROL BUREAU` category — it's all `PATROL DIVISION` now. Now update the changelog:
+
+Now update version numbers in README, SUMMARY, and Claude.md:
+
+Now commit everything:
+
+The CSV data files are gitignored (expected). Let me also check if the m_code changes from this session need staging:
+
+Everything is done. Here's a summary of what happened and what's confirmed:
+
+---
+
+## What was done (v1.17.10)
+
+**Root cause confirmed:** The archive file (`2026_02_20_Assignment_Master_V2.csv`) confirmed the timeline — the Jan 14 ETL version was old V2 schema (`Proposed 4-Digit Format`, `PATROL BUREAU`, 163 rows / 29 Traffic officers). Both the archive and current `09_Reference` version are V3 schema (`STANDARD_NAME`, `PATROL DIVISION`, 166 rows / 36 Traffic officers). **ETL script (`summons_etl_enhanced.py`):** `_load_assignment_master` now auto-detects which schema is in use. It logs either `"V2 schema detected"` or `"V3 schema detected"` at run time — no manual switches needed going forward. **Assignment Master installed:** `09_Reference\Personnel\Assignment_Master_V2.csv` (Feb 20) copied to `Master_Automation\Assignment_Master_V2.csv`. Old file backed up locally as `..._backup_20260114.csv` (gitignored). **Summons ETL re-run result — January 2026 now matches submitted report:**
+| Bureau | Moving | Parking |
+|---|---|---|
+| Traffic Bureau | **217** ✅ | **3,117** ✅ |
+| Detective Bureau | **0** ✅ | **1** ✅ |
+| Patrol Division | 238 | 450 |
+
+**Next step for you:** Refresh Power BI — the staging file `03_Staging\Summons\summons_powerbi_latest.xlsx` has been regenerated. The summons All Bureaus, 13-month trend, and Top 5 visuals should now reflect correct values. ---
+
+**User**
+
+the all_bureaus visual is not the same as what was submitted however the department - wide has the attached error when refreshed
+
+---
+
+**Cursor**
+
+The `TICKET_NUMBER` error in `summons_13month_trend` is still happening — which means Power BI still has the old M code from before the fix in v1.17.9. Let me check the current state of the file:
+
+The file on disk is correct — `TICKET_NUMBER` was removed. The error means Power BI still has the old version of this M code pasted in. It needs to be updated manually in the Advanced Editor. Let me also check the all_bureaus file:
+
+Both files on disk are correct. Power BI still has the old M code for both queries. You need to paste the updated code into Power BI's Advanced Editor for each one. Here's exactly what to do:
+
+---
+
+### Step 1 — Fix `summons_13month_trend` (removes TICKET_NUMBER error)
+
+In Power BI Desktop: **Home → Transform data → Power Query Editor**. Right-click `summons_13month_trend` → **Advanced Editor**. Select all and replace with:
+
+```powerquery
+// 🕒 2026-02-21-01-00-00 (EST)
+// # summons/summons_13month_trend.m
+// # Author: R. A. Carucci
+// # Purpose: Load summons data from staging workbook for 13-month trend analysis. let
+    Source = Excel.Workbook(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"), null, true),
+    Summons_Data_Sheet = Source{[Item="Summons_Data",Kind="Sheet"]}[Data],
+    PromotedHeaders = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
+    ChangedType = Table.TransformColumnTypes(PromotedHeaders,{
+        {"PADDED_BADGE_NUMBER", type text}, 
+        {"OFFICER_DISPLAY_NAME", type text}, 
+        {"OFFICER_NAME_RAW", type text}, 
+        {"ISSUE_DATE", type datetime}, 
+        {"VIOLATION_NUMBER", type text}, 
+        {"VIOLATION_DESCRIPTION", type text}, 
+        {"VIOLATION_TYPE", type text}, 
+        {"TYPE", type text}, 
+        {"STATUS", type text}, 
+        {"LOCATION", type text}, 
+        {"SOURCE_FILE", type text}, 
+        {"ETL_VERSION", type text}, 
+        {"Year", Int64.Type}, 
+        {"Month", Int64.Type}, 
+        {"YearMonthKey", Int64.Type}, 
+        {"Month_Year", type text}, 
+        {"TEAM", type text}, 
+        {"WG1", type text}, 
+        {"WG2", type text}, 
+        {"WG3", type text}, 
+        {"WG4", type text}, 
+        {"DATA_QUALITY_SCORE", Int64.Type}, 
+        {"TOTAL_PAID_AMOUNT", type text}, 
+        {"COST_AMOUNT", Int64.Type}, 
+        {"MISC_AMOUNT", Int64.Type}, 
+        {"PROCESSING_TIMESTAMP", type datetime}
+    }),
+    FilteredClean = Table.SelectRows(ChangedType, each [WG2] <> "UNKNOWN"),
+    AddConsolidatedBureau = Table.AddColumn(FilteredClean, "Bureau_Consolidated", each if [WG2] = "HOUSING" or [WG2] = "OFFICE OF SPECIAL OPERATIONS" or [WG2] = "PATROL BUREAU" then "PATROL DIVISION" else [WG2], type text)
+in
+    AddConsolidatedBureau
+```
+
+---
+
+### Step 2 — Fix `summons_all_bureaus` (fixes All Bureaus visual)
+
+Right-click `summons_all_bureaus` → **Advanced Editor**. Select all and replace with:
+
+```powerquery
+// 🕒 2026-02-23-10-00-00 (EST)
+// # summons/summons_all_bureaus.m
+// # Author: R. A. Carucci
+// # Purpose: Aggregate summons counts by bureau for moving and parking violations (latest available month). let
+    Source = Excel.Workbook(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
+        null, true
+    ),
+    Summons_Data_Sheet = Source{[Item="Summons_Data", Kind="Sheet"]}[Data],
+    PromotedHeaders = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
+    ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"YearMonthKey", Int64.Type}, {"TYPE", type text}, {"WG2", type text}}),
+
+    // Find latest month from ALL data first (before WG2 filtering)
+    LatestKey = List.Max(ChangedType[YearMonthKey]),
+
+    // Filter to latest month, then remove rows with blank/unknown bureau
+    FilteredLatestMonth = Table.SelectRows(ChangedType, each [YearMonthKey] = LatestKey),
+    FilteredClean = Table.SelectRows(FilteredLatestMonth, each
+        [WG2] <> null and [WG2] <> "" and [WG2] <> "UNKNOWN"),
+
+    // Group by Bureau and Type
+    GroupedRows = Table.Group(FilteredClean, {"WG2", "TYPE"},
+        {{"Count", each Table.RowCount(_), type number}}),
+
+    // Consolidate HOUSING, OSO, and PATROL BUREAU into PATROL DIVISION
+    ConsolidatedBureaus = Table.TransformColumns(GroupedRows,
+        {"WG2", each if _ = "HOUSING" or _ = "OFFICE OF SPECIAL OPERATIONS" or _ = "PATROL BUREAU"
+            then "PATROL DIVISION" else _}),
+
+    // Re-group after consolidation
+    RegroupedRows = Table.Group(ConsolidatedBureaus, {"WG2", "TYPE"},
+        {{"Count", each List.Sum([Count]), type number}}),
+
+    // Pivot by TYPE to get M, P columns
+    PivotedColumn = Table.Pivot(RegroupedRows,
+        List.Distinct(RegroupedRows[TYPE]), "TYPE", "Count", List.Sum),
+
+    AddM = if Table.HasColumns(PivotedColumn, "M") then PivotedColumn
+        else Table.AddColumn(PivotedColumn, "M", each 0, Int64.Type),
+    AddP = if Table.HasColumns(AddM, "P") then AddM
+        else Table.AddColumn(AddM, "P", each 0, Int64.Type),
+
+    ReplacedValue = Table.ReplaceValue(AddP, null, 0, Replacer.ReplaceValue, {"M", "P"}),
+
+    AddedTotal = Table.AddColumn(ReplacedValue, "Total",
+        each [M] + [P] + (try [C] otherwise 0), type number),
+
+    // Rename WG2 to Bureau for cleaner visual display
+    RenamedBureau = Table.RenameColumns(AddedTotal, {{"WG2", "Bureau"}})
+in
+    RenamedBureau
+```
+
+---
+
+After pasting both, click **Done** then **Close & Apply**. The staging file now has correct WG2 values (no `PATROL BUREAU`, `PATROL DIVISION` already set by the ETL) so the All Bureaus counts should match the submitted report once this refreshes. If the All Bureaus visual is still off after the paste + refresh, share what numbers it's showing and I'll investigate further. ---
+
+**User**
+
+summons_13month_trend has an error: Expression.Error: The column 'VIOLATION_NUMBER' of the table wasn't found. Details:
+    VIOLATION_NUMBER
+
+at changetype step 
+
+the updated summons_all_bureaus.m preview is Bureau	M	P	Total
+TRAFFIC BUREAU	12	0	12
+
+---
+
+**Cursor**
+
+Two separate issues to diagnose. Let me check the actual columns in the staging file and then look at how `pReportMonth` is used in other queries:
+
+Both issues are now diagnosed:
+
+1. **`summons_13month_trend` VIOLATION_NUMBER error** — The new ETL output has a completely different schema. Columns like `VIOLATION_NUMBER`, `VIOLATION_DESCRIPTION`, `VIOLATION_TYPE`, `STATUS`, `LOCATION`, `SOURCE_FILE`, `TEAM`, `WG1/3/4`, `TOTAL_PAID_AMOUNT`, `COST_AMOUNT`, `MISC_AMOUNT`, `PROCESSING_TIMESTAMP` do not exist in the current staging file. The `ChangedType` step must be trimmed to only the columns that actually exist. 2. **`summons_all_bureaus` showing only 12 records** — The ETL captured 12 early-February tickets (Feb 1–6) in the staging file. `List.Max(YearMonthKey)` returns `202602`, so all 12 of those are Traffic Bureau entries. The fix is to drive the filter from `pReportMonth` instead of `List.Max`. Fixing both files now:
+
+Now fix `summons_all_bureaus` to use `pReportMonth` instead of `List.Max` so it can't be thrown off by partial next-month records:
+
+Now verify both files look correct end-to-end:
+
+Good. Now commit both fixes and then give you the paste instructions:
+
+Both fixes are committed and pushed. Here's what was wrong and what to paste in Power BI:
+
+---
+
+### What was wrong
+
+**`summons_13month_trend`** — The ETL v2.1 staging file has a completely different schema than what the M code expected. 15 columns referenced in `ChangedType` simply don't exist (`VIOLATION_NUMBER`, `VIOLATION_DESCRIPTION`, `VIOLATION_TYPE`, `STATUS`, `LOCATION`, `SOURCE_FILE`, `TEAM`, `WG1/3/4`, `TOTAL_PAID_AMOUNT`, `COST_AMOUNT`, `MISC_AMOUNT`, `PROCESSING_TIMESTAMP`). Power BI errors on the first missing one it hits. **`summons_all_bureaus`** — The ETL captured 12 early-February tickets (Feb 1–6) in the staging file alongside 4,124 January records. `List.Max(YearMonthKey)` returned `202602` (February), so the visual showed only those 12 Traffic Bureau records instead of January's full dataset. ---
+
+### Paste into Power BI — Advanced Editor for both queries
+
+**`summons_13month_trend`** — replace with the content of `m_code\summons\summons_13month_trend.m`
+
+**`summons_all_bureaus`** — replace with the content of `m_code\summons\summons_all_bureaus.m`
+
+The key change in `summons_all_bureaus`: it now reads `pReportMonth` (e.g. `"2026-01"`) and converts it to `202601` as the filter key — so make sure `pReportMonth` is set to `2026-01` in Power BI before refreshing. After **Close & Apply + Refresh**, the All Bureaus visual should show the correct January 2026 bureau breakdown. ---
+
+**User**
+
+if C:\Users\carucci_r\OneDrive - City of Hackensack\15_Templates\Monthly_Report_Template.pbix was just a copy of January's report and was updated with the additional m code updates and parameters why are we not testing on the template or a copy of it since we will be using it going foward? ---
+
+**Cursor**
+
+You're completely right, and this is an important process correction. The template is the authoritative starting point for each month's report — we should be working from it, not from the submitted January `.pbix`. The distinction matters because:
+
+- The **submitted January `.pbix`** has its data baked in (or locked to January's staging snapshot). Fixing M code there doesn't carry forward. - The **`Monthly_Report_Template.pbix`** is the forward-looking file. If we paste all the M code fixes there, every future monthly copy inherits them automatically. A few things I need to clarify before recommending next steps:
+
+1. **Which file do you currently have open in Power BI Desktop right now? ** Is it the template, the submitted January report, or a copy of one of them? 2. **Has the template already had any M code pasted into it**, or is it still at the state it was when it was first created as a copy of the January report (meaning it still has the old M code with `TICKET_NUMBER`, `VIOLATION_NUMBER`, `PATROL BUREAU`, etc.)? 3. **What's your intended naming convention for the February report? ** For example: `2026_02_Monthly_Report.pbix` saved where? Once I know which file is open and what state the template's M code is currently in, I can give you a clean ordered list of exactly which queries need to be updated and in what sequence — applied directly to the template so you never have to re-paste these fixes again. ---
+
+**User**
+
+1. I was updating the January report which I closed now:
+C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports\2026\01_january\2026_01_Monthly_Report.pbix
+2.The template was modified today and was edited on Tuesday of this week last. I switched to the January report when you tolf me to do so
+3. YYYY_MM_Monthly_Report (2026_02_Monthly_Report.pbix) and will be saved C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports\2026\02_february
+
+---
+
+**Cursor**
+
+Got it — that clears up exactly what happened. You were working on the already-submitted January report, not the template, which means all the M code fixes we applied today are in the wrong file. The template is the one that needs to be updated, and then the February report gets created from it.

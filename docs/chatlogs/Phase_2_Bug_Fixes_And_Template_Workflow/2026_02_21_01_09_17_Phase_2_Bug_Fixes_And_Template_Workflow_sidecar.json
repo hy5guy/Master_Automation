@@ -1,0 +1,192 @@
+{
+  "source_file": "Phase_2_Bug_Fixes_And_Template_Workflow.md",
+  "source_path": "C:\\_chunker\\02_data\\Phase_2_Bug_Fixes_And_Template_Workflow.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Phase_2_Bug_Fixes_And_Template_Workflow\\2026_02_21_01_09_17_Phase_2_Bug_Fixes_And_Template_Workflow.origin.json",
+  "created_at": "2026_02_21_01_09_17",
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "files",
+      "m_code",
+      "all",
+      "code",
+      "file",
+      "now"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Master automation phase 2 remediation pack\n_Exported on 2/21/2026 at 01:08:58 EST from Cursor (2.5.20)_\n\n---\n\n**User**\n\n@c:\\Users\\carucci_r\\.cursor\\plans\\schema_md_update_v2_b6a2c182.plan.md # Claude Prompt. Master_Automation Phase 2 R...",
+    "first_line": "# Master automation phase 2 remediation pack"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-21T01:09:17+00:00_Phase_2_Bug_Fixes_And_Template_Workflow_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "code",
+        "conversation",
+        "data",
+        "docs",
+        "excel",
+        "export",
+        "file",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "power",
+        "powershell",
+        "python",
+        "sql",
+        "training",
+        "visual"
+      ],
+      "key_terms": [
+        "file",
+        "visual",
+        "export",
+        "code",
+        "power",
+        "csv"
+      ],
+      "summary": "# Master automation phase 2 remediation pack\n_Exported on 2/21/2026 at 01:08:58 EST from Cursor (2.5.20)_\n\n---\n\n**User**\n\n@c:\\Users\\carucci_r\\.cursor\\plans\\schema_md_update_v2_b6a2c182.plan.md # Claude Prompt.",
+      "char_length": 12961,
+      "byte_length": 13183
+    },
+    {
+      "chunk_id": "2026-02-21T01:09:17+00:00_Phase_2_Bug_Fixes_And_Template_Workflow_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "ai",
+        "code",
+        "conversation",
+        "data",
+        "docs",
+        "excel",
+        "export",
+        "file",
+        "files",
+        "it-ops",
+        "json",
+        "legal",
+        "m_code",
+        "markdown",
+        "police",
+        "powershell",
+        "python",
+        "sql",
+        "training"
+      ],
+      "key_terms": [
+        "m_code",
+        "files",
+        "file",
+        "export",
+        "all",
+        "code"
+      ],
+      "summary": "## Output format rules for this chat\n- Provide:\n  1) A step-by-step execution plan.",
+      "char_length": 27142,
+      "byte_length": 27700
+    },
+    {
+      "chunk_id": "2026-02-21T01:09:17+00:00_Phase_2_Bug_Fixes_And_Template_Workflow_chunk3",
+      "chunk_index": 3,
+      "file": "chunk_00002.txt",
+      "tags": [
+        "ai",
+        "code",
+        "conversation",
+        "data",
+        "deploy",
+        "docs",
+        "excel",
+        "files",
+        "it-ops",
+        "json",
+        "legal",
+        "m_code",
+        "markdown",
+        "police",
+        "powershell",
+        "python",
+        "sql",
+        "training"
+      ],
+      "key_terms": [
+        "m_code",
+        "deploy",
+        "files",
+        "all",
+        "code",
+        "now"
+      ],
+      "summary": "It was documented alongside the same issue affecting \"Engagement Initiatives by Bureau.\" From the CHANGELOG and `docs/ENGAGEMENT_INITIATIVES_BLANK_EXPORT_INVESTIGATION.md`, the fix requires modifying the DAX or Power BI filter on that vi...",
+      "char_length": 23017,
+      "byte_length": 23402
+    },
+    {
+      "chunk_id": "2026-02-21T01:09:17+00:00_Phase_2_Bug_Fixes_And_Template_Workflow_chunk4",
+      "chunk_index": 4,
+      "file": "chunk_00003.txt",
+      "tags": [
+        "ai",
+        "code",
+        "conversation",
+        "data",
+        "docs",
+        "excel",
+        "fixed",
+        "it-ops",
+        "json",
+        "legal",
+        "list",
+        "markdown",
+        "month_year",
+        "police",
+        "powershell",
+        "python",
+        "sql",
+        "template",
+        "training"
+      ],
+      "key_terms": [
+        "list",
+        "max",
+        "all",
+        "month_year",
+        "template",
+        "fixed"
+      ],
+      "summary": "This causes the query to filter for the wrong month's data instead of the most recent completed month.",
+      "char_length": 11210,
+      "byte_length": 11388
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

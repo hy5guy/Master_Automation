@@ -1,0 +1,102 @@
+---
+
+**No change to pipeline behavior**  
+`restore_fixed_from_backfill.py` and `overtime_timeoff_with_backfill.py` already support Long and `Sum of Value`. The normalizer is for:
+
+- Putting the export in the right folder with the right name, and  
+- Cleaning period labels so any future consumer (or manual checks) see consistent MM-YY values. You can use the normalizer after each export, or hook it (or a simple file move) into your watchdog/organize script so the “Monthly Accrual and Usage Summary” export is always placed and named correctly for the next pipeline run. ---
+
+**User**
+
+what do i do to get the missing data
+
+---
+
+**Cursor**
+
+
+Here’s how to get the missing data, depending on **what** is missing. ---
+
+### 1. **One month shows 0 or blank (e.g. 01-26, or a recent month)**
+
+- **Usage** (Comp, Sick, SAT, IOD, Military) comes from the **Time Off** export for that month. - Check: `05_EXPORTS\_Time_Off\export\month\{year}\` (or `export\yearly\{year}\`) for a file like `YYYY_MM_timeoffactivity.xlsx` (or `.csv`). - The file must contain rows for that month (correct year/dates). If it was wrong (e.g. 2022 data in a 2026 file), export again from the source system and replace the file. - **Accruals** (Accrued Comp / Overtime) come from the **Overtime** export and v10. - Same idea: correct `YYYY_MM_otactivity.xlsx` (or similar) in `05_EXPORTS\_Overtime\...` for that month. - Then **re-run the pipeline** so FIXED and monthly_breakdown are rebuilt:
+  ```powershell
+  cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+  python scripts\overtime_timeoff_with_backfill.py
+  ```
+- Then **refresh Power BI** (Refresh All or refresh the ___Overtime_Timeoff_v3 query). ---
+
+### 2. **Older months (e.g. 12-24, 01-25) are missing or wrong**
+
+- Those come from **backfill**, not from the current month’s export. - Make sure you have a backfill CSV that includes those months (e.g. the 2025_12 export with 12-24 through 12-25) in:
+  `PowerBI_Date\Backfill\2025_12\vcs_time_report\2025_12_Monthly Accrual and Usage Summary.csv`
+- Then **re-run the pipeline** (same command as above). It will restore FIXED and backfill monthly_breakdown from that file. - Then **refresh Power BI**. ---
+
+### 3. **A whole time category is “missing” (e.g. Vacation)**
+
+- **Vacation (Hours)** is left out on purpose in the M code, so it won’t appear in the visual. That’s by design, not missing data. ---
+
+### 4. **Quick checklist**
+
+| Step | Action |
+|------|--------|
+| 1 | Identify which **month(s)** and **category/categories** (usage vs accrual) are missing. |
+| 2 | For that month: confirm the right **Overtime** and **Time Off** export files exist and have the correct dates. |
+| 3 | Confirm **backfill** is in place for history (e.g. 2025_12 backfill for 12-24…12-25). |
+| 4 | Run: `python scripts\overtime_timeoff_with_backfill.py` |
+| 5 | **Refresh Power BI** (___Overtime_Timeoff_v3 or Refresh All). |
+
+If you say exactly which month and which rows (e.g. “01-26 usage is 0” or “12-24 is blank”), the steps can be narrowed to that case. ---
+
+**User**
+
+update local git and all docs
+
+---
+
+**Cursor**
+
+
+Adding a CHANGELOG entry and updating SUMMARY and README, then staging and committing. Staging changes and committing. Summary of what was updated and committed:
+
+---
+
+### Docs updated
+
+- **CHANGELOG.md** – Added **[1.13.0] - 2026-02-10**: backfill data, normalizer script, CONSOLIDATED/staging M, new docs, and fixes (Time_Category, “matches no exports”). - **SUMMARY.md** – Version set to 1.13.0, “Last updated” to 2026-02-10, and an Overtime TimeOff subsection for v1.13.0 (backfill, normalizer, CONSOLIDATED M, doc references). Remaining “Version: 1.12.0” references updated to 1.13.0. ---
+
+### Git commit
+
+- **Branch:** `docs/update-20260114-1447`
+- **Commit:** `af49ce0` — **v1.13.0 – Overtime/TimeOff visual backfill, normalizer, docs**
+- **19 files changed**, 1557 insertions, 82 deletions. **Included in commit:**
+
+- `CHANGELOG.md`, `SUMMARY.md`
+- `m_code/`: `_benchmark2026_02_09.m`, `2026_02_10_Overtime_Timeoff_v3.m`, `2026_02_10_Overtime_Timeoff_v3_CONSOLIDATED.m`, `2026_02_10_Overtime_Timeoff_v3_STAGING_ONLY.m`, `2026_02_10____Overtime_Timeoff_v3.m`, `OT_FIXED_Staged.m`, `OT_MonthlyBreakdown_Staged.m`, `OT_PriorAnchor_Staged.m`
+- `scripts/normalize_visual_export_for_backfill.py`
+- `data/backfill/`: `README.md`, `2025_12_Monthly_Accrual_and_Usage_Summary.csv`, `backfill_from_image_11-25_only.csv`, `Monthly_Accrual_and_Usage_Summary_backfill_from_image.csv`
+- `docs/`: `OVERTIME_TIMEOFF_RERUN_AFTER_BACKFILL.md`, `VISUAL_BACKFILL_AND_EXPORTS_FINDINGS_2026_02_10.md`, `VISUAL_EXPORT_COMPARISON_2026_02_10.md`, `VISUAL_EXPORT_NORMALIZE_AND_BACKFILL.md`
+
+**Not committed (still untracked):**
+
+- `data/visual_export/2026_12/*.csv` (e.g. 2025_12 and 2026_02_10 visual exports)
+- `docs/WATCHDOG_OT_TIMEOFF_CONVERSION_AND_PATHS.md`
+- `docs/summary.md`, `docs/image/...`
+
+If you want the visual export CSVs or any of those docs in the repo, we can add and commit them in a follow-up commit. ---
+
+**User**
+
+I'm preparing to export this chat. Please generate a descriptive filename that summarizes the main topic or task of this conversation. Requirements:
+• 4-8 words
+• Title Case (capitalize major words)
+• Replace spaces with underscores
+• Include .md extension
+• No dates or special characters
+
+Output only the filename, with the suffix .md and nothing else. ---
+
+**Cursor**
+
+
+Overtime_TimeOff_Visual_Backfill_And_M_Code.md

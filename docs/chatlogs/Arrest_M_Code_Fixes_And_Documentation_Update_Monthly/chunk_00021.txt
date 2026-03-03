@@ -1,0 +1,874 @@
+Updated Target Month
+
+**Changed from:** Previous month (December 2025)  
+**Changed to:** November 2025 (matches actual data in file)
+
+**In `___Top_5_Arrests_FIXED.m`:**
+```m
+// Use November 2025 as target (most recent data in file)
+TargetYear = 2025,
+TargetMonth = 11,
+MonthYearDisplay = "November 2025",
+```
+
+**In `___Arrest_Categories_FIXED.m`:**
+```m
+// Use November 2025 as target (most recent data in file)
+PrevY = 2025,
+PrevM = 11,
+```
+
+---
+
+## 📋 Files Updated
+
+1. ✅ `m_code/___Top_5_Arrests_FIXED.m`
+   - Enhanced `ToDate` function
+   - Updated target month to November 2025
+
+2. ✅ `m_code/___Arrest_Categories_FIXED.m`
+   - Enhanced `ToDate` function
+   - Updated target month to November 2025
+
+---
+
+## 🎯 Expected Results
+
+After these fixes, the queries should:
+- ✅ Successfully parse Excel serial dates
+- ✅ Filter to November 2025 data
+- ✅ Display results instead of empty tables
+
+**Expected Data:**
+- `___Top_5_Arrests` should show top 5 officers from November 2025
+- `___Arrest_Categories` should show all November 2025 arrests with categories
+
+---
+
+## 🔄 Future Updates
+
+### When December 2025 Data Becomes Available
+
+**Option 1: Use Previous Month Logic (Recommended)**
+Uncomment the previous month logic in both queries:
+```m
+PreviousMonth = Date.AddMonths(Current, -1),
+TargetYear = Date.Year(PreviousMonth),
+TargetMonth = Date.Month(PreviousMonth),
+```
+
+**Option 2: Keep Manual Month Selection**
+Continue manually updating the target month as new data becomes available. ---
+
+## ✅ Testing Checklist
+
+After updating queries in Power BI:
+- [ ] `___Top_5_Arrests` shows top 5 officers
+- [ ] `___Arrest_Categories` shows categorized arrests
+- [ ] Date filtering works correctly
+- [ ] No syntax errors
+- [ ] Data matches raw data preview
+
+---
+
+## 📊 Diagnostic Results Summary
+
+**From Diagnostic Query:**
+- Latest File: `2025_11_Arrests_PowerBI_Ready.xlsx`
+- Total Rows: 53
+- Target Month: December 2025 ❌ (was wrong)
+- Rows After Filter: 0 ❌ (now fixed)
+
+**From ALL_TIME Query:**
+- Shows 5 officers with arrest counts ✅
+- Confirms query logic works ✅
+- Proves date filter was the issue ✅
+
+---
+
+**Status:** ✅ **FIXED - Ready for Testing**
+
+```
+
+## Root cause
+
+1. Date format: The "Arrest Date" column contains Excel serial numbers (45962, 45963, etc. ), not dates. 2. Month mismatch: The query targets December 2025, but the data is November 2025. - File: `2025_11_Arrests_PowerBI_Ready.xlsx`
+   - All rows show `MonthProcessed: "November 2025"`
+   - Query was looking for December 2025 (previous month from January 2026)
+
+## Fixes applied
+
+### 1. Enhanced date parsing
+Updated the `ToDate` function in both queries to handle:
+- Excel serial numbers (45962 = November 1, 2025)
+- Actual date values
+- Text date strings
+
+### 2. Updated target month
+Changed both queries to target November 2025 (matches the data):
+- `___Top_5_Arrests_FIXED.m` → Now targets November 2025
+- `___Arrest_Categories_FIXED.m` → Now targets November 2025
+
+## Expected results
+
+After updating the queries in Power BI:
+- `___Top_5_Arrests` should show the top 5 officers from November 2025
+- `___Arrest_Categories` should show all 53 November 2025 arrests with categories
+- No more empty tables
+
+## Next steps
+
+1. Copy the updated M code from `m_code/___Top_5_Arrests_FIXED.m` and `m_code/___Arrest_Categories_FIXED.m` into Power BI
+2. Refresh the queries
+3. Verify the results show November 2025 data
+
+When December 2025 data becomes available, uncomment the "previous month" logic in both queries (instructions are in the code comments). A summary document is available at `docs/ARREST_QUERIES_FIX_SUMMARY_2026_01_05.md` with details of the changes. ---
+
+**User**
+
+THE ARRESTS FOR 2025 ARE HERE C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Arrest\monthly_export\2025
+12/2025 C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Arrest\monthly_export\2025\2025_12_LAWSOFT_ARREST.xlsx
+
+---
+
+**Cursor**
+
+December 2025 data is available. Checking where the queries look for files and updating them to use December 2025 data:
+
+
+Checking the arrest ETL script to see how it processes files:
+
+
+Updating both queries to use the previous month logic (December 2025) since the data is available. The queries will pick up the latest PowerBI_Ready file once the ETL processes the December file. ```objective-c
+// ___Top_5_Arrests
+// 🕒 2025-01-05-14-30-00
+// Project: Arrest_Analysis/Top_5_Arrest
+// Author: R. A. Carucci
+// Purpose: Fixed Top 5 Officers analysis with dynamic file loading and better error handling
+
+let
+    // ═══ A) Dynamic file discovery ═══════════════════════════════
+    FolderFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"),
+    
+    PowerBIFiles = Table.SelectRows(
+        FolderFiles,
+        each [Extension] = ".xlsx" and Text.Contains([Name], "PowerBI_Ready")
+    ),
+    
+    Sorted = Table.Sort(PowerBIFiles, {{"Date modified", Order.Descending}}),
+
+    // Load the latest file
+    Source = if Table.RowCount(Sorted) > 0 then
+        let
+            LatestFile = Sorted{0}[Content],
+            ExcelData = Excel.Workbook(LatestFile, null, true),
+            FirstSheet = ExcelData{0}[Data]
+        in
+            FirstSheet
+    else
+        error "No Power BI ready files found",
+
+    // ═══ B) Promote headers and handle column names ═══════════════
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+
+    // Check if columns exist and rename safely
+    SafeRename = if Table.HasColumns(Headers, "Officer of Record") then
+        Table.RenameColumns(Headers, {{"Officer of Record", "OfficerOfRecord"}})
+    else if Table.HasColumns(Headers, "Officer_of_Record") then
+        Table.RenameColumns(Headers, {{"Officer_of_Record", "OfficerOfRecord"}})
+    else if Table.HasColumns(Headers, "OfficerOfRecord") then
+        Headers
+    else
+        error "Officer column not found in data",
+
+    SafeRename2 = if Table.HasColumns(SafeRename, "Arrest Date") then
+        Table.RenameColumns(SafeRename, {{"Arrest Date", "ArrestDate"}})
+    else if Table.HasColumns(SafeRename, "Arrest_Date") then
+        Table.RenameColumns(SafeRename, {{"Arrest_Date", "ArrestDate"}})
+    else if Table.HasColumns(SafeRename, "ArrestDate") then
+        SafeRename
+    else
+        error "Arrest Date column not found in data",
+
+    // ═══ C) Calculate previous month with better date handling ════
+    // December 2025 data is now available at:
+    // C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Arrest\monthly_export\2025\2025_12_LAWSOFT_ARREST.xlsx
+    Current = Date.From(DateTime.LocalNow()),
+    PreviousMonth = Date.AddMonths(Current, -1),
+    TargetYear = Date.Year(PreviousMonth),
+    TargetMonth = Date.Month(PreviousMonth),
+    MonthYearDisplay = Date.MonthName(PreviousMonth) & " " & Text.From(TargetYear),
+
+    // ═══ D) Filter to previous month with better error handling ═══
+    // Handle Excel serial dates, actual dates, and text dates
+    ToDate = (x) => 
+        if x = null or x = "" then
+            null
+        else
+            // Try Date.From first (handles Excel serial numbers and dates)
+            try Date.From(x) otherwise
+            // Try converting number to Excel serial date
+            try if Number.From(x) > 0 and Number.From(x) < 1000000 then
+                Date.From(Number.From(x))
+            else
+                null
+            otherwise
+            // Try Date.FromText for text dates
+            try Date.FromText(Text.From(x)) otherwise null,
+
+    PreviousMonthOnly = Table.SelectRows(
+        SafeRename2,
+        each let d = ToDate([ArrestDate]) in d <> null and Date.Year(d) = TargetYear and Date.Month(d) = TargetMonth
+    ),
+
+    // ═══ E) Handle empty results gracefully ═══════════════════════
+    HasData = Table.RowCount(PreviousMonthOnly) > 0,
+
+    VerifyData = if not HasData then
+        #table({"OfficerOfRecord", "ArrestDate", "Officer_Name_Clean", "Arrest_Count", "Month_Year", "Rank", "Source_File"}, {})
+    else
+        PreviousMonthOnly,
+
+    // ═══ F) Clean officer names with simplified logic ═════════════
+    CleanOfficerNames = if not HasData then
+        VerifyData
+    else
+        Table.TransformColumns(
+            VerifyData,
+            {{"OfficerOfRecord", each
+                if _ = null or _ = "" then
+                    "UNKNOWN OFFICER"
+                else
+                    let
+                        original = Text.Upper(Text.Trim(Text.From(_))),
+                        // Remove common prefixes
+                        step1 = Text.Replace(
+                            Text.Replace(
+                                Text.Replace(
+                                    Text.Replace(original, "P.O. ", ""),
+                                    "PO ", ""
+                                ),
+                                "DET. ", ""
+                            ),
+                            "DETECTIVE ", ""
+                        ),
+                        // Clean up whitespace and special characters
+                        step2 = Text.Replace(
+                            Text.Replace(
+                                Text.Replace(
+                                    Text.Replace(
+                                        Text.Replace(step1, "  ", " "),
+                                        " - ", " "
+                                    ),
+                                    "(", ""
+                                ),
+                                ")", ""
+                            ),
+                            "#", ""
+                        ),
+                        // Simple badge number removal - remove trailing 1-4 digit numbers
+                        step3 = Text.Trim(
+                            if Text.Length(step2) > 0 then
+                                let
+                                    words = Text.Split(step2, " "),
+                                    lastWord = if List.Count(words) > 1 then List.Last(words) else "",
+                                    isNumber = try Number.From(lastWord) >= 0 otherwise false,
+                                    isBadgeNumber = Text.Length(lastWord) <= 4 and isNumber,
+                                    cleanWords = if isBadgeNumber then List.RemoveLastN(words, 1) else words
+                                in
+                                    Text.Combine(cleanWords, " ")
+                            else
+                                step2
+                        )
+                    in
+                        if Text.Length(step3) > 0 then step3 else "UNKNOWN OFFICER",
+                type text
+            }}
+        ),
+
+    // ═══ G) Group by officer and count arrests ════════════════════
+    GroupedByOfficer = if not HasData then
+        #table({"OfficerOfRecord", "Arrest_Count"}, {})
+    else
+        Table.Group(
+            CleanOfficerNames,
+            {"OfficerOfRecord"},
+            {{"Arrest_Count", each Table.RowCount(_), Int64.Type}}
+        ),
+
+    // ═══ H) Sort and get top 5 ════════════════════════════════════
+    SortedByCount = if not HasData then
+        GroupedByOfficer
+    else
+        Table.Sort(GroupedByOfficer, {{"Arrest_Count", Order.Descending}}),
+
+    Top5Officers = if not HasData then
+        GroupedByOfficer
+    else
+        Table.FirstN(SortedByCount, 5),
+
+    // ═══ I) Add metadata and formatting ═══════════════════════════
+    WithMonthYear = Table.AddColumn(Top5Officers, "Month_Year", each MonthYearDisplay, type text),
+
+    WithRanking = Table.AddIndexColumn(WithMonthYear, "Rank", 1, 1, Int64.Type),
+
+    // Rename for final output
+    FinalRenamed = Table.RenameColumns(WithRanking, {{"OfficerOfRecord", "Officer_Name_Clean"}}),
+
+    // ═══ J) Final type enforcement ════════════════════════════════
+    TypedData = Table.TransformColumnTypes(
+        FinalRenamed,
+        {
+            {"Officer_Name_Clean", type text},
+            {"Arrest_Count", Int64.Type},
+            {"Month_Year", type text},
+            {"Rank", Int64.Type}
+        }
+    ),
+
+    // ═══ K) Add source file info for debugging ════════════════════
+    WithSourceInfo = if Table.RowCount(Sorted) > 0 then
+        Table.AddColumn(TypedData, "Source_File", each Sorted{0}[Name], type text)
+    else
+        TypedData
+
+in
+    WithSourceInfo
+
+```
+
+```objective-c
+// ___Arrest_Categories
+// 🕒 2025-01-05-14-30-00
+// Project: Arrest_Analysis/Arrest_Categories
+// Author: R. A. Carucci
+// Purpose: Simplified M Code that relies on Python preprocessing for geographic data
+
+let
+    // ═══ A) Load latest Power BI ready file ═══════════════════════
+    FolderFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"),
+    
+    PowerBIFiles = Table.SelectRows(
+        FolderFiles,
+        each [Extension] = ".xlsx" and Text.Contains([Name], "PowerBI_Ready")
+    ),
+    
+    Sorted = Table.Sort(PowerBIFiles, {{"Date modified", Order.Descending}}),
+    
+    // Load the latest file
+    Source = if Table.RowCount(Sorted) > 0 then
+        Excel.Workbook(Sorted{0}[Content], null, true){0}[Data]
+    else
+        error "No Power BI ready files found",
+
+    // ═══ B) Basic data cleaning ═══════════════════════════════════
+    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+    
+    // Filter to previous month - handle multiple date column name variations
+    // Handle Excel serial dates, actual dates, and text dates
+    ToDate = (x) => 
+        if x = null or x = "" then
+            null
+        else
+            // Try Date.From first (handles Excel serial numbers and dates)
+            try Date.From(x) otherwise
+            // Try converting number to Excel serial date
+            try if Number.From(x) > 0 and Number.From(x) < 1000000 then
+                Date.From(Number.From(x))
+            else
+                null
+            otherwise
+            // Try Date.FromText for text dates
+            try Date.FromText(Text.From(x)) otherwise null,
+    
+    // December 2025 data is now available at:
+    // C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Arrest\monthly_export\2025\2025_12_LAWSOFT_ARREST.xlsx
+    Prev = Date.AddMonths(Date.From(DateTime.LocalNow()), -1),
+    PrevY = Date.Year(Prev),
+    PrevM = Date.Month(Prev),
+    
+    // Find the date column (handle variations)
+    DateColumnName = if Table.HasColumns(Headers, "Arrest Date") then
+        "Arrest Date"
+    else if Table.HasColumns(Headers, "Arrest_Date") then
+        "Arrest_Date"
+    else if Table.HasColumns(Headers, "ArrestDate") then
+        "ArrestDate"
+    else if Table.HasColumns(Headers, "Date") then
+        "Date"
+    else
+        null,
+    
+    DateFiltered = if DateColumnName = null then
+        #table({"Name", "Age", "Address", "Charge", "Arrest Date"}, {})
+    else
+        Table.SelectRows(
+            Headers,
+            each let d = ToDate(Record.Field(_, DateColumnName)) in d <> null and Date.Year(d) = PrevY and Date.Month(d) = PrevM
+        ),
+
+    // ═══ C) Handle empty results gracefully ═══════════════════════
+    HasData = Table.RowCount(DateFiltered) > 0,
+    
+    // Use Python-processed geographic data directly
+    WithHomeCategory = if not HasData then
+        #table({"Name", "Age", "Address", "Charge", "Arrest Date", "Home_Category_Final"}, {})
+    else
+        Table.AddColumn(
+            DateFiltered,
+            "Home_Category_Final",
+            each
+                // Use Python's Home_Category if available, otherwise fallback
+                if Table.HasColumns(DateFiltered, "Home_Category") then
+                    [Home_Category]
+                else if Text.Contains(Text.Upper([Address] ? ? ""), "HACKENSACK") then
+                    "Local"
+                else
+                    "Check Data",
+            type text
+        ),
+
+    // ═══ D) Simple charge categorization ═══════════════════════════
+    AddChargeCategory = if not HasData then
+        WithHomeCategory
+    else
+        Table.AddColumn(
+            WithHomeCategory,
+            "ChargeCategory",
+            each
+                let charge = Text.Upper([Charge] ? ? "") in
+                if Text.Contains(charge, "ASSAULT") then "Assault"
+                else if Text.Contains(charge, "SHOPLIFTING") then "Theft"
+                else if Text.Contains(charge, "BURGLARY") then "Burglary"
+                else if Text.Contains(charge, "ROBBERY") then "Robbery"
+                else if Text.Contains(charge, "WARRANT") then "Warrant"
+                else if Text.Contains(charge, "DWI") then "DWI"
+                else if Text.Contains(charge, "DRUG") then "Drug Related"
+                else if Text.Contains(charge, "WEAPON") then "Weapons"
+                else "Other",
+            type text
+        ),
+
+    // ═══ E) Data quality indicators ═══════════════════════════════
+    AddDataQuality = if not HasData then
+        Table.AddColumn(AddChargeCategory, "DataQualityScore", each 0, type number)
+    else if Table.HasColumns(AddChargeCategory, "DataQualityScore") then
+        AddChargeCategory
+    else
+        Table.AddColumn(
+            AddChargeCategory,
+            "DataQualityScore",
+            each
+                (if [Name] <> null and [Name] <> "" then 1 else 0) +
+                (if [Age] <> null and Number.From([Age] ? ? 0) > 0 then 1 else 0) +
+                (if [Address] <> null and [Address] <> "" then 1 else 0) +
+                (if [Charge] <> null and [Charge] <> "" then 1 else 0) +
+                (if Table.HasColumns(AddChargeCategory, "ZIP") and [ZIP] <> null then 1 else 0),
+            type number
+        ),
+
+    // ═══ F) Final type enforcement ═══════════════════════════════
+    TypedData = if not HasData then
+        AddDataQuality
+    else
+        Table.TransformColumnTypes(
+            AddDataQuality,
+            {
+                {"Age", type number},
+                {"DataQualityScore", type number},
+                {DateColumnName, type date}
+            },
+            MissingField.Ignore
+        ),
+
+    // ═══ G) Add source tracking ═══════════════════════════════════
+    WithSourceInfo = Table.AddColumn(
+        TypedData,
+        "SourceFile",
+        each if Table.RowCount(Sorted) > 0 then Sorted{0}[Name] else "Unknown",
+        type text
+    )
+
+in
+    WithSourceInfo
+
+```
+
+December file exists. Checking for PowerBI_Ready files and verifying the ETL output directory:
+
+
+Queries updated. Summary:
+
+
+```markdown
+# December 2025 Arrest Data Update - January 5, 2026
+
+## ✅ Status Update
+
+### December 2025 Data Available
+- **Source File:** `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Arrest\monthly_export\2025\2025_12_LAWSOFT_ARREST.xlsx`
+- **Status:** ✅ File exists and is ready for processing
+
+### Power BI Ready Files
+- **Directory:** `C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI`
+- **Latest File:** `2025_11_Arrests_PowerBI_Ready.xlsx` (November 2025)
+- **December File:** ⏳ **Not yet created** - ETL script needs to process December source file
+
+---
+
+## 🔄 Changes Made
+
+### 1. Updated M Code Queries
+
+Both queries now use **previous month logic** to automatically target December 2025:
+
+#### `___Top_5_Arrests_FIXED.m`
+```m
+// Calculate previous month (December 2025 from January 2026)
+Current = Date.From(DateTime.LocalNow()),
+PreviousMonth = Date.AddMonths(Current, -1),
+TargetYear = Date.Year(PreviousMonth),
+TargetMonth = Date.Month(PreviousMonth),
+MonthYearDisplay = Date.MonthName(PreviousMonth) & " " & Text.From(TargetYear),
+```
+
+#### `___Arrest_Categories_FIXED.m`
+```m
+// Calculate previous month (December 2025 from January 2026)
+Prev = Date.AddMonths(Date.From(DateTime.LocalNow()), -1),
+PrevY = Date.Year(Prev),
+PrevM = Date.Month(Prev),
+```
+
+### 2. Enhanced Date Parsing
+
+Both queries now handle Excel serial dates correctly:
+- ✅ Excel serial numbers (45962, 45963, etc.) - ✅ Actual date values
+- ✅ Text date strings
+
+---
+
+## 📋 Next Steps
+
+### Step 1: Run ETL Script to Process December Data
+
+**Action Required:** Run the arrest ETL script to process the December 2025 file:
+
+```powershell
+# Run the main ETL orchestrator (processes all scripts including Arrests)
+.\scripts\run_all_etl.ps1
+```
+
+**OR** run the arrest script directly:
+```powershell
+# Navigate to arrest script directory
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Arrests"
+
+# Run the processor
+python arrest_python_processor.py
+```
+
+**Expected Output:**
+- File created: `C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI\2025_12_Arrests_PowerBI_Ready.xlsx`
+
+### Step 2: Update Power BI Queries
+
+1. **Copy updated M code** from:
+   - `m_code/___Top_5_Arrests_FIXED.m`
+   - `m_code/___Arrest_Categories_FIXED.m`
+
+2. **Paste into Power BI:**
+   - Open Power BI Desktop
+   - Go to Power Query Editor
+   - Update the `___Top_5_Arrests` query
+   - Update the `___Arrest_Categories` query
+
+3. **Refresh queries:**
+   - Click "Refresh" in Power Query Editor
+   - Verify queries load December 2025 data
+
+### Step 3: Verify Results
+
+After refreshing:
+- ✅ `___Top_5_Arrests` should show top 5 officers from **December 2025**
+- ✅ `___Arrest_Categories` should show all December 2025 arrests with categories
+- ✅ Date filtering should work correctly
+- ✅ No empty tables
+
+---
+
+## 🔍 File Locations Summary
+
+### Source Files (Raw Data)
+```
+C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Arrest\monthly_export\2025\
+├── 2025_12_LAWSOFT_ARREST.xlsx  ✅ EXISTS
+└── 2025_11_LAWSOFT_ARREST.xlsx  (previous month)
+```
+
+### Processed Files (Power BI Ready)
+```
+C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI\
+├── 2025_12_Arrests_PowerBI_Ready.xlsx  ⏳ TO BE CREATED
+└── 2025_11_Arrests_PowerBI_Ready.xlsx  ✅ EXISTS
+```
+
+### M Code Queries
+```
+m_code\
+├── ___Top_5_Arrests_FIXED.m      ✅ UPDATED (uses previous month logic)
+└── ___Arrest_Categories_FIXED.m  ✅ UPDATED (uses previous month logic)
+```
+
+---
+
+## 🎯 Expected Behavior
+
+### Automatic Month Detection
+The queries now automatically:
+1. Calculate previous month from current date (January 2026 → December 2025)
+2. Load the latest PowerBI_Ready file from the directory
+3. Filter to the target month (December 2025)
+4. Display results
+
+### Future Months
+When January 2026 data becomes available:
+- Queries will automatically target January 2026 (previous month from February 2026)
+- No manual updates needed! ---
+
+## ✅ Verification Checklist
+
+After running ETL and updating Power BI:
+
+- [ ] December 2025 PowerBI_Ready file exists
+- [ ] Power BI queries updated with new M code
+- [ ] Queries refresh without errors
+- [ ] `___Top_5_Arrests` shows December 2025 data
+- [ ] `___Arrest_Categories` shows December 2025 data
+- [ ] Date filtering works correctly
+- [ ] No empty tables
+
+---
+
+**Status:** ✅ **Queries Updated - Ready for ETL Processing**
+
+```
+
+## Updates complete
+
+### Changes made
+
+1. Updated both M code queries to use previous month logic:
+   - `___Top_5_Arrests_FIXED.m` → Now targets December 2025
+   - `___Arrest_Categories_FIXED.m` → Now targets December 2025
+
+2. Enhanced date parsing to handle Excel serial dates correctly
+
+3. Created summary document: `docs/DECEMBER_2025_ARREST_DATA_UPDATE.md`
+
+### Current status
+
+- December 2025 source file exists: `2025_12_LAWSOFT_ARREST.xlsx`
+- Queries updated to target December 2025
+- PowerBI_Ready file not yet created — ETL script needs to run
+
+### Next steps
+
+1. Run the ETL script to process December data:
+   ```powershell
+   .\scripts\run_all_etl.ps1
+   ```
+   This will create: `2025_12_Arrests_PowerBI_Ready.xlsx`
+
+2. Update Power BI queries:
+   - Copy M code from `m_code/___Top_5_Arrests_FIXED.m`
+   - Copy M code from `m_code/___Arrest_Categories_FIXED.m`
+   - Paste into Power BI and refresh
+
+The queries will automatically:
+- Load the latest PowerBI_Ready file
+- Filter to December 2025
+- Display results
+
+Once the ETL processes the December file, the queries should work automatically. ```powershell
+   .\scripts\run_all_etl.ps1
+```
+
+---
+
+**User**
+
+we have to run the arrest processing script again don't we
+
+---
+
+**Cursor**
+
+Yes. We need to run the arrest ETL script to process the December 2025 file and create the PowerBI_Ready file. Checking the script location and how to run it:
+
+
+Yes. We need to run the arrest processing script to process the December 2025 file and create the PowerBI_Ready file. Checking the script and running it:
+
+
+Running the arrest processing script via the orchestrator to process the December 2025 file:
+
+
+Script completed. Checking if the December 2025 PowerBI_Ready file was created:
+
+
+Checking the log and verifying the script's source file path:
+
+
+Reading the arrest processor script to see how it finds files:
+
+
+The script ran, but the December PowerBI_Ready file may not have been created. The script may only process the current month or look in a different location. Checking the script's source directory configuration and whether it needs to be pointed to the December file:
+
+
+```markdown
+# Arrest Script Run Summary - January 5, 2026
+
+## ✅ Script Execution
+
+**Command Run:**
+```powershell
+.\scripts\run_all_etl.ps1 -ScriptNames "Arrests"
+```
+
+**Result:** ✅ **SUCCESS**
+- Script completed in 6.66 seconds
+- Exit code: 0
+- Output files: 2 CSV files copied to Power BI drop folder
+
+## ⚠️ Issue Identified
+
+The script ran successfully, but **no December 2025 PowerBI_Ready.xlsx file was created**. ### Expected Output
+- File: `2025_12_Arrests_PowerBI_Ready.xlsx`
+- Location: `C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI`
+
+### Actual Output
+- Only CSV preview files were created
+- No `.xlsx` PowerBI_Ready file for December 2025
+
+## 🔍 Possible Reasons
+
+1. **Script may only process current month**
+   - Script might be hardcoded to process the current month (January 2026)
+   - May need to specify December 2025 explicitly
+
+2. **Source file location mismatch**
+   - Script might be looking in a different directory
+   - December file is at: `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Arrest\monthly_export\2025\2025_12_LAWSOFT_ARREST.xlsx`
+   - Script might be looking elsewhere
+
+3. **Script configuration**
+   - Script might need command-line parameters to specify month/year
+   - May need to modify script to process December 2025
+
+## 📋 Next Steps
+
+### Option 1: Check Script Configuration
+Review `arrest_python_processor.py` to understand:
+- How it finds source files
+- Whether it processes all months or just current month
+- If it needs parameters to specify December 2025
+
+### Option 2: Manual Processing
+If the script doesn't automatically process December:
+- May need to manually specify the December file
+- Or modify script to process December 2025
+
+### Option 3: Verify Script Output
+Check if the script creates files with different naming:
+- Look for files created in the last hour
+- Check for any December-related files
+
+## 📁 File Locations
+
+### Source File (December 2025)
+```
+C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Arrest\monthly_export\2025\2025_12_LAWSOFT_ARREST.xlsx
+```
+✅ **EXISTS**
+
+### Expected Output File
+```
+C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI\2025_12_Arrests_PowerBI_Ready.xlsx
+```
+❌ **NOT CREATED**
+
+### Script Location
+```
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Arrests\arrest_python_processor.py
+```
+
+## 🔧 Action Required
+
+**Need to investigate:**
+1. How `arrest_python_processor.py` finds and processes files
+2. Whether it needs to be configured to process December 2025
+3. If manual intervention is needed to process the December file
+
+**Status:** ⚠️ **Script ran but December file not created - Investigation needed**
+
+```
+
+## Status
+
+- Script ran successfully (6.66 seconds)
+- December source file exists: `2025_12_LAWSOFT_ARREST.xlsx`
+- December PowerBI_Ready file not created
+
+### Current situation
+
+The script ran, but the December 2025 PowerBI_Ready file was not created. The latest file in the Power_BI directory is still:
+- `2025_11_Arrests_PowerBI_Ready.xlsx` (from December 11, 2025)
+
+### Possible reasons
+
+1. The script may only process the current month (January 2026) automatically
+2. The script may need to be configured to process December 2025
+3. The script may look in a different source directory
+
+### Next steps
+
+1. Review the `arrest_python_processor.py` script to see:
+   - How it finds source files
+   - Whether it processes all months or just the current month
+   - If it needs parameters to specify December 2025
+
+2. Check if the script needs the December file moved to a specific location
+
+3. Verify if the script has a command-line option to specify the month/year
+
+Should I:
+- Read the `arrest_python_processor.py` script to see how it works? - Check if there's a configuration file that specifies which months to process? - Look for any documentation about how to process specific months? The script ran, but it didn't process December. We need to determine why and how to make it process December 2025. ---
+
+**User**
+
+check the paths in the scripts for getting the exported arrest data, i made some changes to the structure of the direcdtory but I thought we updated the paths
+
+---
+
+**Cursor**
+
+Checking the paths in the arrest processor script to see where it looks for exported arrest data:
+
+
+Reading the arrest processor script to check the paths it uses:
+
+
+Reading the script to see how it searches for files:
+
+
+The script searches only in `05_EXPORTS/_Arrest` (non-recursive), but the December file is in `05_EXPORTS/_Arrest\monthly_export\2025\`. Checking the directory structure and updating the script to search recursively:
+
+
+The script uses `glob("*.xlsx")` on line 404, which only searches the immediate directory. Since the December file is in a subdirectory (`monthly_export\2025\`), we should search recursively. Updating the script to use recursive glob:
+
+
+```python
+#!/usr/bin/env python3
+"""
+Arrest Data Processor for Previous Month Analysis. This module processes arrest data for the previous month with ZIP code enrichment
+and geographic categorization.

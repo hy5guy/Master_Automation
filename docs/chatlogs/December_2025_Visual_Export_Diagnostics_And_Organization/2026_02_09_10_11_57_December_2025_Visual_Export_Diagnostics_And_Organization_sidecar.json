@@ -1,0 +1,70 @@
+{
+  "source_file": "December_2025_Visual_Export_Diagnostics_And_Organization.md",
+  "source_path": "C:\\_chunker\\02_data\\December_2025_Visual_Export_Diagnostics_And_Organization.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\December_2025_Visual_Export_Diagnostics_And_Organization\\2026_02_09_10_11_57_December_2025_Visual_Export_Diagnostics_And_Organization.origin.json",
+  "created_at": "2026_02_09_10_11_57",
+  "tags": [
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "legal",
+    "markdown",
+    "police",
+    "sql",
+    "training"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "files",
+      "all",
+      "2025",
+      "export",
+      "let",
+      "december"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Directory cleanup visual data chatlog\n_Exported on 2/9/2026 at 10:04:29 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\nI had an error with the last chat please read thes chunksC:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automati...",
+    "first_line": "# Directory cleanup visual data chatlog"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-09T10:11:57+00:00_December_2025_Visual_Export_Diagnostics_And_Organization_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "2025",
+        "code",
+        "conversation",
+        "data",
+        "december",
+        "docs",
+        "export",
+        "files",
+        "legal",
+        "markdown",
+        "police",
+        "sql",
+        "training"
+      ],
+      "key_terms": [
+        "files",
+        "all",
+        "2025",
+        "export",
+        "let",
+        "december"
+      ],
+      "summary": "# Directory cleanup visual data chatlog\n_Exported on 2/9/2026 at 10:04:29 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\nI had an error with the last chat please read thes chunksC:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automati...",
+      "char_length": 15350,
+      "byte_length": 15857
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

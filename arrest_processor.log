@@ -1,0 +1,14 @@
+2026-02-21 15:22:47,572 - __main__ - WARNING - Configuration file not found: arrest_cleaner_config.yaml. Using defaults.
+2026-02-21 15:22:47,573 - __main__ - INFO - Configured reference directory not found; using project Reference folder.
+2026-02-21 15:22:47,678 - __main__ - INFO - Loaded 33782 ZIP reference records
+2026-02-21 15:22:49,188 - __main__ - INFO - Initialized processor with base path: C:\Users\carucci_r\OneDrive - City of Hackensack
+2026-02-21 15:22:49,188 - __main__ - INFO - Starting arrest data processing for previous month
+2026-02-21 15:22:49,188 - __main__ - INFO - Target month: January 2026
+2026-02-21 15:22:49,196 - __main__ - INFO - Latest arrest export detected: 2026_02_LAWSOFT_ARREST.xlsx (modified 2026-02-21T15:22:41.210369)
+2026-02-21 15:22:49,196 - __main__ - INFO - Processing file: 2026_02_LAWSOFT_ARREST.xlsx
+2026-02-21 15:22:49,627 - __main__ - INFO - Combined data: 39 total records
+2026-02-21 15:22:49,628 - __main__ - INFO - After removing empty rows: 39 records
+2026-02-21 15:22:49,634 - __main__ - INFO - After date filtering (2026-01-01 to 2026-01-31): 0 records
+2026-02-21 15:22:49,639 - __main__ - ERROR - Error during data cleaning and enrichment: 0
+2026-02-21 15:22:49,639 - __main__ - ERROR - No data remaining after filtering
+2026-02-21 15:22:49,639 - __main__ - ERROR - Processing failed or no data found.
