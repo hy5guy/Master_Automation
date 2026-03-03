@@ -1,0 +1,562 @@
+# Template setup and task completion
+_Exported on 2/26/2026 at 20:52:26 EST from Cursor (2.5.20)_
+
+---
+
+**User**
+
+Read the following for context. I want to complete the template setup and any other tasks needed bofore February's 2026's monthly:
+@config/scripts.json @README.md @Claude.md @SUMMARY.md @CHANGELOG.md @Standards/config/powerbi_visuals/visual_export_mapping.json @docs/chatlogs/Surgical_Template_Update_And_Docs_Push @docs/chatlogs/cursor_m_codes_update_list_and_document @docs/chatlogs/Phase_2_Bug_Fixes_And_Template_Workflow 
+
+---
+
+**Cursor**
+
+Now let me read the visual export mapping and the referenced chatlogs. Let me check a few key M code files and the Pre-Flight validation to understand the current state before the ETL run. Good — `___Patrol.m` is already fixed. Let me quickly verify `___Traffic.m` and check what source data files exist. Now I have a complete picture. Let me compile this into a clear status and task breakdown for you. Now I have the full picture. Let me fix the one remaining code issue — `___Traffic.m` still has backslash line continuations in the repo (which are invalid M code syntax and would break if anyone tried to paste it into Power BI Advanced Editor), then give you the complete pre-monthly checklist. Now here's a complete summary of everything you need to know to run February 2026's monthly. ---
+
+## Project Status: Ready to Run February 2026 Monthly
+
+**Current version:** v1.17.5 | **Template status:** ✅ Complete
+
+---
+
+### What's Done
+
+| Area | Status |
+|---|---|
+| Power BI template (`Monthly_Report_Template.pbix`) | ✅ All 45 queries load cleanly, zero DAX errors |
+| `pReportMonth = #date(2026, 2, 1)` | ✅ Set in both template and repo |
+| All M code `DateTime.LocalNow()` → `pReportMonth` | ✅ 20 files fixed |
+| Hardcoded `RobertCarucci` / `C:\Dev` paths | ✅ All 9 instances fixed |
+| `___Patrol.m` — `01-26` column + `ReportMonth` binding | ✅ Fixed |
+| `___Traffic.m` — backslash syntax errors + `01-26` column | ✅ Just fixed (repo file cleaned) |
+| Orphaned DAX tables (`Arrests`, `Demographics`, `Distribution`, `Top_5_Officers_Table`) | ✅ Deleted from template |
+| `___Summons` query re-created with `TICKET_COUNT` / `ASSIGNMENT_FOUND` | ✅ Done |
+| `___ResponseTimeCalculator` — `Count` and `MonthName` columns added | ✅ Done |
+
+---
+
+### Source Data — January 2026 (all confirmed present)
+
+| ETL | File | Location | Status |
+|---|---|---|---|
+| **Arrests** | `2026_01_LAWSOFT_ARREST.xlsx` | `05_EXPORTS\_Arrest\monthly\2026\` | ✅ Present |
+| **OT/TimeOff** | `2026_01_otactivity.xlsx` | `05_EXPORTS\_Overtime\export\month\2026\` | ✅ Present |
+| **OT/TimeOff** | `2026_01_timeoffactivity.xlsx` | `05_EXPORTS\_Time_Off\export\month\2026\` | ✅ Present |
+| **Summons** | `2026_01_eticket_export.csv/.xlsx` | `05_EXPORTS\_Summons\E_Ticket\2026\month\` | ✅ Present |
+| **Response Times** | `2026_01_timereport.xlsx` | `05_EXPORTS\_CAD\timereport\monthly\` | ✅ Present |
+
+---
+
+### ⚠️ One Risk Before Running ETL
+
+**Arrest file selection**: `arrest_python_processor.py` picks the **newest `.xlsx` by modification time**. Both `2026_01_LAWSOFT_ARREST.xlsx` and `2026_02_LAWSOFT_ARREST.xlsx` exist in the 2026 folder. If Feb's file has a newer mtime, the ETL will grab February's partial data instead of January's full month. **Fix before running:** Either temporarily move/rename `2026_02_LAWSOFT_ARREST.xlsx` out of the folder, or touch `2026_01_LAWSOFT_ARREST.xlsx` to make it the newest. The safest option:
+
+```powershell
+# Rename Feb file so it won't be picked up during Jan 2026 ETL run
+Rename-Item "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Arrest\monthly\2026\2026_02_LAWSOFT_ARREST.xlsx" "2026_02_LAWSOFT_ARREST.xlsx.hold"
+```
+
+Rename it back after the ETL run. ---
+
+### ETL Run Sequence
+
+**Step 1 — Pre-flight validation:**
+```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+python scripts\Pre_Flight_Validation.py --report-month 2026-01
+```
+
+**Step 2 — Run ETL:**
+```powershell
+.\scripts\run_all_etl.ps1 -ReportMonth 2026-02
+```
+
+**Step 3 — After ETL completes:**
+1. Open `15_Templates\Monthly_Report_Template.pbix` in Power BI Desktop
+2. Click **Transform Data → Close & Apply** to refresh with new data
+3. Spot-check all pages — summons visuals should now populate (staging file updated)
+4. Export **Response Time visual** (Average Response Times CSV) → save to:
+   `PowerBI_Date\Backfill\2026_01\response_time\2026_01_Average_Response_Times__Values_are_in_mmss.csv`
+5. Run visual export processing:
+   ```powershell
+   python scripts\process_powerbi_exports.py
+   ```
+6. **File → Save As** → `Shared Folder\Compstat\Monthly Reports\2026\02_february\2026_02_Monthly_Report.pbix`
+7. Restore the February arrest file:
+   ```powershell
+   Rename-Item "...\2026_02_LAWSOFT_ARREST.xlsx.hold" "2026_02_LAWSOFT_ARREST.xlsx"
+   ```
+
+---
+
+### Still Deferred (not blocking this cycle)
+
+| Item | Notes |
+|---|---|
+| Response Times historical backfill (Nov 2024–Dec 2025) | Phase 2 task 5 — still pending |
+| 3-metric Response Time tables (Travel, Total, Processing) | Plans exist, not implemented |
+| Arrest processor file-matching by filename vs mtime | Workaround above covers this cycle |
+
+---
+
+The one code fix I made was cleaning up `___Traffic.m` in the repo (removed backslash line-continuation characters that M code doesn't support). The template PBIX was already correct from the surgical update session. Everything else is in order — you're ready to run the ETL once you handle the arrest file naming conflict. ---
+
+**User**
+
+Please also read the following as some files/directories were moved from C:\Dev@c:\Users\carucci_r\OneDrive - City of Hackensack\14_Workspace\summaries\2026-02-24_directory_reorganization.md @c:\Users\carucci_r\OneDrive - City of Hackensack\14_Workspace\summaries\MERGE_GUIDE.md @c:\Users\carucci_r\OneDrive - City of Hackensack\14_Workspace\summaries\MIGRATION_SCRIPT_IMPROVEMENTS.md @c:\Users\carucci_r\OneDrive - City of Hackensack\14_Workspace\CHANGELOG.md @c:\Users\carucci_r\OneDrive - City of Hackensack\14_Workspace\README.md 
+
+---
+
+**Cursor**
+
+Good — now I understand the full scope of yesterday's reorganization. Let me check the one config reference that is now broken as a result. All active M code files are clean. The only live `C:\Dev` reference is the `PD_BCI_LTP` drop path override in `scripts.json` — that's now a dead path since `C:\Dev\PowerBI_Date` was moved to `04_PowerBI/PowerBI_Date_Dev`. I'll update it to the standard production path (the laptop junction makes this override unnecessary anyway). Now let me check if `scripts-PD_BCI_LTP.json` also needs the same fix and is still active:
+
+Now let me update the docs and CHANGELOG to capture both the `___Traffic.m` fix and the `C:\Dev` path cleanup:
+
+Now update SUMMARY.md and README.md version/status lines:
+
+Now here's a clean summary of what the reorganization changes and what impact they have on the February monthly run:
+
+---
+
+## Impact of 2026-02-24 Directory Reorganization on February 2026 Monthly
+
+### What Moved — and What It Means
+
+| What moved | From | To | Impact |
+|---|---|---|---|
+| `PowerBI_Date` (Dev copy) | `C:\Dev\PowerBI_Date` | `04_PowerBI\PowerBI_Date_Dev` | **Config fix needed** — `scripts.json` `PD_BCI_LTP` override pointed here. ✅ Fixed now |
+| `Power_BI_Data` (Dev copy) | `C:\Dev\Power_BI_Data` | `04_PowerBI\Power_BI_Data_Dev` | No impact on ETL |
+| Dev ETL projects (overtime, response_times, summons, etc.) | `C:\Dev\*` | `00_dev\projects\*` | Dev copies only — production ETL scripts stay in `02_ETL_Scripts\`. No impact |
+| Migration scripts | `C:\Dev\*` | `14_Workspace\scripts\` | Reference only — no ETL impact |
+
+### What's Confirmed Clean
+
+- **All 45 active M code `.m` files** — no `C:\Dev` references
+- **Production `PowerBI_Date`** — untouched at `OneDrive - City of Hackensack\PowerBI_Date` (the one migrated in December 2025)
+- **Production ETL scripts** — untouched in `02_ETL_Scripts\`
+- **`run_all_etl.ps1`** — only archived `_PD_BCI_LTP` version had a `C:\Dev` comment; active script is clean
+
+### Fixes Applied This Session (v1.17.6)
+
+1. **`___Traffic.m`** — removed 8 backslash line-continuation characters; file now pastes cleanly into Power BI Advanced Editor
+2. **`config/scripts.json`** `PD_BCI_LTP` override — updated from dead `C:\Dev\PowerBI_Date\_DropExports` to standard OneDrive production path
+3. **`config/scripts-PD_BCI_LTP.json`** `powerbi_drop_path` — same fix
+4. **CHANGELOG / README / SUMMARY / Claude.md** — bumped to v1.17.6
+
+### Pre-Monthly ETL Checklist — Still Applies Unchanged
+
+Everything from the previous analysis stands. The reorg had no impact on the production run path. The one action still needed before running the ETL:
+
+> **Rename `2026_02_LAWSOFT_ARREST.xlsx` to `.hold`** in `05_EXPORTS\_Arrest\monthly\2026\` before running, then rename it back after — prevents the arrest ETL from picking up the partial February file instead of the complete January file. After that, the run is:
+```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+.\scripts\run_all_etl.ps1 -ReportMonth 2026-02
+```
+
+---
+
+**User**
+
+please > Rename 2026_02_LAWSOFT_ARREST.xlsx to .hold in 05_EXPORTS\_Arrest\monthly\2026\ before running, then rename it back after — prevents the arrest ETL from picking up the partial February file instead of the complete January file. for me then I will run the command
+
+---
+
+**Cursor**
+
+Done. The folder now shows:
+
+- `2026_01_LAWSOFT_ARREST.xlsx` — ✅ the only `.xlsx` the ETL will see
+- `2026_02_LAWSOFT_ARREST.xlsx.hold` — hidden from the ETL (not a `.xlsx`)
+
+Go ahead and run:
+
+```powershell
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+.\scripts\run_all_etl.ps1 -ReportMonth 2026-02
+```
+
+After the ETL completes successfully, run this to restore the February file:
+
+```powershell
+Rename-Item "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Arrest\monthly\2026\2026_02_LAWSOFT_ARREST.xlsx.hold" -NewName "2026_02_LAWSOFT_ARREST.xlsx"
+```
+
+---
+
+**User**
+
+command results below:
+>> Processing: Arrests
+  Script: C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Arrests\arrest_python_processor.py
+  Order: 1
+  Executing Python script...
+  Log: C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\logs\2026-02-26_16-46-24_Arrests.log
+[OK]   Completed in 6.07 seconds
+  SUCCESS: Exit code 0
+  Output files found: 2
+  Copied to Power BI: 25_10_arrest_preview.csv
+  Copied to Power BI: 25_10_arrest_preview_updated.csv
+[OK]   Copied 2 file(s) to Power BI drop folder
+
+>> Processing: Community Engagement
+  Script: C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\src\main_processor.py
+  Order: 2
+  Executing Python script...
+  Log: C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\logs\2026-02-26_16-46-24_Community Engagement.log
+[OK]   Completed in 2.09 seconds
+  SUCCESS: Exit code 0
+  Output files found: 2
+  Copied to Power BI: after_update_Engagement Initiatives by Bureau.csv
+  Copied to Power BI: Engagement Initiatives by Bureau.csv
+[OK]   Copied 2 file(s) to Power BI drop folder
+
+>> Processing: Overtime TimeOff
+  Script: C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\overtime_timeoff_with_backfill.py
+  Order: 3
+  Executing Python script...
+  Log: C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\logs\2026-02-26_16-46-24_Overtime TimeOff.log
+[OK]   Completed in 11.32 seconds
+  SUCCESS: Exit code 0
+  Output files found: 30
+
+>> Processing: Response Times
+  Script: C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\process_cad_data_13month_rolling.py
+  Order: 5
+  Executing Python script...
+  Log: C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\logs\2026-02-26_16-46-24_Response Times.log
+[FAIL]   Error: Script exited with code 1
+  ERROR: Script exited with code 1
+
+>> Processing: Summons
+  Script: C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Summons\summons_etl_enhanced.py
+  Order: 6
+  Executing Python script...
+  Log: C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\logs\2026-02-26_16-46-24_Summons.log
+[OK]   Completed in 12.33 seconds
+  SUCCESS: Exit code 0
+  Output files found: 7
+  Copied to Power BI: 2025_10_summon_preview_table.csv
+  Copied to Power BI: final_assignment.csv
+  Copied to Power BI: preview_table_ATS_Court_Data_Post_Update.csv
+  Copied to Power BI: summons_13month_trend_preview_table.csv
+  Copied to Power BI: summons_powerbi_latest_summons_data.csv
+  Copied to Power BI: traffic_dax1csv.csv
+  Copied to Power BI: traffic_dax2.csv
+[OK]   Copied 7 file(s) to Power BI drop folder
+
+>> Processing: Summons Derived Outputs (PowerBI_Date CSVs)
+  Script: C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\summons_derived_outputs.py
+  Order: 6.5
+  Executing Python script...
+  Log: C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\logs\2026-02-26_16-46-24_Summons Derived Outputs (PowerBI_Date CSVs).log
+[FAIL]   Error: Script exited with code 1
+  ERROR: Script exited with code 1
+
+=== Manifest Generation ===
+
+>> Generating _DropExports manifest
+[OK]   Manifest written: _manifest.json (49 files)
+[OK]   Manifest written: _manifest.csv
+  Manifest: 49 files cataloged
+
+=== Visual Export Normalization ===
+
+>> Visual Export Normalization
+  No files matching '*Monthly Accrual and Usage Summary*.csv' in C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports
+  No Monthly Accrual and Usage Summary CSVs found in drop folder
+
+=== Execution Summary ===
+Total duration: 0.59 minutes
+Success: 4
+Failed: 2
+
+
+=== Execution Summary ===
+Total duration: 0.59 minutes
+
+Results:
+[OK] Arrests: Success (6.07s, 2 file(s))
+[OK] Community Engagement: Success (2.09s, 2 file(s))
+[OK] Overtime TimeOff: Success (11.32s, 30 file(s))
+[FAIL] Response Times: Failed - Script exited with code 1
+[OK] Summons: Success (12.33s, 7 file(s))
+[FAIL] Summons Derived Outputs (PowerBI_Date CSVs): Failed - Script exited with code 1
+=== Master ETL Orchestrator Completed ===
+
+Full log: C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\logs\2026-02-26_16-46-24_ETL_Run.log
+
+=== Saving Monthly Report ===
+
+=== Saving Monthly Report ===
+Found template file: C:\Users\carucci_r\OneDrive - City of Hackensack\15_Templates\Monthly_Report_Template.pbix
+[OK] Saved monthly report: C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports\2026\01_january\2026_01_Monthly_Report.pbix
+Copied report to: C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports\2026\01_january\2026_01_Monthly_Report.pbix
+
+Monthly Report Saved:
+  Report: C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports\2026\01_january\2026_01_Monthly_Report.pbix
+  Source: C:\Users\carucci_r\OneDrive - City of Hackensack\15_Templates\Monthly_Report_Template.pbix
+[WARN] Some scripts failed. Check logs for details. PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation> Rename-Item "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Arrest\monthly\2026\2026_02_LAWSOFT_ARREST.xlsx.hold" -NewName "2026_02_LAWSOFT_ARREST.xlsx"
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation>
+
+---
+
+**Cursor**
+
+Good progress — 4/6 succeeded, and the February file is restored. Let me read the two failure logs right away. Two separate issues. Let me read the Response Times production script to understand why it used the wrong path:
+
+Good picture. Let me also quickly check how the orchestrator does the `{REPORT_MONTH}` substitution to understand why it resolved to `-`:
+
+Found the bug. `$year` and `$monthNum` are local variables inside the `Save-MonthlyReport` function — they're out of scope when the token substitution runs in the main body, so they resolve to empty strings → `"$year-$monthNum"` = `"-"`. Let me read the full substitution block and fix it:
+
+Now also fix the `DEFAULT_INPUT_PATH` double-extension bug and wrong folder in the production Response Times script, and run it manually for this cycle:
+
+Now confirm the January 2026 timereport file exists, then run Response Times manually:
+
+The file is there. Running Response Times now:
+
+Response Times ran perfectly — 1,991 records, all 3 checks passed. One warning: `C:\Dev\PowerBI_Date\Backfill` is still hardcoded in the script. Let me copy the output to the drop folder and fix that path:
+
+Good — the `POWERBI_OUTPUT_DIR` is a secondary "backfill copy" path and not the primary output. The main output is already saved. Let me fix the dead path and then copy the output to the drop folder:
+
+Now fix `POWERBI_OUTPUT_DIR` in the RT script to point to the correct OneDrive path:
+
+Now check what the Overtime TimeOff ETL produced (30 files is a lot — confirm it wrote the right month):
+
+Everything looks solid. Overtime/TimeOff is confirmed correct — Jan 2026, 13-month window, 10,060 rows. Let me now update the CHANGELOG to capture all fixes:
+
+Now bump the version in README, SUMMARY, and Claude.md:
+
+Now commit everything:
+
+Pushed. Here's the full status of the run:
+
+---
+
+## ETL Run Results — February 2026 Cycle
+
+| Module | Result | Notes |
+|---|---|---|
+| Arrests | ✅ | 42 Jan 2026 records from `2026_01_LAWSOFT_ARREST.xlsx` |
+| Community Engagement | ✅ | 2 files to drop folder |
+| Overtime / TimeOff | ✅ | 30 files, 13-month window 2025-01 → 2026-01 |
+| Response Times | ✅ *(manual)* | 1,991 records; Emergency 2:51, Routine 2:43, Urgent 2:35 |
+| Summons | ✅ | 7 files incl. refreshed `summons_powerbi_latest` |
+| Summons Derived Outputs | ⏭️ *skipped* | Needs Power BI visual export first (see below) |
+
+---
+
+## Bugs Fixed
+
+**1. `{REPORT_MONTH}` → `"-"` in orchestrator** (`run_all_etl.ps1`)
+`$year` and `$monthNum` live inside the `Save-MonthlyReport` function and were invisible to the script-execution loop, so `"$year-$monthNum"` resolved to `"-"`. Fixed to compute the previous month directly from `$ReportMonth` at the point of substitution. **2. Response Times script — bad default path + double extension** (`process_cad_data_13month_rolling.py`)
+`DEFAULT_INPUT_PATH` pointed to the dead `monthly_export\2025\2025_11_Monthly_CAD.xlsx.xlsx` (wrong folder since the directory reorg, plus the double `.xlsx`). Updated to `timereport\monthly\2026_01_timereport.xlsx`. `POWERBI_OUTPUT_DIR` also corrected from `C:\Dev` to `PowerBI_Date\_DropExports`. ---
+
+## What's Next
+
+1. **Open** `Shared Folder\Compstat\Monthly Reports\2026\01_january\2026_01_Monthly_Report.pbix` in Power BI Desktop
+2. **Refresh All** — all five ETL outputs are now in the drop folder
+3. **Verify visuals** — summons visuals should now show data (staging file was refreshed this run)
+4. **Export** the "Department-Wide Summons Moving and Parking" visual as CSV to `01_january\` — this unblocks Summons Derived Outputs
+5. **Re-run** `summons_derived_outputs.py` (or re-run the full orchestrator; it will now skip already-succeeded modules... actually it reruns all — just the one failure to fix)
+
+---
+
+**User**
+
+I refreshed ___Combined_Outreach_All which is the Community Engagement, the visual had 4 records after the refresh it has zero. Below is the m code that the query had in the January 2026 Power BI project:
+// 🐍 Combined_Outreach_All — Using Python ETL Output
+// Simplified M code that reads from centralized Python ETL CSV output
+// Maintains exact same column structure for Power BI compatibility
+let
+    // === 1. Dynamic File Path Discovery ===
+    // Look for the most recent Python ETL output file
+    OutputFolder = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\output\",
+    
+    // Try to find the most recent community_engagement_data_*.csv file
+    // Pattern: community_engagement_data_YYYYMMDD_HHMMSS.csv
+    PythonETLFile = try 
+        let
+            // Get all CSV files in the output directory
+            Source = Folder.Files(OutputFolder),
+            FilteredFiles = Table.SelectRows(Source, each Text.StartsWith([Name], "community_engagement_data_") and Text.EndsWith([Name], ".csv")),
+            SortedFiles = Table.Sort(FilteredFiles, {{"Date modified", Order.Descending}}),
+            LatestFile = if Table.RowCount(SortedFiles) > 0 
+                        then OutputFolder & SortedFiles{0}[Name]
+                        else error "No Python ETL output files found"
+        in
+            LatestFile
+    otherwise
+        // Fallback to a specific filename pattern if dynamic discovery fails
+        OutputFolder & "community_engagement_combined_" & Date.ToText(DateTime.Date(DateTime.LocalNow()), "yyyy-MM-dd") & ".csv",
+
+    // === 2. Read Python ETL CSV Output ===
+    CSVSource = Csv.Document(File.Contents(PythonETLFile), [Delimiter=",", Columns=null, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+    HeadersPromoted = Table.PromoteHeaders(CSVSource, [PromoteAllScalars=true]),
+    
+    // === 3. Data Type Transformations ===
+    // Handle datetime strings from Python ETL (format: "YYYY-MM-DD HH:MM:SS")
+    DateParsed = Table.TransformColumns(HeadersPromoted, {
+        {"date", each 
+            if _ = null or _ = "" 
+            then null 
+            else try DateTime.Date(DateTime.FromText(_)) otherwise Date.FromText(Text.Start(_, 10)), 
+        type date}
+    }),
+    
+    // Handle time columns safely (may be in various formats from Python)
+    TimeParsed = Table.TransformColumns(DateParsed, {
+        {"start_time", each try Time.FromText(_) otherwise null, type time},
+        {"end_time", each try Time.FromText(_) otherwise null, type time}
+    }),
+    
+    TypedData = Table.TransformColumnTypes(TimeParsed, {
+        {"event_name", type text},
+        {"location", type text},
+        {"duration_hours", type number},
+        {"attendee_count", Int64.Type},
+        {"office", type text},
+        {"division", type text}
+    }),
+    
+    // Handle any duration_hours conversion issues (Python ETL may have NaNs)
+    SafeDuration = Table.TransformColumns(TypedData, {
+        {"duration_hours", each 
+            if _ = null or _ = "" or Text.From(_) = "nan" 
+            then 0.5 
+            else try Number.From(_) otherwise 0.5, type number}
+    }),
+    
+    // Handle any attendee_count conversion issues  
+    SafeAttendees = Table.TransformColumns(SafeDuration, {
+        {"attendee_count", each try Number.From(_) otherwise 1, Int64.Type}
+    }),
+    
+    // === 4. Column Selection and Renaming ===
+    // Select only the columns needed for Power BI
+    SelectedColumns = Table.SelectColumns(SafeAttendees, {
+        "date",
+        "duration_hours", 
+        "event_name",
+        "location",
+        "attendee_count",
+        "office"
+    }),
+    
+    // Rename columns to match exact Power BI expectations
+    RenamedColumns = Table.RenameColumns(SelectedColumns, {
+        {"date", "Date"},
+        {"duration_hours", "Event Duration (Hours)"},
+        {"event_name", "Event Name"}, 
+        {"location", "Location of Event"},
+        {"attendee_count", "Number of Police Department Attendees"},
+        {"office", "Office"}
+    }),
+    
+    // === 5. Data Quality and Filtering ===
+    // Remove rows with null dates (same as original M code)
+    FilteredData = Table.SelectRows(RenamedColumns, each [Date] <> null),
+    
+    // Ensure Event Duration is reasonable (0.1 to 24 hours)
+    ValidatedDuration = Table.TransformColumns(FilteredData, {
+        {"Event Duration (Hours)", each 
+            if _ = null or _ <= 0 then 0.5
+            else if _ > 24 then 8.0  
+            else Number.Round(_, 2), 
+        type number}
+    }),
+    
+    // Ensure attendee count is at least 1 if null/zero
+    ValidatedAttendees = Table.TransformColumns(ValidatedDuration, {
+        {"Number of Police Department Attendees", each 
+            if _ = null or _ <= 0 then 1 else _, 
+        Int64.Type}
+    }),
+    
+    // === 6. Final Sort and Output ===
+    // Sort by date ascending (same as original M code)
+    FinalData = if Table.RowCount(ValidatedAttendees) > 0 
+                then Table.Sort(ValidatedAttendees, {{"Date", Order.Ascending}}) 
+                else ValidatedAttendees
+
+in
+    FinalData
+
+See the before_refresh_ and after_refresh_ export of data for overtime / time off response times and summons the Department - Wide visual had an error see attachment 1
+C:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\before_refresh_Top 5 Moving Violations - Department Wide.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\before_refresh_Top 5 Parking Violations - Department Wide.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\before_refresh_Summons  Moving & Parking  .csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\before_refresh_Department-Wide Summons  Moving and Parking.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\after_refresh_Response Times by Priority.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\after_refresh_Average Response Times  Values are in mmss.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\before_refresh_Response Times by Priority.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\before_refresh_Average Response Times  Values are in mmss.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\after_refresh_Monthly Accrual and Usage Summary.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\Monthly Accrual and Usage Summary.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\after_refresh_Top 5 Moving Violations - Department Wide.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\after_refresh_Top 5 Parking Violations - Department Wide.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\after_refresh_Summons  Moving & Parking  .csv
+
+---
+
+**Cursor**
+
+Clear picture now. Three separate issues. Let me check one more thing before writing the fixes:
+
+Now I have everything. Let me fix all three issues simultaneously:
+
+**Fix 1 — summons staging:** The old `03_Staging` Excel has no `TICKET_NUMBER` column. The new ETL-generated file in `_DropExports` does. Copy it over:
+
+**Fix 2 — Response Times M code:** The M code has two hardcoded sources (Oct 2025 backfill + Dec 2025). I need to add January 2026 as a third source and combine all three:
+
+Now read the updated M code to confirm the structure is clean, then check the OT/TO comparison:
+
+Overtime/TimeOff is perfect — `01-26` January data was already there before and after (no change needed). Let me now update the CHANGELOG and commit:
+
+Pushed. Here's the full breakdown of all three issues:
+
+---
+
+## Issue 1 — `summons_13month_trend`: TICKET_NUMBER not found ✅ Fixed
+
+**Root cause:** The staging file at `03_Staging\Summons\summons_powerbi_latest.xlsx` had the **old schema** — `PADDED_BADGE_NUMBER` was the first column and `TICKET_NUMBER` didn't exist. The M code expects `TICKET_NUMBER` as the first column. **Fix:** Copied the fresh `_DropExports\summons_powerbi_latest.xlsx` (generated by today's ETL) over the staging copy. The staging file now has the correct schema. **Re-refresh Power BI** and the error will be gone. ---
+
+## Issue 2 — Response Times: no `01-26` after refresh ✅ Fixed (needs M code paste)
+
+**Root cause:** `___ResponseTimeCalculator.m` was hardcoded to two backfill files ending at December 2025. The January 2026 output we ran never got loaded. **Fix:** The repo M code now has a third source block for `Backfill\2026_01\response_time\2026_01_Average_Response_Times__Values_are_in_mmss.csv`. You need to paste the updated M code into Power BI's Advanced Editor for the `___ResponseTimeCalculator` query, then refresh. ---
+
+## Issue 3 — Community Engagement: 0 records (not a bug)
+
+**Root cause:** The `community_engagement_data_*.csv` file only has events through **November 2025** — there are no January 2026 events in the source data. The 4 records you saw before refresh were stale cached data from a prior Power BI session; after refresh the query re-ran and found no January 2026 events. **Action needed:** Once someone enters January 2026 community engagement events into the source system and re-runs the ETL, the visual will populate. ---
+
+## What's still confirmed working ✅
+- Summons Moving & Parking (All Bureaus) — populated
+- Top 5 Moving & Top 5 Parking — correct January 2026 data
+- Overtime / TimeOff — `01-26` present before and after (was already correct)
+
+---
+
+**User**
+
+I have a .pdf version of January's monthly report I exported the pages that show the values that were submitted. I have not updated an of the m code for January's monthly
+the all_bureas visual is off and has Patrol Bureau and Patrol Division, where it should only be Patrol Division, the traffic totals are way off from what I submitted after refresh traffic has 143 M and 2599 P, what was submitted has 217 M and 3117 P
+after refresh for Detective and patrol have incorrect values
+
+the top 5 parking and top 5 moving both have the same values after refresh as the report that was submitted
+
+The monthly accrual and usage summary after refresh has values off in 7-25 and 8-25 which should not be as it is populating from a backfill 
+
+---
+
+**Cursor**
+
+Let me read the actual data to compare properly before making any changes:
+
+That's a critical finding — `WG2` is `None` on all rows in the file I copied over, and months only show Jan, Feb, Apr, Sep 2025. I've made things worse. Let me check `final_assignment.csv` (the proper output) and find the correct staging file:
+
+Both the staging file and drop folder are from Feb 17 — the file I copied is old and broken. Let me find today's ETL-generated timestamped file and restore it:
+
+Today's ETL timestamped file is `summons_powerbi_20260226_164646.xlsx`. Let me check it and restore it:
+
+Good — the timestamped file from today's ETL has proper WG2 but no TICKET_NUMBER (old schema). I need to: restore it, fix the M code TICKET_NUMBER dependency, and fix PATROL BUREAU → PATROL DIVISION.

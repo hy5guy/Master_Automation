@@ -1,0 +1,452 @@
+# Data visualization issue for January 2026
+_Exported on 2/17/2026 at 03:59:37 EST from Cursor (2.4.37)_
+
+---
+
+**User**
+
+the MoM sheet table is named _mom_det and CCD sheet has table _CCD_MOM@m_code/2026_02_16_detectives.m  why is the the visual not showing the January 2026 data? ---
+
+**Cursor**
+
+I'll help you investigate why the January 2026 data isn't showing in the visual. Let me read the M code file to understand the data transformations. Now I can see the issue! Looking at the code, the problem is in the **rolling 13-month window logic** (lines 104-125). Let me highlight the key issue:
+
+```109:125:m_code/2026_02_16_detectives.m
+    CurrentDate = DateTime.LocalNow(),
+    CurrentMonthStart = Date.StartOfMonth(Date.From(CurrentDate)),
+
+    // End date = previous month (complete data only)
+    EndFilterDate = Date.AddMonths(CurrentMonthStart, -1),
+
+    // Start date = 13 months before end date (rolling 13-month window)
+    StartFilterDate = Date.AddMonths(EndFilterDate, -12),
+
+    // Format reporting period for display
+    ReportingPeriod = Date.ToText(StartFilterDate, "MM/yy") & " - " &
+                      Date.ToText(EndFilterDate, "MM/yy"),
+
+    // Apply date range filter (show all 2026 data up to previous month)
+    FilteredMonths = Table.SelectRows(
+        AddedSortOrder, each[Date]<> null and[Date] >=
+                            StartFilterDate and[Date] <= EndFilterDate),
+```
+
+**The Problem:**
+
+Since today is **February 16, 2026**, the code is:
+1. Setting `CurrentMonthStart` = February 1, 2026
+2. Setting `EndFilterDate` = January 1, 2026 (previous month)
+3. Setting `StartFilterDate` = January 2025 (12 months before January 2026)
+4. **Filtering to show data <= January 2026**
+
+But the filter is using `Date.AddMonths(EndFilterDate, -12)` which gives you **January 2025 through January 2026** - that's actually 13 months total. However, since `EndFilterDate` is set to January 1, 2026, and the filter uses `<=`, it **should** include January 2026. The issue might be that the comment says "previous complete month" but you may want to include the current month if it's past mid-month. **Would you like me to:**
+1. **Modify the code to include February 2026** (since we're already mid-February)? 2. **Check if there's actually data for January 2026** in the source table `_mom_det`? 3. **Verify the date parsing** is working correctly for "26-Jan" format? Which approach would you prefer, or should I investigate all three? ---
+
+**User**
+
+the logic should be
+Rolling 13-Month Data Window — Calculation Method
+Operational Rule:
+The data should always represent a continuous, rolling 13-month period. To ensure consistency and avoid incomplete current-month data, follow these steps:
+Calculation Steps
+1. Determine the End Date:
+2. Determine the Start Date:
+3. Data Window:
+Summary Table Example
+Today's Date: February 16, 2026
+Reporting Period
+Start Date: January-2026
+End Date: January-2025
+
+
+
+Key Points
+- Never include the current month (it may be incomplete). - The window always includes 13 full months of data, ending with the month prior to today. - This method maintains consistent, comparable reporting intervals month-to-month. ---
+
+**Cursor**
+
+I see the issue now! Looking at your summary table example, there's a discrepancy:
+
+**Your Summary Table shows:**
+- Start Date: January-2026
+- End Date: January-2025
+
+But based on your description, it should be the **opposite**:
+- Start Date: January-2025
+- End Date: January-2026
+
+Let me verify the current code logic is correct. For **Today = February 16, 2026**:
+
+```109:116:m_code/2026_02_16_detectives.m
+    CurrentDate = DateTime.LocalNow(),
+    CurrentMonthStart = Date.StartOfMonth(Date.From(CurrentDate)),
+
+    // End date = previous month (complete data only)
+    EndFilterDate = Date.AddMonths(CurrentMonthStart, -1),
+
+    // Start date = 13 months before end date (rolling 13-month window)
+    StartFilterDate = Date.AddMonths(EndFilterDate, -12),
+```
+
+This gives:
+- `EndFilterDate` = January 1, 2026 ✅
+- `StartFilterDate` = January 1, 2025 ✅
+- Filter: `Date >= Jan-2025 AND Date <= Jan-2026` ✅
+
+**This should include January 2026! **
+
+The issue might be:
+1. **The Excel source data doesn't have January 2026 data yet** in the `_mom_det` table
+2. **The column header format doesn't match** what the code expects
+3. **Date parsing is failing** for the "26-Jan" format
+
+Can you check:
+1. Does the Excel file `detectives_monthly.xlsx` in the `_mom_det` table have a column named **"26-Jan"** (or similar format)? 2. Are there actual numeric values in that column (not blank)? Would you like me to add some diagnostic output to the M code to help troubleshoot what data is actually being loaded and filtered? ---
+
+**User**
+
+review the file C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Detectives\detectives_monthly.xlsx
+
+---
+
+**Cursor**
+
+I can't read Excel files directly, but I can create a PowerShell script to inspect the file structure. Let me check what tables and columns exist in that workbook. Great! Now let me inspect the Excel file structure:
+
+Let me fix the PowerShell escaping:
+
+Perfect! I found the issue! Looking at the Excel inspection output:
+
+**Column 33 is "26-Jan"** and the **first 3 data rows show 0 values** for January 2026 (Column 33):
+- Row 2 (Aggravated Assault): `26-Jan` = **2** ✅ (has data!) - Row 3 (Animal Cruelty): `26-Jan` = **0** 
+- Row 4 (Arson): `26-Jan` = **0**
+
+But wait - looking more closely at Row 2, the value **2** is there for 26-Jan! Let me check the M code filtering logic more carefully. The issue might be in this section:
+
+```34:39:m_code/2026_02_16_detectives.m
+    // Filter to rows with at least one month having activity > 0
+    FilteredToActiveCases = Table.SelectRows(
+        RemovedEmptyRows, each let CategoryName = Record.Field(_, FirstColumn),
+        RowValues = List.Skip(Record.FieldValues(_), 1),
+        HasActivity = List.AnyTrue(List.Transform(
+            RowValues, each try(_<> null and _ < > "" and Number.From(_) > 0)
+                           otherwise false)) in HasActivity),
+```
+
+There's a **syntax error** on line 38! Look at this:
+
+```
+_ < > ""
+```
+
+That should be `<>` not `< >` (there's a space between `<` and `>`). This might be causing the parsing to fail and filtering out data incorrectly! Let me fix this:
+
+Now let me clean up the temporary inspection script:
+
+---
+
+**User**
+
+I fixed the headers for the MoM and CCD sheets
+
+---
+
+**Cursor**
+
+Great! Let me re-inspect the Excel file to see the updated headers:
+
+Let me use the script file approach again:
+
+Perfect! I can see the headers have been fixed. The format has changed from the old format to the new format:
+
+**NEW FORMAT (what you have now):**
+- `01-26` (MM-YY format)
+- `02-26` 
+- etc. **OLD FORMAT (what the M code expects):**
+- `26-Jan` (YY-MMM format)
+- `26-Feb`
+- etc. Now I need to update the M code to parse the new **MM-YY** format instead of the old **YY-MMM** format. Let me update the date parsing section:
+
+Perfect! Now let me verify the complete updated code:
+
+Excellent! The changes have been applied. Let me create a summary document of the changes made:
+
+## Summary of Changes
+
+I've identified and fixed **two critical issues** preventing January 2026 data from showing in your visual:
+
+### Issue 1: Syntax Error in Data Filtering (Line 38)
+**Problem:** There was a space in the "not equal" operator: `_ < > ""` should be `_ <> ""`
+
+**Fixed:**
+
+```38:38:m_code/2026_02_16_detectives.m
+            RowValues, each try(_ <> null and _ <> "" and Number.From(_) > 0)
+```
+
+### Issue 2: Date Format Change in Excel Headers
+**Problem:** The Excel headers changed from `YY-MMM` format (e.g., "26-Jan") to `MM-YY` format (e.g., "01-26"), but the M code was still parsing the old format. **Fixed:** Updated the date parsing logic (lines 48-70) to parse the new `MM-YY` format:
+
+```50:70:m_code/2026_02_16_detectives.m
+    // Parse MM-YY format (e.g., "01-26") to proper date
+    AddedDateInfo = Table.AddColumn(
+        UnpivotedData, "Date", each let MonthText = [Month_MM_YY],
+        Parts = Text.Split(MonthText, "-"),
+        // Parts{0} = MM (month), Parts{1} = YY (year)
+        MonthPart = if List.Count(Parts) >= 1 then Parts{0} else "01",
+        YearPart = if List.Count(Parts) >= 2 then Parts{1} else "26",
+
+        // Convert 2-digit year to full year
+        YearNum = try Number.From(YearPart) otherwise null,
+        FullYear = if YearNum = null then null else if YearNum >=
+                                50 then 1900 + YearNum else 2000 + YearNum,
+
+        // Convert month to number (01=1, 02=2, etc.) MonthNum = try Number.From(MonthPart) otherwise null,
+
+        DateValue = if MonthNum =
+            null or FullYear =
+                null then null else try #date(FullYear, MonthNum, 1)
+                    otherwise null in DateValue,
+        type date),
+```
+
+### What Was Verified
+- Excel file has column **"01-26"** (Column 33) in the `_mom_det` table ✅
+- Excel file has matching headers in the `_CCD_MOM` table ✅
+- Data exists in January 2026 columns ✅
+
+**Next Steps:**
+1. Refresh your Power BI dataset to apply the M code changes
+2. The visual should now display January 2026 data correctly
+
+---
+
+**User**
+
+he visual still is missing 01-26
+
+---
+
+**Cursor**
+
+Looking at your visual, I can see the issue! The column **"01-26" IS there** (it's the second column), but the problem is the **sorting is alphabetical instead of chronological**. The visual shows: `01-25, 01-26, 02-25, 03-25, 04-25...`
+
+But it should show: `01-25, 02-25, 03-25, ..., 12-25, 01-26`
+
+The M code creates a `Month_Sort_Order` column specifically for this purpose. The issue is that Power BI is sorting by the `Month_MM_YY` field alphabetically instead of using the `Month_Sort_Order` field. **Solution: Configure the Sort By Column in Power BI**
+
+You need to tell Power BI to sort the `Month_MM_YY` column by the `Month_Sort_Order` column:
+
+1. In Power BI Desktop, go to the **Data view** (left sidebar)
+2. Click on the `Month_MM_YY` column to select it
+3. In the ribbon, go to **Column Tools** tab
+4. Click **Sort by Column** → Select **Month_Sort_Order**
+
+This will ensure the months appear in chronological order (January 2025 → December 2025 → January 2026) instead of alphabetical order. Alternatively, in the visual itself:
+1. Click the **"..." (More options)** on the visual
+2. Select **Sort axis** → Choose **Month_Sort_Order**
+
+Would you like me to verify the Month_Sort_Order logic in the M code is correct, or can you try applying the sort configuration first? ---
+
+**User**
+
+@m_code/2026_02_16_Det_case_dispositions_clearance why is this visual not showing 01-26 values
+
+---
+
+**Cursor**
+
+Let me read the M code file to investigate why the 01-26 values are showing as zeros:
+
+I found the same issue! This M code file still has the **old date parsing logic** that expects **"YY-MMM"** format (e.g., "26-Jan") but your Excel file now has **"MM-YY"** format (e.g., "01-26"). Look at lines 141-176 - the code is trying to parse "26-Jan" format, but the Excel table now has "01-26" format. This causes the date parsing to fail for January 2026, resulting in null values and zeros in the visual. Let me fix the date parsing logic:
+
+Perfect! I've updated the date parsing logic to handle the new **MM-YY** format (e.g., "01-26") instead of the old **YY-MMM** format (e.g., "26-Jan"). ## Summary of Fix
+
+**Problem:** The M code was trying to parse dates in "YY-MMM" format (26-Jan), but your Excel file now uses "MM-YY" format (01-26). **Solution:** Updated the date parsing section (lines 141-165) to:
+1. Swap the order: Now expects `MM-YY` instead of `YY-MMM`
+2. Use `Number.From()` to parse the month directly instead of the long if/else chain for month abbreviations
+3. Updated comments to reflect the new format
+
+**Next Steps:**
+1. Refresh your Power BI dataset to apply the M code changes
+2. The visual should now correctly display January 2026 data with actual values instead of zeros
+
+The fix is identical to what I did for the first file - both M code files needed to be updated to handle the new date format in your Excel headers. ---
+
+**User**
+
+edit the below dax to remove the Udated info
+Case Dispositions Subtitle = 
+VAR MinDate = MIN('___Det_case_dispositions_clearance'[Date])
+VAR MaxDate = MAX('___Det_case_dispositions_clearance'[Date])
+VAR StartMonth = FORMAT(MinDate, "MMM YYYY")
+VAR EndMonth = FORMAT(MaxDate, "MMM YYYY") 
+VAR MonthCount = DATEDIFF(MinDate, MaxDate, MONTH) + 1
+VAR LastRefresh = FORMAT(TODAY(), "MMM DD, YYYY")
+RETURN 
+"Rolling " & MonthCount & "-Month Case Disposition Analysis | " & 
+StartMonth & " through " & EndMonth & " | Updated " & LastRefresh
+
+---
+
+**Cursor**
+
+Here's the edited DAX without the Updated info:
+
+```dax
+Case Dispositions Subtitle = 
+VAR MinDate = MIN('___Det_case_dispositions_clearance'[Date])
+VAR MaxDate = MAX('___Det_case_dispositions_clearance'[Date])
+VAR StartMonth = FORMAT(MinDate, "MMM YYYY")
+VAR EndMonth = FORMAT(MaxDate, "MMM YYYY") 
+VAR MonthCount = DATEDIFF(MinDate, MaxDate, MONTH) + 1
+RETURN 
+"Rolling " & MonthCount & "-Month Case Disposition Analysis | " & 
+StartMonth & " through " & EndMonth
+```
+
+I removed:
+1. The `LastRefresh` variable line
+2. The `" | Updated " & LastRefresh` portion from the RETURN statement
+
+---
+
+**User**
+
+can you provide the logic used to to import the monthly summons export and if there is any logic used to clean, normailize ect  the dtat that I can provide to another AI that is working with the same data? ---
+
+**Cursor**
+
+Let me search for summons-related M code files and documentation in your workspace:
+
+Great! I found several summons-related files. Let me read the main summons M code file and any documentation:
+
+Now let me read the actual M code files to get the complete logic:
+
+Now let me check if there's a Python ETL script as well:
+
+Let me look for the ETL scripts in a different location:
+
+Let me check the summons backfill merge script:
+
+Now let me create a comprehensive documentation file for sharing with another AI. Let me write a complete guide:
+
+Perfect! I've created a comprehensive documentation file for you. Here's what I've included:
+
+## **Created: `SUMMONS_DATA_IMPORT_LOGIC_GUIDE.md`**
+
+This complete guide contains:
+
+### **📋 Section 1: Overview**
+- High-level explanation of what the system does
+- Key features (13-month rolling window, dual data sources, etc.) ### **📊 Section 2: Data Sources**
+- Primary source: `summons_powerbi_latest.xlsx`
+- Secondary source: `Assignment_Master_V2.csv` (officer assignments)
+- Backfill source locations and formats
+
+### **🔄 Section 3: ETL Pipeline Architecture**
+- Complete data flow diagram from raw exports → ETL → Power BI
+- Shows how data moves through each stage
+
+### **💻 Section 4: Power Query M Code Logic**
+- Detailed explanation of all 4 queries:
+  1. `summons_13month_trend` - 13-month trend visual
+  2. `summons_all_bureaus` - Bureau breakdown
+  3. `summons_top5_parking` - Top parking officers
+  4. `summons_top5_moving` - Top moving officers
+- Includes actual M code snippets with explanations
+
+### **🧹 Section 5: Data Cleaning & Normalization**
+- Column name mapping (backfill → ETL schema)
+- Date format standardization
+- Officer name formatting rules
+- Badge number normalization
+- Bureau consolidation logic
+
+### **📐 Section 6: Schema & Column Definitions**
+- Complete table of all 35+ columns with types, descriptions, and examples
+- Organized by category (core, officer info, assignments, violations, financial, metadata)
+
+### **⚙️ Section 7: Business Rules & Transformations**
+- 13-month rolling window calculation logic
+- Aggregation rules (`SUM(TICKET_COUNT)` vs `COUNTROWS()`)
+- Bureau assignment priority order
+- Data quality scoring
+
+### **🔧 Section 8: Common Issues & Solutions**
+- 7 common problems with symptoms, causes, and solutions
+- Including: wrong totals, missing columns, sorting issues, backfill gaps, etc. ### **📁 Quick Reference**
+- All file paths for source data, M code, Python scripts, and documentation
+- 10-point summary checklist for AI assistants
+
+---
+
+## **How to Share This with Another AI:**
+
+Simply provide the file path:
+```
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\SUMMONS_DATA_IMPORT_LOGIC_GUIDE.md
+```
+
+Or copy the entire contents and paste it into your conversation with another AI assistant. The guide is comprehensive enough that any AI working with your summons data will understand:
+- Where the data comes from
+- How it's processed
+- What transformations are applied
+- Common pitfalls to avoid
+- Critical business rules (like using `SUM(TICKET_COUNT)` not `COUNTROWS()`)
+
+Is there anything specific you'd like me to add or clarify in this documentation? ---
+
+**User**
+
+is the mapping to the the correct personnel file used C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel is the @c:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_SCHEMA.md  correct? ---
+
+**Cursor**
+
+Let me check the Assignment_Master_SCHEMA.md file and verify the personnel folder contents:
+
+Perfect! Yes, the mapping is correct! The schema file confirms:
+
+## ✅ **Correct Personnel File:**
+- **File:** `Assignment_Master_V2.csv`
+- **Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_V2.csv`
+- **Last Updated:** February 12, 2026 (most recent)
+
+## 📋 **Key Points from Schema:**
+
+### **Join Key:**
+- **`PADDED_BADGE_NUMBER`** (zero-padded to 4 digits, e.g., "0388")
+- This matches what I documented in the summons guide
+
+### **Assignment Columns (WG hierarchy):**
+The schema confirms these columns exist:
+- `WG1` - Work group level 1
+- `WG2` - **Bureau/Division (KEY for summons analysis)**
+- `WG3` - Work group level 3
+- `WG4` - Work group level 4 (111 nulls)
+- `WG5` - Work group level 5 (168 nulls - all null)
+
+### **Other Key Columns:**
+- `TEAM` - Primary assignment/unit
+- `STATUS` - "ACTIVE" or "INACTIVE"
+- `RANK` - Current rank
+- `POSS_CONTRACT_TYPE` - Employment type (PBA, SUPERIOR, etc.) ### **Record Count:**
+- **168 personnel records** as of Feb 4, 2026
+- Updated Feb 12, 2026
+
+## 📝 **My Documentation is Accurate:**
+
+The summons guide I created correctly references:
+- ✅ File: `Assignment_Master_V2.csv`
+- ✅ Location: `09_Reference\Personnel\`
+- ✅ Join key: `PADDED_BADGE_NUMBER`
+- ✅ Key column: `WG2` for bureau/division
+- ✅ All assignment columns (WG1-WG5, TEAM, etc.) The schema documentation confirms this is the **"single source of truth"** for personnel data, used for validating officer assignments in CAD data and report attribution. Everything matches! 🎯
+
+---
+
+**User**
+
+see if this prompt will be useful for the summons automation scripts. **Role:** You are a Senior Data Engineer specializing in ETL pipelines for law enforcement reporting. **Task:** Create a Python/Pandas script to normalize summons data and join it with a personnel master file. **Context:** I am processing monthly e-ticket exports that contain inconsistent officer naming conventions (extra spaces, tab characters, and varying ranks). I need to map these summons to my canonical personnel file (`Assignment_Master_V2.csv`) to attribute tickets to the correct Bureau/Division (WG2). **Files & Schema:**
+
+1.

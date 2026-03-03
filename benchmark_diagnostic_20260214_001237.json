@@ -1,0 +1,10 @@
+{
+  "use_force": {
+    "file": "use-of-force-reports-01_01_2001-02_06_2026.csv",
+    "rows": 345,
+    "valid_dates": 345,
+    "min_date": "2020-07-16",
+    "max_date": "2026-02-04",
+    "months_covered": 61,
+    "jan_2025_pct": 1.4492753623188406,
+    "monthly_distribution": {

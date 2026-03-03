@@ -1,0 +1,40 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "bureau",
+        "traffic",
+        "nan",
+        "badge",
+        "2025",
+        "code"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Summons Data Query Failures Explained\n\n**Exported:** 3/3/2026 16:51:36  \n**Link:** [https://gemini.google.com/app/31b7e182991cb703](https://gemini.google.com/app/31b7e182991cb703)\n\n## Prompt:\n> Claude - MD\n\n> README - MD\n\n> SUMMARY - M...",
+      "first_line": "# Summons Data Query Failures Explained"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-03-03T16:52:10.507876",
+  "department": "admin"
+}

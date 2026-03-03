@@ -1,0 +1,2181 @@
+Let me generate the complete array:
+
+
+Convert text to formulas in R2
+Parameters:
+{
+  "sheetId": 13,
+  "range": "R2:AC58",
+  "cells": [
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ],
+    [
+      {
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_MAY[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUN[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_AUG[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_SEP[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_NOV[Service/Product],[@[ServiceName_Normalized]])"
+      },
+      {
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])"
+      }
+    ]
+  ],
+  "allow_overwrite": true
+}
+Show more
+Error:
+Excel Error InvalidArgument: The argument is invalid or missing or has an incorrect format.

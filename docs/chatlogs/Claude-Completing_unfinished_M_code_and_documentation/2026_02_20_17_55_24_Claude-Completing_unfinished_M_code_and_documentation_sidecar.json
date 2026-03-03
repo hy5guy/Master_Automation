@@ -1,0 +1,75 @@
+{
+  "source_file": "Claude-Completing unfinished M code and documentation.json",
+  "source_path": "C:\\_chunker\\02_data\\Claude-Completing unfinished M code and documentation.json",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Claude-Completing_unfinished_M_code_and_documentation\\2026_02_20_17_55_24_Claude-Completing_unfinished_M_code_and_documentation.origin.json",
+  "created_at": "2026_02_20_17_55_24",
+  "tags": [
+    "ai",
+    "conversation",
+    "data",
+    "dataset",
+    "docs",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "sql",
+    "training"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "data",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "code",
+      "file",
+      "issues",
+      "all",
+      "queries",
+      "datetime"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "{\n  \"metadata\": {\n    \"title\": \"Completing unfinished M code and documentation\",\n    \"dates\": {\n      \"created\": \"2/19/2026 17:45:26\",\n      \"updated\": \"2/19/2026 17:50:07\",\n      \"exported\": \"2/20/2026 17:55:00\"\n    },\n    \"link\": \"http...",
+    "first_line": "{"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-20T17:55:24+00:00_Claude-Completing_unfinished_M_code_and_documentation_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "code",
+        "conversation",
+        "data",
+        "dataset",
+        "datetime",
+        "docs",
+        "file",
+        "issues",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "queries",
+        "sql",
+        "training"
+      ],
+      "key_terms": [
+        "code",
+        "file",
+        "issues",
+        "all",
+        "queries",
+        "datetime"
+      ],
+      "summary": "{\n  \"metadata\": {\n    \"title\": \"Completing unfinished M code and documentation\",\n    \"dates\": {\n      \"created\": \"2/19/2026 17:45:26\",\n      \"updated\": \"2/19/2026 17:50:07\",\n      \"exported\": \"2/20/2026 17:55:00\"\n    },\n    \"link\": \"http...",
+      "char_length": 9040,
+      "byte_length": 9097
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

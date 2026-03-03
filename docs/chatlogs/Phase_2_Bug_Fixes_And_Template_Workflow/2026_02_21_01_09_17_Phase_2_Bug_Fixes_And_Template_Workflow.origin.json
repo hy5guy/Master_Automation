@@ -1,0 +1,43 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "files",
+        "m_code",
+        "all",
+        "code",
+        "file",
+        "now"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Master automation phase 2 remediation pack\n_Exported on 2/21/2026 at 01:08:58 EST from Cursor (2.5.20)_\n\n---\n\n**User**\n\n@c:\\Users\\carucci_r\\.cursor\\plans\\schema_md_update_v2_b6a2c182.plan.md # Claude Prompt. Master_Automation Phase 2 R...",
+      "first_line": "# Master automation phase 2 remediation pack"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-21T01:09:17.339061",
+  "department": "admin"
+}

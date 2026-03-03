@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.24] - 2026-03-03
+
+### Added — Summons Verification Note (Re-export Required)
+
+**Action required:** Re-export all summons e-ticket data to verify counts. A comparison showed Moving (M) discrepancy for 01-26 (406 expected vs 462 from ETL).
+
+**Docs updated:**
+- `docs/SUMMONS_VERIFICATION_NOTE_2026_03.md` — New verification guide
+- `docs/SUMMONS_VISUALS_FIX_2026_03_03.md`, `docs/SUMMONS_POWER_BI_TROUBLESHOOTING.md`, `docs/SUMMONS_BACKFILL_INJECTION_POINT.md`, `docs/SUMMONS_PRODUCTION_CHECKLIST.md`, `docs/SUMMONS_PATHS_AND_DROPEXPORTS.md`, `docs/SUMMONS_AUTOMATION_SUMMARY.md` — Verification note added
+- `CLAUDE.md` — Added link to verification note in docs section
+
+---
+
+## [1.17.23] - 2026-03-02
+
+### Added — Summons: Badge 2025 SSOCC Override for Drone/Firezone Temp Assignment
+
+**Context:** February 2026 drone firezone violations. Summons written by drone operator badge 0738 (Ronald Polson) and PEO Mariah Ramirez (badge 2025, temp assignment to SSOCC) must appear under **SSOCC** in the All Bureaus visual.
+
+**Changes:**
+- **Badge 0738** (Polson): Already in Assignment Master with WG2 = SSOCC — no change.
+- **Badge 2025** (Ramirez): Conditional override — only summons with **Violation Description = "FIRE LANES"** map to SSOCC; all other violations stay Traffic Bureau.
+
+**Files modified:**
+- `02_ETL_Scripts/Summons/SummonsMaster_Simple.py` — Added 2025 override.
+- `02_ETL_Scripts/Summons/summons_etl_enhanced.py` — Added `ASSIGNMENT_OVERRIDES` dict and override logic in `_enrich_with_officer_data`.
+- `scripts/run_summons_with_overrides.py` — Added 2025 override.
+
+**Data requirement:** Ensure tickets from `2026_02_0738_ticketsexport.csv` and `2026_02_2025_ticketsexport.csv` are included in the main `2026_02_eticket_export.csv` (or merged before ETL). The ETL loads from `05_EXPORTS\_Summons\E_Ticket\2026\month\2026_02_eticket_export.csv`.
+
+---
+
 ## [1.17.22] - 2026-03-02
 
 ### Changed — Assignment Master Sync Path-Agnostic (09_Reference/Personnel)

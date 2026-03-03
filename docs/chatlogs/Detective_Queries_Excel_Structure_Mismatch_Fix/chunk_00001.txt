@@ -1,0 +1,575 @@
+You were only seeing 2 months because your Excel file has **two different column name formats** that the M code wasn't handling:
+
+### The Problem
+
+Your `STACP.xlsm` file has columns in **mixed formats**:
+
+**Format 1 (Padded)**: `01-25`, `02-25`, `10-25`, `11-25`, `12-25`, `01-26` ✅  
+**Format 2 (Unpadded)**: `3-25`, `4-25`, `5-25`, `6-25`, `7-25`, `8-25`, `9-25` ❌
+
+The original M code **only detected Format 1** (padded columns) → **7 months of data were missing** (March-September 2025). ---
+
+### What I Fixed
+
+**Enhanced Column Detection** to accept BOTH formats:
+
+**Old Code** (only validated year):
+```powerquery
+IsYearValid = Text.Length(YearPart) = 2 and (try Number.From(YearPart) otherwise -1) >= 0
+```
+
+**New Code** (validates month 1-12 AND year):
+```powerquery
+// Check if first part is a 1-2 digit month (1-12)
+IsMonthValid = Text.Length(MonthPart) >= 1 and Text.Length(MonthPart) <= 2 and 
+               (try Number.From(MonthPart) >= 1 and Number.From(MonthPart) <= 12 otherwise false),
+// Check if second part is a 2-digit number
+IsYearValid = Text.Length(YearPart) = 2 and (try Number.From(YearPart) otherwise -1) >= 0
+```
+
+Now accepts:
+- ✅ `3-25` (single-digit month)
+- ✅ `03-25` (double-digit month)  
+- ✅ Both normalize to `03-25` for consistent sorting
+
+---
+
+### Deploy the Fix
+
+**Step 1**: Open your Power BI file → **Home** → **Transform Data**
+
+**Step 2**: Find query `___STACP_pt_1_2` → **View** → **Advanced Editor**
+
+**Step 3**: Replace ALL code with the contents of:
+```
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\m_code\stacp\STACP_pt_1_2_FIXED.m
+```
+
+**Step 4**: Click **Done** → **Close & Apply**
+
+---
+
+### After Deploying, You Should See
+
+**In the Month_MM_YY filter** (13 months instead of 2):
+```
+☑ Select all
+☑ 01-25  (Jan 2025) ← Was missing before
+☑ 02-25  (Feb 2025) ← Was missing before
+☑ 03-25  (Mar 2025) ← NOW APPEARS! ☑ 04-25  (Apr 2025) ← NOW APPEARS! ☑ 05-25  (May 2025) ← NOW APPEARS! ☑ 06-25  (Jun 2025) ← NOW APPEARS! ☑ 07-25  (Jul 2025) ← NOW APPEARS! ☑ 08-25  (Aug 2025) ← NOW APPEARS! ☑ 09-25  (Sep 2025) ← NOW APPEARS! ☑ 10-25  (Oct 2025) ← Was missing before
+☑ 11-25  (Nov 2025) ← Was missing before
+☑ 12-25  (Dec 2025) ✓ You saw this one
+☑ 01-26  (Jan 2026) ✓ You saw this one
+```
+
+**In both visuals**: All tracked items should now show **13 columns** of data instead of 2. ---
+
+### Files Updated and Committed
+
+```
+✅ m_code/stacp/STACP_pt_1_2_FIXED.m (enhanced column detection)
+✅ docs/STACP_INCONSISTENT_DATE_FORMAT_FIX.md (full technical docs)
+✅ docs/STACP_FIX_QUICK_REF.md (updated quick reference)
+
+Git Commits:
+- d99f7ff: Fix year detection bug
+- dd372f3: Add standard header
+- 550f256: Fix inconsistent date format
+- a6ddd0a: Update quick reference
+```
+
+---
+
+### Why This Happened
+
+Your Excel columns were likely created by different methods:
+- **Padded** (`01-25`): Probably from Excel formula like `TEXT(date,"MM-YY")`
+- **Unpadded** (`3-25`): Probably manually typed or from formula like `MONTH & "-" & YEAR`
+
+The M code now handles **both formats automatically** - no Excel changes needed! ---
+
+Deploy the updated M code and your visuals will show all 13 months. Let me know if you see all the data after refreshing! 🎯
+
+---
+
+**User**
+
+please review C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\STACP\STACP.xlsm
+review sheets:
+MoMTotals
+26_JAN
+25_DEC
+25_NOV
+all other sheets from 01-25 through 26_JAN
+- the visuals only show 12-25 and 01-26 even after the updated m code
+
+---
+
+**Cursor**
+
+I'll examine the Excel workbook structure to understand what's happening. Let me check the sheets and their data:
+
+Good! Now let me examine the MoMTotals sheet structure:
+
+Let me write a proper Python script:
+
+Excellent! Now I see the issue. The **MoMTotals sheet has ALL the columns with proper MM-YY format** (including all months from 06-23 through 01-26). The M code should be working. Let me verify by checking what Power BI is actually seeing. Let me create a diagnostic query you can paste into Power BI:
+
+Perfect! The Excel file is **correct** - it has all 32 month columns properly formatted (MM-YY). The issue must be in how Power BI is loading the query. Let me create a comprehensive troubleshooting guide:
+
+Now let me commit these diagnostic tools and create a summary:
+
+## ✅ Excel File Analysis Complete - Issue Identified
+
+I've analyzed your STACP.xlsm file and found **good news**:
+
+### Excel File is Perfect! ✅
+
+**Analysis Results**:
+- ✅ **54 total columns** in MoMTotals sheet
+- ✅ **32 month columns** found (`06-23` through `01-26`)
+- ✅ **All formatted correctly** as `MM-YY` (no unpadded months)
+- ✅ **All 13 months have data** in the 13-month window (01-25 through 01-26)
+- ✅ Individual month sheets have data (`25_JAN`, `25_FEB`, `25_MAR`, `25_DEC`, `26_JAN`)
+
+The Excel file has **everything correct**. The issue must be with how Power BI is loading the query. ---
+
+## Most Likely Cause: Power BI Cache
+
+Since the Excel file is correct but your visuals still show only 2 months, **Power BI is probably using cached metadata** from before you updated the M code. ---
+
+## Diagnostic Tools Created
+
+I've created tools to help identify the exact issue:
+
+### 1. **STACP_DIAGNOSTIC.m** - Power Query Diagnostic
+Location: `m_code\stacp\STACP_DIAGNOSTIC.m`
+
+**How to use**:
+1. Open Power BI → **Transform Data**
+2. **New Source** → **Blank Query**
+3. Click **Advanced Editor**
+4. Paste contents from `STACP_DIAGNOSTIC.m`
+5. Click **Done** and rename to `STACP_Diagnostic`
+
+**This will show you**:
+- How many month columns Power BI detects (should be 32)
+- How many columns are in the 13-month window (should be 13)
+- Exactly which columns Power BI sees
+
+### 2. **Troubleshooting Guide**
+Location: `docs\STACP_TROUBLESHOOTING_GUIDE.md`
+
+Complete step-by-step guide to identify and fix the issue. ---
+
+## Quick Fix to Try First
+
+**Force Power BI to Reload Without Cache**:
+
+1. **Close Power BI Desktop completely**
+2. Open it again and open your file
+3. Go to **Home** → **Transform Data**
+4. Find query `___STACP_pt_1_2` (check the exact name - might have 2 or 3 underscores)
+5. Right-click the query → **Delete** (yes, really delete it!) 6. **New Source** → **Blank Query**
+7. Click **Advanced Editor**
+8. Paste ALL contents from:
+   ```
+   C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\m_code\stacp\STACP_pt_1_2_FIXED.m
+   ```
+9. Click **Done**
+10. Rename the query back to `___STACP_pt_1_2` (exact name with same underscores)
+11. **Close & Apply**
+
+This forces Power BI to completely rebuild the query and should pick up all 32 month columns. ---
+
+## What I Need From You
+
+To continue troubleshooting, please run the **diagnostic query** and tell me:
+
+1. **How many "Detected Month Columns" does it show? **
+   - Expected: 32
+   - If you see 2: M code isn't applied
+   - If you see 32: Issue is with visual configuration
+
+2. **What's the exact name of your STACP query? **
+   - `___STACP_pt_1_2` (3 underscores)? - `__STACP_pt_1_2` (2 underscores)? - Something else? 3. **After the "delete and recreate" fix above, do you see all 13 months? **
+
+---
+
+The Excel file is **100% correct**, so the issue is definitely on the Power BI side. The diagnostic query will tell us exactly where the problem is! 🎯
+
+---
+
+**User**
+
+preview table of the STACP_DIAGNOSTIC query 
+Metric	Count	Details
+Total Columns in MoMTotals	54	Tracked Items , 06-23, 07-23, 08-23, 09-23, 10-23, 11-23, 12-23, 01-24, 02-24, 03-24, 04-24, 05-24, 06-24, 07-24, 08-24, 09-24, 10-24, 11-24, 12-24, 01-25, 02-25, 03-25, 04-25, 05-25, 06-25, 07-25, 08-25, 09-25, 10-25, 11-25, 12-25, 01-26, Column34, Column35, Column36, Column37, Column38, Column39, Column40, Column41, Column42, Column43, Column44, Column45, Column46, Column47, Column48, Column49, Column50, Column51, Column52, Column53, Column54
+Detected Month Columns	32	06-23, 07-23, 08-23, 09-23, 10-23, 11-23, 12-23, 01-24, 02-24, 03-24, 04-24, 05-24, 06-24, 07-24, 08-24, 09-24, 10-24, 11-24, 12-24, 01-25, 02-25, 03-25, 04-25, 05-25, 06-25, 07-25, 08-25, 09-25, 10-25, 11-25, 12-25, 01-26
+Columns in 13-Month Window	2	12-25, 01-26
+First Column Name	1	Tracked Items 
+
+---
+
+**Cursor**
+
+Perfect! Now I can see the **exact problem**! 🎯
+
+## The Issue Found
+
+Your diagnostic results show:
+
+✅ **Detected Month Columns: 32** - Column detection is working perfectly! ❌ **Columns in 13-Month Window: 2 (12-25, 01-26)** - **Window calculation is WRONG! **
+
+The M code is correctly finding all 32 month columns, but the **rolling window calculation is broken** - it's only keeping 2 months instead of 13. ---
+
+## Root Cause: Start Month Calculation Error
+
+The current code has this logic:
+
+```powerquery
+EndMonth = if CurrentMonth = 1 then 12 else CurrentMonth - 1,     // Feb → Jan (1)
+EndYear = if CurrentMonth = 1 then CurrentYear - 1 else CurrentYear,  // 2026
+
+StartMonth = if EndMonth = 1 then 12 else EndMonth - 1,  // Jan → Dec (12) ❌ WRONG! StartYear = EndYear - 1,  // 2025
+```
+
+**Problem**: When `EndMonth = 1` (January), it sets `StartMonth = 12` (December) of the previous year. **Result**: Window becomes **December 2025 to January 2026** = only 2 months! ❌
+
+**What it should be**: **January 2025 to January 2026** = 13 months ✅
+
+---
+
+## The Fix
+
+The start month should be **the same month** as the end month, but **one year earlier** for a 13-month window:
+
+Now let me update the diagnostic query too:
+
+Now let me create documentation explaining this fix:
+
+Now commit all the fixes:
+
+Perfect! Now let me update the quick reference:
+
+## 🎯 EXACT PROBLEM FOUND AND FIXED! Your diagnostic results were perfect - they showed me **exactly** what was wrong! ---
+
+## The Problem
+
+```
+Columns in 13-Month Window: 2 (12-25, 01-26)  ❌
+```
+
+The window calculation was **broken**. Here's why:
+
+### The Broken Code
+
+```powerquery
+EndMonth = 1 (January 2026)
+StartMonth = if EndMonth = 1 then 12 else EndMonth - 1  // = 12 (December)
+StartYear = EndYear - 1  // = 2025
+```
+
+**Result**: Window = December 2025 to January 2026 = **2 months** ❌
+
+This logic tried to "go back one month" from January (→ December), but that only gives you 2 months, not 13! ---
+
+## The Fix
+
+```powerquery
+EndMonth = 1 (January 2026)
+StartMonth = EndMonth  // = 1 (January) ✅ FIXED! StartYear = EndYear - 1  // = 2025
+```
+
+**Result**: Window = January 2025 to January 2026 = **13 months** ✅
+
+**The Logic**: A 13-month window ending in January 2026 should **start** in January 2025 (same month, one year earlier). ---
+
+## What You Need to Do
+
+### Step 1: Update the Diagnostic Query (Verify Fix)
+
+1. In Power Query Editor, find `STACP_Diagnostic`
+2. **Advanced Editor** → Replace with updated code:
+   ```
+   C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\m_code\stacp\STACP_DIAGNOSTIC.m
+   ```
+3. Click **Done**
+4. Check the results → **"Columns in 13-Month Window"** should now show **13** (not 2!) ### Step 2: Update the Main Query
+
+1. Find `___STACP_pt_1_2`
+2. **Advanced Editor** → Replace with:
+   ```
+   C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\m_code\stacp\STACP_pt_1_2_FIXED.m
+   ```
+3. Click **Done**
+4. **Close & Apply**
+
+### Step 3: Verify the Visual
+
+Your STACP visuals should now show **13 months**:
+```
+01-25, 02-25, 03-25, 04-25, 05-25, 06-25,
+07-25, 08-25, 09-25, 10-25, 11-25, 12-25, 01-26
+```
+
+---
+
+## Expected Diagnostic Results (After Fix)
+
+Run the diagnostic again. You should see:
+
+```
+Metric                          | Count | Details
+--------------------------------|-------|--------------------------------
+Columns in 13-Month Window      | 13    | ✅ 01-25, 02-25... 01-26
+```
+
+Instead of:
+
+```
+Columns in 13-Month Window      | 2     | ❌ 12-25, 01-26
+```
+
+---
+
+## All 3 Issues Now Fixed
+
+1. ✅ **Year Detection** - Works for any year (24, 25, 26, 27...)
+2. ✅ **Date Format** - Handles both `3-25` and `03-25`
+3. ✅ **Window Calculation** - Now correctly calculates 13 months
+
+---
+
+## Files Committed
+
+```
+✅ m_code/stacp/STACP_pt_1_2_FIXED.m (window fix applied)
+✅ m_code/stacp/STACP_DIAGNOSTIC.m (window fix applied)
+✅ docs/STACP_WINDOW_CALCULATION_FIX.md (detailed explanation)
+✅ docs/STACP_FIX_QUICK_REF.md (updated with all 3 fixes)
+
+Git Commit: c8e49fe, 33c7c6d
+Status: READY TO DEPLOY
+```
+
+---
+
+The fix is **one line of code** - changing `StartMonth = EndMonth - 1` to `StartMonth = EndMonth`. Deploy the updated M code and your visuals will show all 13 months! 🎉
+
+---
+
+**User**
+
+updated preview table Metric	Count	Details
+Total Columns in MoMTotals	54	Tracked Items , 06-23, 07-23, 08-23, 09-23, 10-23, 11-23, 12-23, 01-24, 02-24, 03-24, 04-24, 05-24, 06-24, 07-24, 08-24, 09-24, 10-24, 11-24, 12-24, 01-25, 02-25, 03-25, 04-25, 05-25, 06-25, 07-25, 08-25, 09-25, 10-25, 11-25, 12-25, 01-26, Column34, Column35, Column36, Column37, Column38, Column39, Column40, Column41, Column42, Column43, Column44, Column45, Column46, Column47, Column48, Column49, Column50, Column51, Column52, Column53, Column54
+Detected Month Columns	32	06-23, 07-23, 08-23, 09-23, 10-23, 11-23, 12-23, 01-24, 02-24, 03-24, 04-24, 05-24, 06-24, 07-24, 08-24, 09-24, 10-24, 11-24, 12-24, 01-25, 02-25, 03-25, 04-25, 05-25, 06-25, 07-25, 08-25, 09-25, 10-25, 11-25, 12-25, 01-26
+Columns in 13-Month Window	13	01-25, 02-25, 03-25, 04-25, 05-25, 06-25, 07-25, 08-25, 09-25, 10-25, 11-25, 12-25, 01-26
+First Column Name	1	Tracked Items 
+
+I also updated the m code for ___STACP_pt_1_2 and the columns now show in the visual
+
+---
+
+**Cursor**
+
+## 🎉 SUCCESS! All 13 Months Now Showing! Perfect! Your diagnostic results confirm the fix is working:
+
+### Before Fix ❌
+```
+Columns in 13-Month Window: 2 (12-25, 01-26)
+```
+
+### After Fix ✅
+```
+Columns in 13-Month Window: 13 (01-25, 02-25, 03-25, 04-25, 05-25, 06-25, 07-25, 08-25, 09-25, 10-25, 11-25, 12-25, 01-26)
+```
+
+And the visuals are now displaying all the columns correctly! 🎯
+
+---
+
+## What Was Fixed (Summary)
+
+You encountered **3 separate issues** that all had to be fixed:
+
+### Issue #1: Year Detection Bug
+- **Problem**: Hardcoded to look for "24" or "25" in year
+- **Impact**: Would have broken in 2027+
+- **Fix**: Dynamic year validation (any 2-digit year)
+
+### Issue #2: Inconsistent Date Format (False Alarm)
+- **Suspected**: Mixed `3-25` and `03-25` formats
+- **Reality**: Excel file was actually all `MM-YY` format (properly padded)
+- **Fix**: Enhanced validation anyway (handles both formats now)
+
+### Issue #3: Window Calculation Bug ⭐ **Main Issue**
+- **Problem**: `StartMonth = EndMonth - 1` only gave 2 months
+- **Impact**: Visual only showed 12-25 and 01-26
+- **Fix**: `StartMonth = EndMonth` (same month, one year earlier)
+
+---
+
+## Final Verification Checklist
+
+Please confirm these are all working:
+
+- [x] Diagnostic shows **13 months** in window ✅ **CONFIRMED**
+- [x] Main query updated with fixed code ✅ **CONFIRMED**  
+- [x] Visuals show all 13 month columns ✅ **CONFIRMED**
+- [ ] **Part 1 visual** shows data for all tracked items across 13 months
+- [ ] **Part 2 visual** shows data for all tracked items across 13 months
+- [ ] No Power Query errors when refreshing
+- [ ] Filter pane shows all 13 months available
+
+---
+
+## Documentation Created
+
+All fixes documented in:
+
+### Technical Documentation
+- `docs/STACP_YEAR_DETECTION_FIX_2026_02_13.md` - Year detection fix
+- `docs/STACP_INCONSISTENT_DATE_FORMAT_FIX.md` - Date format handling
+- `docs/STACP_WINDOW_CALCULATION_FIX.md` - Window calculation fix (main issue)
+- `docs/STACP_TROUBLESHOOTING_GUIDE.md` - Comprehensive troubleshooting
+
+### Quick Reference
+- `docs/STACP_FIX_QUICK_REF.md` - Summary of all fixes
+
+### Diagnostic Tools
+- `m_code/stacp/STACP_DIAGNOSTIC.m` - Diagnostic query
+- `m_code/stacp/STACP_pt_1_2_FIXED.m` - Fixed query (deployed)
+- `scripts/analyze_stacp_workbook.py` - Excel workbook analyzer
+
+---
+
+## Git Commits
+
+All fixes committed to branch `docs/update-20260114-1447`:
+
+```
+d99f7ff - Fix STACP visual year detection bug
+dd372f3 - Add standard header to STACP M code
+550f256 - Fix STACP to handle both M-YY and MM-YY formats
+a6ddd0a - Update STACP quick ref with both fixes
+75d3d77 - Add STACP diagnostic tools and troubleshooting guide
+c8e49fe - Fix STACP 13-month window calculation
+33c7c6d - Update STACP quick ref with all 3 fixes
+```
+
+---
+
+## Monthly Behavior (Going Forward)
+
+The window will automatically adjust each month:
+
+| Date | Window Start | Window End | Months Shown |
+|------|-------------|-----------|--------------|
+| Feb 2026 | 01-25 | 01-26 | 13 months ✅ |
+| Mar 2026 | 02-25 | 02-26 | 13 months ✅ |
+| Apr 2026 | 03-25 | 03-26 | 13 months ✅ |
+| ... | ... | ... | Always 13! ✅ |
+
+**No maintenance needed** - the query automatically adjusts! ---
+
+Congratulations on getting this resolved! The STACP visuals are now showing the complete 13-month rolling window as intended. 🎊
+
+---
+
+**User**
+
+update docs please
+
+---
+
+**Cursor**
+
+I'll update the main documentation files to reflect the STACP fixes. Let me try a different approach:
+
+Now let me add a section about STACP to the SUMMARY.md:
+
+Now let me find and update the last line with version and date:
+
+Now let me update Claude.md:
+
+Good! Now commit all documentation updates:
+
+Perfect! Let me create a final summary document:
+
+Perfect! Let me create a final summary of what was updated:
+
+## ✅ Documentation Updated - Complete! All documentation has been updated to reflect the STACP visual fixes:
+
+### Main Documentation Files Updated
+
+1. **CHANGELOG.md** ✅
+   - Added v1.15.2 section
+   - Documented all 3 STACP fixes
+   - Listed new diagnostic tools
+   - Referenced new documentation files
+
+2. **SUMMARY.md** ✅
+   - Updated version: 1.15.0 → **1.15.2**
+   - Updated date: 2026-02-12 → **2026-02-13**
+   - Added "Recent Updates (2026-02-13)" section
+   - Detailed description of all 3 fixes
+   - Listed diagnostic tools and documentation
+
+3. **Claude.md** ✅
+   - Added v1.15.2 section under "Recent Updates"
+   - Comprehensive description of fixes
+   - Listed all diagnostic tools and documentation
+   - Updated last modified date
+
+### New Documentation Created
+
+4. **STACP_SESSION_SUMMARY_2026_02_13.md** ✅
+   - Complete session summary
+   - All issues and fixes documented
+   - Verification results
+   - Git commits list
+   - Technical details and lessons learned
+
+### Git Status
+
+All changes committed:
+```
+6441e25 - Update documentation for v1.15.2 - STACP visual fixes
+8eefa5a - Add complete STACP session summary
+```
+
+Total commits for STACP fixes: **9 commits**
+- 3 for M code fixes
+- 2 for documentation updates  
+- 4 for diagnostic tools and guides
+
+---
+
+## Documentation Summary
+
+### Version Information
+- **Previous**: v1.15.1 (Smart Date Inference)
+- **Current**: v1.15.2 (STACP Visual Fixes)
+- **Date**: 2026-02-13
+
+### STACP Documentation Files (9 Total)
+1. `m_code/stacp/STACP_pt_1_2_FIXED.m` - Fixed query
+2. `m_code/stacp/STACP_DIAGNOSTIC.m` - Diagnostic query
+3. `scripts/analyze_stacp_workbook.py` - Excel analyzer
+4. `docs/STACP_YEAR_DETECTION_FIX_2026_02_13.md` - Fix #1
+5. `docs/STACP_INCONSISTENT_DATE_FORMAT_FIX.md` - Fix #2
+6. `docs/STACP_WINDOW_CALCULATION_FIX.md` - Fix #3
+7. `docs/STACP_FIX_QUICK_REF.md` - Quick reference
+8. `docs/STACP_TROUBLESHOOTING_GUIDE.md` - Troubleshooting
+9. `docs/STACP_SESSION_SUMMARY_2026_02_13.md` - Session summary
+
+All documentation is now up to date and reflects the successful resolution of the STACP visual issue! 🎉
+
+---
+
+**User**
+
+The attached file was updated by Claude using the Excel add-on. Please update the m codes for @docs/2026_02_13_claude_excel_prompt_stacp_query.md so the queries work. Turn #	Date	User Request	Action Taken	Details	Outcome
+
+1	02/13/2026	Restructure workbook: create new MoM table (2026 only), create monthly sheets 26_MAR–26_DEC with tracked items + CCD tables, link all monthly totals to MoM via XLOOKUP, rebuild _CCD_MOM with 01-26 through 12-26, format % rows, rename 26_FEB tables, trim extra CCD columns. Full workbook restructure executed across multiple phases	Phase 1: Deleted old _mom_det & _mom_ccd tables, cleared MoM sheet, renamed 26_FEB tables from _26_JAN_TI106/_26_JAN_CCD109 to _26_FEB/_26_FEB_CCD. Phase 2: Built new _mom_det table (A1:M41) with Tracked Items + 01-26 through 12-26 headers (text format @), 40 row labels, matching original styling. Phase 3: Created 10 sheets (26_MAR–26_DEC) by copying 26_JAN, renamed all 20 copied tables to convention (_26_MAR, _26_MAR_CCD, etc.). Phase 4: Wrote XLOOKUP formulas in MoM B2:M41 linking to each monthly sheet's Total column (range $B$2:$B$41/$C$2:$C$41 to include Total Follow-Ups). Phase 5: Rebuilt _CCD_MOM on CCD sheet (A1:M11) with XLOOKUP to each monthly CCD table ($E$2:$E$11/$F$2:$F$11). Fixed label mismatch (trailing/double spaces). Formatted rows 10-11 as 0.0%. Created _CCD_MOM table object. Fixed MM-YY headers from auto-date formatting to explicit text (@). All 26 tables created/renamed correctly. MoM (A1:M41) and _CCD_MOM (A1:M11) fully linked. All formulas return 0/blank (no data yet).

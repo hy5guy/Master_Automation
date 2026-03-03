@@ -1,0 +1,118 @@
+The file C:\Users\carucci_r\OneDrive - City
+of Hackensack\Master_Automation\scripts\run_etl_script.ps1 is not digitally signed. You cannot run this script on the
+current system. For more information about running scripts and setting execution policy, see about_Execution_Policies
+at https:/go.microsoft.com/fwlink/?LinkID=135170. At line:1 char:1
++ .\scripts\run_etl_script.ps1 -ScriptName "Summons"
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : SecurityError: (:) [], PSSecurityException
+    + FullyQualifiedErrorId : UnauthorizedAccess
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation>
+
+---
+
+**Cursor**
+
+
+PowerShell is blocking the script because of its execution policy. Use one of these approaches:
+
+**Option 1 – Bypass for this run**
+```powershell
+powershell -ExecutionPolicy Bypass -File ".\scripts\run_etl_script.ps1" -ScriptName "Summons"
+```
+
+**Option 2 – Run the Summons ETL script directly**
+```powershell
+python "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Summons\summons_etl_enhanced.py"
+```
+
+**Option 3 – Relax policy for the current process**
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+.\scripts\run_etl_script.ps1 -ScriptName "Summons"
+```
+
+Option 2 is the simplest and doesn’t require changing execution policy. ---
+
+**User**
+
+do iot for me
+
+now what
+
+---
+
+**Cursor**
+
+
+Here’s what to do next:
+
+## 1. Confirm the ETL ran
+
+Check that the staging file was updated:
+
+```
+C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+```
+
+If you haven’t run the ETL yet, run:
+
+```powershell
+python "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Summons\summons_etl_enhanced.py"
+```
+
+## 2. Refresh Power BI
+
+1. Open your Power BI report (template or monthly report). 2. **Home** → **Refresh** (or **Transform data** → right‑click the summons query → **Refresh**). ## 3. Check the Department-Wide Summons visual
+
+The visual should show:
+
+- 02-25 and 02-26
+- 13 months (02-25 through 02-26)
+- Values from the 2026_01 backfill for 2025 months
+
+---
+
+**If the visual is still wrong:**
+
+- Confirm the report uses the updated `summons_13month_trend.m` (with `EndDate = pReportMonth` and `BackfillMonths` including all 2025 months). - If not, copy the contents of `Master_Automation\m_code\summons\summons_13month_trend.m` into the Power BI query editor for that query. ---
+
+**User**
+
+confirm for me
+
+---
+
+**Cursor**
+
+
+## Confirmation status
+
+### Staging file
+- **Path:** `03_Staging\Summons\summons_powerbi_latest.xlsx`
+- **Last modified:** 2026-03-03 01:24:15
+- **Status:** File exists
+
+### Last ETL run (00:22:14)
+- Loaded only **2 e-ticket files** (2026_01, 2026_02)
+- **No backfill merge** in the log (no “Using backfill” or “Merged X backfill rows”)
+- That run was before the 2026_01 backfill changes
+
+### What this means
+The staging file may not yet include the 2026_01 backfill. To ensure it does:
+
+1. **Run the ETL again:**
+   ```powershell
+   python "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Summons\summons_etl_enhanced.py"
+   ```
+
+2. **Check the log** for:
+   - `Using backfill: ...\00_dev\projects\PowerBI_Date\Backfill\2026_01\summons`
+   - `Loaded gap months from consolidated file ... : 22 rows` (or similar)
+
+3. **Refresh Power BI** after the ETL finishes. If the Excel file is open or syncing, close it before running the ETL to avoid errors. ---
+
+**User**
+
+ran the script:
+C:\Users\carucci_r\scoop\apps\python\current\Lib\site-packages\fuzzywuzzy\fuzz.py:11: UserWarning: Using slow pure-python SequenceMatcher. Install python-Levenshtein to remove this warning
+  warnings.warn('Using slow pure-python SequenceMatcher.

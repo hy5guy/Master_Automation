@@ -1,0 +1,466 @@
+# Response time calculation review
+_Exported on 2/27/2026 at 17:33:58 EST from Cursor (2.5.26)_
+
+---
+
+**User**
+
+Read all the following for full contex of the the ongoing issue with the response time calculations. We need to review the filters of the calls to make the calculations more correct. @SUMMARY.md @README.md @CHANGELOG.md @Claude.md C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\chatlogs\Response_Time_Correction_Report_And_Design_System
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\chatlogs\Claude-Response_time_metric_verification_artifacts
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\chatlogs\Claude-Police_response_time_metrics_verification_and_backfil
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\chatlogs\Response_Time_ETL_Golden_Standard_And_CallType_Mapping
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\response_time\dispatcher_summary.html
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\response_time\Response_Time_Correction_Report_Chief_Antista_2026_02_26.html
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\response_time\Response Time Calculation Methods – Executive Comparison.pdf
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\response_time\Response Time Calculation Correction – Executive Summary.pdf
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\response_time\2026_01_14_18_39_05_Response Time ETL - Comparison Table.pdf
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\response_time\Response Time ETL Filtering Implementation.pdf
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\response_time\Response Time ETL - Executive Packet.pdf
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\response_time\Executive Summary. Routine Response Time Metric Correction.pdf
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\Claude-Response time metric verification artifacts.json
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\CURSOR_PROMPT_ResponseTime_Fixes_2026_02_26.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\Claude-Police response time metrics verification and backfill data quality.json
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\Response_Time_Admin_Brief_2026_02_26.docx
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\PEER_REVIEW_Response_Time_Verification_2026_02_26.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\Response_Time_ETL_Golden_Standard_And_CallType_Mapping.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\HANDOFF_Response_Time_Golden_Standard_And_CallType_2026_02_26.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\response_time_batch_all_metrics.py
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\process_cad_data_13month_rolling.py
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\apply_calltype_additions.py
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\show_audit.py
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\audit_unmapped_incidents.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\audit_unmapped_incidents.py
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\check_2025_map.py
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\check_calltype_map.py
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\response_time_batch_all_metrics.py
+
+---
+
+**Cursor**
+
+Let me now read the actual files directly to get the precise details needed for the plan. Now I have a comprehensive understanding. Let me compile the plan. I now have everything I need. Let me create the plan. ---
+
+**User**
+
+Please read the following feedback from Opus 4.6<
+Let me cross-reference the plan against the actual code and data to give you precise feedback.Now I have a complete picture. Let me write the feedback document.Here's the short version of what I found:
+
+**Problem 2 is wrong — kill it. ** I extracted both admin lists programmatically. They're identical: 92 types each, zero differences. The "101" is a stale comment in both scripts. There's nothing to reconcile. **Problem 1 is right but way too small. ** The plan proposes 23 types, but there are **63 more** Routine types in the "Administrative and Support" category that aren't in the filter — things like `Court Appearance`, `Prisoner Transport`, `Sex Offender Registration`, `Fingerprints`, `Service - Subpoena`, etc. Same logic as the court/admin types already excluded. Combine everything into one v1.17.18 pass (~83 new types total) instead of doing multiple rounds of CSV regeneration. **Problem 4 has a real bug. ** The plan says normalization handles the unicode MV Violation variant, but it doesn't — stripping the replacement character `\ufffd` removes the dash-equivalent, producing `motor vehicle violation private property` which won't match the base form `motor vehicle violation - private property`. Either add the variant explicitly or enhance normalization to also strip dashes before collapsing whitespace. **Consider a structural alternative for v1.18.x. ** Adding types one-by-one is whack-a-mole (you'll be at ~175 excluded types and still have 235 remaining Routine types). A dispatch-time-gap filter (`Time Out − Time Dispatched > 30 seconds`) would catch ALL self-initiated activity regardless of incident type, without maintaining an ever-growing list. Don't do this now — it's a methodology change — but worth evaluating after v1.17.18 stabilizes. @docs/response_time/FEEDBACK_Response_Time_Filter_Plan_2026_02_27.md 
+
+---
+
+**Cursor**
+
+Let me verify the Opus claims programmatically before updating the plan. Opus is confirmed correct on all counts. Now let me read the current plan and update it. The plan has been updated. Here's what changed based on Opus's feedback and the verification I ran:
+
+**Problem 2 — Deleted. ** I confirmed programmatically: both scripts have exactly 92 identical types. The "101 types" in both scripts' comments is a stale copy-paste artifact. The `reconcile-lists` TODO is replaced with `fix-101-comment` (fix the stale claim and add a runtime `logging.info` count so this never drifts again). **Problem 1 — Significantly expanded. ** The audit confirmed Opus's 63-type finding. The plan now proposes two groups in one v1.17.18 pass:
+- **Group A (~20 types):** Self-initiated enforcement (Motor Vehicle Violations, Traffic Violations, Field Contact, ESU/Targeted Patrol variants, Business/Property Checks, Community Engagement types, Checked Road Conditions)
+- **Group B (63 types):** Administrative and Support category gap — court processing, sex offender registration, property dispositions, prisoner handling, internal tests, service-of-process types, etc. **Problem 4 — Clarified as a real bug. ** The normalization strips the `\ufffd` replacement character but keeps ASCII dashes, so `Motor Vehicle Violation \ufffd Private Property` normalizes to `motor vehicle violation private property` (no dash) while the base form normalizes to `motor vehicle violation - private property` (with dash). These do not match. The plan calls for Option A (add both forms explicitly) as the safe v1.17.18 fix, and documents Option B (normalize dashes to spaces) as a cleaner but riskier alternative. **Strategic alternative added as backlog. ** The dispatch-time-gap filter (`Time Out − Time Dispatched > 30 seconds`) is documented as a v1.18.x evaluation item — a structural fix that would replace the ever-growing type list entirely. ---
+
+**User**
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself. To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos. Below are the parameters that should be used to filter out records so they are not included in the calculation of response times. The three cols headers to be used for filtering are "How Reported", "Incident" and the final col header to use is is "Category_Type" which is not on the in the TimeReport export, but when mapping Incident from the export to Incident in the C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Classifications\CallTypes\CallType_Categories.csv we can backfill the Category_Type to the export. Please 
+ensure the logic for filtering CAD records do the following
+
+1. Filter out records where the "How Reported" value is:
+Walk-In
+Phone
+Self-Initiated
+Radio
+Teletype
+Fax
+Other - See Notes
+eMail
+Mail
+Virtual Patrol
+Canceled Call
+
+2. Filter out the following Incidents:
+A.C.O.R.N. Test
+ABC Liquor License Applicant
+Academy Assignment
+Active/Administratively Closed
+Administrative Assignment
+Applicant ABC License
+Applicant ABC License (Server)
+Applicant ABC Liquor License (Business)
+Applicant AD Material License
+Applicant All Others
+Applicant City Employee
+Applicant Concealed Carry
+Applicant Firearm(s)
+Applicant Handicapped Permit
+Applicant Ice Cream Vendor
+Applicant Jewelry
+Applicant Landscaper
+Applicant Limo
+Applicant Peddling License
+Applicant Pistol Permit
+Applicant Police Auxiliary
+Applicant Police Officer
+Applicant Snow Removal
+Applicant Snow Removal 
+Applicant Solicitor
+Applicant Spa Therapy
+Applicant Taxi
+Applicant Towing
+Applicant Vending License
+Background Checks
+CCH / III Request
+Canceled Call
+Canvassing / Peddling Permit
+Car Wash
+Civil Defense Test
+Coffee Break
+Computer Issue -  Desktop
+Computer Issue - Desktop
+Computer Issue - Vehicle
+Conditional Dismissal Process
+Court - Federal
+Court - Municipal
+Court - Municipal Prisoner
+Court - Other Municipality
+Court - Superior
+Court Appearance
+Court Officer
+Court Order
+Court- Municipal Prisoner
+Desk Coverage
+Docket â€“ Drop Off
+Docket â€“ Pick up
+Exceptionally Cleared/Closed
+Expungement
+FTO Documentation
+Fingerprints
+Follow-up Investigation
+General Information
+Generated in Error
+Generator Test
+Good Conduct Letter Request
+Group
+HQ Assignment
+ICE Notification
+Improper Records
+Information
+Investigation-Follow up
+Meal Break
+Meeting
+NCIC Record
+No Investigation
+No Investigation 
+Notification Request
+OPRA Request
+Off the Air
+Parole/Probation Registry
+Peace Officer
+Photography
+Prisoner Log
+Prisoner Log 
+Prisoner Transport
+Property Damage - Police Vehicle
+Property Disposition
+Property Return
+Property Returned - Court Ordered
+Property Returned - Lost and Found
+Radio Coverage
+Records Request
+Records Request - DCPP (DYFS)
+Refuel Vehicle
+Relief / Personal
+Road Job/Outside Assignment
+Service - Subpoena
+Service - Summons
+Service of TRO / FRO
+Sex Offender - General
+Sex Offender - Serve Documents
+Sex Offender - Serve Tier Papers
+Sex Offender - Travel
+Sex Offender Registration
+Sex Offender Registration - Employment
+Sex Offender Registration - School Enrollment
+Sex Offender-Removal Order
+Special Assignment
+Surrender of Ammunition
+Surrender of Weapon
+Surrendered Firearm ID Card
+Surrendered License Plates
+Tampering: Public Records 2C:28-7
+Task Assignment
+Time Check
+Training
+Training Record
+Transportation
+U-Visa
+Unfounded Incident
+Unfounded/Closed
+Vacation
+Validation
+Vehicle Maintenance
+Warning Issued
+Warrant Recall
+Sex Offender-General
+Assist Motorist
+Assist Other Agency
+Assist Own Agency (Backup)
+Cooperative Arrest - Little Ferry
+Cooperative Arrest - Maywood
+Cooperative Arrest - Ridgefield Park
+Cooperative Arrest - So. Hackensack
+Courtesy Transport
+D.P.W. Assist
+Escort - Money
+Fire Department Call
+Funeral Escort
+Lock-Out Residence
+Motor Vehicle Lock-out
+Mutual Aid - E.M.S. Mutual Aid - Fire
+Mutual Aid - Police
+Non-Emergency Assist
+Parks Department Needed
+ALPR Analysis
+ALPR Flag
+BOLO
+DNA Sample
+Detective Bureau Detail
+Discovery - Criminal
+Discovery - Motor Vehicle
+Discovery - Non Specific
+Evidence Delivery
+Evidence Delivery / Retrieval
+Evidence Retrieval
+Facial Recognition Request
+Field Contact/ Information
+General Investigation
+Investigation - Follow-Up
+Investigation Follow-Up
+Lo-Jack Hit - Tracking Signal
+Missing Person - Adult
+Missing Person - Return - Adult
+Missing Person- Return
+Narcotics Investigation
+OOPS Investigation
+Pawned Item(s)
+Property - Found
+Property - Lost
+Property Recovered - Stolen
+Recovered Stolen - Article
+Recovered Stolen - Firearm
+Recovered Stolen License Plate
+Recovered Stolen Vehicle
+Search Warrant Execution - CDW
+Search Warrant Execution - Structure
+Search Warrant Execution - Vehicle
+Sex Offender - Address Verification
+Sex Offender - Intent to Move
+Sex Offender Investigation
+Suspicious Activity Report
+Suspicious Activity Submission
+Suspicious Incident
+Suspicious Item
+Suspicious Person
+Suspicious Vehicle
+TAS Alert - Stolen License Plate
+Unknown Investigation
+Property ï¿½ Lost
+Property ï¿½ Found
+Discovery-Motor Vehicle
+Compulsory School Attend. - Title 18A:38-2
+DCPP (DYFS)
+Enticing a Child - 2C:13-6
+Juvenile Complaint (Criminal)
+Juvenile Complaint (Non-Criminal)
+Juvenile Complaint Signed
+Juvenile Investigation
+Missing Person - Juvenile
+Missing Person - Return - Juvenile
+NARCAN Deployment - Juvenile - Aid
+Overdose - Juvenile - Aid
+Stationhouse Adjustment
+TOT DCP&P
+Truancy
+Business Check
+Code Blue
+Constable - Secured Park Facilities
+ESU - Targeted Patrol
+Injured On Duty
+Municipal Property/Building Check
+Patrol Check
+Patrol Check - Extra Duty Detail
+Property Check
+Street Light
+TAPS - Business
+TAPS - Housing
+TAPS - Medical Facility
+TAPS - Other
+TAPS - Park
+TAPS - Parking Garage
+TAPS - Religious Facility
+TAPS - School
+TAS Alert - Missing Person
+TAS Alert - Stolen Vehicle
+TAS Alert - Wanted Person
+Targeted Area Patrol
+Utility Incident
+Vacant House
+Virtual - Patrol
+Weather Alerts
+targeted Area Patrol
+ABC Advisory Check
+ABC Inspection
+ABC Violation
+Alarm Ordinance
+Alcoholic Beverage -  New Years Day Hours of Sale
+Alcoholic Beverage - Hours of Sale
+Alcoholic Beverage - New Years Day Hours of Sale
+Alcoholic Beverage - Serving Underage
+Alcoholic Beverage - Sunday Hours of Sale
+Alcoholic Beverage - Unlicensed Bartender
+Construction Hours
+Snow Removal
+Urinating in Public
+Vending Without Permit
+A.T.R.A. Controlled Buy
+Controlled CDS Purchase
+ESU - Response
+ESU - Training
+PRD Activation
+Pursuit - Foot
+Pursuit - Motor Vehicle
+RDF Deployment
+RDT Deployment
+Search Warrant Execution- Structure
+TAPS - ESU - Business
+TAPS - ESU - Medical Facility
+TAPS - ESU - Park
+TAPS - ESU - Parking Garage
+TAPS - ESU - Religious Facility
+TAPS - ESU - School
+UAS Operation
+Undercover Buy
+Breath Test - Refusal - 39:4-50.[ADDRESS-REDACTED] Conditions (Weather)
+Leaving Scene of an Acc. -  39:4-129
+Leaving Scene of an Acc. - 39:4-129
+Motor Vehicle - Private Property Tow
+Overnight Parking
+Radar Detail
+Radar Trailer Deployed
+Repossessed Motor Vehicle
+Temporary Parking
+Traffic Bureau Report
+Traffic Detail
+Traffic Detail - Road Closure
+Traffic Enforcement Detail
+Traffic Light Malfunction
+Traffic Sign / Signal Malfunction
+
+
+3. Filter out records where the that have a Category_Type of:
+Community Engagement
+Administrative and Support
+
+---
+
+**Cursor**
+
+Let me check the CAD timereport columns first before writing any code. Good — "How Reported" exists. Before implementing the filter, I need to verify what unique values the column actually contains across the data, so I don't accidentally filter everything out. First, capture the current output state for the pre/post comparison:
+
+Good — baseline captured. Now let me write the updated script. This is a major rewrite of `response_time_batch_all_metrics.py` to add all three filters plus updated normalization:
+
+Now fix the stale "101 types" comments in the rolling script and add the runtime count log:
+
+Now run the batch ETL to regenerate all 25 monthly CSVs:
+
+ETL complete. All 25 files written. Now capture the post-run values and create the comparison:
+
+Now write the pre/post comparison document:
+
+Now update CHANGELOG.md:
+
+Now update SUMMARY.md and README.md. Let me find the relevant response time sections:
+
+Now find and update the v1.17.15 section in SUMMARY.md to add a v1.17.18 summary entry:
+
+All implementation todos are complete. Here's a summary of everything done:
+
+---
+
+## v1.17.18 — Complete
+
+**`response_time_batch_all_metrics.py`** — three-layer filter added:
+
+**Layer 1 — "How Reported" filter** (applied before dedup): Excludes all non-9-1-1 records. This turned out to be the dominant gate — ~85% of all CAD records are Radio, Self-Initiated, Phone, Walk-In, and other non-dispatch methods. Only `9-1-1` records survive. **Layer 2 — Incident exclusion list**: Expanded from 92 to **280 normalized types** (234 raw strings, duplicates collapsed by normalization). The analyst-specified list covers self-initiated enforcement, administrative processing, investigations, special operations, regulatory enforcement, and traffic infrastructure. **Layer 3 — Category_Type safety net**: After backfilling `Category_Type` from `CallType_Categories.csv`, excludes "Administrative and Support" and "Community Engagement" — caught 3 records in 2024 and 1 in 2025 that escaped the incident list. **`_normalize()` updated**: Non-ASCII and ASCII dashes both replaced with space before whitespace collapse, so `Motor Vehicle Violation \ufffd Private Property` and `Motor Vehicle Violation - Private Property` now normalize identically. **Key results (all 25 CSVs regenerated):**
+- 2025 total: 87,428 → 8,393 records (9-1-1-only)
+- **Jan-26 Routine "Time Out − Time Dispatched":** mean/median ratio resolved from **9.5×** → **1.3×** (0:13 median → 1:51 median)
+- Jan-26 Routine Emergency and Urgent averages correctly increased — prior values were diluted by faster non-9-1-1 contacts
+
+**Comparison doc:** `docs/response_time/2026_02_27_PreFix_vs_PostFix_Comparison_v1.17.18.md`
+
+**⚠️ Power BI refresh required** — all three response time queries must be refreshed against the new CSVs in `PowerBI_Date\Backfill\response_time_all_metrics\`. ---
+
+**User**
+
+1. are the below How Reported values being filtered out? Walk-In
+Phone
+Self-Initiated
+Radio
+Teletype
+Fax
+Other - See Notes
+eMail
+Mail
+Virtual Patrol
+Canceled Call
+
+---
+
+**Cursor**
+
+Let me run a live verification against the actual data rather than just asserting it. Yes — all 11 values on your list are being filtered out correctly. Here's the confirmed status for each:
+
+| Your value | Normalized to | Result |
+|---|---|---|
+| Walk-In | `walk-in` | Filtered ✓ |
+| Phone | `phone` | Filtered ✓ |
+| Self-Initiated | `self-initiated` | Filtered ✓ |
+| Radio | `radio` | Filtered ✓ |
+| Teletype | `teletype` | Filtered ✓ |
+| Fax | `fax` | Filtered ✓ |
+| Other - See Notes | `other - see notes` | Filtered ✓ |
+| eMail | `email` | Filtered ✓ |
+| Mail | `mail` | Filtered ✓ |
+| Virtual Patrol | `virtual patrol` | Filtered ✓ |
+| Canceled Call | `canceled call` | Filtered ✓ |
+
+Two bonus things confirmed by the live data check:
+
+- **Case/whitespace variants are handled automatically. ** `eMail`, `Email`, `radio` (lowercase), and `Radio\n` (trailing newline) all normalize correctly and get filtered. - **One garbage record passes the filter: `` `r `` (1 record, Jan-26). ** This is a malformed CAD entry with 1 record across the entire month. It is not one of your 11 specified values, so the code correctly leaves it alone. Its impact on any metric is negligible — it would be caught by the Response Type resolution step (it almost certainly won't resolve to Emergency/Urgent/Routine) and excluded there. ---
+
+**User**
+
+No this is not correct. Please imploment the below. Let me dig into these numbers carefully — some of them raise flags.Good work getting this implemented quickly. The three-layer approach is architecturally sound, and Jan-26 Routine is now *beautiful* (1.3× ratio, healthy distribution). But there are three problems in the results that need attention before this goes to production. ---
+
+**Problem 1: The "How Reported = 9-1-1 Only" filter is too aggressive. **
+
+This is the dominant filter (85% of records removed), and it's removing legitimate citizen-initiated calls for service. Consider what gets excluded:
+
+- **Phone** (non-emergency line): A citizen calls the department's main number to report a break-in, a noise complaint, a suspicious person. That's a real call for service requiring dispatch and response. It's not 9-1-1, but it's citizen-initiated. - **Walk-In**: Someone walks into the station to report a crime or emergency. An officer gets dispatched. That's a response. - **Alarm company calls**: An alarm triggers, the monitoring company calls PD (reported as "Phone" typically). That's the textbook Urgent call. Excluding these is why Urgent jumped +1:23 to +2:25 across metrics — you removed the largest population of legitimate Urgent dispatched calls. The correct filter isn't "9-1-1 only" — it's "citizen-initiated calls for service." I'd recommend:
+
+| How Reported | Keep/Exclude | Rationale |
+|---|---|---|
+| 9-1-1 | **Keep** | Citizen emergency call |
+| Phone | **Keep** | Citizen non-emergency call to PD |
+| Walk-In | **Keep** | Citizen walks in to report |
+| Self-Initiated | Exclude | Officer already on scene |
+| Radio | Exclude | Internal dispatch/officer request |
+| Virtual Patrol | Exclude | Officer-directed |
+| eMail, Fax, Mail, Teletype | Exclude | Administrative channels |
+| Canceled Call | Exclude | No response occurred |
+
+This would retain substantially more records (better sample sizes) while still excluding officer-initiated activity. The Urgent numbers would come back to a realistic range, and you'd have enough Routine records for meaningful monthly reporting. ---
+
+**Problem 2: Jan-25 Routine Dispatch-to-Scene got *worse*, not better. **
+
+The mean/median ratio went from 10.5× (pre) to **19.4×** (post). Median is 3 seconds. This survived the 9-1-1 filter, the expanded incident filter, and the category filter. The doc says "not a code error" but a data characteristic — and that's probably right, but it needs investigation before you present data going back to Jan-25. The diagnostic pattern is telling: for Jan-25 Routine 9-1-1 calls, `Time Dispatched ≈ Time Out` for the majority of records (3-second median gap), but `Time of Call` is 1–2 minutes earlier (DispVsCall median 1:37 is healthy). This means the CAD system is recording dispatch and arrival as nearly simultaneous. Two possible explanations:
+- **2025 yearly export artifact**: The full-year export may aggregate or flatten timestamps differently than the monthly export. Jan-26 comes from a monthly export and looks perfect. - **Dispatcher workflow change**: If dispatchers started clicking "Dispatched" and "Out" at the same time for Routine calls at some point in 2024/2025. **Recommendation**: Pull the Jan-25 records from the *monthly* export (if available) instead of the yearly export, and compare. If the monthly shows healthy Dispatch-to-Scene timestamps, the yearly export is corrupting them. If the monthly shows the same pattern, it's a real dispatcher workflow issue and should be disclosed. ---
+
+**Problem 3: Sample sizes are now dangerously small for monthly reporting.

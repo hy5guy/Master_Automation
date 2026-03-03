@@ -1,0 +1,72 @@
+Arrests / Demographics / Distribution tables (Arrest_Top errors)**
+
+You're correct -- these are **DAX calculated tables**, not Power Query tables. They reference an `Arrest_Top` table that doesn't exist in the template. This is a **pre-existing issue** from the January template -- the `Arrest_Top` query was either renamed or removed before publishing, but these DAX tables were never cleaned up. If these tables aren't used in any of your report visuals (and it sounds like they aren't), you can safely **ignore them** or right-click each one in the Data pane and select **Delete** to clean them up. They won't affect any of the working report pages. After the `TICKET_COUNT` fix, save the template and the Summons page error should clear. ---
+
+**User**
+
+I assume I can delete this dax col too
+
+---
+
+**Cursor**
+
+Yes -- `Top_5_Officers_Table` also references `Arrest_Top` which doesn't exist. It's another orphaned DAX calculated table from a previous template version. Safe to delete along with `Arrests`, `Demographics`, and `Distribution of Arrests by County, City and Gender`. All four can be right-click -> Delete. They're not connected to any working queries or visuals. After cleaning those up and applying the `TICKET_COUNT` fix to `summons_13month_trend`, save the template and let me know how it looks. ---
+
+**User**
+
+review the attached visuals for the summons page @c:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\Top 5 Moving Violations - Department Wide.csv @c:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\Top 5 Parking Violations - Department Wide.csv @c:\Users\carucci_r\OneDrive - City of Hackensack\Downloads\Summons  Moving & Parking  .csv Department - Wide Summons which is from summons_13month_trends is showing incomplete data, Summons | Moving & Parking has no data and is missing "All Bureaus" from the title
+Top 5 Parking data is not what was in the January 2026 reporrt see attachment  5
+Top 5 Moving is blank
+
+---
+
+**Cursor**
+
+Here's my analysis of each visual:
+
+**1. Department-Wide Summons (summons_13month_trend)** -- Incomplete data
+
+Shows 01-25 through 09-25 with 03-25 missing. This is a **staging data issue** -- `summons_powerbi_latest.xlsx` only contains data through September 2025. The months Oct 2025 through Jan 2026 are missing from the staging file. March 2025 also appears to be a gap in the source data. The M code is correct; the staging file needs to be refreshed with the latest ETL output. **2. Summons | Moving & Parking (summons_all_bureaus)** -- Empty, expected
+
+This query filters for `PreviousMonthKey` (January 2026 based on `pReportMonth`), but the staging file has no January 2026 data. Will populate once the staging file is updated. The missing "All Bureaus" in the title is a **visual title setting** in Power BI -- not M code. You can fix it by clicking the visual, going to Format pane -> Title -> Text, and adding "All Bureaus". **3. Top 5 Moving (summons_top5_moving)** -- Empty, expected
+
+Same reason -- filters for January 2026 data which doesn't exist in the staging file yet. **4. Top 5 Parking (summons_top5_parking)** -- Wrong month's data
+
+This is the one real logic discrepancy. Unlike the other three summons queries that use `pReportMonth`, the parking query uses `List.Max(YearMonthKey)` to find the latest month in the file. So it's showing **September 2025** data (the latest available), while the subtitle says "January 2026". Image 5 (the original January report) showed different data because the staging file had more recent months at that time. **Root cause of all issues: the staging file `summons_powerbi_latest.xlsx` needs to be refreshed** by running the summons ETL pipeline to bring in Oct 2025 through Jan 2026 data. ---
+
+**User**
+
+please updat all docs please include the staging issue that should be fixed next time the elt is run, then update local and remote GIT
+
+---
+
+**Cursor**
+
+Let me first read the current state of all four docs. Now I have all four docs. Let me update them all. Now update SUMMARY.md. Now update Claude.md. Now update README.md. All four docs are updated. Now let me commit and push. The diff looks good. Let me now add all the relevant files, commit, and push. PowerShell doesn't support heredoc syntax. Let me use a different approach. Commit succeeded. Now push to remote. All done. Here's what was completed:
+
+**Documentation updates (v1.17.5):**
+- **CHANGELOG.md** — New `[1.17.5]` entry documenting all surgical template edits (pReportMonth, path fixes, DateTime.LocalNow() replacements, ___Summons re-creation, ResponseTimeCalculator columns, summons_13month_trend dedup), removed items, and the known staging data gap
+- **SUMMARY.md** — Version bumped to 1.17.5, status changed from "In Progress" to "Template Updated — Staging Data Refresh Pending", Phase 2 task 6 marked COMPLETE, new task 7 added for staging file refresh
+- **Claude.md** — Current system status updated to reflect completed template deployment and pending staging refresh
+- **README.md** — Latest update blurb rewritten for v1.17.5, version and status updated
+
+**Git operations:**
+- Committed 27 files (docs, M code folder reorg, plans) as `82a2a65`
+- Pushed to `origin/docs/update-20260114-1447` — branch is now up to date with remote
+
+**Remaining untracked files** are data files, chatlogs, and temporary artifacts — not staged intentionally. The staging data issue (`summons_powerbi_latest.xlsx` only through Sep 2025) is documented in all four docs and will resolve automatically the next time the Summons ETL runs. ---
+
+**User**
+
+I'm preparing to export this chat. Please generate a descriptive filename that summarizes the main topic or task of this conversation. Requirements:
+• 4-8 words
+• Title Case (capitalize major words)
+• Replace spaces with underscores
+• Include .md extension
+• No dates or special characters
+
+Output only the filename, with the suffix .md and nothing else. ---
+
+**Cursor**
+
+Surgical_Template_Update_And_Docs_Push.md

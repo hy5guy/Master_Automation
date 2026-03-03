@@ -1,0 +1,854 @@
+Since your workbook is designed to track future data, I'll create placeholder sheets and empty tables for the remaining months so the formulas will calculate (returning 0) instead of showing formula text:
+
+
+Create placeholder 2026 sheets and tables
+Parameters:
+{
+  "code": "..."
+}
+Code:
+// 🕒 2026-02-14-12-00-00 (EST)
+// SSOCC/SSOCC - Service Log.xlsx
+// Author: R. A. Carucci
+// Purpose: Create placeholder sheets and tables for future 2026 months
+
+const monthMapping = [
+  { sheetName: "MAR26", tableName: "_26_MAR" },
+  { sheetName: "APR26", tableName: "_26_APR" },
+  { sheetName: "MAY26", tableName: "_26_MAY" },
+  { sheetName: "JUN26", tableName: "_26_JUN" },
+  { sheetName: "JUL26", tableName: "_26_JUL" },
+  { sheetName: "AUG26", tableName: "_26_AUG" },
+  { sheetName: "SEP26", tableName: "_26_SEP" },
+  { sheetName: "OCT26", tableName: "_26_OCT" },
+  { sheetName: "NOV26", tableName: "_26_NOV" },
+  { sheetName: "DEC26", tableName: "_26_DEC" }
+];
+
+const results = [];
+
+for (const mapping of monthMapping) {
+  try {
+    // Create new sheet
+    const sheet = context.workbook.worksheets.add(mapping.sheetName);
+    
+    // Set up header row matching the JAN26 structure
+    const headerRange = sheet.getRange("A1:I1");
+    headerRange.values = [["Control #", "Date", "Time", "CCBP", "Service/Product", "Description", "LIS", "LIC", "OCA/CAD#"]];
+    
+    // Format header
+    headerRange.format.font.bold = true;
+    headerRange.format.font.size = 14;
+    headerRange.format.font.color = "#000000";
+    headerRange.format.fill.color = "#FFFFFF";
+    headerRange.format.horizontalAlignment = "Center";
+    headerRange.format.borders.getItem("EdgeBottom").style = "Continuous";
+    headerRange.format.borders.getItem("EdgeBottom").weight = "Medium";
+    
+    // Create table from A1:I1 (just headers for now)
+    const table = sheet.tables.add("A1:I1", true);
+    table.name = mapping.tableName;
+    
+    results.push({
+      sheet: mapping.sheetName,
+      table: mapping.tableName,
+      status: "Created (empty)"
+    });
+    
+  } catch (error) {
+    results.push({
+      sheet: mapping.sheetName,
+      table: mapping.tableName,
+      status: "Error",
+      error: error.message
+    });
+  }
+}
+
+await context.sync();
+
+return { tablesCreated: results };
+Show more
+Result:
+{
+  "success": true,
+  "result": {
+    "tablesCreated": [
+      {
+        "sheet": "MAR26",
+        "table": "_26_MAR",
+        "status": "Created (empty)"
+      },
+      {
+        "sheet": "APR26",
+        "table": "_26_APR",
+        "status": "Created (empty)"
+      },
+      {
+        "sheet": "MAY26",
+        "table": "_26_MAY",
+        "status": "Created (empty)"
+      },
+      {
+        "sheet": "JUN26",
+        "table": "_26_JUN",
+        "status": "Created (empty)"
+      },
+      {
+        "sheet": "JUL26",
+        "table": "_26_JUL",
+        "status": "Created (empty)"
+      },
+      {
+        "sheet": "AUG26",
+        "table": "_26_AUG",
+        "status": "Created (empty)"
+      },
+      {
+        "sheet": "SEP26",
+        "table": "_26_SEP",
+        "status": "Created (empty)"
+      },
+      {
+        "sheet": "OCT26",
+        "table": "_26_OCT",
+        "status": "Created (empty)"
+      },
+      {
+        "sheet": "NOV26",
+        "table": "_26_NOV",
+        "status": "Created (empty)"
+      },
+      {
+        "sheet": "DEC26",
+        "table": "_26_DEC",
+        "status": "Created (empty)"
+      }
+    ]
+  }
+}
+Show more
+Perfect! Now let me force a recalculation and verify that the formulas are working:
+
+
+Force full workbook recalculation
+Parameters:
+{
+  "code": "..."
+}
+Code:
+// Force full workbook recalculation
+const app = context.application;
+app.calculate(Excel.CalculationType.full);
+await context.sync();
+
+return { recalculated: true };
+Result:
+{
+  "success": true,
+  "result": {
+    "recalculated": true
+  }
+}
+Now let me verify that the formulas are calculating correctly by sampling multiple rows and columns:
+
+
+Verify formulas across 12 rows × 6 columns
+Parameters:
+{
+  "code": "..."
+}
+Code:
+// Verification: Sample 10+ rows across multiple 2026 columns
+const sheet = context.workbook.worksheets.getItem("YEARLY_TOTALS");
+
+// Sample rows: 12, 13, 15, 18, 20, 25, 28, 30, 35, 40, 45, 50
+const sampleRows = [12, 13, 15, 18, 20, 25, 28, 30, 35, 40, 45, 50];
+const sampleCols = ["R", "S", "U", "X", "AA", "AC"]; // 01-26, 02-26, 04-26, 07-26, 10-26, 12-26
+
+const verificationData = [];
+
+for (const row of sampleRows) {
+  for (const col of sampleCols) {
+    const cellAddress = `${col}${row}`;
+    const range = sheet.getRange(cellAddress);
+    range.load("values, formulas, numberFormat");
+    await context.sync();
+    
+    // Get the service name from column A
+    const serviceRange = sheet.getRange(`A${row}`);
+    serviceRange.load("values");
+    await context.sync();
+    
+    verificationData.push({
+      row: row,
+      service: serviceRange.values[0][0],
+      column: col,
+      value: range.values[0][0],
+      formula: range.formulas[0][0],
+      isFormula: range.formulas[0][0] !== "",
+      numberFormat: range.numberFormat[0][0]
+    });
+  }
+}
+
+return { verification: verificationData };
+Show more
+Result:
+{
+  "success": true,
+  "result": {
+    "verification": [
+      {
+        "row": 12,
+        "service": "CompStat Detective Meeting",
+        "column": "R",
+        "value": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 12,
+        "service": "CompStat Detective Meeting",
+        "column": "S",
+        "value": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 12,
+        "service": "CompStat Detective Meeting",
+        "column": "U",
+        "value": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 12,
+        "service": "CompStat Detective Meeting",
+        "column": "X",
+        "value": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 12,
+        "service": "CompStat Detective Meeting",
+        "column": "AA",
+        "value": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 12,
+        "service": "CompStat Detective Meeting",
+        "column": "AC",
+        "value": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 13,
+        "service": "CompStat Traffic Meeting",
+        "column": "R",
+        "value": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 13,
+        "service": "CompStat Traffic Meeting",
+        "column": "S",
+        "value": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 13,
+        "service": "CompStat Traffic Meeting",
+        "column": "U",
+        "value": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 13,
+        "service": "CompStat Traffic Meeting",
+        "column": "X",
+        "value": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 13,
+        "service": "CompStat Traffic Meeting",
+        "column": "AA",
+        "value": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 13,
+        "service": "CompStat Traffic Meeting",
+        "column": "AC",
+        "value": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 15,
+        "service": "Data Clean Up",
+        "column": "R",
+        "value": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 15,
+        "service": "Data Clean Up",
+        "column": "S",
+        "value": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 15,
+        "service": "Data Clean Up",
+        "column": "U",
+        "value": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 15,
+        "service": "Data Clean Up",
+        "column": "X",
+        "value": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 15,
+        "service": "Data Clean Up",
+        "column": "AA",
+        "value": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 15,
+        "service": "Data Clean Up",
+        "column": "AC",
+        "value": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 18,
+        "service": "Document Revision",
+        "column": "R",
+        "value": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 18,
+        "service": "Document Revision",
+        "column": "S",
+        "value": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 18,
+        "service": "Document Revision",
+        "column": "U",
+        "value": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 18,
+        "service": "Document Revision",
+        "column": "X",
+        "value": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 18,
+        "service": "Document Revision",
+        "column": "AA",
+        "value": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 18,
+        "service": "Document Revision",
+        "column": "AC",
+        "value": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 20,
+        "service": "File Management",
+        "column": "R",
+        "value": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 20,
+        "service": "File Management",
+        "column": "S",
+        "value": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 20,
+        "service": "File Management",
+        "column": "U",
+        "value": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 20,
+        "service": "File Management",
+        "column": "X",
+        "value": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 20,
+        "service": "File Management",
+        "column": "AA",
+        "value": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 20,
+        "service": "File Management",
+        "column": "AC",
+        "value": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 25,
+        "service": "Installation Services",
+        "column": "R",
+        "value": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 25,
+        "service": "Installation Services",
+        "column": "S",
+        "value": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 25,
+        "service": "Installation Services",
+        "column": "U",
+        "value": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 25,
+        "service": "Installation Services",
+        "column": "X",
+        "value": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 25,
+        "service": "Installation Services",
+        "column": "AA",
+        "value": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 25,
+        "service": "Installation Services",
+        "column": "AC",
+        "value": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 28,
+        "service": "Investigative Assistance",
+        "column": "R",
+        "value": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 28,
+        "service": "Investigative Assistance",
+        "column": "S",
+        "value": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 28,
+        "service": "Investigative Assistance",
+        "column": "U",
+        "value": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 28,
+        "service": "Investigative Assistance",
+        "column": "X",
+        "value": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 28,
+        "service": "Investigative Assistance",
+        "column": "AA",
+        "value": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 28,
+        "service": "Investigative Assistance",
+        "column": "AC",
+        "value": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 30,
+        "service": "Meeting Preparation",
+        "column": "R",
+        "value": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 30,
+        "service": "Meeting Preparation",
+        "column": "S",
+        "value": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 30,
+        "service": "Meeting Preparation",
+        "column": "U",
+        "value": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 30,
+        "service": "Meeting Preparation",
+        "column": "X",
+        "value": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 30,
+        "service": "Meeting Preparation",
+        "column": "AA",
+        "value": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 30,
+        "service": "Meeting Preparation",
+        "column": "AC",
+        "value": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 35,
+        "service": "Meeting with Resident",
+        "column": "R",
+        "value": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 35,
+        "service": "Meeting with Resident",
+        "column": "S",
+        "value": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 35,
+        "service": "Meeting with Resident",
+        "column": "U",
+        "value": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 35,
+        "service": "Meeting with Resident",
+        "column": "X",
+        "value": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 35,
+        "service": "Meeting with Resident",
+        "column": "AA",
+        "value": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 35,
+        "service": "Meeting with Resident",
+        "column": "AC",
+        "value": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 40,
+        "service": "On-site Training",
+        "column": "R",
+        "value": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 40,
+        "service": "On-site Training",
+        "column": "S",
+        "value": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 40,
+        "service": "On-site Training",
+        "column": "U",
+        "value": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 40,
+        "service": "On-site Training",
+        "column": "X",
+        "value": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 40,
+        "service": "On-site Training",
+        "column": "AA",
+        "value": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 40,
+        "service": "On-site Training",
+        "column": "AC",
+        "value": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 45,
+        "service": "Prep for Meeting",
+        "column": "R",
+        "value": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 45,
+        "service": "Prep for Meeting",
+        "column": "S",
+        "value": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 45,
+        "service": "Prep for Meeting",
+        "column": "U",
+        "value": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 45,
+        "service": "Prep for Meeting",
+        "column": "X",
+        "value": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 45,
+        "service": "Prep for Meeting",
+        "column": "AA",
+        "value": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 45,
+        "service": "Prep for Meeting",
+        "column": "AC",
+        "value": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 50,
+        "service": "Software Maintenance",
+        "column": "R",
+        "value": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 50,
+        "service": "Software Maintenance",
+        "column": "S",
+        "value": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_FEB[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 50,
+        "service": "Software Maintenance",
+        "column": "U",
+        "value": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_APR[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 50,
+        "service": "Software Maintenance",
+        "column": "X",
+        "value": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JUL[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 50,
+        "service": "Software Maintenance",
+        "column": "AA",
+        "value": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_OCT[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      },
+      {
+        "row": 50,
+        "service": "Software Maintenance",
+        "column": "AC",
+        "value": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_DEC[Service/Product],[@[ServiceName_Normalized]])",
+        "isFormula": true,
+        "numberFormat": "0"
+      }
+    ]
+  }
+}
+Show more
+I notice the values are still showing formulas as text! This is unexpected.

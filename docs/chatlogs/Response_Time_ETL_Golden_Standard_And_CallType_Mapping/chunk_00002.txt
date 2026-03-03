@@ -1,0 +1,507 @@
+Let me check the template's current state before we do anything:
+
+The template was last saved at **4:56 PM today**, but the January report was modified at **6:22 PM** — meaning the M code fixes we applied this evening (trimmed `ChangedType`, `pReportMonth`-based filter) only made it into the January `.pbix`, not the template. The `02_february` folder exists and is empty, ready for the new file. Here's the full picture and clean action plan:
+
+---
+
+## What the template is missing (fixes applied after 4:56 PM today)
+
+| Query | What's missing in the template |
+|---|---|
+| `summons_13month_trend` | Still has `VIOLATION_NUMBER` + 14 other non-existent columns in `ChangedType` → will error on refresh |
+| `summons_all_bureaus` | Still uses `List.Max(YearMonthKey)` → will show only the 12 February tickets |
+
+The `___ResponseTimeCalculator` and `___Traffic` fixes may or may not already be in the template depending on what you pasted before 4:56 PM — we'll verify after refresh. ---
+
+## Action plan
+
+**1. Open the template**
+`C:\Users\carucci_r\OneDrive - City of Hackensack\15_Templates\Monthly_Report_Template.pbix`
+
+**2. Verify `pReportMonth` parameter is set to `2026-01`**
+Home → Manage Parameters. If it's showing `2026-02` or something else, set it to `2026-01`. **3. Paste `summons_13month_trend` — Advanced Editor → select all → replace:**
+
+```powerquery
+// 🕒 2026-02-26-18-30-00 (EST)
+// # summons/summons_13month_trend.m
+// # Author: R. A. Carucci
+// # Purpose: Load summons data from staging workbook for 13-month trend analysis. let
+    Source = Excel.Workbook(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"), null, true),
+    Summons_Data_Sheet = Source{[Item="Summons_Data",Kind="Sheet"]}[Data],
+    PromotedHeaders = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
+    ChangedType = Table.TransformColumnTypes(PromotedHeaders,{
+        {"PADDED_BADGE_NUMBER", type text},
+        {"OFFICER_DISPLAY_NAME", type text},
+        {"OFFICER_NAME_RAW", type text},
+        {"ISSUE_DATE", type datetime},
+        {"TYPE", type text},
+        {"ETL_VERSION", type text},
+        {"Year", Int64.Type},
+        {"Month", Int64.Type},
+        {"YearMonthKey", Int64.Type},
+        {"Month_Year", type text},
+        {"WG2", type text},
+        {"DATA_QUALITY_SCORE", Int64.Type}
+    }),
+    FilteredClean = Table.SelectRows(ChangedType, each [WG2] <> null and [WG2] <> "" and [WG2] <> "UNKNOWN"),
+    AddConsolidatedBureau = Table.AddColumn(FilteredClean, "Bureau_Consolidated", each if [WG2] = "HOUSING" or [WG2] = "OFFICE OF SPECIAL OPERATIONS" or [WG2] = "PATROL BUREAU" then "PATROL DIVISION" else [WG2], type text)
+in
+    AddConsolidatedBureau
+```
+
+**4. Paste `summons_all_bureaus` — Advanced Editor → select all → replace:**
+
+```powerquery
+// 🕒 2026-02-26-18-30-00 (EST)
+// # summons/summons_all_bureaus.m
+// # Author: R. A. Carucci
+// # Purpose: Aggregate summons counts by bureau for moving and parking violations (report month). let
+    Source = Excel.Workbook(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
+        null, true
+    ),
+    Summons_Data_Sheet = Source{[Item="Summons_Data", Kind="Sheet"]}[Data],
+    PromotedHeaders = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
+    ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"YearMonthKey", Int64.Type}, {"TYPE", type text}, {"WG2", type text}}),
+
+    ReportMonthParts = Text.Split(pReportMonth, "-"),
+    ReportYearMonthKey = Number.From(ReportMonthParts{0} & ReportMonthParts{1}),
+
+    FilteredLatestMonth = Table.SelectRows(ChangedType, each [YearMonthKey] = ReportYearMonthKey),
+    FilteredClean = Table.SelectRows(FilteredLatestMonth, each
+        [WG2] <> null and [WG2] <> "" and [WG2] <> "UNKNOWN"),
+
+    GroupedRows = Table.Group(FilteredClean, {"WG2", "TYPE"},
+        {{"Count", each Table.RowCount(_), type number}}),
+
+    ConsolidatedBureaus = Table.TransformColumns(GroupedRows,
+        {"WG2", each if _ = "HOUSING" or _ = "OFFICE OF SPECIAL OPERATIONS" or _ = "PATROL BUREAU"
+            then "PATROL DIVISION" else _}),
+
+    RegroupedRows = Table.Group(ConsolidatedBureaus, {"WG2", "TYPE"},
+        {{"Count", each List.Sum([Count]), type number}}),
+
+    PivotedColumn = Table.Pivot(RegroupedRows,
+        List.Distinct(RegroupedRows[TYPE]), "TYPE", "Count", List.Sum),
+
+    AddM = if Table.HasColumns(PivotedColumn, "M") then PivotedColumn
+        else Table.AddColumn(PivotedColumn, "M", each 0, Int64.Type),
+    AddP = if Table.HasColumns(AddM, "P") then AddM
+        else Table.AddColumn(AddM, "P", each 0, Int64.Type),
+
+    ReplacedValue = Table.ReplaceValue(AddP, null, 0, Replacer.ReplaceValue, {"M", "P"}),
+
+    AddedTotal = Table.AddColumn(ReplacedValue, "Total",
+        each [M] + [P] + (try [C] otherwise 0), type number),
+
+    RenamedBureau = Table.RenameColumns(AddedTotal, {{"WG2", "Bureau"}})
+in
+    RenamedBureau
+```
+
+**5. Close & Apply → Refresh**
+If `___ResponseTimeCalculator` or `___Traffic` error, tell me what the error says and we'll paste those too. **6. Once refresh is clean → File → Save As**
+`C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports\2026\02_february\2026_02_Monthly_Report.pbix`
+
+**7. Then re-save the template itself** (overwrite `Monthly_Report_Template.pbix`) so future months start from this corrected state. ---
+
+Going forward, the workflow for each new month will be:
+- Open template → change `pReportMonth` → run ETL → refresh → Save As `YYYY_MM_Monthly_Report.pbix` → re-save template. ---
+
+**User**
+
+@m_code/2026_02_26_template_m_codes.m  are all the current m codes for the template prior to changing summons_13month_trend, summons_all_bureaus
+- pReportMonth is set to 02/01/2026
+- summons_13month_trend m code was updated to what you provided
+- summons_all_bureau m code was updated and got the below error at step ReportMonthParts
+Expression.Error: We cannot convert the value #date(2026, 2, 1) to type Text. Details:
+    Value=02/01/2026
+    Type=[Type]
+
+I assume that is linked to the pReportMonth = 02/01/2026
+
+---
+
+**Cursor**
+
+You're right — `pReportMonth` is a **Date** type in Power BI (`#date(2026, 2, 1)`), not a Text string. `Text.Split` can't work on a date. The fix is to use `Date.Year()` and `Date.Month()` directly. But first let me check how `pReportMonth` is used across all the other queries so I fix this consistently:
+
+Let me check those two queries that use `pReportMonth` with `AddMonths(-1)` to understand the convention:
+
+The original template's `summons_all_bureaus` already used the correct Date-type pattern — `Date.AddMonths(pReportMonth, -1)` then `Date.Year() * 100 + Date.Month()`. My Text-based replacement broke it. Let me read the full original queries so I can write the correct combined fix:
+
+Now let me find the original `summons_13month_trend` in the template file to see exactly what was there before the user pasted my replacement:
+
+Now I have the full picture. Two things confirmed:
+
+1. The template's `summons_all_bureaus` **already had the correct Date-type logic** — it just needed `PATROL BUREAU` added to consolidation. My text-split replacement broke it. 2. The template's `summons_13month_trend` has `TICKET_NUMBER` as first column AND a `Deduped = Table.Distinct(WithTicketCount, {"TICKET_NUMBER"})` step — both must go since `TICKET_NUMBER` doesn't exist in the new ETL schema. Here are the two corrected pastes. The key changes are minimal and surgical:
+
+---
+
+### `summons_all_bureaus` — paste this (only change: added `PATROL BUREAU` to consolidation, kept Date-type logic intact)
+
+```powerquery
+// ___Summons_All_Bureaus (Standalone)
+// Updated: 2026-02-26
+// Purpose: Summons by Bureau and Type for PREVIOUS COMPLETE MONTH (matches Top 5 Moving/Parking)
+
+let
+    // Previous complete month (e.g. in Feb 2026 show Jan 2026)
+    PrevDate = Date.AddMonths(DateTime.Date(pReportMonth), -1),
+    PreviousMonthKey = Date.Year(PrevDate) * 100 + Date.Month(PrevDate),
+
+    // Load directly from Excel file
+    Source = Excel.Workbook(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
+        null, 
+        true
+    ),
+    
+    Summons_Data_Sheet = Source{[Item="Summons_Data", Kind="Sheet"]}[Data],
+    PromotedHeaders = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
+    ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"YearMonthKey", Int64.Type}, {"TYPE", type text}, {"WG2", type text}}),
+    
+    // Filter out UNKNOWN / blank WG2
+    FilteredClean = Table.SelectRows(ChangedType, each [WG2] <> "UNKNOWN" and [WG2] <> null and [WG2] <> ""),
+    
+    // Filter to PREVIOUS COMPLETE MONTH
+    FilteredLatestMonth = Table.SelectRows(FilteredClean, each [YearMonthKey] = PreviousMonthKey),
+    
+    // Group by Bureau (WG2) and Type
+    GroupedRows = Table.Group(
+        FilteredLatestMonth, 
+        {"WG2", "TYPE"}, 
+        {{"Count", each Table.RowCount(_), type number}}
+    ),
+    
+    // Consolidate HOUSING, OSO, and PATROL BUREAU into PATROL DIVISION
+    ConsolidatedBureaus = Table.TransformColumns(
+        GroupedRows,
+        {"WG2", each if _ = "HOUSING" or _ = "OFFICE OF SPECIAL OPERATIONS" or _ = "PATROL BUREAU"
+            then "PATROL DIVISION" else _}
+    ),
+    
+    // Re-group after consolidation
+    RegroupedRows = Table.Group(
+        ConsolidatedBureaus,
+        {"WG2", "TYPE"},
+        {{"Count", each List.Sum([Count]), type number}}
+    ),
+    
+    // Pivot by TYPE to get M, P columns
+    PivotedColumn = Table.Pivot(
+        RegroupedRows, 
+        List.Distinct(RegroupedRows[TYPE]), 
+        "TYPE", 
+        "Count", 
+        List.Sum
+    ),
+    
+    AddM = if Table.HasColumns(PivotedColumn, "M") then PivotedColumn else Table.AddColumn(PivotedColumn, "M", each 0, Int64.Type),
+    AddP = if Table.HasColumns(AddM, "P") then AddM else Table.AddColumn(AddM, "P", each 0, Int64.Type),
+    ReplacedValue = Table.ReplaceValue(AddP, null, 0, Replacer.ReplaceValue, {"M", "P"}),
+    
+    AddedTotal = Table.AddColumn(
+        ReplacedValue, 
+        "Total", 
+        each [M] + [P] + (try [C] otherwise 0),
+        type number
+    )
+in
+    AddedTotal
+```
+
+---
+
+### `summons_13month_trend` — paste this (removes TICKET_NUMBER, VIOLATION_NUMBER, and all other non-existent columns; removes Deduped step; adds PATROL BUREAU)
+
+```powerquery
+// summons_13month_trend
+// Updated: 2026-02-26
+// Schema: ETL v2.1 — TICKET_NUMBER, VIOLATION_NUMBER and legacy columns not present in staging output
+
+let
+    Source = Excel.Workbook(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"), null, true),
+    Summons_Data_Sheet = Source{[Item="Summons_Data",Kind="Sheet"]}[Data],
+    PromotedHeaders = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
+    ChangedType = Table.TransformColumnTypes(PromotedHeaders,{
+        {"PADDED_BADGE_NUMBER", type text},
+        {"OFFICER_DISPLAY_NAME", type text},
+        {"OFFICER_NAME_RAW", type text},
+        {"ISSUE_DATE", type datetime},
+        {"TYPE", type text},
+        {"ETL_VERSION", type text},
+        {"Year", Int64.Type},
+        {"Month", Int64.Type},
+        {"YearMonthKey", Int64.Type},
+        {"Month_Year", type text},
+        {"WG2", type text},
+        {"DATA_QUALITY_SCORE", Int64.Type}
+    }),
+    FilteredClean = Table.SelectRows(ChangedType, each [WG2] <> null and [WG2] <> "" and [WG2] <> "UNKNOWN"),
+    AddConsolidatedBureau = Table.AddColumn(FilteredClean, "Bureau_Consolidated", each if [WG2] = "HOUSING" or [WG2] = "OFFICE OF SPECIAL OPERATIONS" or [WG2] = "PATROL BUREAU" then "PATROL DIVISION" else [WG2], type text)
+in
+    AddConsolidatedBureau
+```
+
+---
+
+Now let me update the saved `.m` files to match so they stay in sync with what's in Power BI:
+
+There's a duplicate `FilteredClean` step left over from the old code — I need to rewrite the whole file cleanly:
+
+Now commit both corrected files:
+
+Committed and pushed. Here's a summary of what was wrong and the corrected pastes above:
+
+---
+
+**Root cause of the error:** `pReportMonth` in the template is a **Date** parameter (`#date(2026, 2, 1)`), not a text string. My previous `summons_all_bureaus` replacement used `Text.Split(pReportMonth, "-")` which fails because you can't split a date value as text. **The template already had the right pattern** — `Date.AddMonths(DateTime.Date(pReportMonth), -1)` — it just needed `PATROL BUREAU` added to the consolidation condition. **`pReportMonth = 02/01/2026` is correct** — since it means "the February 2026 cycle," `AddMonths(-1)` automatically resolves to January 2026, giving `PreviousMonthKey = 202601`. This is the right convention and will work the same way every month going forward (just change the date to `03/01/2026` for March, etc.). Paste the two code blocks above into the template's Advanced Editor for each query, then Close & Apply → Refresh. ---
+
+**User**
+
+can we update the column name from WG2 in the summons_all_bureaus to somthing more descriptive for the visual maybe BUREAU/DIVISION or simular? ---
+
+**Cursor**
+
+Good time to do it — the template visuals aren't fully bound yet so there's no binding to break. I'll add a rename step at the end. `Bureau` is clean for a visual label. Let me update the file:
+
+Done. Here's the updated paste for the template — only the bottom two lines changed:
+
+```powerquery
+    AddedTotal = Table.AddColumn(
+        ReplacedValue,
+        "Total",
+        each [M] + [P] + (try [C] otherwise 0),
+        type number
+    ),
+
+    // Rename WG2 to Bureau for cleaner visual display
+    RenamedColumns = Table.RenameColumns(AddedTotal, {{"WG2", "Bureau"}})
+in
+    RenamedColumns
+```
+
+The output table columns will now be: **Bureau | M | P | Total**
+
+One thing to be aware of: if the All Bureaus visual already has a field bound to `WG2` (from a previous version), you'll need to drag the new `Bureau` field onto the visual's axis/legend after pasting and refreshing — Power BI won't automatically re-map the renamed column. ---
+
+**User**
+
+now is a good time to fix all the templets m codes
+- ___Drone has the below error at step source
+DataSource.NotFound: File or Folder: Could not find a part of the path 'C:\Users\RobertCarucci\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Drone_Monthly.xlsx'. Details:
+    C:\Users\RobertCarucci\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Drone_Monthly.xlsx
+
+- ___NIBRS_Monthly_Report has an error at the source
+DataSource.NotFound: File or Folder: Could not find a part of the path 'C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\NIBRS\NIBRS_Monthly_Report.xlsx'. Details:
+    C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\NIBRS\NIBRS_Monthly_Report.xlsx
+
+---
+
+**Cursor**
+
+Let me find where both files actually live on this machine:
+
+`NIBRS_Monthly_Report.xlsx` doesn't exist anywhere on the system. Let me now scan ALL paths in the template M codes file at once so we fix everything in one pass — not just these two:
+
+Let me check if `01_DataSources` still exists (it may have moved in the Feb 24 reorganization) and verify the ARREST_DATA path too:
+
+Now let me also scan the template for any other stale paths — `C:\Dev`, `RobertCarucci`, old `monthly_export` folders, etc. :
+
+Clean results — only **two** bad paths in the entire template:
+
+1. **Drone** — username `RobertCarucci` (old machine name), file actually exists at `carucci_r` path ✅ fixable
+2. **NIBRS** — `01_DataSources\NIBRS\` folder doesn't exist and the file has never been on this machine
+
+Let me fix Drone immediately, then address NIBRS:
+
+Good news: the `___Drone.m` file on disk already has the correct `carucci_r` path — the template just has a stale copy with the old username. The NIBRS file doesn't exist on this machine at all. Here's the full situation:
+
+---
+
+## Drone — paste this into `___Drone` query (file is already correct, template has wrong username)
+
+The file is 267 lines — the path on line 11 is the only difference. Rather than pasting the whole thing, the single change in Advanced Editor is:
+
+**Old (in template):**
+```
+"C:\Users\RobertCarucci\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Drone_Monthly.xlsx"
+```
+**Correct:**
+```
+"C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Drone_Monthly.xlsx"
+```
+
+Just open `___Drone` → Advanced Editor → find `RobertCarucci` and replace with `carucci_r`. One word change. ---
+
+## NIBRS — file does not exist on this machine
+
+`01_DataSources\NIBRS\` folder doesn't exist and `NIBRS_Monthly_Report.xlsx` is nowhere on the drive. The query is a 13-month rolling NIBRS clearance rate analysis reading from a table named `NIBRS_Monthly_Report` inside that workbook. **Two questions before I can fix this:**
+
+1. **Do you have this file? ** The Detectives archive has several NIBRS exports (`February2025-NIBRS.xlsx`, etc.) — is the `NIBRS_Monthly_Report.xlsx` a manually maintained workbook you populate each month, or is it an export from a system? 2. **Is the `___NIBRS_Monthly_Report` query currently used on a page in the report? ** If it's powering a visual on the Detectives page, it needs to work. If the page was removed or it's a diagnostic query that's currently disabled, we can leave it as-is or disable it cleanly so it doesn't block the refresh. ---
+
+**User**
+
+The NIBRS file was "C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\NIBRS\NIBRS_Monthly_Report.xlsx" but when I moved the file/folders around it was moved to C:\Users\carucci_r\OneDrive - City of Hackensack\99_Archive\01_DataSources\NIBRS. Should the directory be moved to C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources? ---
+
+**Cursor**
+
+Yes — move it back. `01_DataSources` is exactly the right home for it (it only contains `ARREST_DATA` right now) and the M code path will work without any changes. The archive folder has the file plus some extras that belong there:
+
+```
+NIBRS_Monthly_Report.xlsx       ← what the M code reads
+NIBRS_Monthly_Report (1).xlsx   ← duplicate, can stay or be deleted
+NIBRS_Fact_mcode_table.txt
+2024_2025_det_closure.xlsx
+PYTHON_WORKSPACE_AI_GUIDE.md
+PYTHON_WORKSPACE_TEMPLATE.md
+```
+
+I'll move just the `NIBRS` folder to `01_DataSources` and leave the rest in the archive:
+
+Done. `01_DataSources` now has:
+
+```
+01_DataSources\
+├── ARREST_DATA\
+└── NIBRS\
+    ├── NIBRS_Monthly_Report.xlsx   ← M code reads this
+    ├── NIBRS_Monthly_Report (1).xlsx
+    ├── NIBRS_Fact_mcode_table.txt
+    ├── 2024_2025_det_closure.xlsx
+    └── ...
+```
+
+The M code path `C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\NIBRS\NIBRS_Monthly_Report.xlsx` will now resolve correctly — **no M code changes needed for NIBRS**. So the only template fix still pending is the single word in `___Drone`: change `RobertCarucci` → `carucci_r` in the Advanced Editor. Both errors should be gone after those two fixes. ---
+
+**User**
+
+NIBRS is working again
+
+---
+
+**Cursor**
+
+That's the NIBRS folder move paying off immediately — no M code change needed at all. Here's where the template stands now:
+
+| Query | Status |
+|---|---|
+| `___NIBRS_Monthly_Report` | ✅ Fixed (folder moved back) |
+| `___Drone` | ⏳ Needs `RobertCarucci` → `carucci_r` in Advanced Editor (one word) |
+| `summons_13month_trend` | ⏳ Needs updated M code pasted (trimmed `ChangedType`, no `TICKET_NUMBER`) |
+| `summons_all_bureaus` | ⏳ Needs updated M code pasted (Date-type `pReportMonth`, `PATROL BUREAU` added) |
+| Everything else | ✅ No path issues found in full scan |
+
+Once those three pastes are done:
+1. **Close & Apply → Refresh** to confirm no errors
+2. **File → Save** to update the template itself
+3. **File → Save As** → `C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports\2026\02_february\2026_02_Monthly_Report.pbix` for the February report
+
+Let me know when the Drone and summons pastes are in and I'll walk you through the refresh validation. ---
+
+**User**
+
+closed and loaded but summons_13month_trend has the attached error. ---
+
+**Cursor**
+
+The visual on the summons page has `TICKET_COUNT` from `summons_13month_trend` bound to it as a count field. The old M code created it with `Table.AddColumn(..., "TICKET_COUNT", each 1, Int64.Type)` — our cleaned-up version dropped it along with the `TICKET_NUMBER`-dependent steps. The column itself is safe to keep; only its creation from `TICKET_NUMBER` was the problem. Adding it back as a standalone count column (no `TICKET_NUMBER` dependency):
+
+In Power BI, go back to **`summons_13month_trend` → Advanced Editor** and add this one line between `FilteredClean` and `AddConsolidatedBureau`:
+
+```powerquery
+    FilteredClean = Table.SelectRows(ChangedType, each [WG2] <> null and [WG2] <> "" and [WG2] <> "UNKNOWN"),
+    WithTicketCount = Table.AddColumn(FilteredClean, "TICKET_COUNT", each 1, Int64.Type),
+    AddConsolidatedBureau = Table.AddColumn(WithTicketCount, "Bureau_Consolidated", each if [WG2] = "HOUSING" or [WG2] = "OFFICE OF SPECIAL OPERATIONS" or [WG2] = "PATROL BUREAU" then "PATROL DIVISION" else [WG2], type text)
+in
+    AddConsolidatedBureau
+```
+
+`TICKET_COUNT` is now just `each 1` per row — it counts summons records without needing `TICKET_NUMBER`. The visual's field binding will resolve and the error will clear. ---
+
+**User**
+
+new version of the m code fixed the error but only 01-26 and 02-26 are showing
+
+---
+
+**Cursor**
+
+The staging file only has January and February 2026 data — the ETL was run once against the January e-ticket export. For a 13-month trend, the staging file needs 13 months of history. Let me check what historical e-ticket exports are available:
+
+All 13 months of e-ticket exports exist. We need to run a backfill — process Jan 2025 through Dec 2025 and combine with the existing Jan 2026 data into one staging file. Let me check the ETL script's argument handling first:
+
+The ETL has a hardcoded `source_data_path` pointing to `2026/month` only. The cleanest approach is a focused backfill script that processes all 12 historical months, joins each with the assignment master for WG2, then merges with the existing Jan 2026 staging data into one combined file:
+
+Only February 2025 parsed — the rest have CSV quoting/encoding issues. Need to add `on_bad_lines='skip'` and `encoding='latin-1'` to the reader:
+
+The files read OK but `quoting=3` (QUOTE_NONE) is collapsing all columns into one. Let me check what the actual column headers look like in the failing files:
+
+The 2025 files use **semicolon** delimiters, not commas. The 2026 file uses commas. Need to auto-detect the delimiter:
+
+All 13 months loaded successfully. The staging file now has **48,471 rows across all 13 months** (Jan 2025 – Jan 2026). Go ahead and refresh the `summons_13month_trend` query in Power BI — the visual should now show the full rolling 13-month trend. | Month | Rows |
+|---|---|
+| 01-25 | 3,323 |
+| 02-25 | 2,743 |
+| 03-25 | 3,617 |
+| 04-25 | 3,695 |
+| 05-25 | 3,492 |
+| 06-25 | 3,384 |
+| 07-25 | 4,408 |
+| 08-25 | 4,340 |
+| 09-25 | 4,614 |
+| 10-25 | 3,952 |
+| 11-25 | 3,399 |
+| 12-25 | 3,379 |
+| **01-26** | **4,125** |
+| **Total** | **48,471** |
+
+One note: the backfill used the current V3 Assignment Master (Feb 20 vintage), so WG2 assignments for historical months reflect today's bureau structure, not necessarily what officers were assigned to in those months. For a trend visual this is generally acceptable — but flag it if historical bureau breakdowns need to exactly match what was submitted for those months. ---
+
+**User**
+
+is the issue with the back fill, that C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\_DropExports has all the data exports as they have not been moved, cleaned and renamed? ---
+
+**Cursor**
+
+No — the backfill already succeeded (48,471 rows across 13 months). But this folder is worth understanding:
+
+`Master_Automation\_DropExports` contains **Power BI visual exports** — aggregated CSVs that Power BI wrote out (e.g. `Summons__Department-Wide Summons Moving and Parking.csv`, `Response Time__Average Response Times.csv`). These are the *outputs* of the visuals, not the row-level staging data the ETL produces. They wouldn't help the backfill because they're already aggregated summaries with no `PADDED_BADGE_NUMBER`, `WG2`, or `YearMonthKey` columns. That said — yes, this folder does look like it has accumulated exports that haven't been cleaned up. A few things in there stand out:
+
+| File | Note |
+|---|---|
+| `backfill_summons_summary.csv` | A previous backfill attempt |
+| `top5_parking_1125.csv`, `top5_moving_1125.csv` | Nov 2025 one-off exports, still sitting here |
+| `wg2_movers_parkers_nov2025.csv` | Same |
+| `2026_01_Response_Times_*.csv` | These should be in `PowerBI_Date\Backfill\2026_01\response_time\` |
+
+**The backfill is done and the 13-month trend should now work. ** This folder cleanup is a separate housekeeping task — want me to add it to a list and handle it after the template refresh is confirmed working? ---
+
+**User**
+
+it loaded correctly
+
+we need to address the Response time visual. the current visual show totals for 12-24 through 12-25. 1. I am unsure if the values are old values from a flawed calculations which was an issue we corrected. Any backfill data most likely is bad data. 2. the current visual shows the response time as Time Out - Time Dispatched
+3. I would like additional visual that show Time Out - Time of Call
+4. and a query that can make a visual be Time Dispatched - Time of Call
+
+---
+
+**Cursor**
+
+Let me look at the current response time M code and the actual backfill CSV files to understand what calculation is being used and what's there:
+
+Let me look at what's actually in those backfill CSVs to understand what metrics and calculation types are stored:
+
+Now let me check the ETL script to see what time fields it uses in its calculation:
+
+Now let me check what time columns are available in the raw CAD file:
+
+All three timestamps are available in the raw CAD file. Here's the full picture before we write anything:
+
+---
+
+## Current state
+
+**What the current ETL calculates:** `Time Out − Time Dispatched` only, averaged per Response Type per month, saved as a single pre-aggregated summary CSV.

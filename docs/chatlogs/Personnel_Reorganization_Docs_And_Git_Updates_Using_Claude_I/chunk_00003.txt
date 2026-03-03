@@ -1,0 +1,320 @@
+---
+
+**User**
+
+results after providing the updated prompt:
+NAME,TITLE,TEAM,WORKGROUP [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Aberde, Jann","Police Officer","PLT A Squad 4","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Abueg, Aster","SLEO II","Housing","SLEO2" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Almonte, Ruben","Police Officer","PLT B Squad 1","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Alvarez, Christian","Police Officer","PLT B Squad 1","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Angeles, Jose","Probationary PO","PLT B Squad 2","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Anguizaca-Zhindon, Maximiliano","Police Officer","PLT B Squad 3","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Antista, Matthew","Police Officer","PLT A Squad 4","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Antista, Michael","Chief","Office of Police Chief","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Arenas, Carlos","Dispatchers","Communications Unit","Civilian Dispatchers" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Badalyan, Eric","Police Officer","PLT A Squad 3","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Bay, Franklin","Lieutenant","Detective/Juv Bureau","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Becker, David","SLEO III","SPO III","SLEO3" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Bonsu, Forrod","Police Officer","PLT B Squad 1","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Borntrager, Allen","SLEO III","SPO III","SLEO3" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Briggs, Sean","Sergeant","PLT B Squad 3","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Buono, Karina","Dispatchers","Communications Unit","Civilian Dispatchers" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Butler, Jason","Sergeant","PLT A Squad 1","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Caero, Hector","Civilian","DPW","White Collar Contract" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Caero, Denisse","Detective","Detective/Juv Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Campoverde, Jason","Probationary PO","PLT A Squad 3","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Candela, Maddalena","Clerk","Records & Evidence","White Collar Contract" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Caneja, Frank","Police Officer","Emergency Services Unit","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Cappadonna, Tina","Lieutenant","Division Commanders","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Carrillo, Mark","Detective","Crime Suppression Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Carroll, Demetrius","Detective","Detective/Juv Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Carucci, Dana","SLEO III","SPO III","SLEO3" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Carucci, Robert","Police Officer","Safe Streets Operations","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Cassidy, Diana","Parking Enforcement","Parking Enforcement","Parking Enforcement Off" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Cavallo, Frank","Police Officer","PLT A DESK","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Cole, Christopher","Police Officer","PLT A Squad 2","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Competiello, Francesco","Sergeant","PLT A Squad 2","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Conlon, Ryan","Police Officer","Emergency Services Unit","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Dalton, John","Lieutenant","Crime Suppression Bureau","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Daunno Jr, Frank","SLEO III","SPO III","SLEO3" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"DeBonis, Matthew","Detective","Detective/Juv Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"DelCarpio, Mark","Sergeant","School Threat Bureau","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"DeLeon, Allan","Lieutenant","PLT A DESK","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"DeOliveira, Juda","Police Officer","PLT A Squad 4","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"DeWitt, Darrin","Captain","Division Commanders","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Diamanti, Gennette","Confidential Assistant","Office of Police Chief","White Collar Contract" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"DiMartino, Massimo","Police Officer","Emergency Services Unit","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"DiPersia, Anthony","Lieutenant","School Threat Bureau","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Dogali, Matthew","Detective","Detective/Juv Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Dominguez, Luis","Lieutenant","PLT B DESK","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Dominguez, Pedro","Police Officer","PLT A Squad 2","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Donnerstag, Raymond","Sergeant","PLT B Squad 2","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Estrada, Benjamin","Police Officer","PLT B Squad 3","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Farhi, Benjamin","Sergeant","PLT A Squad 4","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Felix Carrera, Suleidy","Clerk","Records & Evidence","White Collar Contract" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Feuilly, Bryan","Sergeant","Records & Evidence","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Francavilla, Daniel","Police Officer","Traffic Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Gallorini, Gaetano","Police Officer","Traffic Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Gallorini, Massimo","Police Officer","PLT A Squad 2","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Garcia, Bryanna","Dispatchers","Communications Unit","Civilian Dispatchers" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Garrett, Frankie","Detective","School Threat Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Gervasi, John","Dispatchers","Communications Unit","Civilian Dispatchers" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Ghirardi, Robert","Sergeant","PLT B Squad 1","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Gibson, Micah","Police Officer","PLT A Squad 4","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Green, Kaitlyn","Clerk","Records & Evidence","White Collar Contract" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Gretkowski, Jason","Sergeant","Training Unit","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Han, James","Detective","Detective/Juv Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Henao, Evelyn","Detective","School Threat Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Iannacone, Anthony","Police Officer","Safe Streets Operations","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Jacobsen, Matthew","Police Officer","Traffic Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"James, Kennedy","Civilian","Records & Evidence","White Collar Contract" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"James, Travoun","Detective","School Threat Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Jovel, Marta","Clerk","Records & Evidence","White Collar Contract" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Katsaroans, Felix","Detective","School Threat Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Kiselow, Gregory","Police Officer","PLT B DESK","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Klosk, Jason","Lieutenant","PLT B DESK","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Knapp, John","Lieutenant","PLT A DESK","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Koenig, Michael","Detective","Crime Suppression Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Lara-Nunez, Gunther","Detective","Detective/Juv Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Lara-Nunez, Cristobal","Detective","School Threat Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Lemanowicz, Steven","Police Officer","PLT B Squad 4","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Licata, Frank","Civilian","DPW","White Collar Contract" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Liggio, Anthony","Police Officer","PLT B Squad 2","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Lopez, Andres","Police Officer","PLT A Squad 1","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Lopez, Diana","Clerk","Traffic Bureau","White Collar Contract" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Lopez, Paula","Police Officer","PLT A Squad 2","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Lopez-Amaya, Laura","Police Officer","PLT B Squad 1","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Lovaglio, Franco","Traffic Maintenance","Traffic Maintenance","White Collar Contract" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Luna, Teudy","Probationary PO","PLT A Squad 2","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Lyak, Reuven","Police Officer","PLT B Squad 1","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Lynch, Daniel","Probationary PO","PLT B Squad 3","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Marble, Dane","Police Officer","Emergency Services Unit","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Marino, Benny","Lieutenant","Safe Streets Operations","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Marquez, Alex","SLEO III","SPO III","SLEO3" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Marza, Anzour","Police Officer","PLT A Squad 3","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Marza, Nart","Police Officer","PLT A Squad 1","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Mattalian, Anthony","Police Officer","PLT A Squad 2","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Mattalian, Dean","Compliance Officer","Parking Lot Attendant","White Collar Contract" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Mazzaccaro, Nicholas","Police Officer","PLT B Squad 2","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Mazzocchi, Peter","Traffic Maintenance","Traffic Maintenance","White Collar Contract" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"McCall, Frank","Police Officer","Traffic Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"McCarthy, Brett","Police Officer","PLT B Squad 3","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Meehan, Barbara","Clerk","Records & Evidence","White Collar Contract" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Melber, Richard","SLEO III","SPO III","SLEO3" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Mena, Alexis","Police Officer","PLT A Squad 3","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Miller, Aziah","Police Officer","PLT A Squad 3","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Mora, John","Police Officer","Traffic Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Morton, Travara","Police Officer","Records & Evidence","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"O'Neill, Michael","Police Officer","Traffic Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Oropeza, Robert","Probationary PO","PLT B Squad 1","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Ortiz, Nicholas","Police Officer","PLT B Squad 4","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Papanikolaou, Ioannis","Police Officer","PLT A Squad 2","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Peralta, Kley","Sergeant","Community Outreach","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Peralta, Jems","Police Officer","PLT B Squad 1","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Polson, Ronald","Civilian","Safe Streets Operations","" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Prezioso, Regina","Clerk","Office of Police Chief","White Collar Contract" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Price, Jacob","Police Officer","PLT A Squad 1","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Ramirez Drakeford, Mariah","Parking Enforcement","Parking Enforcement","Parking Enforcement Off" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Raneli, Sergio","Detective","Crime Suppression Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Reo, Michael","Detective","Crime Suppression Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Revi, Arauki","Police Officer","Community Outreach","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Reyes, Alexander","Police Officer","PLT B Squad 4","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Rios, Aaron","Detective","Crime Suppression Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Rivera, Bobby","Police Officer","PLT B Squad 2","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Rivera, Wanda","Sergeant","PLT B Squad 4","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Rizzi, Dawn","Parking Enforcement","Parking Enforcement","Parking Enforcement Off" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Rodriguez, Jeffrey","Police Officer","PLT A Squad 4","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Rodriguez, Jessica","Clerk","Operations Division","White Collar Contract" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Royal, Cherron","Probationary PO","PLT B Squad 1","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Salas, Roselys","Police Officer","PLT B Squad 4","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Salazar, Douglas","Parking Enforcement","Parking Enforcement","Parking Enforcement Off" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Scangarella, Michael","Police Officer","PLT B Squad 4","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Scarpa, Frank","Detective","Detective/Juv Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Scott, Latanya","Dispatchers","Communications Unit","Civilian Dispatchers" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Sela, Steven","SLEO III","SPO III","SLEO3" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Seretis, Panagiotis","Sergeant","Crime Suppression Bureau","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Small, Kevin","Police Officer","PLT B Squad 2","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Smith, James","Captain","Division Commanders","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Sosa, Carlos","Dispatchers","Communications Unit","Civilian Dispatchers" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Squillace, John","Parking Enforcement","Parking Enforcement","Parking Enforcement Off" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Sroka, Timothy","Police Officer","PLT A DESK","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Suarez, Mario","SLEO III","SPO III","SLEO3" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Swetits, Matthew","Lieutenant","Internal Affairs Unit","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Tabares, Angie","Police Officer","PLT A Squad 3","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Tanis, Randy","Dispatchers","Communications Unit","Civilian Dispatchers" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Tanucilli, John","Police Officer","PLT A Squad 1","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Tavera, Manuel","Detective","Crime Suppression Bureau","PBA Local 9 (8 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Tedesco, Matthew","Sergeant","PLT A Squad 3","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Thomas, Liam","Dispatchers","Communications Unit","Civilian Dispatchers" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Torres, Keith","Parking Enforcement","Parking Enforcement","Parking Enforcement Off" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Tovbin, Stanislav","Sergeant","Traffic Bureau","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Tripodi, Francesco","Sergeant","Detective/Juv Bureau","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"User, Admin","Chief","Administration Division","" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Vicale, Angelo","Police Officer","PLT B Squad 2","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Vivona, Ryan","SLEO II","SPO II","SLEO2" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Weber, Ryan","Captain","Division Commanders","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Williams, Patrick","Sergeant","Detective/Juv Bureau","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Wouters, Florian","Police Officer","PLT B DESK","PBA Local 9 (12 Hour)" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Zeidan, Hamzah","SLEO II","SPO II","SLEO2" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+"Zisa, Gregory","Captain","Operations Division","PBA Local 9A" [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+
+Paste into a text editor and save as POSS_Employee_List_Export.csv with UTF-8 encoding. [app10.vcssoftware](https://app10.vcssoftware.com/time-off-activity)
+
+Do you want a quick Python script next to diff this against your RMS roster? ---
+
+**Cursor**
+
+
+Noting Comet still appends the link despite the prompt — likely built-in source attribution. Creating a cleanup script to strip the suffix and optionally run the comparison:
+
+
+
+Created a **cleanup script** so you can handle Comet’s link suffix automatically. ## `clean_comet_poss_export.py`
+
+**Usage:**
+```powershell
+# 1. Paste Comet output into a file (e.g. comet_raw.txt)
+# 2. Run:
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel"
+python clean_comet_poss_export.py comet_raw.txt -o POSS_Employee_List_Export.csv --compare
+```
+
+The `--compare` flag runs the Assignment Master comparison after cleaning. **Or pipe directly:**
+```powershell
+# If Comet output is in clipboard, paste into a file first, then:
+python clean_comet_poss_export.py comet_raw.txt -o POSS_Employee_List_Export.csv
+```
+
+The script:
+- Strips ` [app10.vcssoftware](https://...)` from each line
+- Drops the "Paste into a text editor..." line
+- Writes valid CSV
+- Optionally runs the comparison script
+
+The Comet prompt doc is updated with these steps. Since Comet keeps adding the link, use this script as the standard post-processing step. ---
+
+**User**
+
+I saved the clipboard of the time off employee list to C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\data\timeoff_comet_raw.txt
+
+---
+
+**Cursor**
+
+
+Processing complete. **Output:** `09_Reference\Personnel\data\POSS_Employee_List_Export.csv` — 151 employees (154 lines including header and blank lines)
+
+**Comparison vs Assignment Master:**
+- **Matched:** 113  
+- **Mismatches:** 32  
+- **Not in Master:** 9  
+
+The cleaned CSV is ready for use. ---
+
+**User**
+
+Now I want to have the assistant do the same for the overtime employee list can I use the same prompt? does the output name of the script need to be changed to ditingishe between the first Time Off and this run will be the Overtime? I selected "Active" and Not Active" in the overtime employee list. So we get all employees. Then I will change to only show active, then do the same for not active is this wise? ---
+
+**Cursor**
+
+
+## 1. Same prompt for Overtime? Yes. The Overtime "Select Employees" pop-up should match the Time Off one (NAME, TITLE, TEAM, WORKGROUP, filter boxes, scroll bar). Use the same prompt. ## 2. Different output names? Yes. Use distinct names so you don’t overwrite files:
+
+| Run        | Raw input file              | Cleaned output file                    |
+|-----------|-----------------------------|----------------------------------------|
+| Time Off  | `data/timeoff_comet_raw.txt` | `data/POSS_Employee_List_TimeOff.csv`  |
+| Overtime  | `data/overtime_comet_raw.txt` | `data/POSS_Employee_List_Overtime.csv` |
+
+The cleanup script can take an `-o` argument, so you can point each run to the right output file. ## 3. Active + Not Active strategy
+
+Your plan is reasonable:
+
+- **All (Active + Not Active)** – Full POSS roster for reference. - **Active only** – Best for comparing to Assignment Master (which is usually active-only). - **Not Active only** – Useful to see who’s inactive in POSS (terminated/retired). Recommendation:
+
+1. Run **Active only** first and compare to Assignment Master. That’s the main validation. 2. Run **Not Active only** if you want a list of inactive employees (e.g., audit, cleanup). 3. Run **All** only if you need a full POSS roster for reference. If you compare “All” to Assignment Master, many “Not in Master” rows will be inactive employees, which is expected. I can update the cleanup script and docs to support both Time Off and Overtime output names if you want. ---
+
+**User**
+
+I will run all so we have a full roster, then I will run active only
+ythis is the full list C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\data\overtime_comet_raw_all.txt
+Active only:
+C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\data\overtime_comet_raw_active.txt
+
+---
+
+**Cursor**
+
+
+Fixing truncated rows in both overtime files. Both exports are cleaned and compared. Summary:
+
+## Results
+
+| File | Employees | Matched | Mismatches | Not in Master |
+|------|-----------|---------|------------|---------------|
+| **POSS_Employee_List_Overtime_All.csv** | 153 | 111 | 33 | 8 |
+| **POSS_Employee_List_Overtime_Active.csv** | 151 | 111 | 32 | 8 |
+
+## Truncation fixes
+
+Comet cut off the last rows when copying:
+
+- **All**: `Wouters, Florian` was truncated; `Zeidan, Hamzah` and `Zisa, Gregory` were missing. These were added from the reference. - **Active**: `Williams, Patrick` was truncated. The row was completed from the All export. ## Tip for future Comet exports
+
+Scroll past the last visible row before copying so the bottom of the list is fully in view. That reduces truncation at the end. ## Output files
+
+- `data/POSS_Employee_List_Overtime_All.csv` – full roster (Active + Not Active)
+- `data/POSS_Employee_List_Overtime_Active.csv` – active employees only
+
+---
+
+**User**
+
+now that we have the full roster lets compare it to C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_GOLD.xlsx
+C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_V2.csv
+
+I assum that Assignment_Master_GOLD.xlsx is the gold standard but I think that the python automation uses Assignment_Master_V2.csv se we have to make sure that Assignment_Master_V2.csv is complete and error free. can we review the Assignment_Master_V2.csv systematically to catch all the diffrences and correct them or do we systematically update the the gold standard then replace Assignment_Master_V2.csv with the correct version? ---
+
+**Cursor**
+
+
+Creating a reconciliation workflow and script to produce a GOLD update checklist:
+
+
+
+Here’s the workflow and what’s in place:
+
+## Workflow: Update GOLD, Then Sync
+
+**Rule:** Edit `Assignment_Master_GOLD.xlsx` only. Run `sync_assignment_master.py` to regenerate `Assignment_Master_V2.csv`. Do not edit the CSV directly. ---
+
+## What’s in Place
+
+### 1. `reconcile_poss_to_gold.py`
+
+Compares the POSS roster to the Assignment Master and produces an update checklist:
+
+```powershell
+python reconcile_poss_to_gold.py --poss data/POSS_Employee_List_Overtime_All.csv -o data/GOLD_Update_Checklist.xlsx
+```
+
+**Output:**
+- **Updates** – 32 rows: TEAM and/or CONTRACT_TYPE changes to apply in GOLD
+- **Adds** – 9 rows: New employees to add to GOLD
+- **In Master but not in POSS** – 19 rows: For review (e.g. HCOP, name-format differences)
+
+### 2. `docs/POSS_RECONCILIATION_WORKFLOW.md`
+
+Describes the full process: export POSS → reconcile → edit GOLD → sync → verify. ---
+
+## Recommended Steps
+
+1. Open `data/GOLD_Update_Checklist.xlsx` (already generated). 2. Edit `Assignment_Master_GOLD.xlsx` using the Updates and Adds sheets. 3. Run `python sync_assignment_master.py` to regenerate the CSV. 4. Run `python compare_poss_to_assignment_master.py --poss data/POSS_Employee_List_Overtime_All.csv` to confirm. ---
+
+## Notes
+
+- **O’Neill / Ramirez Drakeford:** In Master as ONEILL and RAMIREZ-DRAKEFORD; POSS uses O'Neill and Ramirez Drakeford. They may appear in “In Master but not in POSS” due to name matching. Confirm whether they are the same people. - **HCOP:** 12 HCOP employees are in Master but not in POSS; they may be outside the POSS time-off/overtime scope. - **Polson, User Admin:** POSS has blank WORKGROUP; leave CONTRACT_TYPE blank or set manually in GOLD. ---
+
+**User**
+
+I have Claude in Excel installed can we provide a prompt for claude to do the updates? Should we creat backups of the files in the event that claude breaks something.

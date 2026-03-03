@@ -1,0 +1,565 @@
+Fixing data types for 48010 records... Fixed numeric: DATA_QUALITY_SCORE
+  Fixed date: VIOLATION_DATE
+  Fixed date: ISSUE_DATE
+  Fixed date: PROCESSED_TIMESTAMP
+Data type fixes complete
+2026-03-03 01:42:15,860 - INFO - Saved: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_20260303_014046.xlsx
+2026-03-03 01:43:27,883 - INFO - Saved: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+2026-03-03 01:43:27,883 - INFO - === QA VALIDATION: counts by badge+type ===
+2026-03-03 01:43:27,905 - INFO -
+PADDED_BADGE_NUMBER       OFFICER_DISPLAY_NAME TYPE  COUNT
+               0083         A. MATTALIAN #0083    M     26
+               0083         A. MATTALIAN #0083    P     89
+               0135           M. ANTISTA #0135    M     27
+               0135           M. ANTISTA #0135    P    163
+               0136        T. CAPPADONNA #0136    P      5
+               0138          M. JACOBSEN #0138    C      1
+               0138          M. JACOBSEN #0138    M   1126
+               0138          M. JACOBSEN #0138    P    981
+               0141             J. KNAPP #0141    P     12
+               0144         M. DIMARTINO #0144    M      3
+               0144         M. DIMARTINO #0144    P     10
+               0153            M. KOENIG #0153    C      4
+               0153            M. KOENIG #0153    M     13
+               0153            M. KOENIG #0153    P      2
+               0161            W. RIVERA #0161    M     15
+               0161            W. RIVERA #0161    P     50
+               0164          B. MCCARTHY #0164    M     30
+               0164          B. MCCARTHY #0164    P     69
+               0165               J. HAN #0165    M     22
+               0165               J. HAN #0165    P    123
+               0166         P. DOMINGUEZ #0166    M     25
+               0166         P. DOMINGUEZ #0166    P    146
+               0226       F. COMPETIELLO #0226    M      3
+               0226       F. COMPETIELLO #0226    P      4
+               0253           F. CAVALLO #0253    P     11
+               0256         G. GALLORINI #0256    M    123
+               0256         G. GALLORINI #0256    P   1861
+               0257              J. MORA #0257    M     26
+               0257              J. MORA #0257    P     98
+               0267             T. SROKA #0267    M     21
+               0267             T. SROKA #0267    P    104
+               0271            D. MARBLE #0271    M      1
+               0271            D. MARBLE #0271    P     11
+               0273            S. BRIGGS #0273    M      2
+               0301            F. MCCALL #0301    M    159
+               0301            F. MCCALL #0301    P     29
+               0308      I. PAPANIKOLAOU #0308    M     19
+               0308      I. PAPANIKOLAOU #0308    P    193
+               0309             B. FARHI #0309    C      3
+               0309             B. FARHI #0309    M     19
+               0309             B. FARHI #0309    P      9
+               0311           K. PERALTA #0311    M     48
+               0311           K. PERALTA #0311    P     35
+               0313         A. IANNACONE #0313    M    156
+               0313         A. IANNACONE #0313    P   1290
+               0316           M. TEDESCO #0316    M      4
+               0316           M. TEDESCO #0316    P     13
+               0318              R. LYAK #0318    M     24
+               0318              R. LYAK #0318    P    142
+               0320              A. REVI #0320    P     24
+               0322              A. MENA #0322    M     14
+               0322              A. MENA #0322    P     19
+               0325           M. DEBONIS #0325    M      5
+               0327            M. ONEILL #0327    C      1
+               0327            M. ONEILL #0327    M    657
+               0327            M. ONEILL #0327    P   1366
+               0328             K. SMALL #0328    M     62
+               0328             K. SMALL #0328    P    172
+               0329       D. FRANCAVILLA #0329    C      2
+               0329       D. FRANCAVILLA #0329    M    168
+               0329       D. FRANCAVILLA #0329    P    892
+               0330            J. BUTLER #0330    P      1
+               0331          M. CARRILLO #0331    C      6
+               0331          M. CARRILLO #0331    M      5
+               0331          M. CARRILLO #0331    P      3
+               0333        R. DONNERSTAG #0333    M      1
+               0333        R. DONNERSTAG #0333    P      5
+               0334           P. SERETIS #0334    C      1
+               0334           P. SERETIS #0334    M     20
+               0334           P. SERETIS #0334    P      3
+               0335         J. TANUCILLI #0335    M      1
+               0335         J. TANUCILLI #0335    P      6
+               0337              A. RIOS #0337    C      2
+               0337              A. RIOS #0337    M     22
+               0337              A. RIOS #0337    P      1
+               0338            M. DOGALI #0338    M      5
+               0338            M. DOGALI #0338    P      1
+               0339               M. REO #0339    M     26
+               0339               M. REO #0339    P     11
+               0341        C. LARA-NUNEZ #0341    M      1
+               0342         J. RODRIGUEZ #0342    M    105
+               0342         J. RODRIGUEZ #0342    P    176
+               0344            S. TOVBIN #0344    M      7
+               0344            S. TOVBIN #0344    P     41
+               0345        J. GRETKOWSKI #0345    P      7
+               0346            F. CANEJA #0346    C      1
+               0346            F. CANEJA #0346    M     36
+               0346            F. CANEJA #0346    P     34
+               0347        S. LEMANOWICZ #0347    M     80
+               0347        S. LEMANOWICZ #0347    P    149
+               0349       M. SCANGARELLA #0349    M     17
+               0349       M. SCANGARELLA #0349    P     76
+               0350           B. ESTRADA #0350    M     14
+               0350           B. ESTRADA #0350    P    177
+               0351        G. LARA-NUNEZ #0351    M      6
+               0351        G. LARA-NUNEZ #0351    P      1
+               0353             F. BONSU #0353    C      1
+               0353             F. BONSU #0353    M     62
+               0353             F. BONSU #0353    P    189
+               0354            R. CONLON #0354    M     35
+               0354            R. CONLON #0354    P     23
+               0355             A. REYES #0355    C      3
+               0355             A. REYES #0355    M     64
+               0355             A. REYES #0355    P     38
+               0356             A. MARZA #0356    C      1
+               0356             A. MARZA #0356    M     20
+               0356             A. MARZA #0356    P     51
+               0357            A. MILLER #0357    M     45
+               0357            A. MILLER #0357    P     96
+               0359           R. ALMONTE #0359    C      3
+               0359           R. ALMONTE #0359    M     91
+               0359           R. ALMONTE #0359    P    209
+               0361            B. RIVERA #0361    C     10
+               0361            B. RIVERA #0361    M    179
+               0361            B. RIVERA #0361    P    241
+               0362             P. LOPEZ #0362    M    110
+               0362             P. LOPEZ #0362    P    110
+               0363           A. TABARES #0363    M     66
+               0363           A. TABARES #0363    P    150
+               0364           C. ALVAREZ #0364    M     71
+               0364           C. ALVAREZ #0364    P    203
+               0365            M. GIBSON #0365    C      2
+               0365            M. GIBSON #0365    M    107
+               0365            M. GIBSON #0365    P    449
+               0366             J. PRICE #0366    C      3
+               0366             J. PRICE #0366    M     75
+               0366             J. PRICE #0366    P     58
+               0367             D. CAERO #0367    M     55
+               0367             D. CAERO #0367    P     57
+               0368 M. ANGUIZACA-ZHINDON #0368    M    103
+               0368 M. ANGUIZACA-ZHINDON #0368    P    230
+               0369             R. SALAS #0369    C      1
+               0369             R. SALAS #0369    M    114
+               0369             R. SALAS #0369    P     39
+               0370            A. VICALE #0370    C      3
+               0370            A. VICALE #0370    M     83
+               0370            A. VICALE #0370    P    176
+               0374       L. LOPEZ-AMAYA #0374    C      1
+               0374       L. LOPEZ-AMAYA #0374    M    173
+               0374       L. LOPEZ-AMAYA #0374    P    143
+               0375             A. LOPEZ #0375    C      1
+               0375             A. LOPEZ #0375    M    284
+               0375             A. LOPEZ #0375    P    253
+               0376        J. DEOLIVEIRA #0376    M    155
+               0376        J. DEOLIVEIRA #0376    P     90
+               0377        N. MAZZACCARO #0377    C      5
+               0377        N. MAZZACCARO #0377    M    329
+               0377        N. MAZZACCARO #0377    P    488
+               0378             UNKNOWN - 0378    M      9
+               0378             UNKNOWN - 0378    P     39
+               0379         M. GALLORINI #0379    M     67
+               0379         M. GALLORINI #0379    P    123
+               0380             UNKNOWN - 0380    M     18
+               0380             UNKNOWN - 0380    P     45
+               0381             R. SWABY #0381    C      2
+               0381             R. SWABY #0381    M     16
+               0381             R. SWABY #0381    P     27
+               0382          E. BADALYAN #0382    C      1
+               0382          E. BADALYAN #0382    M     57
+               0382          E. BADALYAN #0382    P    100
+               0383             D. LYNCH #0383    M      8
+               0383             D. LYNCH #0383    P     14
+               0384           J. PERALTA #0384    M     39
+               0384           J. PERALTA #0384    P    111
+               0385              C. COLE #0385    M     37
+               0385              C. COLE #0385    P    133
+               0386            J. ABERDE #0386    M    107
+               0386            J. ABERDE #0386    P    255
+               0387             C. ROYAL #0387    M     10
+               0387             C. ROYAL #0387    P     33
+               0388            A. LIGGIO #0388    C      1
+               0388            A. LIGGIO #0388    M    134
+               0388            A. LIGGIO #0388    P     37
+               0389           J. ANGELES #0389    C      1
+               0389           J. ANGELES #0389    M      9
+               0389           J. ANGELES #0389    P     30
+               0390           R. OROPEZA #0390    M     14
+               0390           R. OROPEZA #0390    P     43
+               0391              T. LUNA #0391    M     15
+               0391              T. LUNA #0391    P     16
+               0392        J. CAMPOVERDE #0392    M      1
+               0392        J. CAMPOVERDE #0392    P      2
+               0711         J. SQUILLACE #0711    P   3429
+               0717         D. MATTALIAN #0717    C    787
+               0717         D. MATTALIAN #0717    P   3052
+               0738            R. POLSON #0738    P      4
+               0817             A. ABUEG #0817    P     33
+               0839            R. VIVONA #0839    M      9
+               0839            R. VIVONA #0839    P      9
+               0842              S. SELA #0842    M      2
+               0844       H. TAHA-ZEIDAN #0844    M      3
+               0844       H. TAHA-ZEIDAN #0844    P      6
+               1711         J. SQUILLACE #1711    P    657
+               2008           D. CASSIDY #2008    P   1922
+               2013           D. SALAZAR #2013    P   2608
+               2025           M. RAMIREZ #2025    P     39
+               2025 M. RAMIREZ-DRAKEFORD #2025    P   6497
+               2027            K. TORRES #2027    P   7193
+               2030             D. RIZZI #2030    P   2869
+               9110             UNKNOWN - 9110    C      5
+2026-03-03 01:43:27,910 - WARNING - 116 records with no Assignment Master match:
+2026-03-03 01:43:27,911 - WARNING - PADDED_BADGE_NUMBER
+0380    63
+0378    48
+9110     5
+2026-03-03 01:43:27,963 - INFO - ETL complete. Output: C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx
+PS C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation>
+
+---
+
+**Cursor**
+
+
+Updating the ETL to write the timestamped file first, verify it, then copy it to `summons_powerbi_latest.xlsx` to avoid corruption. Restoring the latest file from the last successful run:
+
+
+
+Two changes are in place:
+
+### 1. ETL save logic updated
+
+The ETL script now:
+1. Writes only to the timestamped file first (e.g. `summons_powerbi_20260303_014046.xlsx`)
+2. Checks that the file is larger than 1 MB
+3. Deletes the old `summons_powerbi_latest.xlsx` (if it exists)
+4. Copies the timestamped file to `summons_powerbi_latest.xlsx` instead of writing it again
+
+This avoids a second Excel write and reduces the chance of OneDrive corruption. ### 2. Latest file restored
+
+`summons_powerbi_latest.xlsx` was restored from `summons_powerbi_20260303_014046.xlsx` (~24 MB). It should now load correctly in Power BI. **Next steps:**
+1. Close Power BI if it’s open. 2. Refresh the summons queries in Power BI. 3. For future runs, close Power BI before running the ETL, and set “Always keep on this device” for the City of Hackensack `03_Staging\Summons` folder. ---
+
+**User**
+
+closed and re opned and its still broke
+
+---
+
+**Cursor**
+
+
+Checking where the summons queries load data and what's failing:
+
+
+
+Checking the ETL output schema and whether the M code expects columns that don't exist:
+
+
+
+Checking Power BI query refresh behavior and whether the PBIX uses different sources:
+
+
+
+Making the summons M code resilient to schema changes (only transform columns that exist) and adding a troubleshooting guide:
+
+
+
+Updating the M code to be schema-resilient and fixing the backfill-month logic. Here’s what was changed and how to proceed:
+
+### Changes made
+
+1. **`summons_13month_trend.m`**
+   - Only transforms columns that exist (avoids "column not found" errors). - Backfill months corrected to `01-25, 02-25, 03-25, 07-25, 10-25, 11-25` so e-ticket data for 04–06, 08–09, 12 is kept. 2. **`docs/SUMMONS_POWER_BI_TROUBLESHOOTING.md`**
+   - Steps for checking file size, OneDrive sync, and how to refresh queries. ### Important: closing and reopening is not a refresh
+
+Closing and reopening Power BI does **not** reload data. You need to refresh the queries:
+
+1. **Home** → **Transform data** → **Power Query Editor**
+2. **Home** → **Refresh Preview** (or **Refresh All**)
+3. **Close & Apply**
+
+Or right‑click each query (`summons_13month_trend`, `summons_all_bureaus`) → **Refresh**. ### If it still fails
+
+1. **Update M code in Power BI** – In Power Query Editor, right‑click `summons_13month_trend` → **Advanced Editor** → replace with the contents of `m_code/summons/summons_13month_trend.m`. 2. **Check file size** – Run:
+   ```powershell
+   (Get-Item "C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx").Length
+   ```
+   It should be about 24,000,000. If it’s 0 or very small, restore from a timestamped copy (see the troubleshooting doc). 3. **Close Excel** – Ensure the staging file is not open in Excel when refreshing Power BI. Which visuals are still failing: `summons_13month_trend`, `summons_all_bureaus`, or both? ---
+
+**User**
+
+I updated the m code and it is taking a while to refresh
+
+---
+
+**Cursor**
+
+
+That’s expected. The staging file has about 48,000 rows, so Power BI needs time to:
+
+1. Read the Excel file (~24 MB)
+2. Promote headers and apply type transforms
+3. Filter and process the data
+4. Load it into the model
+
+A few minutes is normal for a refresh of that size. If it’s longer than 5–10 minutes, check Task Manager for high CPU or memory usage on Power BI Desktop. ---
+
+**User**
+
+I refreshed the summons queries and closed and loaded
+hoiw is 03-25, 07-25, 10-25, 11-25 missing 
+
+---
+
+**Cursor**
+
+
+Checking the backfill setup and merge logic:
+
+
+
+Tracing the logic:
+
+
+
+Identifying the bug: FilteredPreferBackfill keeps only WG2="Department-Wide" for 03-25, 07-25, 10-25, 11-25, but the backfill merge skips those months because e-ticket has data. E-ticket rows use bureau WG2 (e.g. TRAFFIC BUREAU), so they're being dropped. Fixing by restricting the Department-Wide filter to months that actually have backfill (01-25, 02-25). Here’s what was going on:
+
+**Root cause**
+
+1. **Backfill merge** – For 03-25, 07-25, 10-25, 11-25 the ETL sees e-ticket data (>10 rows), so it skips backfill and only merges 01-25 and 02-25 (4 rows total). 2. **M code filter** – `FilteredPreferBackfill` was set to keep only `WG2 = "Department-Wide"` for 03-25, 07-25, 10-25, and 11-25. 3. **Effect** – For those months there are only e-ticket rows with bureau WG2 (e.g. TRAFFIC BUREAU, SSOCC), not Department-Wide. The filter removed all of them, so those months disappeared from the visual. **Fix**
+
+`BackfillMonths` is now limited to `{"01-25", "02-25"}` (months where backfill is actually merged). For 03-25, 07-25, 10-25, and 11-25, all bureau-level e-ticket rows are kept and will aggregate correctly in the Department-Wide visual. **Next step**
+
+In Power BI, open **Transform data** → Power Query Editor → right‑click `summons_13month_trend` → **Advanced Editor** → replace the query with the updated M code from `m_code/summons/summons_13month_trend.m` → **Close & Apply**. ---
+
+**User**
+
+@c:\Users\carucci_r\Downloads\after_mcode_update_Department-Wide Summons  Moving and Parking.csv  please check the values against last months report the values for 02-25 through 01-26 need to be the same 
+
+---
+
+**Cursor**
+
+
+Checking the image values you provided:
+
+
+
+Creating a comparison and documenting the required fix:
+
+
+---
+
+**User**
+
+the january numbers are wrong
+
+---
+
+**Cursor**
+
+
+Here’s the comparison for January 2026 (01-26):
+
+| Source | Moving (M) | Parking (P) |
+|--------|------------|-------------|
+| **Last month's report** | 241 | 3,368 |
+| **After M code update** | 463 | 3,577 |
+
+So the current numbers (463 / 3,577) are higher than last month’s (241 / 3,368). **Likely causes:**
+1. **More data since last report** – Additional January tickets added to e-ticket after the report was run. 2. **Different date range** – Last month’s report may have used a partial January window (e.g., through a specific date). 3. **Different export** – Last month’s report may have used a different e-ticket export or filter. **To fix it, we need to know:**
+- What should the correct January 2026 values be? (241 / 3,368 to match last month, or something else?) - Do you have a backfill or reference file that defines the “official” January 2026 counts? If the goal is to match last month exactly, we can add 01-26 to the backfill with M=241 and P=3,368 so the pipeline uses those instead of the current e-ticket totals. ---
+
+**User**
+
+@c:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket\2026\month\2026_02_eticket_export.csv @c:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket\2026\month\2026_01_eticket_export.csv I see one issue the 2026_02 summons export was not in C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket\2026\month and it is a .csv
+
+---
+
+**Cursor**
+
+
+Checking the ETL's file discovery and the referenced files:
+
+
+
+Both files exist in the expected path:
+
+- `2026\month\2026_01_eticket_export.csv`
+- `2026\month\2026_02_eticket_export.csv`
+
+The ETL looks for e-ticket CSVs in this order:
+
+1. `E_Ticket\{year}\month\` (e.g. `2026\month\2026_02_eticket_export.csv`)
+2. `E_Ticket\{year}\` (e.g. `2026\2026_02_eticket_export.csv`)
+3. `E_Ticket\` root (e.g. `2026_02_eticket_export.csv`)
+
+So if `2026_02` was previously in `2026\` instead of `2026\month\`, the ETL would still pick it up in step 2. The filename pattern is `YYYY_MM_eticket_export.csv` (CSV). If you’re seeing wrong January numbers, it’s likely not from file discovery. Possible causes:
+
+1. **2026_02 in the wrong place** – If it was missing or in a different folder, the ETL might have skipped it or used a different file. 2. **Date attribution** – Tickets in `2026_02_eticket_export.csv` might be attributed to February instead of January if the date logic is off. Can you confirm:
+- Was `2026_02_eticket_export.csv` missing or in a different folder when you ran the ETL? - Do you want the ETL to be stricter and only use files under `{year}\month\`? ---
+
+**User**
+
+I fouind it C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket\2026
+check the log of C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Export_File_Watchdog to see what happened
+
+---
+
+**Cursor**
+
+
+Here’s what the watchdog log shows:
+
+## Watchdog log summary
+
+**2026_02_eticket_export.csv was never processed by the watchdog. ** There is no log entry for it. ### E-Ticket activity in the log
+
+| Date       | File                     | Action |
+|------------|--------------------------|--------|
+| 2026-02-09 | 2026_01_eticket_export.csv | Moved to `E_Ticket\2026\2026_01_eticket_export.csv` |
+| 2026-01-08 | 2025_02_eticket_export_FIXED.csv | Moved to `E_Ticket\2025\` |
+| 2026-01-02 | 2025_12_e_ticket_export.csv | Partial success (one move succeeded; others failed due to file lock / already moved) |
+
+### What this implies
+
+1. **2026_02 was never picked up** – No detection or move of `2026_02_eticket_export.csv` in the log. 2. **Watchdog destination** – E-Ticket files go to `E_Ticket\{year}\` (e.g. `E_Ticket\2026\`), not `E_Ticket\2026\month\`. 3. **How it ended up in `E_Ticket\2026`** – It was likely placed there manually or by another process, not by the watchdog. ### Why the watchdog might have missed it
+
+- File was saved directly into `E_Ticket\2026\` (outside Desktop/Downloads). - File was saved with a different name or path than expected. - Watchdog was not running when the file appeared. - File was in a folder the watchdog does not monitor (Desktop, OneDrive Downloads, local Downloads). ### ETL behavior
+
+The Summons ETL checks, in order:
+
+1. `E_Ticket\2026\month\`
+2. `E_Ticket\2026\` ← where the file is
+3. `E_Ticket\` (root)
+
+So the ETL will find `2026_02_eticket_export.csv` in `E_Ticket\2026\` even though the watchdog never moved it. ### Optional change
+
+If you want the watchdog to place E-Ticket files in `E_Ticket\{year}\month\` to match the ETL’s first lookup, the watchdog’s E_Ticket rule can be updated to use that path. ---
+
+**User**
+
+update so that the monthly export of the summons are moved C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket\2026\month. does the file need to be an .xslx? ---
+
+**Cursor**
+
+
+Updates are in place. Summary:
+
+### Changes made
+
+1. **E_Ticket destination** – E-ticket files now go to `E_Ticket\{year}\month\` (e.g. `05_EXPORTS\_Summons\E_Ticket\2026\month\`). 2. **`month_subfolder` option** – Added to the E_Ticket config so the watchdog can put files in the `month` subfolder. ### File format
+
+**No – the file does not need to be .xlsx. ** The Summons ETL expects `YYYY_MM_eticket_export.csv` (CSV). The watchdog already supports `.csv` for E-Ticket (along with `.xlsx` and `.xls`). ### Next steps
+
+1. Restart the watchdog so it picks up the new config. 2. Move the existing `2026_02_eticket_export.csv` from `E_Ticket\2026\` to `E_Ticket\2026\month\` if you want it in the new location:
+
+   ```powershell
+   Move-Item "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket\2026\2026_02_eticket_export.csv" `
+     "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket\2026\month\"
+   ```
+
+3. For future exports, save the file to Desktop or Downloads (with `eticket_export` in the name) and the watchdog will move it to `E_Ticket\{year}\month\`. ---
+
+**User**
+
+confirm that 406 movers and 3577 parkers for 01-26 are correct using@c:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket\2026\month\2026_01_eticket_export.csv 
+
+---
+
+**Cursor**
+
+
+Verification against `2026_01_eticket_export.csv`:
+
+## Results
+
+| Metric | Raw file | After ETL | Expected | Match? |
+|--------|----------|-----------|----------|--------|
+| **Moving (M)** | 474 | 462 | 406 | No |
+| **Parking (P)** | 3,577 | 3,577 | 3,577 | Yes |
+
+### Parking (P) — correct
+
+- Raw file: 3,577  
+- ETL output: 3,577  
+- Expected: 3,577  
+
+### Moving (M) — mismatch
+
+- Raw file: 474  
+- ETL output: 462 (12 fewer due to Officer Id validation / badge matching)  
+- Expected: 406  
+- Difference: 56 more in ETL than expected  
+
+### Possible reasons for the 56-ticket gap
+
+1. **Different source** – 406 may come from another export or report. 2. **Different date range** – 406 might be for a subset of January (e.g., partial month). 3. **Extra filters** – Another filter (e.g., bureau, status) could reduce M to 406. 4. **Backfill vs e-ticket** – Last month’s report used 241 M for 01-26; 406 may be from a different methodology. ### Summary
+
+- **Parkers (P): 3,577** — matches the e-ticket export. - **Movers (M): 406** — does not match the current e-ticket file; the file yields 462 M after ETL. ---
+
+**User**
+
+update all docs leave a note to review the summons I should re export all summons to verify
+
+
+---
+
+**Cursor**
+
+
+Updates are complete. Summary of changes:
+
+## New file
+
+- **`docs/SUMMONS_VERIFICATION_NOTE_2026_03.md`** – Verification guide with:
+  - Action: re-export all summons e-ticket data
+  - 01-26 Moving discrepancy (406 expected vs 462 from ETL)
+  - Steps: re-export, place files, run ETL, compare
+  - Reference paths
+
+## Docs updated with verification note
+
+| Doc | Change |
+|-----|--------|
+| `docs/SUMMONS_VISUALS_FIX_2026_03_03.md` | Verification note at end |
+| `docs/SUMMONS_POWER_BI_TROUBLESHOOTING.md` | Verification note section |
+| `docs/SUMMONS_BACKFILL_INJECTION_POINT.md` | Verification note at end |
+| `docs/SUMMONS_PRODUCTION_CHECKLIST.md` | Verification note at end |
+| `docs/SUMMONS_PATHS_AND_DROPEXPORTS.md` | Verification note at end |
+| `docs/SUMMONS_AUTOMATION_SUMMARY.md` | Verification note at top |
+| `CLAUDE.md` | Link to verification note in docs section |
+| `SUMMARY.md` | Verification note in Summons section |
+| `CHANGELOG.md` | Entry [1.17.24] for 2026-03-03 |
+
+All summons-related docs now point to the verification note and the need to re-export all summons to verify counts. ---
+
+**User**
+
+aaigglog
+
+---
+
+**Cursor**
+
+
+That looks like a typo or accidental input. What did you mean to do? For example:
+
+- Add something to a log? - Something else? Reply with the correct text or what you want to accomplish. ---
+
+**User**
+
+I'm preparing to export this chat. Please generate a descriptive filename that summarizes the main topic or task of this conversation. Requirements:
+• 4-8 words
+• Title Case (capitalize major words)
+• Replace spaces with underscores
+• Include .md extension
+• No dates or special characters
+
+Output only the filename, with the suffix .md and nothing else. ---
+
+**Cursor**
+
+
+Summons_Verification_Note_And_Docs_Update.md

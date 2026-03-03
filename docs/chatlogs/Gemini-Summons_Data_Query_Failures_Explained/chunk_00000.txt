@@ -1,0 +1,250 @@
+# Summons Data Query Failures Explained
+
+**Exported:** 3/3/2026 16:51:36  
+**Link:** [https://gemini.google.com/app/31b7e182991cb703](https://gemini.google.com/app/31b7e182991cb703)
+
+## Prompt:
+> Claude - MD
+
+> README - MD
+
+> SUMMARY - MD
+
+> CHANGELOG - MD
+
+> SUMMONS_PO...LESHOOTING - MD
+
+> SUMMONS_PR..._CHECKLIST - MD
+
+> SUMMONS_PA...ROPEXPORTS - MD
+
+> SUMMONS_VI...2026_03_03 - MD
+
+> SUMMONS_BA...TION_POINT - MD
+
+> SUMMONS_AU...ON_SUMMARY - MD
+
+Provide feedback and reasons why the summons queries were failing to show correct data
+
+## Response:
+Gemini said
+-----------
+
+The failure of the summons queries to display correct data was a multifaceted issue involving technical bugs in the ETL script, configuration mismatches, and data integrity gaps. Based on project documentation, here are the specific reasons for the failures and discrepancies:
+
+### 1\. Technical & Logic Errors in ETL
+
+*   **Hardcoded Timeframes**: The ETL script was originally hardcoded to load only January and February 2026 data. This prevented the 13-month rolling visuals from accessing any 2025 data, leaving most of the trend visuals empty. *   **Classification Misidentification**: Title 39 (Moving) violations were defaulting to "P" (Parking) in the State E-Ticket data. This led to a significant undercount of moving violations—initially showing only **35** instead of the actual **241**. *   **Double-Counting via Backfill**: The backfill logic was merging data for gap months even when e-ticket data already existed for those periods, leading to inflated totals. *   **Chronological Sorting Failure**: Visuals were sorting months alphabetically (e.g., April before January) rather than chronologically. This was fixed by creating a `YearMonthKey` for integer-based sorting (e.g., 202601). ### 2\. Data Integrity & Mapping Gaps
+
+*   **Missing Personnel Data**: Badge **0738** (a drone operator) was missing from the Assignment Master, causing their summons to be bucketed under "UNKNOWN" instead of "SSOCC". *   **Blank Month\_Year Rows**: The dataset contained rows with null or empty `Month_Year` values, which distorted aggregations and created "blank" entries in visuals. *   **WG2 Name Mismatch**: The system used an inconsistent bureau name ("SAFE STREETS OPERATIONS CONTROL CENTER" vs. "SSOCC"), preventing correct data mapping. ### 3\. Configuration & Infrastructure Issues
+
+*   **Staging Data Lag**: The `summons_powerbi_latest.xlsx` file frequently lagged behind, only containing data through September 2025 until the ETL was manually re-run. *   **Conflicting Paths & Sync Errors**: Users were occasionally attempting to load data from "Personal" OneDrive folders instead of the "City of Hackensack" OneDrive, leading to "File not found" or "Archive file cannot be size 0" errors. *   **Confusion over \_DropExports**: Unlike other workflows (Arrests, Community Engagement), Summons data does **not** use the `_DropExports` folder; it writes directly to the `03_Staging` workbook. Misplacing files in `_DropExports` caused them to be ignored by the Power BI queries. ### 4\. Recent Fixes (v1.17.5+)
+
+A surgical update was applied to resolve these issues by:
+
+*   **Re-creating the `___Summons` query**, which was entirely missing from some template versions despite being referenced by 12 DAX measures. *   **Implementing a 13-month load logic** that now scans for multiple years and months to ensure a complete window. *   **Standardizing WG2 assignments** and adding badge overrides to ensure officers are mapped to the correct bureaus. Would you like me to run a diagnostic on the current `summons_powerbi_latest.xlsx` file to verify that the 13-month window is now correctly populated? ## Prompt:
+Yes what’s the path of the summons\_powerbi\_latest.xlsx so I can send it to you
+
+## Response:
+Gemini said
+-----------
+
+To send me the file for diagnostic testing, you can find the current production version of the summons staging workbook at the following path:
+
+**`C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx`**
+
+### How to Verify the File Before Sending
+
+Before you upload it, please check the following to ensure it is the correct version:
+
+*   **OneDrive Account**: Ensure the file is in the **City of Hackensack** OneDrive, not a Personal OneDrive folder. *   **File Size**: The file should typically be approximately **24 MB** (\> 20,000,000 bytes). If the size is 0 or very small, the file may be corrupted. *   **Sync Status**: Right-click the folder and select **"Always keep on this device"** to ensure you are sending the actual data and not a cloud placeholder. ### Why This Path Matters
+
+*   **Direct Loading**: Unlike other ETL scripts that use the `_DropExports` folder, the Power BI summons queries are configured to load data directly from this staging workbook. *   **Staging vs. Archive**: Do not send the timestamped files (e.g., `summons_powerbi_20260226_180905.xlsx`) unless the `latest` file is missing; the `latest` file is what the report actually "sees". **Would you like me to run a diagnostic on the file once you upload it to verify the 13-month window and classification logic? **
+
+## Prompt:
+Please review
+
+## Response:
+Gemini said
+-----------
+
+I'm unable to read the file you uploaded. Try again or check the file for any issues. ## Prompt:
+Https://docs.google.com/spreadsheets/d/1RGQI6CNjwuIj9sM39v4fvaBnvqpi6GfF/edit?usp=drivesdk&ouid=101776372503851325829&rtpof=true&sd=true
+
+Please review
+
+## Response:
+Gemini said
+-----------
+
+I cannot directly access external Google Docs links. However, based on the **Summons Visuals Fix** deployed today (March 3, 2026) and the ongoing **Summons Verification**, please review your spreadsheet against the following critical criteria to ensure the data is production-ready:
+
+### 1\. 13-Month Window Population
+
+*   **Target Range**: The file should now contain data from **February 2025 through February 2026**. *   **Gap Check**: Ensure that months **03-25, 07-25, 10-25, and 11-25** are correctly merged from the backfill source and are not empty. *   **Recent Discrepancy**: A verification check on March 3rd noted that **January 2026 (01-26)** Moving (M) counts might show **462** in the ETL output, while only **406** were expected; please verify which count appears in your sheet. ### 2\. Classification Logic (Statute Priority)
+
+*   **Title 39**: Verify that all **Title 39 violations** are classified as **"M" (Moving)**. Previously, these defaulted to "P" (Parking). *   **Parking**: Ensure parking-specific keywords correctly map to **"P"**. *   **YearMonthKey**: There should be a `YearMonthKey` column with integer values (e.g., `202601`, `202602`) to ensure chronological sorting in Power BI. ### 3\. Badge and Bureau Assignments (SSOCC)
+
+*   **Badge 0738 (Polson)**: This drone operator should now correctly map to **WG2 = "SSOCC"**. *   **Badge 2025 (Ramirez)**: Summons with the description **"FIRE LANES"** should map to **"SSOCC"**, while other violations for this badge remain in the Traffic Bureau. *   **Bureau Names**: Ensure the bureau is listed as **"SSOCC"** rather than the long-form "Safe Streets Operations Control Center" to match Power BI mapping. ### 4\. Data Cleanliness
+
+*   **Month\_Year Filter**: Check for any rows where `Month_Year` is blank or null. The latest M code now filters these out to prevent distorted totals. *   **File Size**: If you are reviewing the `.xlsx` file on your local drive, it should be approximately **24 MB**. A much smaller size (e.g., 0 KB) indicates potential corruption. **If you can export the first 20 rows of the "Summons\_Data" tab as a CSV or text snippet and paste it here, I can perform a more detailed diagnostic on the formatting and classification. **
+
+## Prompt:
+
+
+## Response:
+Gemini said
+-----------
+
+I'm unable to read the file you uploaded. Try again or check the file for any issues. ## Prompt:
+> The Master...umentation - NotebookLM
+
+Can you read the xlsx
+
+## Response:
+Gemini said
+-----------
+
+I cannot access the Google Sheets link directly as I do not have the ability to browse to external URLs or authenticate with Google Drive. To analyze the data, please **upload the `summons_powerbi_latest.xlsx` file directly** to this chat. Once the file is uploaded, I can use Python to perform the diagnostic checks we discussed, such as verifying the 13-month window, checking the Title 39 "Moving" classifications, and ensuring the SSOCC bureau assignments are correct. Alternatively, you can export the **"Summons\_Data"** tab from your spreadsheet as a **CSV file** and upload that instead. ## Prompt:
+> summons_po...rbi_latest - CSV
+
+Can you view the file now
+
+## Response:
+Gemini said
+-----------
+
+```
+import pandas as pd
+
+# Load the uploaded CSV file
+file_path = 'summons_powerbi_latest.csv'
+df = pd.read_csv(file_path, low_memory=False)
+
+# Basic inspection
+print("--- Data Info ---")
+print(df.info())
+print("\n--- First 5 Rows ---")
+print(df.head())
+
+# 1. Check the 13-month window in Month_Year or YearMonthKey
+if 'Month_Year' in df.columns:
+    unique_months = df['Month_Year'].dropna().unique()
+    print("\n--- Unique Months Found ---")
+    print(sorted(unique_months))
+else:
+    print("\n'Month_Year' column not found.") if 'YearMonthKey' in df.columns:
+    print("\n--- YearMonthKey Range ---")
+    print(f"Min: {df['YearMonthKey'].min()}, Max: {df['YearMonthKey'].max()}")
+
+# 2. Check Classification logic for Title 39
+# Assuming 'Statute' and 'TYPE' or 'Category' columns exist. # Based on context, we are looking for 'TYPE' = 'M' for Title 39.
+statute_col = [col for col in df.columns if 'statute' in col.lower()]
+type_col = [col for col in df.columns if 'type' in col.lower()]
+
+if statute_col and type_col:
+    s_col = statute_col[0]
+    t_col = type_col[0]
+    title_39_mask = df[s_col].str.contains('39', na=False)
+    title_39_counts = df[title_39_mask][t_col].value_as_counts()
+    print(f"\n--- Title 39 Classification Counts ({t_col}) ---")
+    print(title_39_counts)
+else:
+    print("\nStatute or Type columns not identified for classification check.") # 3. Check Bureau Assignments (SSOCC)
+# Badges 0738 and 2025
+badge_col = [col for col in df.columns if 'badge' in col.lower() or 'officer' in col.lower()]
+bureau_col = [col for col in df.columns if 'wg2' in col.lower() or 'bureau' in col.lower()]
+
+if badge_col and bureau_col:
+    bg_col = badge_col[0]
+    br_col = bureau_col[0]
+
+    # Convert badge to string to handle various formats
+    df[bg_col] = df[bg_col].astype(str).str.strip().str.replace('.0', '', regex=False).str.zfill(4)
+
+    print(f"\n--- Assignments for Badge 0738 ---")
+    print(df[df[bg_col] == '0738'][br_col].unique())
+
+    print(f"\n--- Assignments for Badge 2025 ---")
+    # For badge 2025, context says FIRE LANES violations should be SSOCC
+    violation_col = [col for col in df.columns if 'violation' in col.lower() or 'description' in col.lower()]
+    if violation_col:
+        v_col = violation_col[0]
+        ramirez_data = df[df[bg_col] == '2025'][[v_col, br_col]].drop_duplicates()
+        print(ramirez_data)
+    else:
+        print(df[df[bg_col] == '2025'][br_col].unique())
+else:
+    print("\nBadge or Bureau columns not identified for assignment check.") ```
+
+Code output
+
+```
+Traceback (most recent call last):
+  File "<string>", line 35, in <module>
+  File "generic.py", line 5989, in __getattr__
+    return object.__getattribute__(self, name)
+AttributeError: 'Series' object has no attribute 'value_as_counts'
+
+```
+
+```
+import pandas as pd
+
+# Load the uploaded CSV file
+file_path = 'summons_powerbi_latest.csv'
+df = pd.read_csv(file_path, low_memory=False)
+
+# Basic column and data preview
+print("--- Columns identified ---")
+print(df.columns.tolist())
+
+# 1. Check Date Range (13-month window: Feb 2025 - Feb 2026)
+# Look for 'Month_Year', 'PeriodLabel', or 'YearMonthKey'
+month_col = [col for col in df.columns if 'month_year' in col.lower() or 'period' in col.lower()][0] if any('month_year' in col.lower() or 'period' in col.lower() for col in df.columns) else None
+ym_key_col = [col for col in df.columns if 'yearmonthkey' in col.lower()][0] if any('yearmonthkey' in col.lower() for col in df.columns) else None
+
+if month_col:
+    unique_months = df[month_col].dropna().unique()
+    print(f"\n--- Unique Values in {month_col} ---")
+    print(sorted(unique_months))
+    
+    # Check for blank or null Month_Year
+    blank_month_count = df[month_col].isna().sum() + (df[month_col] == '').sum()
+    print(f"\nBlank/Null {month_col} count: {blank_month_count}")
+
+if ym_key_col:
+    print(f"\n--- {ym_key_col} Range ---")
+    print(f"Min: {df[ym_key_col].min()}, Max: {df[ym_key_col].max()}")
+
+# 2. Check Classification of Title 39 as Moving (M)
+statute_col = [col for col in df.columns if 'statute' in col.lower()][0] if any('statute' in col.lower() for col in df.columns) else None
+type_col = [col for col in df.columns if 'type' in col.lower()][0] if any('type' in col.lower() for col in df.columns) else None
+
+if statute_col and type_col:
+    # Filter for Title 39
+    title_39_df = df[df[statute_col].astype(str).str.contains('39', na=False)]
+    print(f"\n--- Title 39 Classification ({type_col}) ---")
+    print(title_39_df[type_col].value_counts())
+else:
+    print("\nCould not find Statute or Type columns.") # 3. Check Badge Assignments (0738, 2025)
+badge_col = [col for col in df.columns if 'badge' in col.lower() or 'officer' in col.lower() or 'padded' in col.lower()][0] if any('badge' in col.lower() or 'officer' in col.lower() or 'padded' in col.lower() for col in df.columns) else None
+wg2_col = [col for col in df.columns if 'wg2' in col.lower() or 'bureau' in col.lower()][0] if any('wg2' in col.lower() or 'bureau' in col.lower() for col in df.columns) else None
+
+if badge_col and wg2_col:
+    # Standardize badge numbers (removing decimals and ensuring zero-padding)
+    df[badge_col] = df[badge_col].astype(str).str.strip().str.split('. ').str[0].str.zfill(4)
+    
+    print("\n--- Badge Assignments ---")
+    for badge in ['0738', '2025']:
+        badge_data = df[df[badge_col] == badge]
+        if not badge_data.empty:
+            print(f"Badge {badge} WG2 values: {badge_data[wg2_col].unique()}")
+            if badge == '2025':
+                violation_desc_col = [col for col in df.columns if 'violation' in col.lower() or 'description' in col.lower()][0] if any('violation' in col.lower() or 'description' in col.lower() for col in df.columns) else None
+                if violation_desc_col:
+                    print(f"Badge 2025 breakdown by violation:")
+                    print(badge_data[[violation_desc_col, wg2_col]].drop_duplicates())
+        else:
+            print(f"Badge {badge} not found in the dataset.") else:
+    print("\nCould not find Badge or WG2/Bureau columns.")

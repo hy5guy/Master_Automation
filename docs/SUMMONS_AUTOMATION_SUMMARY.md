@@ -1,6 +1,12 @@
 # Summons Classification Fix - Execution Summary
 ## 2026-02-17 06:22 AM
 
+## ⚠️ Verification Note (2026-03-03)
+
+**Review required:** Re-export all summons e-ticket data to verify counts. See `docs/SUMMONS_VERIFICATION_NOTE_2026_03.md`.
+
+---
+
 ## ✅ COMPLETED
 
 ### Problem Fixed

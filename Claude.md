@@ -88,6 +88,7 @@ New to this project? Start with:
 - `docs/` - Detailed documentation (guides, reports, troubleshooting)
 - `docs/VISUAL_EXPORT_NORMALIZATION_AND_SUMMONS_BACKFILL.md` - Normalization phase + Summons follow-up
 - `docs/SUMMONS_BACKFILL_INJECTION_POINT.md` - Where to call merge_missing_summons_months, dependencies, caveats
+- `docs/SUMMONS_VERIFICATION_NOTE_2026_03.md` - ⚠️ Re-export all summons to verify counts (2026-03-03)
 - `docs/13_MONTH_WINDOW_IMPLEMENTATION_GUIDE.md` - 13-month rolling window deployment, flow, validation
 - `docs/13_MONTH_WINDOW_CORRECTIONS.md` - Selective enforcement (24 vs 8 visuals), NIBRS pattern matching
 - `docs/13_MONTH_QUICK_REFERENCE.md` - Which visuals have 13-month enforcement, quick test

@@ -1,0 +1,184 @@
+{
+  "source_file": "Detective_Queries_Excel_Structure_Mismatch_Fix.md",
+  "source_path": "C:\\_chunker\\02_data\\Detective_Queries_Excel_Structure_Mismatch_Fix.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Detective_Queries_Excel_Structure_Mismatch_Fix\\2026_02_13_20_41_06_Detective_Queries_Excel_Structure_Mismatch_Fix.origin.json",
+  "created_at": "2026_02_13_20_41_06",
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "markdown",
+    "police",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "data",
+      "now",
+      "let",
+      "table",
+      "all",
+      "month"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# STACP visuals data issue\n_Exported on 2/13/2026 at 20:40:40 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\nread @SUMMARY.md @README.md @Claude.md @CHANGELOG.md @docs/chatlogs/cursor_thirteen_month_visual_export_pip @docs/chatlogs/Thirteen_M...",
+    "first_line": "# STACP visuals data issue"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-02-13T20:41:06+00:00_Detective_Queries_Excel_Structure_Mismatch_Fix_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "code",
+        "conversation",
+        "data",
+        "date",
+        "docs",
+        "excel",
+        "it-ops",
+        "json",
+        "markdown",
+        "month",
+        "parts",
+        "police",
+        "python",
+        "sql",
+        "stacp",
+        "table",
+        "text",
+        "training"
+      ],
+      "key_terms": [
+        "text",
+        "table",
+        "month",
+        "stacp",
+        "parts",
+        "date"
+      ],
+      "summary": "# STACP visuals data issue\n_Exported on 2/13/2026 at 20:40:40 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\nread @SUMMARY.md @README.md @Claude.md @CHANGELOG.md @docs/chatlogs/cursor_thirteen_month_visual_export_pip @docs/chatlogs/Thirteen_M...",
+      "char_length": 29710,
+      "byte_length": 31476
+    },
+    {
+      "chunk_id": "2026-02-13T20:41:06+00:00_Detective_Queries_Excel_Structure_Mismatch_Fix_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "ai",
+        "code",
+        "columns",
+        "conversation",
+        "data",
+        "docs",
+        "excel",
+        "it-ops",
+        "json",
+        "markdown",
+        "months",
+        "police",
+        "python",
+        "sql",
+        "stacp",
+        "training",
+        "window"
+      ],
+      "key_terms": [
+        "all",
+        "stacp",
+        "columns",
+        "now",
+        "window",
+        "months"
+      ],
+      "summary": "You were only seeing 2 months because your Excel file has **two different column name formats** that the M code wasn't handling:\n\n### The Problem\n\nYour `STACP.xlsm` file has columns in **mixed formats**:\n\n**Format 1 (Padded)**: `01-25`,...",
+      "char_length": 20878,
+      "byte_length": 21671
+    },
+    {
+      "chunk_id": "2026-02-13T20:41:06+00:00_Detective_Queries_Excel_Structure_Mismatch_Fix_chunk3",
+      "chunk_index": 3,
+      "file": "chunk_00002.txt",
+      "tags": [
+        "ai",
+        "code",
+        "conversation",
+        "data",
+        "date",
+        "docs",
+        "excel",
+        "it-ops",
+        "json",
+        "markdown",
+        "police",
+        "python",
+        "sql",
+        "table",
+        "training"
+      ],
+      "key_terms": [
+        "let",
+        "table",
+        "now",
+        "data",
+        "date",
+        "excel"
+      ],
+      "summary": "Ready for monthly data entry.",
+      "char_length": 16433,
+      "byte_length": 16879
+    },
+    {
+      "chunk_id": "2026-02-13T20:41:06+00:00_Detective_Queries_Excel_Structure_Mismatch_Fix_chunk4",
+      "chunk_index": 4,
+      "file": "chunk_00003.txt",
+      "tags": [
+        "ai",
+        "code",
+        "conversation",
+        "data",
+        "docs",
+        "excel",
+        "formulas",
+        "it-ops",
+        "json",
+        "markdown",
+        "police",
+        "python",
+        "sheet",
+        "sql",
+        "structure",
+        "through",
+        "training",
+        "xlookup"
+      ],
+      "key_terms": [
+        "data",
+        "sheet",
+        "structure",
+        "through",
+        "formulas",
+        "xlookup"
+      ],
+      "summary": "- Keep `Month_Sort_Order` or `Sort_Order` for proper chronological sorting\n\nThe errors should now be resolved!",
+      "char_length": 16401,
+      "byte_length": 16975
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

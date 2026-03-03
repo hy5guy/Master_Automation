@@ -1,0 +1,492 @@
+# Time off data export filters
+_Exported on 3/2/2026 at 22:06:20 EST from Cursor (2.5.26)_
+
+---
+
+**User**
+
+@CHANGELOG.md @SUMMARY.md @README.md @Claude.md @config/scripts.json  Read the attached files for context. I will be exporting the timeoff data from POSS please provide a list of the filters to add when searchinmg the time off
+
+---
+
+**Cursor**
+
+
+Here are the filters to use when exporting time off data from POSS for the Overtime/TimeOff ETL and Power BI Monthly Accrual and Usage Summary. ---
+
+## POSS Time Off Export Filters
+
+Use these when searching/exporting time off in POSS so the export matches what the ETL expects. ### 1. **Status**
+
+- **Include:** Approved only  
+- **Exclude:** Pending, Denied, Canceled, etc. The ETL only counts these statuses (case-insensitive):
+
+- Approved  
+- Approved w/ Stip  
+- Approved with Stip  
+- Approved with Stipend  
+- Approved with Stipulation  
+
+---
+
+### 2. **Date range**
+
+- **Monthly export:** Use the target month (e.g., `2026-01-01` to `2026-01-31` for January 2026). - **Yearly export:** Use the full year (e.g., `2025-01-01` to `2025-12-31`). ---
+
+### 3. **Time off types / reasons**
+
+Include all types that feed the Power BI visual:
+
+| Category | Include (Reason / Type) |
+|----------|-------------------------|
+| **Sick** | Sick (Days), Sick (Hours), Sick Time, or any reason starting with "Sick" |
+| **SAT** | SAT (Hours), SAT Time, or any reason starting with "SAT" |
+| **Vacation** | Vacation, Annual Leave, PTO, Personal Time Off, Vac (Hours), or similar |
+| **Comp (Used)** | Comp (Hours), Comp (Days), Compensatory Time Used |
+| **Military** | Military Leave, Mil Leave |
+| **IOD** | IOD, Injury on Duty, Injured on Duty |
+
+If POSS uses a type/reason dropdown, select all of the above. If it uses free text, ensure your export includes these categories. ---
+
+### 4. **Employee scope**
+
+- **Include:** All employees whose time off should appear in the Monthly Report. - Typically: all active HPD personnel (sworn and non-sworn). ---
+
+### 5. **Hours**
+
+- **Include:** Records with hours > 0. - The ETL ignores zero-hour rows. ---
+
+## Export file details
+
+- **Filename:** `YYYY_MM_TimeOffActivity.xls` (e.g., `2026_01_TimeOffActivity.xls`). - **Destination:** `05_EXPORTS\_Time_Off\export\month\YYYY\` (e.g., `...\export\month\2026\`). - The Export File Watchdog will convert `.xls` to `.xlsx` if needed. ---
+
+## Quick checklist
+
+| Filter | Setting |
+|--------|---------|
+| Status | Approved only |
+| Date range | Target month (or full year for yearly export) |
+| Time off types | Sick, SAT, Vacation, Comp Used, Military, IOD |
+| Employees | All relevant personnel |
+| Hours | > 0 |
+
+---
+
+## Notes
+
+1. **Approved only** – Pending or denied requests are excluded by the ETL. 2. **All six usage categories** – The ETL classifies by Reason (and comments) into Sick, SAT, Vacation, Comp Used, Military, and IOD. 3. **Monthly vs yearly** – Monthly exports (`YYYY_MM_TimeOffActivity`) go to `export\month\YYYY\`; yearly exports (`YYYY_all_TimeOffActivity`) go to `export\yearly\YYYY\`. ---
+
+**User**
+
+Comp (Hours), Dispatch SAT time, Injured on Duty, Military Leave, PEO Sick (Hours), Personal Day, SAT (Hours), Sick (Days), SLEO Ill Sick (Hours), Vacation (Hours)
+my current report used the above filters and the status options of Approved and Approved w/Stip. is this correct? ---
+
+**Cursor**
+
+
+Yes, your filters are correct. ## Status options
+
+**Approved** and **Approved w/Stip** are the right choices. The ETL only counts these statuses, so your selection matches what the pipeline expects. ---
+
+## Time off types
+
+Your types cover all six usage categories used in the Monthly Accrual and Usage Summary:
+
+| ETL category | Your POSS filters |
+|--------------|-------------------|
+| **Sick** | Sick (Days), PEO Sick (Hours), SLEO Ill Sick (Hours) |
+| **SAT** | SAT (Hours), Dispatch SAT time |
+| **Vacation** | Vacation (Hours) |
+| **Comp (Used)** | Comp (Hours) |
+| **Military** | Military Leave |
+| **IOD** | Injured on Duty |
+
+---
+
+## Personal Day
+
+**Personal Day** is not one of the six main categories, but including it is fine. The ETL may treat it as vacation/PTO if the reason text matches. If it doesn’t match any pattern, those rows simply won’t add to the six metrics, but they’ll still be in the export. Keeping it selected is safer than excluding it. ---
+
+## Summary
+
+- Status: Approved + Approved w/Stip — correct  
+- Time off types: All six usage categories covered — correct  
+- Personal Day: Optional; including it is recommended  
+
+Your current configuration is suitable for the Overtime/TimeOff ETL and Power BI Monthly Accrual and Usage Summary. ---
+
+**User**
+
+would it be a heavy lift if I exported the entire month's data for Time OFF and Over Time
+
+Time Off Filters:
+Select all "Active" employees
+Select all reasons
+Status Options Available: Requested, Approved, Approved w/Stip, Denied
+Status used in the script Approved and Approved w/Stip
+
+Over Time Filters:
+Select all employees currentily 154
+Select all reasons currentily 79
+Status Options Available: Requested, Approved, Approved w/Stip, Denied
+Status used in the script Approved and Approved w/Stip
+Payment Type: 1.5 Cash, 1.5 Comp Time, 1.0 Cash, 1.0 Comp Time, Grant
+we use all payment types in the script? or do we not use "Grant"
+
+
+
+---
+
+**Cursor**
+
+
+Checking how v10 handles rows with empty Category:
+
+
+
+---
+
+## 1. Full-month export (all employees, all reasons)
+
+**Not a heavy lift. ** The ETL already filters and classifies; you can export everything and it will still work. ### Time Off
+
+| Your export | ETL behavior |
+|-------------|--------------|
+| All Active employees | Uses all; matches to personnel for Sworn/NonSworn |
+| All reasons | Classifies by Reason; only matching types contribute |
+| Requested, Approved, Approved w/Stip, Denied | Keeps only **Approved** and **Approved w/Stip** |
+
+### Overtime
+
+| Your export | ETL behavior |
+|-------------|--------------|
+| All 154 employees | Uses all; matches to personnel |
+| All 79 reasons | Reason is not used for accruals; Pay Type is |
+| Requested, Approved, Approved w/Stip, Denied | Keeps only **Approved** and **Approved w/Stip** |
+
+**Effect:** Larger files, slightly longer processing. No script changes. Requested/Denied rows are dropped; only Approved/Approved w/Stip are used. ---
+
+## 2. Grant payment type
+
+**Grant is not used** in the accrual logic. The script classifies Pay Type into:
+
+- **OT** – overtime, o.t., o/t, dt, double time, 1.5 Cash, 2.0 Cash, etc. - **COMP** – comp, compensatory, comp time, 1.5 Comp Time, 1.0 Comp Time, etc. “Grant” does not match these patterns, so it gets `Category = ""` and is excluded from both Accrued Overtime and Accrued Comp Time. ### Payment types that are used
+
+| Payment type | Used? | Category |
+|--------------|-------|----------|
+| 1.5 Cash | Yes | OT |
+| 1.5 Comp Time | Yes | COMP |
+| 1.0 Cash | No* | — |
+| 1.0 Comp Time | Yes | COMP |
+| Grant | No | — |
+
+\*1.0 Cash is not treated as OT (only rates ≥ 1.5 are). It is excluded from accruals. ### Including Grant
+
+If Grant should be counted (e.g., grant-funded overtime), the script would need to be updated to classify it. If it’s intentionally excluded (e.g., non-standard funding), you can leave it out of the export or keep it; it will be ignored either way. ---
+
+## Summary
+
+| Question | Answer |
+|----------|--------|
+| Full export (all employees, all reasons)? | Fine; ETL filters and classifies. No changes needed. |
+| Grant payment type? | Not used; excluded from accruals. |
+| Payment types to include? | 1.5 Cash, 1.5 Comp Time, 1.0 Comp Time. 1.0 Cash and Grant are excluded. |
+
+---
+
+**User**
+
+should I provide all the current reasons for time off and overtime and the more filter options so we have them? ---
+
+**Cursor**
+
+
+Yes, it’s worth documenting them. Having a full list of POSS reasons and filter options helps with:
+
+- **ETL mapping** – Checking which POSS reasons map to each ETL category (Sick, SAT, Vacation, Comp, Military, IOD, etc.) - **Troubleshooting** – Explaining why some records are or aren’t counted
+- **Future changes** – Spotting new or changed reasons when POSS is updated
+- **Export setup** – Giving others a clear reference for configuring exports
+
+---
+
+## What to capture
+
+### Time Off
+
+- **Reasons** – Full list (e.g., Sick (Days), PEO Sick (Hours), SAT (Hours), etc.) - **Status options** – All available (Requested, Approved, Approved w/Stip, Denied)
+- **Employee filters** – Active, Inactive, etc. - **Other filters** – Date range, department, etc., if relevant
+
+### Overtime
+
+- **Reasons** – Full list (all 79)
+- **Status options** – Same as Time Off
+- **Payment types** – All options (1.5 Cash, 1.5 Comp Time, 1.0 Cash, 1.0 Comp Time, Grant, etc.) - **Employee filters** – Same as above
+
+---
+
+## Where to put it
+
+A good place is:
+
+`docs/POSS_EXPORT_FILTERS_REFERENCE.md`
+
+Include:
+
+1. Snapshot date
+2. Full lists of reasons and filter options
+3. How each maps to ETL categories (or “not used”)
+4. Notes on any special handling (e.g., Grant excluded)
+
+If you paste the lists here, I can help turn them into that reference doc. ---
+
+**User**
+
+Below are the current options for filtering, should I also provide all Employees that can be selected? All Time Off Reasons Currentily:
+Adjustment
+Admin Leave
+AWOL
+Comp (Hours)
+Death in Family
+Dispatch SAT time
+Floating Holiday (hours)
+FMLA
+Holiday
+Injured on Duty
+Jury Duty
+Marriage Leave
+Maternity/Paternity
+Military Leave
+PEO Sick (Hours)
+Personal Day
+Pool Day
+Regular Day Off
+SAT (Hours)
+Sick (Days)
+SLEO Ill Sick (Hours)
+Suspended
+Unpaid
+Vacation (Hours)
+
+Status Options:
+All
+Requested
+Approved
+Approved w/Stip
+Denied
+
+FMLA Options:
+FMLA only
+Exclude FMLA
+
+---
+
+**Cursor**
+
+
+You don’t need to list every employee. ---
+
+## What to document
+
+### Time Off reasons and filters
+
+Yes — document the full list of reasons and filter options. That’s useful for:
+
+- Mapping reasons to ETL categories
+- Troubleshooting
+- Future changes in POSS
+
+### Employees
+
+No — you don’t need to list all employee names. Instead, document:
+
+- **Filter used** – e.g. “Active employees”
+- **Approximate count** – e.g. “~154 employees (as of [date])”
+- **Any other relevant filters** – department, bureau, etc. Reasons not to list names:
+
+- Assignment_Master is the canonical list for ETL matching
+- Employee lists change often
+- Names are sensitive
+- The filter (e.g. “Active”) is what matters for export setup
+
+---
+
+## Suggested reference structure
+
+| Section | Include? | Notes |
+|--------|----------|-------|
+| Time Off reasons (full list) | Yes | You’ve provided this |
+| Time Off status options | Yes | All, Requested, Approved, Approved w/Stip, Denied |
+| Time Off FMLA options | Yes | FMLA only, Exclude FMLA |
+| Overtime reasons | Yes | When you have them |
+| Overtime payment types | Yes | 1.5 Cash, 1.5 Comp Time, etc. |
+| Employee filter | Yes | “Active” (or similar) + count |
+| Employee names | No | Not needed |
+
+---
+
+## ETL mapping for your Time Off reasons
+
+| POSS Reason | ETL Category |
+|-------------|--------------|
+| Comp (Hours) | Used_Comp_Time |
+| Dispatch SAT time | Used_SAT_Time |
+| Injured on Duty | Injured_on_Duty |
+| Military Leave | Military_Leave |
+| PEO Sick (Hours) | Employee_Sick_Time |
+| Personal Day | Vacation (if pattern matches) or unclassified |
+| SAT (Hours) | Used_SAT_Time |
+| Sick (Days) | Employee_Sick_Time |
+| SLEO Ill Sick (Hours) | Employee_Sick_Time |
+| Vacation (Hours) | Vacation_Hours |
+| Adjustment, Admin Leave, AWOL, Death in Family, Floating Holiday, FMLA, Holiday, Jury Duty, Marriage Leave, Maternity/Paternity, Pool Day, Regular Day Off, Suspended, Unpaid | Not in the six usage categories; may be unclassified |
+
+If you want, I can turn this into a `docs/POSS_EXPORT_FILTERS_REFERENCE.md` file. ---
+
+**User**
+
+prior to making the filter refrence, I was having issues with data missing from the assignment file and did some work on the assignment_master files please review. C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_SCHEMA_TEMPLATE.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_V2_padded.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\sync_assignment_master.py
+C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\fix_team_traffic.py
+C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_V2.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_SCHEMA.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\README.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\SUMMARY.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\CHANGELOG.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\claude.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_Sync_And_Schema_Automation.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_GOLD.xlsx
+
+---
+
+**Cursor**
+
+
+Here’s a concise review of your Assignment Master work and how it fits with the POSS filter reference. ---
+
+## Assignment Master Sync and Schema Automation — Review
+
+### What’s Working Well
+
+1. **Clear architecture**
+   - GOLD.xlsx as single source of truth
+   - Sync script: validate → backup → export CSV → generate schema
+   - Separation of static template vs. dynamic schema
+
+2. **Validation**
+   - School Threat Assessment & Crime Prevention team check before export
+   - Extensible pattern for future rules (WG4, STATUS, etc.) 3. **Backups**
+   - Timestamped GOLD backups in `Archive/` on each run
+
+4. **Badge normalization**
+   - `PADDED_BADGE_NUMBER` padded to 4 digits (e.g., 515 → "0515")
+
+5. **Data fixes**
+   - TEAM "TRAFFIC" → "Traffic Bureau" (3 rows)
+   - `fix_team_traffic.py` available for reference
+
+6. **Documentation**
+   - README, SUMMARY, CHANGELOG, claude.md, schema template
+
+7. **Schema**
+   - 166 records, 25 columns, TEAM/RANK/TITLE/CONTRACT_TYPE/WG4/STATUS documented
+
+---
+
+## Issues to Address
+
+### 1. Path mismatch: `RobertCarucci` vs `carucci_r`
+
+Both scripts hardcode `RobertCarucci`:
+
+```9:10:C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\sync_assignment_master.py
+BASE_DIR = r"C:\Users\RobertCarucci\OneDrive - City of Hackensack\09_Reference\Personnel"
+```
+
+```5:6:C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\fix_team_traffic.py
+BASE_DIR = r"C:\Users\RobertCarucci\OneDrive - City of Hackensack\09_Reference\Personnel"
+```
+
+On a machine where the user folder is `carucci_r`, this will fail. Use a path that works on both machines, for example:
+
+```python
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+```
+
+or resolve via OneDrive:
+
+```python
+BASE_DIR = os.path.expanduser(r"~\OneDrive - City of Hackensack\09_Reference\Personnel")
+```
+
+---
+
+### 2. ETL reads from Master_Automation, not 09_Reference
+
+Overtime TimeOff ETL uses:
+
+```26:27:C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\overtime_timeoff_13month_sworn_breakdown_v10.py
+PERSONNEL_XLSX = r"C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\Assignment_Master_V2.csv"
+PERSONNEL_CSV = r"C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\Assignment_Master_V2.csv"
+```
+
+The sync script writes to `09_Reference\Personnel\Assignment_Master_V2.csv`. So either:
+
+- **Option A:** Add a post-sync step that copies `09_Reference\Personnel\Assignment_Master_V2.csv` to `Master_Automation\Assignment_Master_V2.csv`, or  
+- **Option B:** Update ETL scripts to read from `09_Reference\Personnel\Assignment_Master_V2.csv` (canonical location). Option B is preferable so there is a single source of truth. ---
+
+### 3. `Assignment_Master_V2_padded.csv`
+
+`Assignment_Master_V2_padded.csv` appears to be a separate file. The sync script already pads badges in `Assignment_Master_V2.csv`. Clarify whether `_padded` is:
+
+- Legacy and can be removed, or  
+- Needed for something specific (and if so, how it’s produced and used). ---
+
+### 4. Badge edge case
+
+Current logic:
+
+```python
+lambda x: str(int(float(x))).zfill(4) if pd.notnull(x) and str(x).strip() != '' else x
+```
+
+Values like `"0515"` (string) will work because `float("0515")` → `515.0`. Values like `"N/A"` or `"TBD"` would raise. Consider a try/except or a check that the value is numeric before converting. ---
+
+## Summary Table
+
+| Item | Status |
+|------|--------|
+| GOLD as source of truth | ✅ |
+| Sync validation (School Threat) | ✅ |
+| Automated backups | ✅ |
+| Badge padding | ✅ |
+| TEAM "TRAFFIC" fix | ✅ |
+| Documentation | ✅ |
+| Path portability (RobertCarucci) | ⚠️ Fix for `carucci_r` |
+| ETL reads from 09_Reference | ⚠️ Add copy step or update ETL |
+| `_padded` file role | ❓ Clarify |
+
+---
+
+## Recommendation Before POSS Filter Reference
+
+1. Fix the hardcoded `RobertCarucci` path in both scripts. 2. Decide and implement the ETL source (copy step or direct read from `09_Reference`). 3. Document the post-sync workflow (e.g., “Run sync → refresh Power BI / run ETL”) in README or SUMMARY. 4. Then create the POSS filter reference; it will rely on Assignment Master for employee scope, so having the sync and ETL flow correct is important. I can propose concrete edits for the path fix and the ETL source choice if you want to implement them next. ---
+
+**User**
+
+yes the workm on the assignment was done on my laptop and we need to update the path to reflect what is on my desktop (current) machine. The paths I provided for the files reflect the paths on my desktop. On my laptop since the onedrive was saved in a location that did not mirror my desktop we ran a powerShell script so my laptop would recognize carucci_r as RobertCarucci, would it be wise to do the same on my desktop? So my desktop sees RobertCarucci and recognizes it as carucci_r? ---
+
+**Cursor**
+
+
+Here’s a clearer way to think about it. ---
+
+## Recommendation: Don’t Create a Junction on the Desktop
+
+Creating `RobertCarucci` → `carucci_r` on the desktop is not a good idea. ### Why not
+
+1. **Junctions in `C:\Users\` are fragile**  
+   User profile folders are special. Adding a junction there can confuse installers, Windows, and some apps. 2. **Desktop is the canonical machine**  
+   Your real path is `carucci_r`. The scripts should follow that, not depend on a junction. 3. **Laptop junction was a special case**  
+   On the laptop, OneDrive lived under a different username, so the junction made `carucci_r` resolve to the real `RobertCarucci` folder.

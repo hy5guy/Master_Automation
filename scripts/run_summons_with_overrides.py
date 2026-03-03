@@ -49,7 +49,19 @@ def main() -> int:
         "WG2": "TRAFFIC BUREAU",
         "WG3": "CLASS I",
         "WG4": "",
-        "CONTRACT_TYPE": "PARKING ENFORCEMENT OFF",
+        "POSS_CONTRACT_TYPE": "PARKING ENFORCEMENT OFF",
+    }
+
+    # Feb 2026: Badge 2025 (Ramirez) - only FIRE LANES violations show as SSOCC; others stay Traffic Bureau.
+    s.ASSIGNMENT_OVERRIDES["2025"] = {
+        "_condition": {"column": "VIOLATION_DESCRIPTION", "contains": "FIRE LANES"},
+        "OFFICER_DISPLAY_NAME": "M. RAMIREZ #2025",
+        "TEAM": "Safe Streets Operations",
+        "WG1": "OPERATIONS DIVISION",
+        "WG2": "SAFE STREETS OPERATIONS CONTROL CENTER",
+        "WG3": "PEO",
+        "WG4": "",
+        "POSS_CONTRACT_TYPE": "PARKING ENFORCEMENT OFF",
     }
 
     ok = s.main()

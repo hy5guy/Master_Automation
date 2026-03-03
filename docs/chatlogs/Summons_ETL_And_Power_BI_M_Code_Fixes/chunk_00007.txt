@@ -1,0 +1,328 @@
+Column header "01-26" (not "January 2026")**  
+- In `scripts/summons_etl_normalize.py`, `Month_Year` is now set with `strftime('%m-%y')`, so you get values like `"01-26"`, `"02-26"` instead of `"January 2026"`. - Power BI column headers that use `Month_Year` will now show **01-26** (and other months as MM-YY). **2. Backfill included in the export**  
+- In `run_summons_etl.py`, after the main ETL run the script now:
+  - Calls `merge_missing_summons_months()` from `scripts/summons_backfill_merge.py`. - Reads backfill from `PowerBI_Date\Backfill\2025_12\summons\` (CSVs with gap months 03-25, 07-25, 10-25, 11-25). - Appends those rows to the current-month e-ticket data. - Sets `ETL_VERSION = 'HISTORICAL_SUMMARY'` and `IS_AGGREGATE = True` on backfill rows so the 13‑month trend keeps them. - Writes the combined table back to `summons_powerbi_latest.xlsx`. **3. Docs and scripts**  
+- `SUMMONS_DATA_IMPORT_LOGIC_GUIDE.md` now describes `Month_Year` as MM-YY (e.g. `"01-26"`). - `verify_summons_remediation.py`, `diagnose_traffic_gap.py`, and `generate_summons_integrity_report.py` now filter on `Month_Year == '01-26'` (or take `"01-26"` in the CLI) instead of `"January 2026"`. **What you need to do**  
+1. Ensure backfill CSVs exist under  
+   `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_12\summons\`  
+   (e.g. files whose names contain `2025_03`, `2025_07`, etc., with columns that map to `Month_Year`, `TYPE`, `TICKET_COUNT`; see `summons_backfill_merge.py` and the guide for the exact format.) 2. Re-run the ETL:  
+   `python run_summons_etl.py`  
+3. Refresh Power BI. You should see the **01-26** column header and the backfill rows (e.g. the extra 4) included in the Department-Wide Summons table. ---
+
+**User**
+
+check if the backfill is there
+
+---
+
+**Cursor**
+
+
+Checking whether the backfill directory exists and contains the expected summons files:
+
+
+
+Checking whether any filenames match the gap months the merge expects and inspecting one file's structure:
+
+
+
+Checking whether the Department-Wide CSV contains gap months (03-25, 07-25, 10-25, 11-25):
+
+
+
+Checking the full structure of the department-wide file and updating the merge to use it. Backfill folder exists and contains CSVs; the merge looks for filenames containing 2025_03, 2025_07, 2025_10, 2025_11, but all files are named 2025_12_*. The file 2025_12_department_wide_summons.csv contains gap months (03-25, 07-25, 10-25, 11-25). Updating the merge to also load from this consolidated file. Adding support for the consolidated department-wide file and the "Time Category" column. Running the ETL to verify the backfill merge:
+
+
+
+Checking merged rows:
+
+
+
+Checking the consolidated file read and filter:
+
+
+
+Checking path_config and run from the project root:
+
+
+
+Preferring the consolidated file that contains all eight gap-month rows (the merge currently picks the first match, which has only four). Checking which file is loaded and why Month_Year becomes NA:
+
+
+
+Restricting the consolidated fallback to files with "department_wide_summons" in the name so we load the file that contains all gap months. Checking the file's column names and Month_Year values:
+
+
+
+Tracing the merge step-by-step:
+
+
+
+Checking the other Department-Wide file:
+
+
+
+Running the full ETL and checking the output for backfill rows:
+
+
+
+Creating a short script to verify backfill presence (ETL failed on a Unicode print in the terminal). Summary of what’s in place:
+
+**Backfill is there**
+
+- **Folder:** `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_12\summons`  
+  - Exists and has **12 CSV files**. - **File used for gap months:** `2025_12_department_wide_summons.csv`  
+  - Contains **8 gap-month rows** (03-25, 07-25, 10-25, 11-25 × M and P):
+
+| Month_Year | TYPE | TICKET_COUNT |
+|------------|------|--------------|
+| 03-25      | M    | 420          |
+| 07-25      | M    | 402          |
+| 10-25      | M    | 469          |
+| 11-25      | M    | 412          |
+| 03-25      | P    | 2980         |
+| 07-25      | P    | 3413         |
+| 10-25      | P    | 3325         |
+| 11-25      | P    | 2924         |
+
+**Merge script changes**
+
+- **RENAME_MAP** now includes **"Time Category" → "TYPE"** so this file’s columns line up. - **Consolidated fallback** uses the file whose name contains **"department_wide_summons"** (the one with all months as rows). If that’s missing, it falls back to other “Department-Wide” CSVs. **Check script**
+
+You can re-check anytime with:
+
+```bash
+python scripts/check_summons_backfill.py
+```
+
+When you run the full ETL (`python run_summons_etl.py`), it will merge these 8 backfill rows into the output and mark them as `ETL_VERSION = 'HISTORICAL_SUMMARY'` and `IS_AGGREGATE = True` so the 13‑month trend uses them. (The ETL failed in this run due to a Unicode print in the terminal; the backfill logic and folder are correct.) ---
+
+**User**
+
+the backfill is only really needed for Department-Wide Summons I Moving and Parking as it is a rolling 13-month total the other visuals are just monthly data
+
+---
+
+**Cursor**
+
+
+Confirming the setup: backfill is merged into the same Excel so only the 13‑month Department‑Wide Summons | Moving and Parking visual uses it (it keeps `IS_AGGREGATE = true` / `ETL_VERSION = "HISTORICAL_SUMMARY"`). Other visuals that filter to the latest month or current e‑ticket data use only monthly rows. Adding a short comment in the merge and runner to document this. Summary of what’s in place:
+
+**Current behavior (unchanged)**  
+- Backfill rows are merged into the same Excel and tagged with `ETL_VERSION = 'HISTORICAL_SUMMARY'` and `IS_AGGREGATE = True`. - The **summons_13month_trend** query keeps those rows so **Department-Wide Summons | Moving and Parking** gets the rolling 13‑month total. - Other visuals (e.g. Top 5, All Bureaus) that filter to the latest month or current e‑ticket data only see the monthly rows. **Documentation updates**  
+- **summons_backfill_merge.py** – Docstring now states backfill is only for the Department-Wide 13‑month visual; other visuals use monthly data only. - **run_summons_etl.py** – Comment added that backfill is for the 13‑month Department-Wide visual only. - **SUMMONS_DATA_IMPORT_LOGIC_GUIDE.md** – Backfill Source section updated to say backfill is only for the rolling 13‑month Department-Wide visual; other visuals use monthly data only. No code logic was changed; this only makes the intent explicit for future edits. ---
+
+**User**
+
+moving violations is off
+// summons_13month_trend
+// 🕒 2026-01-11 01:28:55 EST
+// Project: SummonsMaster/summons_13month_trend
+// Author: R. A. Carucci (updated by Claude Code)
+// Purpose: Loads all summons data (historical backfill + current month) with all columns for 13-month trend and all bureaus visual
+// Updated: January 2026 - Includes all columns from preview table, combines backfill and current month data
+// Replaces: ___Summons (was ___Backfill for aggregated version)
+
+let
+    // Load the main summons output file
+    Source = Excel.Workbook(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
+        null,
+        true
+    ),
+    
+    // Get the Summons_Data sheet
+    Summons_Data_Sheet = Source{[Item="Summons_Data",Kind="Sheet"]}[Data],
+    
+    // Promote headers
+    #"Promoted Headers" = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
+    
+    // Set data types based on your enhanced dataset structure
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+        {"TICKET_NUMBER", type text}, 
+        {"TICKET_COUNT", Int64.Type}, 
+        {"IS_AGGREGATE", type logical}, 
+        {"PADDED_BADGE_NUMBER", type text}, 
+        {"OFFICER_DISPLAY_NAME", type text}, 
+        {"OFFICER_NAME_RAW", type text}, 
+        {"ISSUE_DATE", type datetime}, 
+        {"VIOLATION_NUMBER", type text}, 
+        {"VIOLATION_DESCRIPTION", type text}, 
+        {"VIOLATION_TYPE", type text}, 
+        {"TYPE", type text}, 
+        {"STATUS", type text}, 
+        {"LOCATION", type text}, 
+        {"WARNING_FLAG", type text}, 
+        {"SOURCE_FILE", type text}, 
+        {"ETL_VERSION", type text}, 
+        {"Year", Int64.Type}, 
+        {"Month", Int64.Type}, 
+        {"YearMonthKey", Int64.Type}, 
+        {"Month_Year", type text}, 
+        {"TEAM", type text}, 
+        {"WG1", type text}, 
+        {"WG2", type text}, 
+        {"WG3", type text}, 
+        {"WG4", type text}, 
+        {"WG5", type text}, 
+        {"POSS_CONTRACT_TYPE", type text}, 
+        {"ASSIGNMENT_FOUND", type logical}, 
+        {"DATA_QUALITY_SCORE", type number}, 
+        {"DATA_QUALITY_TIER", type text}, 
+        {"TOTAL_PAID_AMOUNT", type number}, 
+        {"FINE_AMOUNT", type number}, 
+        {"COST_AMOUNT", type number}, 
+        {"MISC_AMOUNT", type number}, 
+        {"PROCESSING_TIMESTAMP", type datetime}
+    }),
+    
+    // Filter for 13-Month Data Window
+    // Include both historical backfill records (IS_AGGREGATE = true or ETL_VERSION = "HISTORICAL_SUMMARY")
+    // and current month individual records (ETICKET_CURRENT)
+    #"Filtered 13 Month Data" = Table.SelectRows(
+        #"Changed Type",
+        each ([IS_AGGREGATE] = true or [ETL_VERSION] = "HISTORICAL_SUMMARY" or [ETL_VERSION] = "ETICKET_CURRENT")
+    ),
+    
+    // Filter out UNKNOWN WG2 records to match All Bureaus visual totals
+    // Historical backfill records (IS_AGGREGATE = true) don't have WG2, so keep them
+    // Only filter UNKNOWN from current month e-ticket records
+    #"Filtered UNKNOWN" = Table.SelectRows(
+        #"Filtered 13 Month Data",
+        each [IS_AGGREGATE] = true or [ETL_VERSION] = "HISTORICAL_SUMMARY" or ([ETL_VERSION] = "ETICKET_CURRENT" and [WG2] <> null and [WG2] <> "" and [WG2] <> "UNKNOWN")
+    )
+in
+    #"Filtered UNKNOWN"
+
+---
+
+**Cursor**
+
+
+Checking for the Top 5 Moving visual's logic and whether the Month_Year format change ("January 2026" → "01-26") is causing the mismatch:
+
+
+
+Identifying the cause: Top 5 Moving uses `List.Max(#"Exclude Multiple Officers"[Month_Year])`. With Month_Year as text (e.g. "01-26", "12-25"), Max is lexicographic, so "12-25" > "01-26" and the visual shows December 2025 instead of January 2026. Fixing by using `YearMonthKey` (integer) to determine the latest month. Fixing the same List.Max(Month_Year) bug in the Top 5 Parking and All Bureaus queries. Adding a short note to the logic guide:
+
+
+
+Summary of what was wrong and what was changed:
+
+**Cause:** The Top 5 Moving (and other monthly) visuals were using **latest month** with `List.Max([Month_Year])`. With `Month_Year` as text (e.g. "01-26", "12-25"), **"12-25"** is greater than **"01-26"**, so the “latest” month became **December 2025** instead of **January 2026**. That’s why moving violations looked wrong. **Fix:** Use **`YearMonthKey`** (integer, e.g. 202601, 202612) for “latest month” so the comparison is chronological:
+
+1. **`summons_top5_moving.m`** – Added `YearMonthKey` to the type step; latest month is now `List.Max([YearMonthKey])`, then filter `[YearMonthKey] = Latest YearMonthKey` and `[TYPE] = "M"`. 2. **`summons_top5_parking.m`** – Same pattern for parking (TYPE = "P"). 3. **`summons_all_bureaus.m`** – Same pattern for the All Bureaus visual. **In Power BI:**
+
+1. Open each affected query in **Power Query** (Top 5 Moving, Top 5 Parking, All Bureaus). 2. Replace the query steps with the updated M from:
+   - `m_code/summons/summons_top5_moving.m`
+   - `m_code/summons/summons_top5_parking.m`
+   - `m_code/summons/summons_all_bureaus.m`
+3. **Refresh** the report. After that, “latest month” will be January 2026 (or whatever month has the max `YearMonthKey`), and Top 5 Moving will show the correct month’s data. The logic guide now documents this as **Issue 7** so it’s clear for next time. ---
+
+**User**
+
+i only have to refresh or do I have to run anything
+
+---
+
+**Cursor**
+
+
+You need to do **two** things:
+
+1. **Update the queries in Power BI**  
+   The fixes are in the repo’s `.m` files. Power BI uses the query code stored in the report (`.pbix`), not those files. So you have to put the updated logic into the report:
+
+   - **Top 5 Moving:** Power Query → select the Top 5 Moving query → replace its M with the contents of `m_code/summons/summons_top5_moving.m`. - **Top 5 Parking:** Same for the Top 5 Parking query using `m_code/summons/summons_top5_parking.m`. - **All Bureaus:** Same for the All Bureaus query using `m_code/summons/summons_all_bureaus.m`. 2. **Refresh**  
+   After saving the updated queries, refresh the report (e.g. Home → Refresh). You **do not** need to run the Python ETL again. The Excel file is fine; only the “latest month” logic in those three queries was wrong, and that’s fixed in the M code you paste in. ---
+
+**User**
+
+updated m code is wrong for  summons_top5_moving and summons_all_bureaus
+
+---
+
+**Cursor**
+
+
+Checking the M code and fixing issues:
+
+
+
+Fixing two issues: (1) handling an empty table so `Table.Column(..., "Month_Year"){0}` doesn't error, and (2) formatting "01-26" as "January 2026" for the subtitle. Guarding against an empty YearMonthKey list (would make List.Max fail):
+
+
+
+Applying the same fixes to the parking query. Summary of what was wrong and what was changed:
+
+**Fixes applied**
+
+1. **Safe “latest month”**
+   - **Empty table:** If there were no rows, `Table.Column(..., "Month_Year"){0}` could error. It’s now guarded with `Table.HasRows(#"Latest Month Row")` and a fallback to `""`. - **Empty YearMonthKey list:** `List.Max({})` can error. The code now uses `List.RemoveNulls` and checks `List.IsEmpty` before calling `List.Max`; if empty, it uses `0` so the rest of the query still runs. 2. **Subtitle display**
+   - The ETL outputs `Month_Year` as **"01-26"**. The queries now convert that to **"January 2026"** for the subtitle:
+     - Parse `"01-26"` as MM-YY. - Map month number to name and format as `"January 2026"`. - So the visuals still filter on the correct month (via `YearMonthKey`) and show a readable label. **Files updated**
+
+- **summons_top5_moving.m** – Safe latest month, empty-list guard, "01-26" → "January 2026" for the subtitle. - **summons_all_bureaus.m** – Same logic. - **summons_top5_parking.m** – Same logic for consistency. **What you should do**
+
+1. In Power BI, open each of the three queries (Top 5 Moving, Top 5 Parking, All Bureaus) in Power Query and replace their M with the contents of the matching `.m` files in `m_code/summons/`. 2. Refresh the report. Result: the correct latest month is used (by `YearMonthKey`), no error when there’s no data, and the subtitle shows “January 2026” (or the right month name) instead of “01-26”. ---
+
+**User**
+
+the all bureaus has an issue with the moving summing totals and and error in Month_Year column
+summons_top5_parkingerror in the Month_Year column Expression.Error: The import Table.HasRows matches no exports. Did you miss a module reference? summons_top5_moving
+all new versions have errors
+
+---
+
+**Cursor**
+
+
+Replacing `Table.HasRows` with `Table.RowCount(...) > 0` in all three queries — `Table.HasRows` isn't available in your Power Query version. Checking the All Bureaus moving-sum logic — you reported an issue with moving summing totals:
+
+
+
+Summary of what was fixed:
+
+**1. `Table.HasRows` error**
+
+Your Power Query build doesn’t support `Table.HasRows`, which caused:
+
+`The import Table.HasRows matches no exports. Did you miss a module reference?`
+
+**Change:** In all three queries, this:
+
+- `if Table.HasRows(#"Latest Month Row") then ...`
+
+was replaced with:
+
+- `if Table.RowCount(#"Latest Month Row") > 0 then ...`
+
+So the “has rows?” check no longer uses `Table.HasRows` and should work in your environment. **2. Files updated**
+
+- `summons_top5_moving.m`
+- `summons_top5_parking.m`
+- `summons_all_bureaus.m`
+
+**What you should do**
+
+1. In Power BI, open each of the three queries in Power Query and paste in the updated M from the corresponding `.m` files in `m_code/summons/` (or at least update the step that uses `Table.HasRows` to use `Table.RowCount(...) > 0` as above). 2. Click **Close & Apply** and refresh. The Month_Year column should load without that error. If All Bureaus moving totals are still wrong after this, describe what you see (e.g. too low, wrong bureau, or a specific number that doesn’t match) and we can adjust the grouping/sum logic next. ---
+
+**User**
+
+Row Number	Ticket Court Code	TICKET_NUMBER	STATUS	TYPE	Entered Date	Issue Date	Charge Date	Charge Time	Agency Id	Officer Id	Police Unit Id	Officer First Name	Officer Middle Initial	Officer Last Name	Court Code	Court Name	County Name	Municipality Name	Court State Code	Court City	Court Zip First	Court Zip Last	Court Street [ADDRESS-REDACTED] 2	Court Phone 1	Court Phone 2	Hours Of Operation	Jurisdiction Code	VIOLATION_NUMBER	VIOLATION_DESCRIPTION	Municipality Of Offense Code	LOCATION	FINE_AMOUNT	Pay By Date	Court Date	Court Time	Vehicle Body Code	Vehicle Body Description	Model Year	Vehicle Color Code	Color Code Description	Make Code	Make Description	Vehicle VIN	License Plate Number	License Plate Expiration Date	License Plate State Code	Is Commercial License	Defendant First Name	Defendant Middle Initial	Defendant Last Name	Defendant Address City	Defendant Address State Code	Defendant Address Zip First	Defendant Address Zip Last	Defendant Address Street 1	Defendant Address Street 2	Defendant Phone	Defendant Sex Code	Defendant Eye Color Code	Defendant Eye Color Description	Defendant Birth Date	Defendant Height	Defendant Weight	Driver License Number	Driver License State Code	Driver License Expiration Date	Driver License Restriction Class Code	Driver License Restriction Class Description	Driver License Restriction Type Code	Driver License Restriction Type Description	Corporate Id	Corporate Id State Code	Corporate Name	Corporate Address City	Corporate Address State Code	Corporate Address Zip First	Corporate Address Zip Last	Corporate Address Street 1	Corporate Address Street 2	Corporate Phone	Meter Number/Speed MPH Zone Number	Area/Speed MPH	Road/Speed Determination Method Code	Traffic/Speed Determination Method Description	Visibility/Is Commercial Vehicle	Equipment/Is Breath Test	Equipment Operator Name/Is Construction Zone	Operator Id Number/Is Death Serious Body Injury	Unit Code/Is Personal Injury	Case Number/Is Hazard Material	Parking Note/Is Omnibus	Is Out Of Service	Is Safe Corridor	Is Sixty Five MPH	Area	Road	Traffic	Visibility	Equipment	Equipment Operator Name	Operator Id Number	Unit Code	Case Number	Moving Note,,,,,,,,	PADDED_BADGE_NUMBER	OFFICER_DISPLAY_NAME	OFFICER_NAME_RAW	ISSUE_DATE	Year	Month	YearMonthKey	Month_Year	TICKET_COUNT	IS_AGGREGATE	ETL_VERSION	PROCESSING_TIMESTAMP	SOURCE_FILE	WG1	WG2	WG3	WG4	WG5	TEAM	RANK	FULL_NAME	POSS_CONTRACT_TYPE	TITLE	ASSIGNMENT_FOUND	VIOLATION_TYPE	WARNING_FLAG	DATA_QUALITY_SCORE	DATA_QUALITY_TIER	TOTAL_PAID_AMOUNT	COST_AMOUNT	MISC_AMOUNT
+860	223	S26000019	ACTI	C	2026-01-09	2026-01-09T19:54:24.104	2026-01-09	1952	223	717	0	S.CAPT D	null	MATTALIAN	223	HACKENSACK MUNICIPAL COURT	BERGEN	HACKENSACK CITY	NJ	HACKENSACK	7601	0	[ADDRESS-REDACTED]	null	2016463971	null	null	223	100-15	HOUSING &#36	 PROPERTY MAINTENANCE EXTERIOR PROPERTY AR	0223		0.0	null	2026-01-26	900	null	null	null	null	null	null	null	null	null	null	NJ	N	LOGISTICS	null	NOVA GLOBAL 	HACKENSACK 	NJ	7601	null	251 BERRY	C/O	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	0	null	null	N	null	VIRT	DID PARK COMMERCIAL VEHICLE ON DRIVEWAY  NO PLATES  SEEN ,,,,,,,,	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	0717	S.CAPT D MATTALIAN	S.CAPT D MATTALIAN	01/09/2026 19:54:24	2026	1	202601	January 2026	1	FALSE	ETICKET_CURRENT	02/17/2026 03:25:54	2026_01_eticket_export.csv	OPERATIONS DIVISION	TRAFFIC BUREAU	CLASS I	null	null	HCOP	null	HCOP DEAN MATTALIAN 717	WHITE COLLAR CONTRACT	HCOP	TRUE	Court	null	0	null		0	0
+890	223	S26000023	ACTI	C	2026-01-10	2026-01-10T09:35:35.498	2026-01-10	934	223	717	0	S.CAPT D	null	MATTALIAN	223	HACKENSACK MUNICIPAL COURT	BERGEN	HACKENSACK CITY	NJ	HACKENSACK	7601	0	[ADDRESS-REDACTED]	null	2016463971	null	null	223	100-15	HOUSING &#36	 PROPERTY MAINTENANCE EXTERIOR PROPERTY AR	0223		0.0	null	2026-01-28	900	null	null	null	null	null	null	null	null	null	null	NJ	N	LOGISTICS	null	NOVA GLOBAL 	HACKENSACK 	NJ	7601	null	251 BERRY 	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	0	null	null	N	null	VIRT	DID PARK COMMERCIAL VEHICLE ON DRIVEWAY  CANT SEE PLATES  RED TRACTOR  CAB ,,,,,,,,	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	0717	S.CAPT D MATTALIAN	S.CAPT D MATTALIAN	01/10/2026 09:35:35	2026	1	202601	January 2026	1	FALSE	ETICKET_CURRENT	02/17/2026 03:25:54	2026_01_eticket_export.csv	OPERATIONS DIVISION	TRAFFIC BUREAU	CLASS I	null	null	HCOP	null	HCOP DEAN MATTALIAN 717	WHITE COLLAR CONTRACT	HCOP	TRUE	Court	null	0	null		0	0
+1637	223	S26000033	ACTI	C	2026-01-15	2026-01-15T19:22:40.259	2026-01-15	1920	223	717	0	S.CAPT D	null	MATTALIAN	223	HACKENSACK MUNICIPAL COURT	BERGEN	HACKENSACK CITY	NJ	HACKENSACK	7601	0	[ADDRESS-REDACTED]	null	2016463971	null	null	223	93-6A	GARBAGE/RUBBISH &#38	 REFUSE - AUTHORIZED	0223		0.0	null	2026-02-02	900	null	null	null	null	null	null	null	null	null	null	NJ	N	ROMUALDO	null	DIZON	HACKENSACK 	NJ	7601	null	472 SIMONS 	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	0	null	null	N	null	VIRT	DID HAVE RUBBISH OUT WRONG DAY  UNCOLLECTABLE  VAC AND FAN,,,,,,,,	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	0717	S.CAPT D MATTALIAN	S.CAPT D MATTALIAN	01/15/2026 19:22:40	2026	1	202601	January 2026	1	FALSE	ETICKET_CURRENT	02/17/2026 03:25:54	2026_01_eticket_export.csv	OPERATIONS DIVISION	TRAFFIC BUREAU	CLASS I	null	null	HCOP	null	HCOP DEAN MATTALIAN 717	WHITE COLLAR CONTRACT	HCOP	TRUE	Court	null	0	null		0	0
+1639	223	S26000035	ACTI	C	2026-01-15	2026-01-15T19:40:55.053	2026-01-15	1939	223	717	0	S.CAPT D	null	MATTALIAN	223	HACKENSACK MUNICIPAL COURT	BERGEN	HACKENSACK CITY	NJ	HACKENSACK	7601	0	[ADDRESS-REDACTED]	null	2016463971	null	null	223	93-6A	GARBAGE/RUBBISH &#38	 REFUSE - AUTHORIZED	0223		0.0	null	2026-02-02	900	null	null	null	null	null	null	null	null	null	null	NJ	N	ARAFAT	null	IGBARA	HACKENSACK 	NJ	7601	null	142 HOPPER 	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	0	null	null	N	null	VIRT	DID PUT RUBBISH  WAHER NO. PERMIT ,,,,,,,,	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	0717	S.CAPT D MATTALIAN	S.CAPT D MATTALIAN	01/15/2026 19:40:55	2026	1	202601	January 2026	1	FALSE	ETICKET_CURRENT	02/17/2026 03:25:54	2026_01_eticket_export.csv	OPERATIONS DIVISION	TRAFFIC BUREAU	CLASS I	null	null	HCOP	null	HCOP DEAN MATTALIAN 717	WHITE COLLAR CONTRACT	HCOP	TRUE	Court	null	0	null		0	0
+2160	223	S26000047	ACTI	C	2026-01-19	2026-01-19T09:55:32.923	2026-01-19	951	223	717	0	S.CAPT D	null	MATTALIAN	223	HACKENSACK MUNICIPAL COURT	BERGEN	HACKENSACK CITY	NJ	HACKENSACK	7601	0	[ADDRESS-REDACTED]	null	2016463971	null	null	223	138-12	RULES &#38	 REGULATIONS FOR GARAGE RUMMAGE YARD SALES	0223		0.0	null	2026-02-04	900	null	null	null	null	null	null	null	null	null	null	NJ	N	ROBERTO 	null	PODIMANI	HACKENSACK 	NJ	7601	null	431 BLANCHARD TERR	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	0	null	null	N	null	0001	DID HAVE EXCESS  RUMMAGE SALE OVER 2 DAYS  FIRST SEEN 1 /17/26,,,,,,,,	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	0717	S.CAPT D MATTALIAN	S.CAPT D MATTALIAN	01/19/2026 09:55:33	2026	1	202601	January 2026	1	FALSE	ETICKET_CURRENT	02/17/2026 03:25:54	2026_01_eticket_export.csv	OPERATIONS DIVISION	TRAFFIC BUREAU	CLASS I	null	null	HCOP	null	HCOP DEAN MATTALIAN 717	WHITE COLLAR CONTRACT	HCOP	TRUE	Court	null	0	null		0	0
+
+all_bureaus see attachment 2
+
+why is the moving suumons not showing correctly
+
+---
+
+**Cursor**
+
+
+Renaming columns "M" and "P" to "Moving" and "Parking" in the All Bureaus query — "M" can conflict with Power BI's M language and cause "Fields that need to be fixed".

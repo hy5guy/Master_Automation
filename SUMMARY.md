@@ -258,6 +258,8 @@ Validation helper:
 
 **Status (2025-12-12):** ✅ All Issues Resolved - System Healthy
 
+**⚠️ Verification Note (2026-03-03):** Re-export all summons e-ticket data to verify counts. See `docs/SUMMONS_VERIFICATION_NOTE_2026_03.md`.
+
 Power BI source:
 - `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx` (sheet `Summons_Data`)
 

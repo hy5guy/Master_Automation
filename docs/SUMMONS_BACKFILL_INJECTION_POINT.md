@@ -4,23 +4,18 @@
 
 ---
 
-## Where to inject
+## Where to inject (DEPLOYED)
 
-**Script:** `02_ETL_Scripts/Summons/main_orchestrator.py`  
-**Path (from config):** `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Summons\main_orchestrator.py`
+**Script:** `02_ETL_Scripts/Summons/summons_etl_enhanced.py` (active script per config)  
+**Path:** `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Summons\summons_etl_enhanced.py`
 
-**Injection point:** After the main summons dataframe is loaded (the one that feeds the Department-Wide Summons visual / `summons_all_bureaus` M query), and before writing the staging workbook or CSV:
+**Injection point:** After `create_unified_summons_dataset()` and before `save_to_staging()`:
 
-1. Call the merge function so the dataframe includes backfill rows for the gap months:
-   ```python
-   # After loading main summons df (e.g. from e-ticket exports + assignment enrichment):
-   from summons_backfill_merge import merge_missing_summons_months  # or copy module into Summons project
-   df = merge_missing_summons_months(df)
-   ```
+1. Add `TICKET_COUNT=1` to main df (ticket-level rows)
+2. Call `merge_missing_summons_months(unified_data)` from `Master_Automation/scripts/summons_backfill_merge.py`
+3. The script adds `Master_Automation/scripts` to `sys.path` so the import resolves
 
-2. Ensure `merge_missing_summons_months` can see the skeleton:
-   - **Option A:** Copy `Master_Automation/scripts/summons_backfill_merge.py` into `02_ETL_Scripts/Summons/` and implement the TODO there.
-   - **Option B:** When running the orchestrator, add `Master_Automation/scripts` to `PYTHONPATH` so `import summons_backfill_merge` resolves.
+**Note:** `main_orchestrator.py` is not used; config uses `summons_etl_enhanced.py`.
 
 ---
 
@@ -53,3 +48,9 @@ Use the same logging style as the rest of the Summons ETL (e.g. `logging.getLogg
 - **Memory:** Backfill CSVs are read with `low_memory=False` to reduce DtypeWarnings; for very large files, memory use may increase. Monthly exports are typically small.
 
 *Created 2026-02-12; updated with Gemini review (centralized paths, full merge implementation).*
+
+---
+
+## ⚠️ Verification Note (2026-03-03)
+
+**Review required:** Re-export all summons e-ticket data to verify counts. See `docs/SUMMONS_VERIFICATION_NOTE_2026_03.md`.

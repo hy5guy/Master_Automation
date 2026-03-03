@@ -1,0 +1,169 @@
+This causes the query to filter for the wrong month's data instead of the most recent completed month. @02_ETL_Scripts/Summons/summons_all_bureaus.m:50-51 
+
+---
+
+**Cursor**
+
+Let me read the file to verify the bug. **Bug confirmed. ** Line 51 uses `List.Max()` on text `Month_Year` values in "MM-YY" format. Since `List.Max` does alphabetical comparison on text, "09-25" would be considered greater than "01-26" (because "9" > "1" at position 1), so if the data spans into 2026, it picks the wrong month. The fix is straightforward: the data already has a `YearMonthKey` column (integer, YYYYMM format like `202601`) which sorts correctly as a number. Let me also check if the workspace copy in `m_code/summons/` has the same issue. The workspace copy (`m_code/summons/summons_all_bureaus.m`) is already fixed -- it uses `pReportMonth` and `YearMonthKey` instead of `List.Max(Month_Year)`. But the **production copy** at `02_ETL_Scripts/Summons/` still has the bug, and it exists in multiple files there. Let me check all affected files. Now let me also check the workspace copies to confirm they're already fixed. Here's the full picture:
+
+**Workspace copies** (`m_code/summons/`) -- already fixed. They use `pReportMonth` + `YearMonthKey` instead of `List.Max(Month_Year)`. **Production copies** (`02_ETL_Scripts/Summons/`) -- **4 files have the bug**:
+1. `summons_all_bureaus.m` (line 51)
+2. `summons_top5_moving_UPDATED.m` (line 47)
+3. `summons_top5_parking.m` (line 40)
+4. `summons_top5_parking_FIXED.m` (line 41)
+
+Let me also check the 5th file for any similar pattern. Good, `summons_13month_trend.m` is clean. Now fixing all 4 affected files. The fix replaces `List.Max(...[Month_Year])` with `List.Max(...[YearMonthKey])` and changes the filter to match on `YearMonthKey` instead of `Month_Year`. All 4 files fixed. Let me verify zero instances remain. The only remaining match is a comment in `M_Code_ReportMonth_Fixes.m` (a reference doc, not production code). All production files are fixed. Now let me commit and push. Done. Here's the summary:
+
+**Bug confirmed and fixed in 4 production files under `02_ETL_Scripts/Summons/`:**
+
+| File | Line | Before | After |
+|------|------|--------|-------|
+| `summons_all_bureaus.m` | 51 | `List.Max(...[Month_Year])` | `List.Max(...[YearMonthKey])` |
+| `summons_top5_moving_UPDATED.m` | 47 | `List.Max(...[Month_Year])` | `List.Max(...[YearMonthKey])` |
+| `summons_top5_parking.m` | 40 | `List.Max(...[Month_Year])` | `List.Max(...[YearMonthKey])` |
+| `summons_top5_parking_FIXED.m` | 41 | `List.Max(...[Month_Year])` | `List.Max(...[YearMonthKey])` |
+
+**Why it matters:** `Month_Year` is text in "MM-YY" format. `List.Max` on text does alphabetical comparison, so "09-25" > "01-26" (because "9" > "1" at character position 1). `YearMonthKey` is an integer in YYYYMM format (e.g., 202601), which always sorts chronologically. **Workspace copies** (`m_code/summons/`) were already correct -- they use `pReportMonth` + `YearMonthKey` and don't use `List.Max(Month_Year)` at all. **Commit**: `6b0f065` pushed to GitHub. ---
+
+**User**
+
+what are the remaing tasks
+
+---
+
+**Cursor**
+
+Let me check the current state of plans and outstanding work. Based on my review of all plans and completed work, here is the status:
+
+**Phase 2 Remediation -- COMPLETE** (all tasks A through F done across prior sessions)
+
+**Bug fixes from this session -- ALL COMPLETE:**
+1. `DateTime.LocalNow()` in 3 Detective M code files -- fixed and pushed (`a8f1158`)
+2. `.tmp.driveupload/` removed from git + added to `.gitignore` -- fixed and pushed (`a8f1158`)
+3. `List.Max(Month_Year)` alphabetical sort bug in 4 summons production files -- fixed and pushed (`6b0f065`)
+
+**One task remains from this session -- the template documentation you approved before the List.Max bug interrupted:**
+
+You selected "Both: document the workflow AND create the M code deployment checklist" for the new template at `15_Templates\Monthly_Report_Template.pbix`. This has not been executed yet. It involves:
+
+1. **Create** `docs/MONTHLY_REPORT_TEMPLATE_WORKFLOW.md` -- monthly cycle steps, template update rules, and the full M code deployment checklist (49 active queries organized by page/folder, deployment order, pReportMonth status)
+2. **Update** `CLAUDE.md` -- add template location, reference to the new doc, and monthly cycle note
+3. **Update** `SUMMARY.md` -- add "Monthly Report Workflow" section
+4. **Commit and push**
+
+That's it -- one documentation deliverable with three file touches. Would you like me to execute it? ---
+
+**User**
+
+lets complete the remaining task do we need multi agent attack? ---
+
+**Cursor**
+
+No, this is a straightforward documentation task -- three file edits and a commit. Multi-agent would be overkill here. Let me just execute it directly. Now I have enough context. Let me create the workflow doc and update CLAUDE.md and SUMMARY.md. Now update CLAUDE.md -- add the template to Key Paths and a reference in the Project Map docs section. Now add reference to the workflow doc in the "Detailed guides" section. Now update SUMMARY.md. Let me find a good insertion point. Now add the template to the Key Paths table in SUMMARY.md. `CLAUDE.md` is not tracked by git (it's a local project configuration file, not version-controlled). The edits I made to it are still saved locally and will be picked up by AI assistants, but it won't appear in the commit. That's fine. Let me commit and push. All done. Here's what was delivered:
+
+**Created:** `docs/MONTHLY_REPORT_TEMPLATE_WORKFLOW.md` -- comprehensive guide with:
+- Template location and monthly cycle steps (open template, update pReportMonth, Save As, run ETL, refresh, publish)
+- Template update rules
+- Full M code deployment checklist: 6 parameters, 20 queries with pReportMonth, 18 queries without date logic, 7 helper functions
+- Verification steps after deployment
+- Directory structure reference
+
+**Updated:** `CLAUDE.md` (local, not git-tracked) -- added template and monthly reports to Key Paths and Detailed Guides sections
+
+**Updated:** `SUMMARY.md` -- added Report Template and Monthly Reports rows to Key Paths table, and the workflow doc to the Documentation section
+
+**Commit:** `fc16cdc` pushed to GitHub. **No remaining tasks. ** Everything from this session is complete. ---
+
+**User**
+
+was this fixed? Verify these issues exist and fix them:
+
+Bug 1:
+`List.Max()` on the `Month_Year` column (text values in "MM-YY" format like "12-25", "01-25") returns the alphabetically largest string, not the chronologically latest month. For example, "09-25" is alphabetically greater than "12-25" because "9" > "1" in Unicode order. This causes the query to filter for the wrong month's data instead of the most recent completed month. @02_ETL_Scripts/Summons/summons_all_bureaus.m:50-51 
+
+---
+
+**Cursor**
+
+Yes, this was fixed earlier in this session. Let me verify the current state of the file. Already fixed. Line 51 now reads `List.Max(#"Filtered E-Ticket Data"[YearMonthKey])` instead of the old `List.Max(#"Filtered E-Ticket Data"[Month_Year])`. The filter on line 56 also matches on `[YearMonthKey]` (integer YYYYMM) instead of `[Month_Year]` (text MM-YY). This was fixed in commit `6b0f065` along with the same bug in 3 other files:
+- `summons_top5_moving_UPDATED.m`
+- `summons_top5_parking.m`
+- `summons_top5_parking_FIXED.m`
+
+All pushed to GitHub. ---
+
+**User**
+
+great do we need to update loacl and remote git one last time
+
+---
+
+**Cursor**
+
+Everything is already up to date. The last commit (`fc16cdc` -- the template workflow docs) was pushed to GitHub immediately after it was created. Let me verify. All clean. The only modified tracked file is `Claude.md` which is not git-tracked (local AI config only). Everything else marked `? ?` is untracked files that existed before this session. **This session's 4 commits are all pushed to GitHub:**
+
+| Commit | Description |
+|--------|-------------|
+| `fc16cdc` | Template workflow docs and M code deployment checklist |
+| `6b0f065` | List.Max(Month_Year) bug fix in 4 summons queries |
+| `a8f1158` | DateTime.LocalNow fix in 3 Detective files + .tmp.driveupload cleanup |
+| `92c0280` | Phase 2 complete (prior session, already pushed) |
+
+No further git action needed. ---
+
+**User**
+
+what else is need to for this project? ---
+
+**Cursor**
+
+Good question. Let me review the project state to give you a clear picture of what's done and what's ahead. Here's a breakdown of where the project stands and what's left:
+
+---
+
+**COMPLETED (code/automation side) -- nothing blocking:**
+- Phase 2 Remediation (all tasks A-F)
+- All 20 M code files converted from `DateTime.LocalNow()` to `pReportMonth`
+- All hardcoded paths fixed
+- List.Max(Month_Year) bug fixed in 4 summons queries
+- Pre-flight validation, orchestrator manifest, response times dedup
+- M code organized into 17 page folders with 49 active queries
+- Template workflow documented with deployment checklist
+- `.tmp.driveupload` cleaned from git
+
+---
+
+**MANUAL TASKS (require Power BI Desktop -- you, not me):**
+
+1. **Deploy corrected M code into the template PBIX** -- This is the big one. Open `15_Templates\Monthly_Report_Template.pbix` in Power BI Desktop and paste all 49 corrected queries from `m_code/` using the checklist in `docs/MONTHLY_REPORT_TEMPLATE_WORKFLOW.md`. Start with `pReportMonth`, then the 20 date-dependent queries, then everything else. 2. **February 2026 ETL cycle** -- When you're ready for the next month:
+   - Run `.\scripts\run_all_etl.ps1 -ReportMonth 2026-02`
+   - Update `pReportMonth` to `#date(2026, 2, 1)` in the template
+   - Save As to `Monthly Reports\2026\02_february\2026_02_Monthly_Report.pbix`
+   - Refresh all queries
+
+---
+
+**GIT HOUSEKEEPING:**
+
+3. **Merge branch to main** -- All work sits on `docs/update-20260114-1447`. At some point you'll want to merge this into `main` (or `master`). This is a large diff so you may want to do a PR or a direct merge. 4. **Untracked files** -- There are ~30 untracked files (chat logs, backups, one-off data files, Workbook_Rework folder). You could either commit what's worth keeping or add more patterns to `.gitignore`. ---
+
+**KNOWN OPEN ITEMS (lower priority, future cycles):**
+
+5. **Benchmark visuals** -- Still showing zeros for most months in Power BI. Source data is fine (Scenario B confirmed); issue is in Power BI model relationships or date types. Handoff doc at `docs/BENCHMARK_VISUALS_HANDOFF_PROMPT.md`. 6. **CLAUDE.md line 322** -- Still says `DateTime.LocalNow()` is a "Critical Issue" even though it's been fixed. This is cosmetic (CLAUDE.md isn't git-tracked). ---
+
+**Bottom line:** The automation and code side is complete. The next action is the manual Power BI template deployment (task 1 above), then running the February cycle when that month's data is ready. ---
+
+**User**
+
+I'm preparing to export this chat. Please generate a descriptive filename that summarizes the main topic or task of this conversation. Requirements:
+• 4-8 words
+• Title Case (capitalize major words)
+• Replace spaces with underscores
+• Include .md extension
+• No dates or special characters
+
+Output only the filename, with the suffix .md and nothing else. ---
+
+**Cursor**
+
+Phase_2_Bug_Fixes_And_Template_Workflow.md

@@ -138,3 +138,9 @@ C:\Users\RobertCarucci\AppData\Local\Microsoft\WindowsApps\python.exe "C:\Users\
 **Est. Time to Complete**: 3 minutes
 **Priority**: High (fixes production issue)
 **Impact**: ~206 summons correctly reclassified
+
+---
+
+## ⚠️ Verification Note (2026-03-03)
+
+**Review required:** Re-export all summons e-ticket data to verify counts. See `docs/SUMMONS_VERIFICATION_NOTE_2026_03.md`.

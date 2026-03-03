@@ -1,0 +1,824 @@
+Read full MoMTotals layout
+Parameters:
+{
+  "sheetId": 29,
+  "range": "A1:AC77"
+}
+Result:
+{
+  "success": true,
+  "csv": " Administrative & General Tasks,ServiceName_Normalized,10-24,11-24,12-24,01-25,02-25,03-25,04-25,05-25,06-25,07-25,08-25,09-25,10-25,11-25,12-25,01-26,02-26,03-26,04-26,05-26,06-26,07-26,08-26,09-26,10-26,11-26,12-26\nAdministrative Tasks,Administrative Tasks,1,2,16,,48,68,75,110,55,79,72,92,61,36,10,0,0,0,0,0,0,0,0,0,0,0,0\nInternal Communication,Internal Communication,0,6,24,13,0,14,9,1,0,2,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nInternal Meeting,Meeting Internal,0,2,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nMeeting Preparation,Meeting Preparation,0,0,2,2,1,4,6,5,0,7,4,6,2,3,1,0,0,0,0,0,0,0,0,0,0,0,0\nPrep for Meeting,Prep for Meeting,0,2,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nMonthly Report Prep,Monthly Report Prep,1,8,5,3,1,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nDocument Revision,Record Maintenance,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nFile Management,Record Maintenance,0,3,4,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nForm Creation,Onboarding Paperwork Creation,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nForm Update,Onboarding Paperwork Update,0,0,2,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nData Clean Up,Data Clean Up,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nDatabase Management,Data Entry,0,0,3,2,0,8,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0\nOnboarding Paperwork Sharing,Onboarding Paperwork Sharing,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nOther,Other,4,8,0,2,0,0,0,0,0,0,0,0,19,3,0,0,0,0,0,0,0,0,0,0,0,0,0\nTotals,,6,31,58,27,50,101,91,116,56,88,77,98,83,42,11,0,0,0,0,0,0,0,0,0,0,0,0\n,,,,,,,,,,,,,,,,,,,,,,,,,,,,\nAnalysis & Investigative Support,ServiceName_Normalized,10-24,11-24,12-24,01-25,02-25,03-25,04-25,05-25,06-25,07-25,08-25,09-25,10-25,11-25,12-25,01-26,02-26,03-26,04-26,05-26,06-26,07-26,08-26,09-26,10-26,11-26,12-26\nAnalysis for Detectives,Analysis - Detectives,0,0,1,5,1,0,3,0,0,0,1,18,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0\nAnalysis for Patrol,Analysis - Patrol,0,6,2,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nCrime Analysis,Crime Analysis,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nInvestigative Assistance,Investigative Assistance,1,7,6,6,0,1,1,1,4,7,0,3,5,0,0,1,1,0,0,0,0,0,0,0,0,0,0\nIncident Follow-Up,Incident Follow-Up - CSB,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nPatrol Analysis & Support,Patrol Analysis & Support,0,1,0,1,4,0,2,7,3,2,1,0,2,1,1,0,0,0,0,0,0,0,0,0,0,0,0\nPatrol Support,Patrol Support,3,14,2,0,2,7,17,16,3,6,2,4,2,3,1,0,0,0,0,0,0,0,0,0,0,0,0\nTAS Alert(s) Reviewed,TAS Alert(s) Reviewed,1,0,4,2,3,4,0,1,0,3,0,9,12,1,0,0,0,0,0,0,0,0,0,0,0,0,0\nVirtual Patrol,Virtual Patrol,26,14,9,3,9,19,14,22,8,2,3,22,21,1,1,0,0,0,0,0,0,0,0,0,0,0,0\nWorkflow Automation,Workflow Automation,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nTotals,,32,42,25,18,19,31,37,47,18,20,7,57,53,1,0,0,0,0,0,0,0,0,0,0,0,0,0\n,,,,,,,,,,,,,,,,,,,,,,,,,,,,\nMaintenance & Technical Support,ServiceName_Normalized,10-24,11-24,12-24,01-25,02-25,03-25,04-25,05-25,06-25,07-25,08-25,09-25,10-25,11-25,12-25,01-26,02-26,03-26,04-26,05-26,06-26,07-26,08-26,09-26,10-26,11-26,12-26\nCleaning Services,Cleaning Services,1,3,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nEquipment Repair,Hardware Support,0,1,2,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nHardware Support,Hardware Support,7,3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nInstallation Services,Hardware Support,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nRoutine Maintenance,Routine Maintenance,2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nSoftware Maintenance,Software Maintenance,14,12,1,2,0,2,0,1,0,0,0,0,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0\nTechnical Support,Technical Support,5,10,7,5,6,5,4,5,13,5,11,4,2,12,2,0,0,0,0,0,0,0,0,0,0,0,0\nTotals,,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n,,,,,,,,,,,,,,,,,,,,,,,,,,,,\nMeetings & External Communications,ServiceName_Normalized,10-24,11-24,12-24,01-25,02-25,03-25,04-25,05-25,06-25,07-25,08-25,09-25,10-25,11-25,12-25,01-26,02-26,03-26,04-26,05-26,06-26,07-26,08-26,09-26,10-26,11-26,12-26\nCompStat Data Preparation,CompStat Data Preparation,0,8,4,1,0,2,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nCompStat Detective Meeting,CompStat Detective Meeting,0,2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nCompStat Traffic Meeting,CompStat Traffic Meeting,0,0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nDepartment Event,Monitoring - Department Event,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nCity Event,Monitoring - City Event,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nMeeting with Administration,Meeting with Administration,0,0,0,3,3,2,6,2,2,3,1,5,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0\nMeeting with Business,Meeting with Business,0,3,4,1,5,4,4,2,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nMeeting with Outside Agency,Meeting with Outside Agency,0,5,0,0,5,4,0,0,0,0,2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nMeeting with Private Entity,Meeting with Private Entity,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nMeeting with Resident,Meeting with Resident,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nMeeting with Vendor,Meeting with Vendor,10,6,6,4,9,6,4,9,7,11,6,9,11,7,1,0,0,0,0,0,0,0,0,0,0,0,0\nOutside Agency Communication,Outside Agency Communication,0,0,8,5,10,14,4,4,0,5,0,2,5,5,0,0,0,0,0,0,0,0,0,0,0,0,0\nVendor Communication,Vendor Communication,2,11,8,18,54,23,24,43,30,56,29,80,34,27,11,0,0,0,0,0,0,0,0,0,0,0,0\nSSOCC Tour,SSOCC Tour,24,9,8,3,15,23,13,27,16,19,14,21,20,13,6,1,1,0,0,0,0,0,0,0,0,0,0\nTotals,,36,44,43,37,101,79,55,87,55,99,52,118,74,18,0,0,0,0,0,0,0,0,0,0,0,0,0\n,,,,,,,,,,,,,,,,,,,,,,,,,,,,\nSurveillance & Monitoring,ServiceName_Normalized,10-24,11-24,12-24,01-25,02-25,03-25,04-25,05-25,06-25,07-25,08-25,09-25,10-25,11-25,12-25,01-26,02-26,03-26,04-26,05-26,06-26,07-26,08-26,09-26,10-26,11-26,12-26\nAvigilon Flag Review,Avigilon Flag Review,4,7,1,1,0,9,1,6,0,3,1,9,9,3,0,0,0,0,0,0,0,0,0,0,0,0,0\nBWC Review,BWC Review,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nCCTV Site Analysis,CCTV Site Analysis,0,0,8,3,4,4,10,3,1,4,4,6,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nCCTV Site Maintenance,CCTV Site Maintenance,0,4,2,0,22,3,2,16,10,9,3,10,17,4,1,0,0,0,0,0,0,0,0,0,0,0,0\nSpecial Event Monitoring,Special Event Monitoring,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nTraffic CompStat,Traffic CompStat,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nSCRPA Prep.,SCRPA Prep.,0,0,0,1,1,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nSCRPA Report,SCRPA Report,4,0,0,3,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nTotals,,8,14,11,8,27,24,13,25,11,16,8,25,32,1,0,0,0,0,0,0,0,0,0,0,0,0,0\n,,,,,,,,,,,,,,,,,,,,,,,,,,,,\nTraining & Development,ServiceName_Normalized,10-24,11-24,12-24,01-25,02-25,03-25,04-25,05-25,06-25,07-25,08-25,09-25,10-25,11-25,12-25,01-26,02-26,03-26,04-26,05-26,06-26,07-26,08-26,09-26,10-26,11-26,12-26\nMandatory Training,Mandatory Training,0,7,6,11,8,9,2,5,3,9,2,5,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nOnline Training,Training - Online,1,8,1,1,1,1,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nOn-site Training,Training - In-Person,0,1,1,1,0,0,0,0,2,1,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nResearch,Research,4,2,9,9,0,3,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nTotals,,5,18,17,22,9,13,2,5,5,11,4,7,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0",
+  "rowCount": 76,
+  "columnCount": 29,
+  "hasMore": false,
+  "sheetName": "MoMTotals"
+}
+Now I can see the full structure. The MoMTotals sheet already has 01-26 through 12-26 columns. But I need to find the actual Excel table objects named _ADMIN, _ANALYSIS, etc. Let me check if these are Excel structured tables (Table objects) and examine the formulas. Check headers in table ranges
+Parameters:
+{
+  "sheetId": 29,
+  "ranges": [
+    "R1:AC1",
+    "R18:AC18",
+    "R31:AC31",
+    "R44:AC44",
+    "R61:AC61",
+    "R72:AC72"
+  ],
+  "includeStyles": false
+}
+Show more
+Result:
+{
+  "success": true,
+  "hasMore": false,
+  "worksheet": {
+    "name": "MoMTotals",
+    "sheetId": 29,
+    "dimension": "A1:AC77",
+    "cells": {
+      "R1": "01-26",
+      "R18": "01-26",
+      "R31": "01-26",
+      "R44": "01-26",
+      "R61": "01-26",
+      "R72": "01-26",
+      "S1": "02-26",
+      "S18": "02-26",
+      "S31": "02-26",
+      "S44": "02-26",
+      "S61": "02-26",
+      "S72": "02-26",
+      "T1": "03-26",
+      "T18": "03-26",
+      "T31": "03-26",
+      "T44": "03-26",
+      "T61": "03-26",
+      "T72": "03-26",
+      "U1": "04-26",
+      "U18": "04-26",
+      "U31": "04-26",
+      "U44": "04-26",
+      "U61": "04-26",
+      "U72": "04-26",
+      "V1": "05-26",
+      "V18": "05-26",
+      "V31": "05-26",
+      "V44": "05-26",
+      "V61": "05-26",
+      "V72": "05-26",
+      "W1": "06-26",
+      "W18": "06-26",
+      "W31": "06-26",
+      "W44": "06-26",
+      "W61": "06-26",
+      "W72": "06-26",
+      "X1": "07-26",
+      "X18": "07-26",
+      "X31": "07-26",
+      "X44": "07-26",
+      "X61": "07-26",
+      "X72": "07-26",
+      "Y1": "08-26",
+      "Y18": "08-26",
+      "Y31": "08-26",
+      "Y44": "08-26",
+      "Y61": "08-26",
+      "Y72": "08-26",
+      "Z1": "09-26",
+      "Z18": "09-26",
+      "Z31": "09-26",
+      "Z44": "09-26",
+      "Z61": "09-26",
+      "Z72": "09-26",
+      "AA1": "10-26",
+      "AA18": "10-26",
+      "AA31": "10-26",
+      "AA44": "10-26",
+      "AA61": "10-26",
+      "AA72": "10-26",
+      "AB1": "11-26",
+      "AB18": "11-26",
+      "AB31": "11-26",
+      "AB44": "11-26",
+      "AB61": "11-26",
+      "AB72": "11-26",
+      "AC1": "12-26",
+      "AC18": "12-26",
+      "AC31": "12-26",
+      "AC44": "12-26",
+      "AC61": "12-26",
+      "AC72": "12-26"
+    }
+  }
+}
+Show more
+
+List all Excel table objects
+Parameters:
+{
+  "code": "..."
+}
+Code:
+// List all Excel tables in the workbook
+const tables = context.workbook.tables;
+tables.load("items/name,items/id");
+await context.sync();
+
+const tableInfo = [];
+for (const table of tables.items) {
+    const range = table.getRange();
+    range.load("address");
+    const headerRange = table.getHeaderRowRange();
+    headerRange.load("values");
+    tableInfo.push({ name: table.name, range: range, headerRange: headerRange });
+}
+await context.sync();
+
+return tableInfo.map(t => ({
+    name: t.name,
+    address: t.range.address,
+    headers: t.headerRange.values[0]
+}));
+Show more
+Result:
+{
+  "success": true,
+  "result": [
+    {
+      "name": "Table1",
+      "address": "'2024'!B1:J150",
+      "headers": [
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "Disposition",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_Oct_24",
+      "address": "'Oct24'!A1:I127",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_Nov_24",
+      "address": "'Nov24'!A1:I350",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_Dec_24",
+      "address": "'Dec24'!A1:I350",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_25_JAN",
+      "address": "'JAN25'!A1:I159",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_25_FEB",
+      "address": "'FEB25'!A1:I228",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_25_MAR",
+      "address": "'MAR25 '!A1:I265",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_25_APR",
+      "address": "'APR25 '!A1:I251",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_25_MAY",
+      "address": "'MAY25 '!A1:I300",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_25_JUN",
+      "address": "'JUN25'!A1:I413",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_25_JUL",
+      "address": "'JUL25'!A1:I251",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_25_AUG",
+      "address": "'AUG25'!A1:I251",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_25_SEP",
+      "address": "'SEP25'!A1:I495",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_25_OCT",
+      "address": "'OCT25'!A1:I369",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_25_NOV",
+      "address": "'NOV25'!A1:I251",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_25_DEC",
+      "address": "'DEC25'!A1:I251",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_26_JAN",
+      "address": "'JAN26'!A1:I251",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_26_FEB",
+      "address": "'FEB26'!A1:I251",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_26_MAR",
+      "address": "'MAR26'!A1:I251",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_26_APR",
+      "address": "'APR26'!A1:I251",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_26_MAY",
+      "address": "'MAY26'!A1:I251",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_26_JUN",
+      "address": "'JUN26'!A1:I251",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_26_JUL",
+      "address": "'JUL26'!A1:I251",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_26_AUG",
+      "address": "'AUG26'!A1:I251",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_26_SEP",
+      "address": "'SEP26'!A1:I251",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_26_OCT",
+      "address": "'OCT26'!A1:I251",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_26_NOV",
+      "address": "'NOV26'!A1:I251",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "_26_DEC",
+      "address": "'DEC26'!A1:I251",
+      "headers": [
+        "Control #",
+        "Date",
+        "Time",
+        "CCBP",
+        "Service/Product",
+        "Description",
+        "LIS",
+        "LIC",
+        "OCA/CAD#"
+      ]
+    },
+    {
+      "name": "YEARLY_TOTALS",
+      "address": "YEARLY_TOTALS!A1:AC58",
+      "headers": [
+        "Products/Services",
+        "ServiceName_Normalized",
+        "10-24",
+        "11-24",
+        "12-24",
+        "01-25",
+        "02-25",
+        "03-25",
+        "04-25",
+        "05-25",
+        "06-25",
+        "07-25",
+        "08-25",
+        "09-25",
+        "10-25",
+        "11-25",
+        "12-25",
+        "01-26",
+        "02-26",
+        "03-26",
+        "04-26",
+        "05-26",
+        "06-26",
+        "07-26",
+        "08-26",
+        "09-26",
+        "10-26",
+        "11-26",
+        "12-26"
+      ]
+    },
+    {
+      "name": "_ADMIN",
+      "address": "MoMTotals!A1:AC16",
+      "headers": [
+        " Administrative & General Tasks",
+        "ServiceName_Normalized",
+        "10-24",
+        "11-24",
+        "12-24",
+        "01-25",
+        "02-25",
+        "03-25",
+        "04-25",
+        "05-25",
+        "06-25",
+        "07-25",
+        "08-25",
+        "09-25",
+        "10-25",
+        "11-25",
+        "12-25",
+        "01-26",
+        "02-26",
+        "03-26",
+        "04-26",
+        "05-26",
+        "06-26",
+        "07-26",
+        "08-26",
+        "09-26",
+        "10-26",
+        "11-26",
+        "12-26"
+      ]
+    },
+    {
+      "name": "_ANALYSIS",
+      "address": "MoMTotals!A18:AC29",
+      "headers": [
+        "Analysis & Investigative Support",
+        "ServiceName_Normalized",
+        "10-24",
+        "11-24",
+        "12-24",
+        "01-25",
+        "02-25",
+        "03-25",
+        "04-25",
+        "05-25",
+        "06-25",
+        "07-25",
+        "08-25",
+        "09-25",
+        "10-25",
+        "11-25",
+        "12-25",
+        "01-26",
+        "02-26",
+        "03-26",
+        "04-26",
+        "05-26",
+        "06-26",
+        "07-26",
+        "08-26",
+        "09-26",
+        "10-26",
+        "11-26",
+        "12-26"
+      ]
+    },
+    {
+      "name": "_SUR",
+      "address": "MoMTotals!A61:AC70",
+      "headers": [
+        "Surveillance & Monitoring",
+        "ServiceName_Normalized",
+        "10-24",
+        "11-24",
+        "12-24",
+        "01-25",
+        "02-25",
+        "03-25",
+        "04-25",
+        "05-25",
+        "06-25",
+        "07-25",
+        "08-25",
+        "09-25",
+        "10-25",
+        "11-25",
+        "12-25",
+        "01-26",
+        "02-26",
+        "03-26",
+        "04-26",
+        "05-26",
+        "06-26",
+        "07-26",
+        "08-26",
+        "09-26",
+        "10-26",
+        "11-26",
+        "12-26"
+      ]
+    },
+    {
+      "name": "_MAIN",
+      "address": "MoMTotals!A31:AC39",
+      "headers": [
+        "Maintenance & Technical Support",
+        "ServiceName_Normalized",
+        "10-24",
+        "11-24",
+        "12-24",
+        "01-25",
+        "02-25",
+        "03-25",
+        "04-25",
+        "05-25",
+        "06-25",
+        "07-25",
+        "08-25",
+        "09-25",
+        "10-25",
+        "11-25",
+        "12-25",
+        "01-26",
+        "02-26",
+        "03-26",
+        "04-26",
+        "05-26",
+        "06-26",
+        "07-26",
+        "08-26",
+        "09-26",
+        "10-26",
+        "11-26",
+        "12-26"
+      ]
+    },
+    {
+      "name": "_MEET",
+      "address": "MoMTotals!A44:AC59",
+      "headers": [
+        "Meetings & External Communications",
+        "ServiceName_Normalized",
+        "10-24",
+        "11-24",
+        "12-24",
+        "01-25",
+        "02-25",
+        "03-25",
+        "04-25",
+        "05-25",
+        "06-25",
+        "07-25",
+        "08-25",
+        "09-25",
+        "10-25",
+        "11-25",
+        "12-25",
+        "01-26",
+        "02-26",
+        "03-26",
+        "04-26",
+        "05-26",
+        "06-26",
+        "07-26",
+        "08-26",
+        "09-26",
+        "10-26",
+        "11-26",
+        "12-26"
+      ]
+    },
+    {
+      "name": "_TRAIN",
+      "address": "MoMTotals!A72:AC77",
+      "headers": [
+        "Training & Development",
+        "ServiceName_Normalized",
+        "10-24",
+        "11-24",
+        "12-24",
+        "01-25",
+        "02-25",
+        "03-25",
+        "04-25",
+        "05-25",
+        "06-25",
+        "07-25",
+        "08-25",
+        "09-25",
+        "10-25",
+        "11-25",
+        "12-25",
+        "01-26",
+        "02-26",
+        "03-26",
+        "04-26",
+        "05-26",
+        "06-26",
+        "07-26",
+        "08-26",
+        "09-26",
+        "10-26",
+        "11-26",
+        "12-26"
+      ]
+    },
+    {
+      "name": "service_product_mapping_draft",
+      "address": "DimService!A1:B92",
+      "headers": [
+        "ServiceID",
+        "ServiceName_Current"
+      ]
+    }
+  ]
+}
+Show more
+Now I can see the full picture. The 6 category tables on MoMTotals already have the "01-26" column header (column R). But I need to check if the formulas are properly populated. Let me examine the current formulas in the 01-26 column (R) for each table.

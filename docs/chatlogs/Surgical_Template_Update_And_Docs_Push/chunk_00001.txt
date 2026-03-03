@@ -1,0 +1,664 @@
+When the updated M code changed output schemas, those DAX references broke. Let me investigate the specific mismatches. Now I see the full picture. Let me check the archived original `___Summons.m` to understand what the January template expected. Here's what happened and the path forward. ---
+
+## Root Cause: Schema Mismatch
+
+The repo M code has **evolved significantly** from the January 2026 published report. The column names, table structures, and output shapes all changed during the December-February development cycle. But the **DAX model** (measures, calculated columns, relationships) inside the PBIX still expects the **original January schemas**. Specific mismatches:
+
+| Error | Cause |
+|---|---|
+| `Cannot find table '___Summons'` | The January report had a raw `___Summons` table. It was archived in the repo and split into 4 separate queries -- but DAX measures still reference `___Summons[column]`. |
+| `___Traffic` missing `Current_Month_Value` | The repo version outputs `Value`, not `Current_Month_Value`. The original January query had a different column name. |
+| `___ResponseTimeCalculator` missing `Count`, `MonthName` | The repo version completely restructured the output columns. DAX SUMMARIZE measures reference the old columns. |
+| `___Drone` variant data-type | The repo version outputs the `Value` column as mixed text (durations) and numbers. DAX calculated columns can't handle variant types. |
+| `UI MonthRange 13m` | A cascading failure -- DAX measures that depend on the broken tables also reference a UI parameter table, and the chain fails. |
+| Duplicate `TICKET_NUMBER` | The `summons_13month_trend` query loads raw ticket data, and a relationship expects unique ticket numbers. |
+
+---
+
+## Recommended Fix: Close Without Saving, Start Over Surgically
+
+The safest path is:
+
+1. **Close the template WITHOUT saving** -- this gets you back to the clean January PBIX
+2. Reopen it and take a **minimal-change** approach per query:
+   - **Only** fix file paths (`C:\Users\RobertCarucci` to `C:\Users\carucci_r`, `C:\Dev` to `C:\Users\carucci_r`)
+   - **Only** add `ReportMonth = pReportMonth,` where the query uses `DateTime.LocalNow()`
+   - **Only** add `{"01-26", Int64.Type}` to column type lists that need it
+   - **Do NOT** replace the entire query body with repo M code
+
+This preserves the DAX model compatibility while fixing the actual issues (wrong paths, hardcoded dates, missing January 2026 column). Once you close the template without saving, let me know and I'll walk you through the precise edits for each query -- viewing the original M code first, then making only the surgical changes needed. ---
+
+**User**
+
+I went to the advanced editor and saved from there I selected apply changes later. I closed the template. I am reopening the template now
+
+---
+
+**Cursor**
+
+Good. When the template opens, we need to determine what state it's in. Two possibilities:
+
+1. **If Power BI asks about pending changes** when it opens -- the modified (broken) repo M code was saved into the PBIX. We'll need to undo those changes query by query in the Advanced Editor. 2. **If it opens clean with no pending changes** -- you may have discarded the changes on close, and we're back to the original January M code. This is the ideal scenario. When it finishes loading, open **Power Query Editor** (Home > Transform data) and let me know:
+- Does it show any "pending changes" banner? - Pick one query (like `___Traffic`) and open its Advanced Editor -- does the M code have the header `// 🕒 2026-02-21-01-00-00 (EST)` that we pasted, or does it look like the original January code (no timestamp header)? This will tell us whether we're working from a clean slate or need to restore the originals first. ---
+
+**User**
+
+the templete re opended and "There are pending changes in your queries that haven't been applied." was in a banner upon loadeding
+
+---
+
+**Cursor**
+
+Good -- the banner confirms the modified M code is saved but not yet applied to the data model. This gives us a chance to revert. **Step 1:** On that banner, there should be a **"Discard changes"** button (or similar wording). Click that. This should revert all the query M code back to the original January versions that were last successfully applied. If you don't see "Discard changes" on the banner, go to **Power Query Editor** (Home > Transform data) and look for a "Discard" option in the ribbon. Let me know what options you see on the banner, and whether discarding works. If it reverts successfully, we'll have a clean slate and can make the precise, minimal changes that won't break the DAX model. ---
+
+**User**
+
+when clicking discard changes I get the attached prompt
+
+---
+
+**Cursor**
+
+This is exactly what we want. That list shows all 11 queries we modified. Click **Discard** (or **Yes** / **OK**) to confirm. This will revert every query back to the original January M code that was working with the DAX model. Once it finishes discarding, the template should be back to a clean, working state. Then we'll take the surgical approach -- opening each query one at a time and making only the minimal edits needed (path fixes, pReportMonth, 01-26 column). ---
+
+**User**
+
+Discarded was colpleted, what's next
+
+---
+
+**Cursor**
+
+Good -- the template is back to its clean January state. Now I need to understand the original M code structure before planning the surgical edits. Let me quickly check a few things. Good -- pReportMonth was removed by the discard, so we're fully back to the clean January state. Now let me build the surgical plan. ---
+
+**User**
+
+please update all docs for now I have to jump on a teams meeting
+
+---
+
+**Cursor**
+
+I'll update all the documentation while you're in your meeting. Let me read the current state of each doc first. Now I'll update all four documentation files with today's session findings. Let me work through them. Now updating SUMMARY.md -- the key sections to update are the status block and the latest updates section. Now updating Claude.md. Now updating README.md. All four docs are updated. Here's what was changed:
+
+**CHANGELOG.md** -- Added `[1.17.4] - 2026-02-23` entry documenting the failed bulk paste, root cause (schema mismatch), specific DAX errors for each table, the `summons_all_bureaus.m` fix (List.Max reorder + WG2 rename), the discard, and the surgical approach plan. **SUMMARY.md** -- Updated version to 1.17.4, status to "Template Update In Progress", added the v1.17.4 update section with the surgical plan details, and updated the Phase 2 remediation table to show repo fixes complete but template deployment in progress. **Claude.md** -- Updated version, status, and added the v1.17.4 section with the failure details, discard action, and the full surgical plan phases. **README.md** -- Updated the latest update blurb, version, status, and added the v1.17.4 section. When you're back from your meeting, we can pick up with Phase 1 of the surgical plan (creating pReportMonth in the template). ---
+
+**User**
+
+I am back, to start phase 1
+
+---
+
+**Cursor**
+
+Good -- let's start Phase 1. **Phase 1: Create the `pReportMonth` parameter. **
+
+In Power BI Desktop (with the template open):
+
+1. Go to **Home > Transform data** to open Power Query Editor
+2. In the ribbon, click **Home > Manage Parameters > New Parameter**
+3. Set these values:
+   - **Name**: `pReportMonth`
+   - **Type**: `Date`
+   - **Current Value**: `2/1/2026`
+4. Click **OK**
+
+Once that's created, you should see `pReportMonth` appear in the Queries list on the left. Let me know when it's done and we'll move to Phase 2 -- the Group A path fixes (the safest, most straightforward edits). ---
+
+**User**
+
+done
+
+---
+
+**Cursor**
+
+Phase 1 complete. Now **Phase 2, Group A -- path-only fixes**. These are the safest edits: simple find-and-replace inside the `File.Contents(...)` string. Do them one at a time, clicking **Done** after each, and verify the preview loads data before moving to the next. ---
+
+**Query 1: `summons_top5_parking`**
+- Open its Advanced Editor
+- Find: `C:\Users\RobertCarucci`
+- Replace with: `C:\Users\carucci_r`
+- Click Done, verify preview shows data
+
+**Query 2: `summons_all_bureaus`**
+- Open its Advanced Editor
+- Find: `C:\Users\RobertCarucci`
+- Replace with: `C:\Users\carucci_r`
+- Click Done, verify preview shows data
+
+**Query 3: `ESU_13Month`**
+- Open its Advanced Editor
+- Find: `C:\Users\RobertCarucci`
+- Replace with: `C:\Users\carucci_r`
+- Click Done, verify preview shows data
+
+**Query 4: `___ResponseTimeCalculator`**
+- Open its Advanced Editor
+- Find: `C:\Dev\PowerBI_Date`
+- Replace with: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date`
+- Click Done, verify preview shows data
+
+---
+
+Work through all four and let me know how each one goes. If any query shows an error after the path fix, paste the error here and we'll address it before moving on. ---
+
+**User**
+
+summons_all_bureaus was updated but the preview table only has col headers
+___ResponseTimeCalculator
+has error: DataSource.NotFound: File or Folder: Could not find a part of the path 'C:\Users\carucci_r\Backfill\2025_10\response_time\2025_10_Average Response Times  Values are in mmss.csv'. Details:
+    C:\Users\carucci_r\Backfill\2025_10\response_time\2025_10_Average Response Times  Values are in mmss.csv
+the other queries loaded normaly 
+
+---
+
+**Cursor**
+
+Good progress -- `summons_top5_parking` and `ESU_13Month` are working. Let me address the two issues:
+
+**`___ResponseTimeCalculator`** -- The error path `C:\Users\carucci_r\Backfill\...` suggests the replacement didn't fully land, or there's a second path reference with a different pattern. I need to see the exact M code to fix it. **`summons_all_bureaus`** -- The empty preview is likely because the original query uses `DateTime.LocalNow()` to calculate which month to show. Since today is February 23, it's probably looking for February 2026 data that doesn't exist yet. This query needs the `pReportMonth` fix (moving it to Group B). Could you do the following:
+
+1. Open the **`___ResponseTimeCalculator`** Advanced Editor and **paste the full M code here** so I can see all the path references
+2. Open the **`summons_all_bureaus`** Advanced Editor and **paste the full M code here** so I can see if it uses `DateTime.LocalNow()`
+
+This will let me give you the exact targeted fixes for both. ---
+
+**User**
+
+Query, Error and M Code:
+1. summons_top5_moving, preview table shows only cols
+// ___Summons_Top5_Moving (Standalone)
+// Updated: 2026-02-17
+// Purpose: Top 5 Moving Violations for PREVIOUS COMPLETE MONTH (so "January export" shows 01-26, not partial Feb)
+
+let
+    // Previous complete month (e.g. in Feb 2026 show Jan 2026 = 01-26)
+    PrevDate = Date.AddMonths(DateTime.Date(DateTime.LocalNow()), -1),
+    PrevYear = Date.Year(PrevDate),
+    PrevMonth = Date.Month(PrevDate),
+    PreviousMonthKey = PrevYear * 100 + PrevMonth,
+    MonthYearText = Text.PadStart(Number.ToText(PrevMonth), 2, "0") & "-" & Text.End(Number.ToText(PrevYear), 2),
+
+    // Load directly from Excel file
+    Source = Excel.Workbook(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
+        null, 
+        true
+    ),
+    
+    // Get Summons_Data sheet
+    Summons_Data_Sheet = Source{[Item="Summons_Data", Kind="Sheet"]}[Data],
+    
+    // Promote headers
+    PromotedHeaders = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
+    
+    // Ensure TITLE column exists (ETL adds it from Assignment Master; if missing, add null)
+    WithTitle = if Table.HasColumns(PromotedHeaders, "TITLE") then PromotedHeaders else Table.AddColumn(PromotedHeaders, "TITLE", each null, type text),
+    
+    // Change YearMonthKey and TYPE; TITLE as text
+    ChangedType = Table.TransformColumnTypes(WithTitle, {{"YearMonthKey", Int64.Type}, {"TYPE", type text}, {"TITLE", type text}}),
+    
+    // Filter to Moving violations only
+    FilteredMoving = Table.SelectRows(ChangedType, each ([TYPE] = "M")),
+    
+    // EXCLUDE PEO: by TITLE = "PEO" (Assignment Master); fallback on display name
+    FilteredMovingNoPEO = Table.SelectRows(FilteredMoving, each 
+        ( [TITLE] = null or Text.Trim(Text.Upper([TITLE] ? ? "")) <> "PEO" ) and
+        ( [OFFICER_DISPLAY_NAME] = null or not (Text.StartsWith([OFFICER_DISPLAY_NAME], "PEO ") or Text.StartsWith([OFFICER_DISPLAY_NAME], "PEO,") or Text.StartsWith([OFFICER_DISPLAY_NAME], "PEO.")) )
+    ),
+    
+    // Filter to PREVIOUS COMPLETE MONTH (not "max in file" — so January export shows 01-26)
+    FilteredLatestMonth = Table.SelectRows(FilteredMovingNoPEO, each [YearMonthKey] = PreviousMonthKey),
+    
+    // Group by badge: Count = number of Moving rows per officer for that month (from staging file)
+    GroupedRows = Table.Group(
+        FilteredLatestMonth, 
+        {"PADDED_BADGE_NUMBER", "Month_Year"}, 
+        {
+            {"Count", each Table.RowCount(_), type number},
+            {"Officer", each List.First([OFFICER_DISPLAY_NAME]), type text}
+        }
+    ),
+    
+    RemovedBadge = Table.RemoveColumns(GroupedRows, {"PADDED_BADGE_NUMBER"}),
+    SortedRows = Table.Sort(RemovedBadge, {{"Count", Order.Descending}}),
+    Top5 = Table.FirstN(SortedRows, 5),
+    // Ensure Month_Year label matches previous month (e.g. 01-26)
+    SetMonthLabel = Table.TransformColumns(Top5, {{"Month_Year", each MonthYearText, type text}})
+in
+    SetMonthLabel
+
+- summons_all_bureaus, preview table shows only col headers
+// ___Summons_All_Bureaus (Standalone)
+// Updated: 2026-02-17
+// Purpose: Summons by Bureau and Type for PREVIOUS COMPLETE MONTH (matches Top 5 Moving/Parking)
+
+let
+    // Previous complete month (e.g. in Feb 2026 show Jan 2026)
+    PrevDate = Date.AddMonths(DateTime.Date(DateTime.LocalNow()), -1),
+    PreviousMonthKey = Date.Year(PrevDate) * 100 + Date.Month(PrevDate),
+
+    // Load directly from Excel file
+    Source = Excel.Workbook(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
+        null, 
+        true
+    ),
+    
+    Summons_Data_Sheet = Source{[Item="Summons_Data", Kind="Sheet"]}[Data],
+    PromotedHeaders = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
+    ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"YearMonthKey", Int64.Type}, {"TYPE", type text}, {"WG2", type text}}),
+    
+    // Filter out UNKNOWN / blank WG2
+    FilteredClean = Table.SelectRows(ChangedType, each [WG2] <> "UNKNOWN" and [WG2] <> null and [WG2] <> ""),
+    
+    // Filter to PREVIOUS COMPLETE MONTH (same as Top 5 Moving/Parking)
+    FilteredLatestMonth = Table.SelectRows(FilteredClean, each [YearMonthKey] = PreviousMonthKey),
+    
+    // Group by Bureau (WG2) and Type - COMBINE HOUSING & OSO WITH PATROL
+    GroupedRows = Table.Group(
+        FilteredLatestMonth, 
+        {"WG2", "TYPE"}, 
+        {{"Count", each Table.RowCount(_), type number}}
+    ),
+    
+    // Consolidate bureaus before pivot
+    ConsolidatedBureaus = Table.TransformColumns(
+        GroupedRows,
+        {"WG2", each if _ = "HOUSING" or _ = "OFFICE OF SPECIAL OPERATIONS" then "PATROL DIVISION" else _}
+    ),
+    
+    // Re-group after consolidation
+    RegroupedRows = Table.Group(
+        ConsolidatedBureaus,
+        {"WG2", "TYPE"},
+        {{"Count", each List.Sum([Count]), type number}}
+    ),
+    
+    // Pivot by TYPE to get M, P columns (C might not exist after reclassification)
+    PivotedColumn = Table.Pivot(
+        RegroupedRows, 
+        List.Distinct(RegroupedRows[TYPE]), 
+        "TYPE", 
+        "Count", 
+        List.Sum
+    ),
+    
+    // Add M column if missing
+    AddM = if Table.HasColumns(PivotedColumn, "M") then PivotedColumn else Table.AddColumn(PivotedColumn, "M", each 0, Int64.Type),
+    
+    // Add P column if missing
+    AddP = if Table.HasColumns(AddM, "P") then AddM else Table.AddColumn(AddM, "P", each 0, Int64.Type),
+    
+    // Replace null with 0 in M and P columns
+    ReplacedValue = Table.ReplaceValue(AddP, null, 0, Replacer.ReplaceValue, {"M", "P"}),
+    
+    // Add total column (C might not exist, so use try/otherwise)
+    AddedTotal = Table.AddColumn(
+        ReplacedValue, 
+        "Total", 
+        each [M] + [P] + (try [C] otherwise 0),
+        type number
+    )
+in
+    AddedTotal
+
+- summons_13month_trend, at ChangedType step Expression.Error: The column 'TICKET_COUNT' of the table wasn't found. Details:
+    TICKET_COUNT
+
+let
+    Source = Excel.Workbook(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"), null, true),
+    Summons_Data_Sheet = Source{[Item="Summons_Data",Kind="Sheet"]}[Data],
+    PromotedHeaders = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
+    ChangedType = Table.TransformColumnTypes(PromotedHeaders,{
+        {"TICKET_NUMBER", type text}, 
+        {"TICKET_COUNT", Int64.Type}, 
+        {"IS_AGGREGATE", type logical}, 
+        {"PADDED_BADGE_NUMBER", type text}, 
+        {"OFFICER_DISPLAY_NAME", type text}, 
+        {"OFFICER_NAME_RAW", type text}, 
+        {"ISSUE_DATE", type datetime}, 
+        {"VIOLATION_NUMBER", type text}, 
+        {"VIOLATION_DESCRIPTION", type text}, 
+        {"VIOLATION_TYPE", type text}, 
+        {"TYPE", type text}, 
+        {"STATUS", type text}, 
+        {"LOCATION", type text}, 
+        {"SOURCE_FILE", type text}, 
+        {"ETL_VERSION", type text}, 
+        {"Year", Int64.Type}, 
+        {"Month", Int64.Type}, 
+        {"YearMonthKey", Int64.Type}, 
+        {"Month_Year", type text}, 
+        {"TEAM", type text}, 
+        {"WG1", type text}, 
+        {"WG2", type text}, 
+        {"WG3", type text}, 
+        {"WG4", type text}, 
+        {"POSS_CONTRACT_TYPE", type text}, 
+        {"ASSIGNMENT_FOUND", type logical}, 
+        {"DATA_QUALITY_SCORE", Int64.Type}, 
+        {"TOTAL_PAID_AMOUNT", type text}, 
+        {"COST_AMOUNT", Int64.Type}, 
+        {"MISC_AMOUNT", Int64.Type}, 
+        {"PROCESSING_TIMESTAMP", type datetime}
+    }),
+    FilteredClean = Table.SelectRows(ChangedType, each [WG2] <> "UNKNOWN"),
+    AddConsolidatedBureau = Table.AddColumn(FilteredClean, "Bureau_Consolidated", each if [WG2] = "HOUSING" or [WG2] = "OFFICE OF SPECIAL OPERATIONS" then "PATROL DIVISION" else [WG2], type text)
+in
+    AddConsolidatedBureau
+
+- ___ResponseTimeCalculator, at step BackfillRaw, Expression.Error: The path 'C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date' is a folder path. A file path is expected. Details:
+    C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date
+// ==============================================================================
+// RESPONSE TIMES M CODE - COMPLETE FIX WITH DATE SORT KEY
+// Query Name: ___ResponseTimeCalculator
+// ==============================================================================
+// FIXES:
+// 1. Ensures Average_Response_Time column exists (fixes measure errors)
+// 2. Adds Date_Sort_Key for proper chronological sorting
+// 3. Properly handles column naming and types
+// ==============================================================================
+
+let
+    // ========================================================================
+    // LOAD BACKFILL DATA (Nov 2024 - Oct 2025)
+    // ========================================================================
+    
+    BackfillRaw = Csv.Document(
+        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date"),
+        [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]
+    ),
+    BackfillHeaders = Table.PromoteHeaders(BackfillRaw, [PromoteAllScalars=true]),
+    
+    // Rename columns - handle both possible column names
+    BackfillRenamed = Table.RenameColumns(
+        BackfillHeaders,
+        {
+            {"Response Type", "Response_Type"},
+            {"First Response_Time_MMSS", "Response_Time_MMSS"},
+            {"MM-YY", "MM-YY"}
+        },
+        MissingField.Ignore
+    ),
+    
+    // Ensure MM-YY column exists (may already be named correctly)
+    BackfillWithMMYY = if Table.HasColumns(BackfillRenamed, "MM-YY") then
+        BackfillRenamed
+    else if Table.HasColumns(BackfillRenamed, "MM_YY") then
+        Table.RenameColumns(BackfillRenamed, {{"MM_YY", "MM-YY"}})
+    else
+        BackfillRenamed,
+    
+    // Calculate Average_Response_Time from MM:SS format (CRITICAL - measures need this!) BackfillWithAvg = Table.AddColumn(
+        BackfillWithMMYY,
+        "Average_Response_Time",
+        each let
+            timeStr = Text.Trim(Text.From([Response_Time_MMSS])),
+            parts = Text.Split(timeStr, ":"),
+            minutes = if List.Count(parts) >= 2 then
+                let
+                    mins = Number.From(parts{0}),
+                    secs = Number.From(parts{1}),
+                    totalMins = mins + (secs / 60.0)
+                in
+                    totalMins
+            else
+                null
+        in
+            minutes,
+        type number
+    ),
+    
+    // Add YearMonth from MM-YY (e.g., "11-24" -> "2024-11")
+    BackfillWithYearMonth = Table.AddColumn(
+        BackfillWithAvg,
+        "YearMonth",
+        each let
+            mmYY = Text.Trim(Text.From([#"MM-YY"])),
+            parts = Text.Split(mmYY, "-"),
+            yearMonth = if List.Count(parts) >= 2 then
+                let
+                    mm = parts{0},
+                    yy = "20" & parts{1},
+                    yearMonthStr = yy & "-" & Text.PadStart(mm, 2, "0")
+                in
+                    yearMonthStr
+            else
+                null
+        in
+            yearMonth,
+        type text
+    ),
+    
+    // Add Date_Sort_Key - proper date format (yyyy-mm-dd) for sorting
+    // For monthly data, use first day of month (yyyy-mm-01)
+    BackfillWithDateKey = Table.AddColumn(
+        BackfillWithYearMonth,
+        "Date_Sort_Key",
+        each let
+            yearMonth = [YearMonth],
+            // Convert "2024-11" to proper Date format "2024-11-01"
+            dateValue = try 
+                let
+                    // Ensure format is yyyy-mm-dd
+                    dateStr = yearMonth & "-01",
+                    parsed = Date.FromText(dateStr)
+                in
+                    parsed
+            otherwise null
+        in
+            dateValue,
+        type date
+    ),
+    
+    // ========================================================================
+    // LOAD NOVEMBER 2025 DATA (ETL Output)
+    // ========================================================================
+    
+    Nov2025Raw = Csv.Document(
+        File.Contents("C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\2025_12_Average_Response_Times__Values_are_in_mmss.csv"),
+        [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]
+    ),
+    Nov2025Headers = Table.PromoteHeaders(Nov2025Raw, [PromoteAllScalars=true]),
+    
+    // Rename columns
+    Nov2025Renamed = Table.RenameColumns(
+        Nov2025Headers,
+        {
+            {"Response Type", "Response_Type"},
+            {"First Response_Time_MMSS", "Response_Time_MMSS"},
+            {"MM-YY", "MM-YY"}
+        },
+        MissingField.Ignore
+    ),
+    
+    // Ensure MM-YY column exists
+    Nov2025WithMMYY = if Table.HasColumns(Nov2025Renamed, "MM-YY") then
+        Nov2025Renamed
+    else if Table.HasColumns(Nov2025Renamed, "MM_YY") then
+        Table.RenameColumns(Nov2025Renamed, {{"MM_YY", "MM-YY"}})
+    else
+        Nov2025Renamed,
+    
+    // Calculate Average_Response_Time (CRITICAL - measures need this!) Nov2025WithAvg = Table.AddColumn(
+        Nov2025WithMMYY,
+        "Average_Response_Time",
+        each let
+            timeStr = Text.Trim(Text.From([Response_Time_MMSS])),
+            parts = Text.Split(timeStr, ":"),
+            minutes = if List.Count(parts) >= 2 then
+                let
+                    mins = Number.From(parts{0}),
+                    secs = Number.From(parts{1}),
+                    totalMins = mins + (secs / 60.0)
+                in
+                    totalMins
+            else
+                null
+        in
+            minutes,
+        type number
+    ),
+    
+    // Add YearMonth
+    Nov2025WithYearMonth = Table.AddColumn(
+        Nov2025WithAvg,
+        "YearMonth",
+        each let
+            mmYY = Text.Trim(Text.From([#"MM-YY"])),
+            parts = Text.Split(mmYY, "-"),
+            yearMonth = if List.Count(parts) >= 2 then
+                let
+                    mm = parts{0},
+                    yy = "20" & parts{1},
+                    yearMonthStr = yy & "-" & Text.PadStart(mm, 2, "0")
+                in
+                    yearMonthStr
+            else
+                null
+        in
+            yearMonth,
+        type text
+    ),
+    
+    // Add Date_Sort_Key - proper date format (yyyy-mm-dd) for sorting
+    // For monthly data, use first day of month (yyyy-mm-01)
+    Nov2025WithDateKey = Table.AddColumn(
+        Nov2025WithYearMonth,
+        "Date_Sort_Key",
+        each let
+            yearMonth = [YearMonth],
+            // Convert "2025-11" to proper Date format "2025-11-01"
+            dateValue = try 
+                let
+                    // Ensure format is yyyy-mm-dd
+                    dateStr = yearMonth & "-01",
+                    parsed = Date.FromText(dateStr)
+                in
+                    parsed
+            otherwise null
+        in
+            dateValue,
+        type date
+    ),
+    
+    // ========================================================================
+    // COMBINE DATASETS
+    // ========================================================================
+    
+    Combined = Table.Combine({BackfillWithDateKey, Nov2025WithDateKey}),
+    
+    // ========================================================================
+    // ENSURE ALL REQUIRED COLUMNS EXIST AND ARE CORRECT TYPE
+    // ========================================================================
+    
+    // Verify Average_Response_Time exists (this fixes the measure errors)
+    Verified = if Table.HasColumns(Combined, "Average_Response_Time") then
+        // Ensure it's numeric type
+        Table.TransformColumnTypes(
+            Combined,
+            {{"Average_Response_Time", type number}},
+            "en-US"
+        )
+    else
+        // If somehow missing, add it (shouldn't happen but safety check)
+        Table.AddColumn(Combined, "Average_Response_Time", each null, type number),
+    
+    // Ensure Response_Type is text and Average_Response_Time is number
+    Typed = Table.TransformColumnTypes(
+        Verified,
+        {
+            {"Response_Type", type text},
+            {"Response_Time_MMSS", type text},
+            {"MM-YY", type text},
+            {"YearMonth", type text},
+            {"Date_Sort_Key", type date},
+            {"Average_Response_Time", type number}  // Explicitly ensure type is set
+        },
+        "en-US"
+    ),
+    
+    // ========================================================================
+    // ADD COLUMNS THAT DAX MEASURES EXPECT (Summary_Type, Category, Date)
+    // ========================================================================
+    
+    // Add Summary_Type and Category columns (for DAX compatibility)
+    WithDAXColumns = Table.AddColumn(
+        Table.AddColumn(
+            Typed,
+            "Summary_Type",
+            each "Response_Type",
+            type text
+        ),
+        "Category",
+        each [Response_Type],
+        type text
+    ),
+    
+    // Add Date column (alias for Date_Sort_Key for DAX compatibility)
+    WithDateColumn = Table.AddColumn(
+        WithDAXColumns,
+        "Date",
+        each [Date_Sort_Key],
+        type date
+    ),
+    
+    // ========================================================================
+    // SELECT FINAL COLUMNS IN CORRECT ORDER
+    // ========================================================================
+    
+    // Final verification: Ensure Average_Response_Time exists before selecting
+    FinalVerified = if Table.HasColumns(WithDateColumn, "Average_Response_Time") then
+        WithDateColumn
+    else
+        // Emergency fallback: Add the column if missing
+        Table.AddColumn(
+            WithDateColumn,
+            "Average_Response_Time",
+            each null,
+            type number
+        ),
+    
+    // Select columns - include all columns needed for DAX measures
+    Result = Table.SelectColumns(
+        FinalVerified,
+        {
+            "YearMonth",
+            "Date_Sort_Key",      // Date sort key for chronological sorting
+            "Date",               // Date column (alias) for DAX measures
+            "Response_Type",
+            "Summary_Type",       // For DAX compatibility
+            "Category",           // For DAX compatibility (matches Response_Type)
+            "Average_Response_Time",  // ← THIS COLUMN FIXES THE MEASURE ERRORS! "Response_Time_MMSS",
+            "MM-YY"
+        }
+    )
+    
+in
+    Result
+
+// ==============================================================================
+// KEY POINTS:
+// 1. Average_Response_Time column is CREATED and VERIFIED to exist
+// 2. Date_Sort_Key added as proper Date type in yyyy-mm-dd format
+//    - For monthly aggregated data, uses first day of month (yyyy-mm-01)
+//    - Example: "2024-11" becomes Date(2024-11-01)
+// 3. Date column added as alias to Date_Sort_Key (for DAX measure compatibility)
+// 4. Summary_Type and Category columns added (for DAX measure compatibility)
+// 5. Column types are explicitly set to ensure compatibility
+// 6. All required columns are selected in final output
+// ==============================================================================
+
+---
+
+**Cursor**
+
+Now I can see exactly what's going on. Let me check the file paths before giving you fixes. Good -- the files exist. I can now see all four issues clearly. Here are the exact fixes. Do them **one at a time** in the Advanced Editor, click Done after each, verify the preview, then move to the next. **Do NOT click Close & Apply until all four are done. **
+
+---
+
+### Fix 1: `___ResponseTimeCalculator` -- two broken file paths
+
+The first path got truncated. The second still has `C:\Dev`.

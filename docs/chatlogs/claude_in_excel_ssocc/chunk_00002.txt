@@ -1,0 +1,333 @@
+Let me check what's happening with the actual cell display:
+
+
+Check R12
+value types
+Parameters:
+{
+  "code": "..."
+}
+Code:
+// Check actual calculated values and text display
+const sheet = context.workbook.worksheets.getItem("YEARLY_TOTALS");
+const range = sheet.getRange("R12:R15");
+range.load("values, formulas, text, valueTypes");
+await context.sync();
+
+const details = [];
+for (let i = 0; i < range.values.length; i++) {
+  details.push({
+    cell: `R${12 + i}`,
+    value: range.values[i][0],
+    formula: range.formulas[i][0],
+    text: range.text[i][0],
+    valueType: range.valueTypes[i][0]
+  });
+}
+
+return { details };
+Show more
+Result:
+{
+  "success": true,
+  "result": {
+    "details": [
+      {
+        "cell": "R12",
+        "value": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "text": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "valueType": "String"
+      },
+      {
+        "cell": "R13",
+        "value": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "text": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "valueType": "String"
+      },
+      {
+        "cell": "R14",
+        "value": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "text": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "valueType": "String"
+      },
+      {
+        "cell": "R15",
+        "value": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "formula": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "text": "=COUNTIF(_26_JAN[Service/Product],[@[ServiceName_Normalized]])",
+        "valueType": "String"
+      }
+    ]
+  }
+}
+Show more
+Aha! The issue is that the formulas were stored as text values (valueType: "String"), not as actual formula objects. This is different from what I initially thought. The cells contain the formula text as a value, not as an actual formula. Let me fix this:
+
+
+Get full YEARLY_TOTALS table structure
+Parameters:
+{
+  "sheetId": 13,
+  "ranges": [
+    "A1:AC58"
+  ],
+  "includeStyles": false,
+  "cellLimit": 2000
+}
+Result:
+{
+  "success": true,
+  "hasMore": false,
+  "worksheet": {
+    "name": "YEARLY_TOTALS",
+    "sheetId": 13,
+    "dimension": "A1:AC58",
+    "cells": {
+      "A1": "Products/Services",
+      "A2": "Administrative Tasks",
+      "A3": "Analysis for Detectives",
+      "A4": "Analysis for Patrol",
+      "A5": "Avigilon Flag Review",
+      "A6": "BWC Review",
+      "A7": "CCTV Site Analysis",
+      "A8": "CCTV Site Maintenance",
+      "A9": "City Event",
+      "A10": "Cleaning Services",
+      "A11": "CompStat Data Preparation",
+      "A12": "CompStat Detective Meeting",
+      "A13": "CompStat Traffic Meeting",
+      "A14": "Crime Analysis",
+      "A15": "Data Clean Up",
+      "A16": "Database Management",
+      "A17": "Department Event",
+      "A18": "Document Revision",
+      "A19": "Equipment Repair",
+      "A20": "File Management",
+      "A21": "Form Creation",
+      "A22": "Form Update",
+      "A23": "Hardware Support",
+      "A24": "Incident Follow-Up",
+      "A25": "Installation Services",
+      "A26": "Internal Communication",
+      "A27": "Internal Meeting",
+      "A28": "Investigative Assistance",
+      "A29": "Mandatory Training",
+      "A30": "Meeting Preparation",
+      "A31": "Meeting with Administration",
+      "A32": "Meeting with Business",
+      "A33": "Meeting with Outside Agency",
+      "A34": "Meeting with Private Entity",
+      "A35": "Meeting with Resident",
+      "A36": "Meeting with Vendor",
+      "A37": "Monthly Report Prep",
+      "A38": "Onboarding Paperwork Sharing",
+      "A39": "Online Training",
+      "A40": "On-site Training",
+      "A41": "Other",
+      "A42": "Outside Agency Communication",
+      "A43": "Patrol Analysis & Support",
+      "A44": "Patrol Support",
+      "A45": "Prep for Meeting",
+      "A46": "Research",
+      "A47": "Routine Maintenance",
+      "A48": "SCRPA Prep. ",
+      "A49": "SCRPA Report",
+      "A50": "Software Maintenance",
+      "A51": "Special Event Monitoring",
+      "A52": "SSOCC Tour",
+      "A53": "TAS Alert(s) Reviewed",
+      "A54": "Technical Support",
+      "A55": "Traffic CompStat",
+      "A56": "Vendor Communication",
+      "A57": "Virtual Patrol",
+      "A58": "Workflow Automation",
+      "B1": "ServiceName_Normalized",
+      "B2": [
+        "Administrative Tasks",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B3": [
+        "Analysis for Detectives",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B4": [
+        "Analysis for Patrol",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B5": [
+        "Avigilon Flag Review",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B6": [
+        "BWC Review",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B7": [
+        "CCTV Site Analysis",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B8": [
+        "CCTV Site Maintenance",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B9": [
+        "City Event",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B10": [
+        "Cleaning Services",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B11": [
+        "CompStat Data Preparation",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B12": [
+        "CompStat Detective Meeting",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B13": [
+        "CompStat Traffic Meeting",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B14": [
+        "Crime Analysis",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B15": [
+        "Data Clean Up",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B16": [
+        "Database Management",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B17": [
+        "Department Event",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B18": [
+        "Document Revision",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B19": [
+        "Equipment Repair",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B20": [
+        "File Management",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B21": [
+        "Form Creation",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B22": [
+        "Form Update",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B23": [
+        "Hardware Support",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B24": [
+        "Incident Follow-Up",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B25": [
+        "Installation Services",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B26": [
+        "Internal Communication",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B27": [
+        "Internal Meeting",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B28": [
+        "Investigative Assistance",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B29": [
+        "Mandatory Training",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B30": [
+        "Meeting Preparation",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B31": [
+        "Meeting with Administration",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B32": [
+        "Meeting with Business",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B33": [
+        "Meeting with Outside Agency",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B34": [
+        "Meeting with Private Entity",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B35": [
+        "Meeting with Resident",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B36": [
+        "Meeting with Vendor",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B37": [
+        "Monthly Report Prep",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B38": [
+        "Onboarding Paperwork Sharing",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B39": [
+        "Online Training",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B40": [
+        "On-site Training",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B41": [
+        "Other",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B42": [
+        "Outside Agency Communication",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B43": [
+        "Patrol Analysis & Support",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B44": [
+        "Patrol Support",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B45": [
+        "Prep for Meeting",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B46": [
+        "Research",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B47": [
+        "Routine Maintenance",
+        "=IFERROR(VLOOKUP([@[Products/Services]],service_product_mapping_draft,2,FALSE),[@[Products/Services]])"
+      ],
+      "B48": [
+        "SCRPA Prep.

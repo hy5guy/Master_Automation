@@ -1,0 +1,4 @@
+﻿Report_Month,Response_Type,MM-YY,Avg_Response_Time,Response_Time_MMSS,Median_Response_Time,Min_Response_Time,Max_Response_Time,Count
+2026-01,Emergency,01-26,2.843,2:51,2.3,0.017,9.883,257
+2026-01,Routine,01-26,2.714,2:43,1.75,0.017,9.983,783
+2026-01,Urgent,01-26,2.582,2:35,2.05,0.017,9.95,951

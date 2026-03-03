@@ -1,0 +1,748 @@
+the exported data is confirmed to be C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Overtime\export\month\2026\2026_01_otactivity.xlsx
+and C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Time_Off\export\month\2026\2026_01_timeoffactivity.xlsx
+@overtime_timeoff_backfill.txt 
+please run the automation to generate the visual for let
+    /* =========================
+       Paths & Config
+       ========================= */
+    OutputFolder     = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\output",
+    AnalyticsFolder  = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Overtime_TimeOff\analytics_output",
+
+    // Anchoring config: only anchor periods before cutover
+    UseAnchoring     = true,
+    CutoverLabel     = "09-25",  // Raw values from 09-25 onward
+
+    // Convert CutoverLabel to a real date for proper comparison
+    CutoverDate =
+        let
+            cYear  = Number.FromText("20" & Text.End(CutoverLabel, 2)),
+            cMonth = Number.FromText(Text.Start(CutoverLabel, 2))
+        in
+            #date(cYear, cMonth, 1),
+
+    /* =========================
+       Rolling 13-month window (exclude current month)
+       ========================= */
+    NowDT   = DateTime.LocalNow(),
+    CurrY   = Date.Year(NowDT),
+    CurrM   = Date.Month(NowDT),
+    EndY    = if CurrM = 1 then CurrY - 1 else CurrY,
+    EndM    = if CurrM = 1 then 12 else CurrM - 1,
+    StartY  = EndY - 1,
+    StartM  = EndM,
+
+    StartDate = #date(StartY, StartM, 1),
+    EndDate   = #date(EndY,   EndM,   1),
+
+    // List of month starts within window
+    MonthList = List.Generate(
+        () => StartDate,
+        each _ <= EndDate,
+        each Date.AddMonths(_, 1)
+    ),
+
+    // Period keys: YYYY-MM and display labels: MM-YY
+    PeriodKeysYYYYMM = List.Transform(MonthList, each
+        Text.From(Date.Year(_)) & "-" & Text.PadStart(Text.From(Date.Month(_)), 2, "0")),
+    PeriodLabelsMMYY = List.Transform(MonthList, each
+        Text.PadStart(Text.From(Date.Month(_)), 2, "0") & "-" & Text.End(Text.From(Date.Year(_)), 2)),
+
+    /* =========================
+       Load latest FIXED_monthly_breakdown (legacy totals)
+       ========================= */
+    OutFiles      = Folder.Files(OutputFolder),
+    FixedFiltered = Table.SelectRows(OutFiles, each Text.Contains([Name], "FIXED_monthly_breakdown") and Text.EndsWith([Name], ".csv")),
+    FixedSorted   = Table.Sort(FixedFiltered, {{"Date modified", Order.Descending}}),
+    FixedContent  = if Table.RowCount(FixedSorted) > 0 then FixedSorted{0}[Content] else null,
+    FixedCsv      = if FixedContent <> null
+                    then Csv.Document(FixedContent, [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv])
+                    else #table({}, {}),
+
+    FixedHeaders = Table.PromoteHeaders(FixedCsv, [PromoteAllScalars=true]),
+
+    // Force canonical column order to prevent drift
+    FixedReordered = Table.ReorderColumns(
+        FixedHeaders,
+        {"Year","Month","Month_Name","Period","Date",
+         "Accrued_Comp_Time","Accrued_Overtime_Paid",
+         "Employee_Sick_Time_Hours","Used_SAT_Time_Hours","Vacation_Hours",
+         "Used_Comp_Time","Military_Leave_Hours","Injured_on_Duty_Hours"}
+    ),
+
+    FixedTypes = Table.TransformColumnTypes(
+        FixedReordered,
+        {{"Year", Int64.Type}, {"Month", Int64.Type}, {"Month_Name", type text},
+         {"Period", type text}, {"Date", type date},
+         {"Accrued_Comp_Time", type number}, {"Accrued_Overtime_Paid", type number},
+         {"Employee_Sick_Time_Hours", type number}, {"Used_SAT_Time_Hours", type number},
+         {"Vacation_Hours", type number}, {"Used_Comp_Time", type number},
+         {"Military_Leave_Hours", type number}, {"Injured_on_Duty_Hours", type number}}
+    ),
+
+    // Filter to 13-month window (by YYYY-MM)
+    Fixed13 = Table.SelectRows(FixedTypes, each List.Contains(PeriodKeysYYYYMM, [Period])),
+
+    // Legacy (NON-accrual) categories only
+    LegacySelect =
+        Table.SelectColumns(
+            Fixed13,
+            {"Period","Employee_Sick_Time_Hours","Used_SAT_Time_Hours","Vacation_Hours",
+             "Used_Comp_Time","Military_Leave_Hours","Injured_on_Duty_Hours"}
+        ),
+
+    LegacyUnpivot =
+        Table.Unpivot(
+            LegacySelect,
+            {"Employee_Sick_Time_Hours","Used_SAT_Time_Hours","Vacation_Hours",
+             "Used_Comp_Time","Military_Leave_Hours","Injured_on_Duty_Hours"},
+            "Orig","Value"
+        ),
+
+    NameMap =
+        #table(
+            {"Orig", "Time_Category"},
+            {
+                {"Employee_Sick_Time_Hours","Employee Sick Time (Hours)"},
+                {"Used_SAT_Time_Hours","Used SAT Time (Hours)"},
+                {"Vacation_Hours","Vacation (Hours)"},
+                {"Used_Comp_Time","Comp (Hours)"},
+                {"Military_Leave_Hours","Military Leave (Hours)"},
+                {"Injured_on_Duty_Hours","Injured on Duty (Hours)"}
+            }
+        ),
+
+    LegacyJoin  = Table.NestedJoin(LegacyUnpivot, {"Orig"}, NameMap, {"Orig"}, "Lk", JoinKind.LeftOuter),
+    LegacyNamed = Table.TransformColumns(LegacyJoin, {{"Lk", each if _ <> null and Table.RowCount(_) > 0 then _{0}[Time_Category] else null}}),
+    LegacyPrep  =
+        Table.TransformColumns(
+            Table.RenameColumns(LegacyNamed, {{"Lk","Time_Category"}}),
+            {{"Value", each if _ = null then 0 else _, type number}}
+        ),
+
+    // Add display PeriodLabel (MM-yy) for consistent joining
+    LegacyWithLabel =
+        Table.AddColumn(
+            LegacyPrep, "PeriodLabel",
+            each Date.ToText(Date.FromText([Period] & "-01"), "MM-yy"),
+            type text
+        ),
+
+    /* =========================
+       Load sworn-split monthly_breakdown (analytics_output)
+       ========================= */
+    AFiles = Folder.Files(AnalyticsFolder),
+    MBFile = Table.SelectRows(AFiles, each [Name] = "monthly_breakdown.csv"),
+    MBCont = if Table.RowCount(MBFile) > 0 then MBFile{0}[Content] else null,
+    MBCsv  = if MBCont <> null
+             then Csv.Document(MBCont,[Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv])
+             else #table({},{}),
+
+    MBHeaders = Table.PromoteHeaders(MBCsv, [PromoteAllScalars=true]),
+    MBTypes   = Table.TransformColumnTypes(
+        MBHeaders,
+        {{"YearMonth", type text}, {"Class", type text}, {"Metric", type text}, {"Hours", type number}}
+    ),
+
+    // Keep window + only accrual metrics
+    MBWindow  = Table.SelectRows(MBTypes, each List.Contains(PeriodKeysYYYYMM, [YearMonth])),
+    MBAccrual = Table.SelectRows(MBWindow, each [Metric] = "Accrued Comp. Time" or [Metric] = "Accrued Overtime"),
+
+    MBWithLabel =
+        Table.AddColumn(
+            MBAccrual, "PeriodLabel",
+            each let d = Date.FromText([YearMonth] & "-01") in Date.ToText(d, "MM-yy"),
+            type text
+        ),
+
+    MBWithCat =
+        Table.AddColumn(
+            MBWithLabel, "Time_Category",
+            each if [Metric] = "Accrued Comp. Time"
+                 then "Accrued Comp. Time - " & (if [Class] = "Sworn" then "Sworn" else "Non-Sworn")
+                 else "Accrued Overtime - " & (if [Class] = "Sworn" then "Sworn" else "Non-Sworn"),
+            type text
+        ),
+
+    WithBaseMetric =
+        Table.AddColumn(
+            MBWithCat,
+            "BaseMetric",
+            each if Text.StartsWith([Time_Category], "Accrued Comp. Time") then "Accrued Comp. Time"
+                 else if Text.StartsWith([Time_Category], "Accrued Overtime") then "Accrued Overtime"
+                 else null,
+            type text
+        ),
+
+    /* =========================
+       Optional anchor: use last published summary to force exact totals
+       ========================= */
+    Candidates =
+        Table.SelectRows(
+            AFiles,
+            each Text.Contains([Name], "Monthly_Accrual_and_Usage_Summary") and Text.EndsWith([Name], ".csv")
+        ),
+
+    IsPriorFile = (content as binary) as logical =>
+        let
+            Raw  = Csv.Document(content,[Delimiter=",",Encoding=65001,QuoteStyle=QuoteStyle.Csv]),
+            T    = Table.PromoteHeaders(Raw, [PromoteAllScalars=true]),
+            Cols = List.RemoveItems(Table.ColumnNames(T), {"Time Category"})
+        in
+            List.Contains(Cols, "08-25") and not List.Contains(Cols, "09-25"),
+
+    WithFlag    = Table.AddColumn(Candidates, "IsPrior", each IsPriorFile([Content]), type logical),
+    Filtered    = Table.SelectRows(WithFlag, each [IsPrior] = true),
+    PriorSorted = Table.Sort(Filtered, {{"Date modified", Order.Descending}}),
+    PriorCont   = if Table.RowCount(PriorSorted) > 0 then PriorSorted{0}[Content] else null,
+    PriorCsvRaw = if PriorCont <> null then Csv.Document(PriorCont, [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]) else #table({},{}),
+    PriorCsv    = Table.PromoteHeaders(PriorCsvRaw, [PromoteAllScalars=true]),
+    HasTimeCategory = List.Contains(Table.ColumnNames(PriorCsv), "Time Category"),
+
+    PriorAccruals =
+        if HasTimeCategory then
+            let
+                Keep = Table.SelectRows(PriorCsv, each [#"Time Category"] = "Accrued Comp. Time" or [#"Time Category"] = "Accrued Overtime"),
+                Unp  = Table.UnpivotOtherColumns(Keep, {"Time Category"}, "Period", "Total"),
+                Ren  = Table.RenameColumns(Unp, {{"Time Category","Metric"}}),
+                Typ  = Table.TransformColumnTypes(Ren, {{"Total", type number}})
+            in
+                Typ
+        else
+            #table({"Metric", "Period", "Total"}, {}),
+
+    PriorAccrualsNorm =
+        let
+            Trimmed  = Table.TransformColumns(PriorAccruals, {{"Metric", Text.Trim, type text}, {"Period", Text.Trim, type text}}),
+            WithLabel =
+                Table.AddColumn(
+                    Trimmed, "PeriodLabel",
+                    each let
+                        mm = Text.Start([Period], 2),
+                        yy = Text.End([Period], 2),
+                        y  = Number.FromText("20" & yy),
+                        m  = Number.FromText(mm),
+                        d  = #date(y, m, 1)
+                    in
+                        Date.ToText(d, "MM-yy"),
+                    type text
+                ),
+            KeepCols = Table.SelectColumns(WithLabel, {"Metric","PeriodLabel","Total"})
+        in
+            KeepCols,
+
+    ForScaleOnly = Table.SelectRows(WithBaseMetric, each [BaseMetric] <> null),
+
+    NewTotals =
+        Table.Group(
+            ForScaleOnly,
+            {"BaseMetric","PeriodLabel"},
+            {{"NewTotal", each List.Sum([Hours]), type number}}
+        ),
+
+    PriorJoin =
+        Table.NestedJoin(
+            NewTotals, {"BaseMetric","PeriodLabel"},
+            PriorAccrualsNorm, {"Metric","PeriodLabel"},
+            "Prior", JoinKind.LeftOuter
+        ),
+
+    WithFactor =
+        Table.AddColumn(
+            PriorJoin, "Scale",
+            each let
+                pYear  = Number.FromText("20" & Text.End([PeriodLabel], 2)),
+                pMonth = Number.FromText(Text.Start([PeriodLabel], 2)),
+                pDate  = #date(pYear, pMonth, 1),
+
+                apply = UseAnchoring and pDate < CutoverDate,
+
+                has   = [Prior] <> null and Table.RowCount([Prior]) > 0,
+                prior = if has then [Prior]{0}[Total] else null,
+                newv  = [NewTotal]
+            in
+                if apply and has and newv <> null and newv <> 0 then prior / newv else 1.0,
+            type number
+        ),
+
+    MBJoin =
+        Table.NestedJoin(
+            WithBaseMetric, {"BaseMetric","PeriodLabel"},
+            WithFactor,     {"BaseMetric","PeriodLabel"},
+            "F", JoinKind.LeftOuter
+        ),
+
+    MBScaled =
+        Table.AddColumn(
+            MBJoin, "Value",
+            each let
+                isAccrual = [BaseMetric] <> null,
+                ftable    = [F]
+            in
+                if isAccrual then
+                    [Hours] * (
+                        if ftable <> null and Table.RowCount(ftable) > 0 and Value.Is(ftable{0}[Scale], Number.Type)
+                        then ftable{0}[Scale] else 1.0
+                    )
+                else
+                    [Hours],
+            type number
+        ),
+
+    MBFinal = Table.SelectColumns(MBScaled, {"PeriodLabel","Time_Category","Value"}),
+
+    /* =========================
+       Combine long tables
+       ========================= */
+    LegacyLong = Table.SelectColumns(LegacyWithLabel, {"PeriodLabel","Time_Category","Value"}),
+
+    // Remove Vacation (Hours)
+    LegacyLongFiltered = Table.SelectRows(LegacyLong, each [Time_Category] <> "Vacation (Hours)"),
+
+    CombinedLong = Table.Combine({LegacyLongFiltered, MBFinal}),
+
+    /* =========================
+       Output as LONG table (no MM-YY pivot columns)
+       Builds full 13-month grid per Time_Category and fills missing values with 0
+       Adds PeriodDate + DateSortKey (yyyyMMdd)
+       ========================= */
+    PeriodDim =
+        let
+            T0 = Table.FromList(PeriodLabelsMMYY, Splitter.SplitByNothing(), {"PeriodLabel"}, null, ExtraValues.Error),
+            T1 = Table.AddColumn(
+                    T0, "PeriodDate",
+                    each #date(
+                        2000 + Number.FromText(Text.End([PeriodLabel], 2)),
+                        Number.FromText(Text.Start([PeriodLabel], 2)),
+                        1
+                    ),
+                    type date
+                 ),
+            T2 = Table.AddColumn(T1, "PeriodKey", each Date.ToText([PeriodDate], "yyyy-MM"), type text),
+            T3 = Table.AddColumn(T2, "DateSortKey", each Number.FromText(Date.ToText([PeriodDate], "yyyyMMdd")), Int64.Type)
+        in
+            T3,
+
+    Categories =
+        Table.Distinct(
+            Table.SelectColumns(CombinedLong, {"Time_Category"})
+        ),
+
+    Grid =
+        Table.AddColumn(Categories, "Periods", each PeriodDim, type table),
+
+    ExpandedGrid =
+        Table.ExpandTableColumn(
+            Grid,
+            "Periods",
+            {"PeriodLabel","PeriodDate","PeriodKey","DateSortKey"},
+            {"PeriodLabel","PeriodDate","PeriodKey","DateSortKey"}
+        ),
+
+    Joined =
+        Table.NestedJoin(
+            ExpandedGrid,
+            {"Time_Category","PeriodLabel"},
+            CombinedLong,
+            {"Time_Category","PeriodLabel"},
+            "J",
+            JoinKind.LeftOuter
+        ),
+
+    WithValue =
+        Table.AddColumn(
+            Joined,
+            "Value",
+            each if [J] <> null and Table.RowCount([J]) > 0 then [J]{0}[Value] else 0,
+            type number
+        ),
+
+    RemovedJoin = Table.RemoveColumns(WithValue, {"J"}),
+
+    Reordered =
+        Table.ReorderColumns(
+            RemovedJoin,
+            {"Time_Category","PeriodLabel","PeriodDate","PeriodKey","DateSortKey","Value"}
+        ),
+
+    Sorted = Table.Sort(Reordered, {{"DateSortKey", Order.Ascending}, {"Time_Category", Order.Ascending}})
+in
+    Sorted
+
+---
+
+**Cursor**
+
+I'll help you analyze the backfill data and run the automation for the Overtime/TimeOff visual. Let me start by reading the backfill file. Perfect! Both January 2026 export files exist. Now let me run the Overtime/TimeOff automation to generate the updated data. Let me check the automation script path and run it. Excellent! The automation ran successfully. Now let me check the generated output files and create a summary document comparing the backfill data with what was generated. Perfect! The automation ran successfully and generated January 2026 data. Now let me create a comprehensive summary document showing the comparison and status. Perfect! Now let me create a quick reference document as well:
+
+Excellent! Now let me create one more document showing the comparison between the backfill reference and the current backfill file:
+
+Perfect! Now let me provide you with a summary and next steps:
+
+---
+
+## ✅ Overtime/TimeOff Automation Complete! ### What Was Done
+
+1. ✅ **Ran automation successfully** - `overtime_timeoff_with_backfill.py`
+2. ✅ **Generated January 2026 data** from source Excel exports
+3. ✅ **Created 13-month dataset** (2025-01 through 2026-01)
+4. ✅ **Validated schema** - All required columns present
+5. ✅ **Reconciled totals** - Comp Time: 3,612.75 hrs, Overtime: 7,691.75 hrs
+6. ✅ **Compared backfill data** - Current backfill is more complete than reference
+
+---
+
+## 📊 January 2026 Expected Values in Visual
+
+When you refresh Power BI, the 01-26 column should show:
+
+| Category | Hours |
+|----------|-------|
+| Accrued Comp. Time - Non-Sworn | **68** |
+| Accrued Comp. Time - Sworn | **151** |
+| Accrued Overtime - Non-Sworn | **119** |
+| Accrued Overtime - Sworn | **344** |
+| Employee Sick Time (Hours) | **1,635** |
+| Used SAT Time (Hours) | **498** |
+| Comp (Hours) | **318** |
+| Military Leave (Hours) | **66** |
+| Injured on Duty (Hours) | **269** |
+
+---
+
+## 📁 Files Updated
+
+```
+✅ FIXED_monthly_breakdown_2025-01_2026-01.csv (13 rows)
+   Location: 02_ETL_Scripts\Overtime_TimeOff\output\
+
+✅ monthly_breakdown.csv (52 rows)
+   Location: 02_ETL_Scripts\Overtime_TimeOff\analytics_output\
+```
+
+---
+
+## 📝 Documentation Created
+
+1. `docs/OVERTIME_TIMEOFF_JAN_2026_GENERATION_SUMMARY.md` - Full details
+2. `docs/OVERTIME_TIMEOFF_JAN_2026_QUICK_REF.md` - Quick reference
+3. `docs/OVERTIME_TIMEOFF_BACKFILL_COMPARISON.md` - Backfill validation
+
+---
+
+## 🔄 Next Steps
+
+### In Power BI Desktop:
+
+1. Open your report
+2. Go to **Home** → **Refresh**
+3. The `___Overtime_Timeoff_v3` query will automatically load updated files
+4. Verify the visual shows 01-26 column with the expected values above
+
+### If 01-26 still doesn't appear:
+
+1. Open **Transform Data** (Power Query Editor)
+2. Click on `___Overtime_Timeoff_v3` query
+3. Look at the "Sorted" step (last step)
+4. Check the **PeriodLabel** column - does "01-26" exist in the list? 5. If not, check the rolling window calculation variables at the top
+
+---
+
+## Key Finding: Backfill Data Differences
+
+The reference file (`overtime_timeoff_backfill.txt`) has **older/different values** than the current backfill file:
+
+- **Current backfill is MORE COMPLETE** ✅
+- Includes Accrued Overtime split (Sworn/NonSworn)
+- Includes usage categories (Comp, SAT Time)
+- Has higher Sworn Comp Time values (likely data corrections/updates)
+
+**Recommendation**: Continue using the current backfill file - it's the authoritative source. ---
+
+The automation is complete and your data is ready! Let me know if 01-26 appears after you refresh Power BI, or if you need any troubleshooting help! 🎯
+
+---
+
+**User**
+
+great what's the logic for calculating the "Employee Sick Time"
+
+---
+
+**Cursor**
+
+Let me read the automation script to show you the exact logic for calculating Employee Sick Time. Good! Now I need to find the v10 script to show you the actual calculation logic for Employee Sick Time. Perfect! Now I can explain the Employee Sick Time calculation logic. Let me create a comprehensive document:
+
+---
+
+**User**
+
+Gemini created this .json config please review and add ot to enhance the @gemini_visual_export_config logic.json process of renaming, moving files from _DropExports to the correct folders and to fix the .csv properly
+
+Gemini created this .json config please review and add ot to enhance the @gemini_visual_export_config logic.json process of renaming, moving files from _DropExports to the correct folders and to fix the .csv properly
+
+---
+
+**Cursor**
+
+
+Checking the normalizer and backfill folder structure:
+
+
+
+Creating an enhanced config that merges Gemini's metadata and fixes the backfill path for Monthly Accrual (Overtime/TimeOff). Creating the enhanced config and updating the processor. Implementing the enhanced config and processor updates:
+
+
+
+Summary of changes:
+
+## Enhanced Visual Export Config (Gemini Integration)
+
+### 1. **Updated `visual_export_mapping.json`**
+
+- **Monthly Accrual → Overtime/TimeOff backfill**
+  - Added `backfill_folder: "vcs_time_report"` so copies go to `Backfill/YYYY_MM/vcs_time_report/`, where `overtime_timeoff_with_backfill.py` expects them. - Set `normalizer_format: "monthly_accrual"` explicitly. - **Merged Gemini metadata**
+  - `page_name`, `date_column`, `data_format`, `time_period` for smarter date inference and future use. - **New visuals**
+  - Officer Summons Activity → `summons`
+  - SSOCC Virtual Patrol TAS Alert and Incident Activity → `ssocc`
+  - Chief's Projects alias: "Chief Michael Antista's Projects and Initiatives"
+
+### 2. **`process_powerbi_exports.py` changes**
+
+- **`backfill_folder` override**
+  - When a mapping has `backfill_folder`, that is used instead of `target_folder` for the backfill copy. - Monthly Accrual now copies to `Backfill/YYYY_MM/vcs_time_report/` instead of `social_media_and_time_report`. ### Flow for Monthly Accrual
+
+| Step | Path |
+|------|------|
+| Source | `_DropExports/Monthly Accrual and Usage Summary.csv` |
+| Processed | `Processed_Exports/social_media_and_time_report/YYYY_MM_monthly_accrual_and_usage_summary.csv` |
+| **Backfill** | `Backfill/YYYY_MM/vcs_time_report/YYYY_MM_monthly_accrual_and_usage_summary.csv` |
+
+### CSV normalization
+
+- `monthly_accrual`: Time_Category, PeriodLabel, Value (kept for OT backfill)
+- `summons`: Bureau/WG2, Moving/Parking/TYPE, TICKET_COUNT; Wide→Long if needed
+- `training_cost`: Delivery_Type, Period, Cost; Wide→Long if needed
+
+The config is validated and `process_powerbi_exports.py --dry-run` runs successfully. ---
+
+**User**
+
+update local git and docs
+
+---
+
+**Cursor**
+
+
+Summary of what was updated:
+
+## Git commits
+
+| Commit | Description |
+|--------|-------------|
+| `90dc66a` | **v1.15.5** – Visual export config Gemini enhancement, `backfill_folder`, docs (6 files) |
+| `6d26c72` | docs: `CLAUDE.md` v1.15.5 update |
+
+## Documentation changes
+
+- **CHANGELOG.md** – Entry for v1.15.5 (backfill_folder, Gemini metadata, new visuals)
+- **SUMMARY.md** – Version set to 1.15.5
+- **CLAUDE.md** – Version 1.15.5, recent updates section
+- **POWERBI_VISUAL_EXPORT_PIPELINE_FAQ.md** – `backfill_folder` behavior, Monthly Accrual path
+- **docs/VISUAL_EXPORT_CONFIG_GEMINI_ENHANCEMENT.md** – New doc covering Gemini merge and `backfill_folder`
+
+## Branch status
+
+Branch `docs/update-20260114-1447` is up to date. These files remain untracked from earlier work: Overtime/TimeOff docs, Employee Sick Time doc, chatlogs, and `overtime_timeoff_backfill.txt`. ---
+
+**User**
+
+please generate a README, CHANGELOG and SUMMARY regarding automation used in the Benchmark processing add the files here C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Benchmark
+
+---
+
+**Cursor**
+
+
+Creating README, CHANGELOG, and SUMMARY for the Benchmark folder. ---
+
+**User**
+
+also see C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Benchmark\README.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Benchmark\README (1).md and merge them to you copy
+
+---
+
+**Cursor**
+
+
+Merged both README files into a single `README.md`. Creating CHANGELOG and SUMMARY for Benchmark. Here’s what was done:
+
+## Summary
+
+**Merged README**
+- Combined `README.md` and `README (1).md` into one file
+- Pulled from both: purpose, paths, structure, Power BI parameters (`RootExportPath`, `EtlRootPath`, `SourceMode`, `RangeStart`, `RangeEnd`), FactIncidents_IR
+- Added: automation overview table, event-type subfolders, visual export flow
+- Updated: benchmark_restructure path to `Master_Automation/scripts/_testing/`
+- Removed duplicate `README (1).md` after merge
+
+**Added CHANGELOG.md**
+- Version history for Benchmark automation
+- Sections for v1.0.0 (docs), v0.2.0 (cleanup), v0.1.0 (migration)
+
+**Added SUMMARY.md**
+- Short quick-reference for scripts, Power BI queries, paths, and monthly tasks
+
+All files are in `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Benchmark\`. ---
+
+**User**
+
+now review C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_BACKTRACE_ARRESTS
+C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark_ARCHIVE_2026_02_09 and see if they can be archived in C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\Benchmark
+
+I think these files C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark_ARCHIVE_2026_02_09\show_force\complete_report\all_time\show-of-force-reports-01_01_2001-02_06_2026.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark_ARCHIVE_2026_02_09\vehicle_pursuit\complete_report\all_time\vehicle-pursuit-reports-01_01_2001-02_06_2026.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark_ARCHIVE_2026_02_09\use_force\complete_report\all_time\use-of-force-reports-01_01_2001-02_06_2026.csv, need to be moved to corresponding directories in C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\Benchmark
+will that break // Benchmark Data Query - Simplified Structure
+// Updated: 2026-02-09
+// Source: 05_EXPORTS\Benchmark\ (simplified structure)
+// 
+// This query loads all three Benchmark event types:
+// - Show of Force
+// - Use of Force  
+// - Vehicle Pursuit
+//
+// File structure:
+//   Benchmark\
+//   ├── show_force\
+//   ├── use_force\
+//   └── vehicle_pursuit\
+
+let
+    // Base path to simplified Benchmark directory
+    BenchmarkBasePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\Benchmark\",
+    
+    // Function to load latest file from a folder
+    LoadLatestFile = (folderPath as text, eventType as text) =>
+        let
+            // Get all CSV files in the folder
+            Source = Folder.Files(folderPath),
+            
+            // Filter to CSV files only
+            FilteredFiles = Table.SelectRows(Source, 
+                each Text.EndsWith([Name], ".csv") or Text.EndsWith([Name], ".xlsx")
+            ),
+            
+            // Sort by Date modified (most recent first)
+            SortedFiles = Table.Sort(FilteredFiles, {{"Date modified", Order.Descending}}),
+            
+            // Get the first (most recent) file
+            LatestFile = if Table.RowCount(SortedFiles) > 0 
+                then SortedFiles{0}[Content]
+                else error "No files found in " & folderPath,
+            
+            // Load the file content
+            LoadedData = if Text.EndsWith(SortedFiles{0}[Name], ".csv")
+                then Csv.Document(LatestFile, [Delimiter=",", Columns=null, Encoding=65001, QuoteStyle=QuoteStyle.None])
+                else Excel.Workbook(LatestFile){0}[Data],
+            
+            // Promote headers
+            PromotedHeaders = Table.PromoteHeaders(LoadedData, [PromoteAllScalars=true]),
+            
+            // Add Event Type column
+            AddedEventType = Table.AddColumn(PromotedHeaders, "Event Type", each eventType, type text),
+            
+            // Add Source File column (for tracking)
+            AddedSource = Table.AddColumn(AddedEventType, "Source File", each SortedFiles{0}[Name], type text)
+        in
+            AddedSource,
+    
+    // Load each event type
+    UseOfForce = try LoadLatestFile(BenchmarkBasePath & "use_force\", "Use of Force") 
+                 otherwise #table(type table [Message = text], {{"No Use of Force data found"}}),
+    
+    ShowOfForce = try LoadLatestFile(BenchmarkBasePath & "show_force\", "Show of Force") 
+                  otherwise #table(type table [Message = text], {{"No Show of Force data found"}}),
+    
+    VehiclePursuit = try LoadLatestFile(BenchmarkBasePath & "vehicle_pursuit\", "Vehicle Pursuit") 
+                     otherwise #table(type table [Message = text], {{"No Vehicle Pursuit data found"}}),
+    
+    // Combine all event types
+    CombinedBenchmark = Table.Combine({UseOfForce, ShowOfForce, VehiclePursuit}),
+    
+    // Optional: Type conversions (adjust based on your actual column names)
+    // Uncomment and modify as needed:
+    /*
+    TypedColumns = Table.TransformColumnTypes(CombinedBenchmark, {
+        {"Date", type date},
+        {"Officer Name", type text},
+        {"Badge Number", type text},
+        {"Incident Number", type text},
+        {"Event Type", type text}
+    })
+    */
+    
+    // Return the combined data
+    Result = CombinedBenchmark
+in
+    Result
+
+---
+
+**Cursor**
+
+
+## Review
+
+### 1. `_BACKTRACE_ARRESTS`
+
+- **Status:** Empty (no files)
+- **Recommendation:** Not part of Benchmark; leave as is or remove if unused. Do not merge into `05_EXPORTS\Benchmark`. ---
+
+### 2. `_Benchmark_ARCHIVE_2026_02_09` → `05_EXPORTS\Benchmark`
+
+**Current layout**
+
+| Location | Contents |
+|----------|----------|
+| `05_EXPORTS\Benchmark` | 3 files (01_07_2026) in flat structure: `use_force\`, `show_force\`, `vehicle_pursuit\` |
+| `_Benchmark_ARCHIVE_2026_02_09` | Same 3 files as 01_07, plus newer 02_06 versions under `...\complete_report\all_time\` |
+
+**Files to move**
+
+| Source (archive) | Target (Benchmark) |
+|------------------|--------------------|
+| `...\use_force\complete_report\all_time\use-of-force-reports-01_01_2001-02_06_2026.csv` | `Benchmark\use_force\` |
+| `...\show_force\complete_report\all_time\show-of-force-reports-01_01_2001-02_06_2026.csv` | `Benchmark\show_force\` |
+| `...\vehicle_pursuit\complete_report\all_time\vehicle-pursuit-reports-01_01_2001-02_06_2026.csv` | `Benchmark\vehicle_pursuit\` |
+
+---
+
+### 3. Impact on your M code
+
+No impact; the query will continue to work. Relevant behavior:
+
+```m
+LoadLatestFile = (folderPath as text, eventType as text) =>
+    ...
+    SortedFiles = Table.Sort(FilteredFiles, {{"Date modified", Order.Descending}}),
+    LatestFile = ... SortedFiles{0}[Content] ...
+```
+
+It:
+
+1. Looks in `Benchmark\use_force\`, `Benchmark\show_force\`, `Benchmark\vehicle_pursuit\`
+2. Filters to `.csv` (and `.xlsx`)
+3. Sorts by `Date modified` descending
+4. Uses the most recent file
+
+If you copy or move the 02_06 files into those folders:
+
+- Each folder will have two files (e.g. 01_07 and 02_06)
+- The query will load whichever has the latest `Date modified` (likely 02_06)
+- The 02_06 file has the same schema and more rows
+
+---
+
+### 4.

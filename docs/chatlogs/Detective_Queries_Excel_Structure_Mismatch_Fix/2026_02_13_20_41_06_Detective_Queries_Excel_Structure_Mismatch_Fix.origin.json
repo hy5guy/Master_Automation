@@ -1,0 +1,41 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "markdown",
+    "police",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "data",
+        "now",
+        "let",
+        "table",
+        "all",
+        "month"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# STACP visuals data issue\n_Exported on 2/13/2026 at 20:40:40 EST from Cursor (2.4.31)_\n\n---\n\n**User**\n\nread @SUMMARY.md @README.md @Claude.md @CHANGELOG.md @docs/chatlogs/cursor_thirteen_month_visual_export_pip @docs/chatlogs/Thirteen_M...",
+      "first_line": "# STACP visuals data issue"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-02-13T20:41:06.438761",
+  "department": "admin"
+}
