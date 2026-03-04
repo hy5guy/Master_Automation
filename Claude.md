@@ -49,7 +49,7 @@ New to this project? Start with:
 - `m_code/` - Power BI M code queries (45 queries across 20 page-based subfolders)
  - `arrests/` - ___Arrest_Categories, ___Arrest_Distro, ___Top_5_Arrests
  - `benchmark/` - ___Benchmark
- - `chief/` - ___Chief2, ___chief_projects
+ - `chief/` - ___Chief2, ___chief_projects (table Raw_Input; was Table8)
  - `community/` - ___Combined_Outreach_All
  - `csb/` - ___CSB_Monthly
  - `detectives/` - ___Detectives, ___Det_case_dispositions_clearance
@@ -92,6 +92,10 @@ New to this project? Start with:
 - `docs/SUMMONS_BACKFILL_INJECTION_POINT.md` - Where to call merge_missing_summons_months, dependencies, caveats
 - `docs/SUMMONS_VERIFICATION_NOTE_2026_03.md` - ⚠️ Re-export all summons to verify counts (2026-03-03)
 - `docs/SUMMONS_ETL_v2.3.0_DEPLOYMENT.md` - v2.3.0 deployment guide (3-tier output, SLIM CSV, 6 M-code updates, multi-month loading, DOpus fallback)
+- `docs/SOCIAL_MEDIA_MISSING_REFERENCES_FIX.md` - ___Social_Media Missing_References fix (table name _stacp_mom_sm)
+- `docs/UNIFIED_EXPORT_AND_BACKFILL_LOCATIONS.md` - Proposal for unified export/backfill folder structure
+- `docs/ARREST_DISTRO_LOAD_AND_UNKNOWN.md` - Load error vs unknown residence; resolution (2026-03-04)
+- `docs/MONTHLY_ACCRUAL_COMPARISON_2026_03_03.md` - Pre vs post refresh, backfill comparison
 - `docs/13_MONTH_WINDOW_IMPLEMENTATION_GUIDE.md` - 13-month rolling window deployment, flow, validation
 - `docs/13_MONTH_WINDOW_CORRECTIONS.md` - Selective enforcement (24 vs 8 visuals), NIBRS pattern matching
 - `docs/13_MONTH_QUICK_REFERENCE.md` - Which visuals have 13-month enforcement, quick test

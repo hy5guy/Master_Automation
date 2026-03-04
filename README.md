@@ -6,7 +6,7 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
 
-**Latest Update (2026-03-03):** v1.17.26 — ETL validation fixes: Overtime TimeOff checks correct paths (05_EXPORTS\_Overtime, _Time_Off, PowerBI_Date\Backfill); Summons Derived Outputs fallback paths (Compstat, archive, Backfill); Response Times CallType_Categories.csv fallback; Summons ETL multi-month + DOpus pretty_csv fallback. See `CHANGELOG.md`.
+**Latest Update (2026-03-04):** v1.17.27 — M code: ___chief_projects (Table8→Raw_Input), ___Social_Media (Missing_References fix). Arrest Distro load/unknown resolved. Docs: SOCIAL_MEDIA_MISSING_REFERENCES_FIX, MONTHLY_ACCRUAL_COMPARISON, UNIFIED_EXPORT_AND_BACKFILL_LOCATIONS, ARREST_DISTRO_LOAD_AND_UNKNOWN. See `CHANGELOG.md`.
 
 **v1.17.19 (2026-02-27):** Peer-review corrections: Suspicious Person, Suspicious Vehicle, Missing Person (Adult/Juvenile), NARCAN/Overdose Juvenile, Juvenile Complaint (Criminal), and ESU - Response moved from excluded to included (citizen-initiated dispatched calls). Normalization enhanced for unicode dash variants. All 25 monthly CSVs regenerated. See `CHANGELOG.md` for full detail. **Power BI refresh required.**
 
@@ -529,9 +529,9 @@ The manifest provides a machine-readable reference for the entire Master Automat
 ---
 
 **Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`  
-**Last Updated:** 2026-02-26  
-**Version:** 1.17.6  
-**Status:** ✅ Template Updated — Staging Data Refresh Pending
+**Last Updated:** 2026-03-04  
+**Version:** 1.17.27  
+**Status:** ✅ M code fixes; Arrest Distro resolved; unified export/backfill proposal
 
 
 ## 2026-02-23

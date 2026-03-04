@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.27] - 2026-03-04
+
+### Changed — M Code and Docs
+
+**___chief_projects.m:** Table reference updated from `Table8` to `Raw_Input` to match Excel workbook (Claude In Excel session). Table name must be exactly `Raw_Input` in Table Design.
+
+**___Social_Media.m:** Lambda syntax fix `(c) = >` → `(c) =>`. Missing_References error resolved by verifying table name `_stacp_mom_sm` in STACP.xlsm.
+
+**___Arrest_Distro:** Load error and unknown residence issues resolved. User corrected arrest data and manually added missing records; visual now loads from `2026_02_Arrests_PowerBI_Ready.xlsx` successfully.
+
+**New docs:**
+- `docs/SOCIAL_MEDIA_MISSING_REFERENCES_FIX.md` — Table name verification, M code requirements
+- `docs/MONTHLY_ACCRUAL_COMPARISON_2026_03_03.md` — Pre vs post refresh, backfill comparison
+- `docs/UNIFIED_EXPORT_AND_BACKFILL_LOCATIONS.md` — Proposal for unified _DropExports and Backfill structure
+- `docs/ARREST_DISTRO_LOAD_AND_UNKNOWN.md` — Load error vs unknown residence; resolution noted
+
+---
+
 ## [1.17.26] - 2026-03-03
 
 ### Changed — ETL Orchestrator & Script Fixes

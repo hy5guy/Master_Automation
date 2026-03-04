@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-03-03
-**Status:** ✅ v1.17.26 — ETL validation fixes (Overtime paths, Summons Derived fallbacks, Response Times mapping fallback)
-**Version:** 1.17.26
+**Last Updated:** 2026-03-04
+**Status:** ✅ v1.17.27 — M code fixes (chief_projects, Social_Media); Arrest Distro resolved
+**Version:** 1.17.27
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.17.26 — ETL validation fixes; Summons v2.3.0 multi-month + DOpus fallback |
-| **Version** | 1.17.26 |
+| **Status** | ✅ v1.17.27 — M code fixes; Arrest Distro resolved; unified export/backfill proposal |
+| **Version** | 1.17.27 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -260,8 +260,8 @@ Validation helper:
 
 **⚠️ Verification Note (2026-03-03):** Re-export all summons e-ticket data to verify counts. See `docs/SUMMONS_VERIFICATION_NOTE_2026_03.md`.
 
-Power BI source:
-- `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx` (sheet `Summons_Data`)
+Power BI source (v2.3.0+):
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv` (23-col SLIM; all 6 summons queries)
 
 Current month source:
 - `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket\YYYY\YYYY_MM_eticket_export.csv`
@@ -689,8 +689,8 @@ The manifest provides a machine-readable reference for the entire Master Automat
 ---
 
 **Maintained by:** R. A. Carucci  
-**Last Updated:** 2026-02-23  
-**Version:** 1.17.5
+**Last Updated:** 2026-03-04  
+**Version:** 1.17.27
 
 ---
 
