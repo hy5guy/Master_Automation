@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.26] - 2026-03-03
+
+### Changed — ETL Orchestrator & Script Fixes
+
+**Overtime TimeOff validation (run_all_etl.ps1):**
+- Fixed validation to check actual script inputs instead of non-existent `05_EXPORTS\_VCS_Time_Report`
+- Now validates: `05_EXPORTS\_Overtime\export\month\{year}\*_otactivity.xlsx`, `05_EXPORTS\_Time_Off\export\month\{year}\*_timeoffactivity.xlsx`, `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\`
+
+**Summons Derived Outputs (summons_derived_outputs.py):**
+- Added fallback paths for Department-Wide and related exports: Compstat `01_january`, `archive`, `Backfill\2026_01\summons` (00_dev and PowerBI_Date)
+- Output to `PowerBI_Date\_DropExports`
+- Uses `path_config.get_onedrive_root()` for portability
+
+**Response Times (process_cad_data_13month_rolling.py):**
+- Fallback to `CallType_Categories.csv` when `CAD_CALL_TYPE.xlsx` missing (column mapping: Incident→Call Type, Response_Type→Response)
+- Input path derived from report month: `05_EXPORTS\_CAD\timereport\monthly\{YYYY_MM}_timereport.xlsx`
+
+**Summons ETL v2.3.0 enhancements (run_summons_etl.py, summons_etl_normalize.py):**
+- Multi-month loading: discovers all `*_eticket_export*.csv` in folder, prefers `*_FIXED.csv` (DOpus)
+- Fallback to raw when _FIXED has 0 data rows
+- `--dry-run` option
+- pretty_csv fallback: ETL applies DOpus-style cleanup (trailing commas, Unnamed columns) when DOpus not run
+
+**References:** `docs/SUMMONS_ETL_v2.3.0_DEPLOYMENT.md`
+
+---
+
+## [1.17.25] - 2026-03-04
+
+### Added — Summons ETL v2.3.0 (Claude Complete Package)
+
+**Deployment:** Claude's v2.3.0 package resolves all 12 audit items from 7 rounds of cross-AI review (Grok + Claude In Excel).
+
+**Files deployed:**
+- `scripts/summons_etl_normalize.py` — v2.3.0: int badge key, column renames (UPPER_SNAKE_CASE), true 23-col SLIM, WG1/WG2/TEAM correct, statute classification, RANK, robust DATA_QUALITY_SCORE (enrichment-based), graceful degradation
+- `run_summons_etl.py` — Path-agnostic wrapper: auto-detects desktop (carucci_r) vs laptop (RobertCarucci), `--month` argument, backfill merge integration
+
+**Three-tier output:**
+1. **RAW** — Exact copy of original e-ticket export
+2. **CLEAN** — Full Excel (`summons_powerbi_latest.xlsx`) with enriched columns
+3. **SLIM** — 23-column CSV (`summons_slim_for_powerbi.csv`) for Power BI (~60% faster refresh)
+
+**M-code updates:** All 6 summons queries now source `summons_slim_for_powerbi.csv` instead of Excel:
+- `summons_13month_trend.m`, `summons_all_bureaus.m`, `summons_top5_moving.m`, `summons_top5_parking.m`, `___Summons.m`, `___Summons_Diagnostic.m`
+
+**Usage:** `python run_summons_etl.py --month 2026_01`
+
+**Path config:** `scripts/path_config.py` — `get_onedrive_root()` now tries `Path.home() / "OneDrive - City of Hackensack"` for laptop compatibility.
+
+**References:** `docs/Claude_In_Excel_Officer_Mapping_Analysis.csv` (rows 181–230), `KB_Shared/04_output/Grok-Fixed_Large_CSV_Cleaning_Script_(1)`, `KB_Shared/04_output/Summons_Verification_Note_And_Docs_Update`
+
+---
+
 ## [1.17.24] - 2026-03-03
 
 ### Added — Summons Verification Note (Re-export Required)

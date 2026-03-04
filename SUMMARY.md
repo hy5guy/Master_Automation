@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-03-02
-**Status:** ⚠️ v1.17.19 — Response time filter corrections complete; all 25 monthly CSVs regenerated (citizen-initiated definition); Power BI refresh required
-**Version:** 1.17.22
+**Last Updated:** 2026-03-03
+**Status:** ✅ v1.17.26 — ETL validation fixes (Overtime paths, Summons Derived fallbacks, Response Times mapping fallback)
+**Version:** 1.17.26
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ⚠️ v1.17.19 — Three-layer filter expansion + peer-review corrections complete; 25 monthly CSVs regenerated (citizen-initiated); Power BI refresh required |
-| **Version** | 1.17.19 |
+| **Status** | ✅ v1.17.26 — ETL validation fixes; Summons v2.3.0 multi-month + DOpus fallback |
+| **Version** | 1.17.26 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -52,9 +52,9 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 |---|-------------|----------|--------|
 | 1 | Arrests | `arrest_python_processor.py` | ✅ Enabled |
 | 2 | Community Engagement | `deploy_production.py` | ✅ Enabled |
-| 3 | Overtime TimeOff | `overtime_timeoff_with_backfill.py` | ✅ Enabled |
-| 4 | Response Times | `response_time_diagnostic.py` | ✅ Enabled |
-| 5 | Summons | `main_orchestrator.py` | ✅ Enabled |
+| 3 | Overtime TimeOff | `overtime_timeoff_with_backfill.py` | ✅ Enabled (validation: 05_EXPORTS\_Overtime, _Time_Off, PowerBI_Date\Backfill\vcs_time_report) |
+| 4 | Response Times | `process_cad_data_13month_rolling.py` | ✅ Enabled (CallType_Categories.csv fallback; input from report month) |
+| 5 | Summons | `summons_etl_enhanced.py` (orchestrator); `run_summons_etl.py` (v2.3.0) | ✅ Enabled |
 
 ### Disabled Scripts
 

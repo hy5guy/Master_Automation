@@ -30,6 +30,8 @@ New to this project? Start with:
 - `scripts/validate_exports.py` - Pre-flight check for OT/TimeOff Excel exports
 - `scripts/validate_outputs.py` - FIXED CSV schema validation
 - `scripts/test_pipeline.bat` - Overtime/TimeOff test suite (validate → dry-run → validate outputs)
+- `scripts/summons_etl_normalize.py` - Summons ETL v2.3.0: badge enrichment, statute classification, 3-tier output (RAW/CLEAN/SLIM)
+- `run_summons_etl.py` - Path-agnostic wrapper: `python run_summons_etl.py --month 2026_01`
 - `scripts/summons_backfill_merge.py` - Merge gap months (03-25, 07-25, 10-25, 11-25) into summons df
 - `scripts/normalize_visual_export_for_backfill.py` - Normalize visual exports for backfill (13-month window, PeriodLabel for OT; uses path_config)
 - `scripts/process_powerbi_exports.py` - Process Power BI exports from _DropExports using mapping (match_pattern, enforce_13_month)
@@ -89,6 +91,7 @@ New to this project? Start with:
 - `docs/VISUAL_EXPORT_NORMALIZATION_AND_SUMMONS_BACKFILL.md` - Normalization phase + Summons follow-up
 - `docs/SUMMONS_BACKFILL_INJECTION_POINT.md` - Where to call merge_missing_summons_months, dependencies, caveats
 - `docs/SUMMONS_VERIFICATION_NOTE_2026_03.md` - ⚠️ Re-export all summons to verify counts (2026-03-03)
+- `docs/SUMMONS_ETL_v2.3.0_DEPLOYMENT.md` - v2.3.0 deployment guide (3-tier output, SLIM CSV, 6 M-code updates, multi-month loading, DOpus fallback)
 - `docs/13_MONTH_WINDOW_IMPLEMENTATION_GUIDE.md` - 13-month rolling window deployment, flow, validation
 - `docs/13_MONTH_WINDOW_CORRECTIONS.md` - Selective enforcement (24 vs 8 visuals), NIBRS pattern matching
 - `docs/13_MONTH_QUICK_REFERENCE.md` - Which visuals have 13-month enforcement, quick test

@@ -4,18 +4,9 @@
 // # Purpose: Compute top 5 parking violation officers for the latest month.
 
 let
-    // Load directly from Excel file
-    Source = Excel.Workbook(
-        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
-        null, 
-        true
-    ),
-    
-    // Get Summons_Data sheet
-    Summons_Data_Sheet = Source{[Item="Summons_Data", Kind="Sheet"]}[Data],
-    
-    // Promote headers
-    PromotedHeaders = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
+    // Load from SLIM CSV (~60% faster refresh)
+    Source = Csv.Document(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
     
     // Change YearMonthKey to number type
     ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"YearMonthKey", Int64.Type}, {"TYPE", type text}}),

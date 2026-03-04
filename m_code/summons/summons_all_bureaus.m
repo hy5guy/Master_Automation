@@ -10,12 +10,8 @@ let
     PrevDate = Date.AddMonths(DateTime.Date(pReportMonth), -1),
     PreviousMonthKey = Date.Year(PrevDate) * 100 + Date.Month(PrevDate),
 
-    Source = Excel.Workbook(
-        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
-        null, true
-    ),
-    Summons_Data_Sheet = Source{[Item="Summons_Data", Kind="Sheet"]}[Data],
-    PromotedHeaders = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
+    Source = Csv.Document(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
     ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"YearMonthKey", Int64.Type}, {"TYPE", type text}, {"WG2", type text}}),
 
     // Filter out UNKNOWN / blank WG2, then filter to previous complete month

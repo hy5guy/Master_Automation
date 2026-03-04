@@ -4,18 +4,9 @@
 // # Purpose: Compute top 5 moving violation officers for the latest month.
 
 let
-    // Load directly from Excel file
-    Source = Excel.Workbook(
-        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
-        null, 
-        true
-    ),
-    
-    // Get Summons_Data sheet
-    Summons_Data_Sheet = Source{[Item="Summons_Data", Kind="Sheet"]}[Data],
-    
-    // Promote headers
-    PromotedHeaders = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
+    // Load from SLIM CSV (~60% faster refresh)
+    Source = Csv.Document(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
     
     // Ensure TITLE column exists (ETL adds it from Assignment Master; if missing, add null)
     WithTitle = if Table.HasColumns(PromotedHeaders, "TITLE") then PromotedHeaders else Table.AddColumn(PromotedHeaders, "TITLE", each null, type text),
