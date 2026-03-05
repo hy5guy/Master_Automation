@@ -164,7 +164,7 @@ Avoid loading all files at once - use targeted searches.
 
 ## Enabled ETL Scripts
 1. **Arrests** - `arrest_python_processor.py`
-2. **Community Engagement** - `deploy_production.py` (or `src/main_processor.py`)
+2. **Community Engagement** - `src/main_processor.py` (Patrol v2, attendee_names column)
 3. **Overtime TimeOff** - `overtime_timeoff_with_backfill.py`
 4. **Response Times** - `response_time_diagnostic.py`
 5. **Summons** - `main_orchestrator.py`
@@ -178,6 +178,19 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override t
 - **ETL Scripts**: `<OneDrive>\02_ETL_Scripts\*`
 - **Report Template**: `<OneDrive>\15_Templates\Monthly_Report_Template.pbix` (gold copy; update pReportMonth each cycle)
 - **Monthly Reports**: `<OneDrive>\Shared Folder\Compstat\Monthly Reports\YYYY\MM_monthname\`
+
+## Recent Updates (2026-03-05)
+
+### Community Engagement ETL — Patrol Processor v2
+- **Patrol processor v2** deployed in `02_ETL_Scripts\Community_Engagment`
+  - Enhanced attendee parsing: rank stripping (PO/Sgt/Lt/Det/Cpl/Ofc), expanded delimiters ([,/&;] + "and"), non-name detection
+  - New `attendee_names` column in combined output (comma-separated normalized names) for person-level analysis
+  - Fallback logic: empty attendee field + valid event data → count=1
+  - CSV/Excel export schema: `date`, `start_time`, `end_time`, `event_name`, `location`, `duration_hours`, `attendee_count`, `office`, `division`, `attendee_names`
+- **Power BI M query** (`___Combined_Outreach_All.m`) remains backward compatible — ignores unknown columns
+- **scripts.json** updated: Community Engagement output_patterns include `output\*.csv` for correct file discovery
+
+---
 
 ## Recent Updates (2026-02-12)
 
@@ -551,7 +564,7 @@ All surgical edits applied successfully to the February 2026 Power BI template. 
 
 ---
 
-*Last updated: 2026-02-23 | Format version: 3.12*
+*Last updated: 2026-03-05 | Format version: 3.12*
 
 ## Recent Updates (2026-02-18)
 
