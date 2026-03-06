@@ -79,7 +79,7 @@ These queries use `ReportMonth = pReportMonth` for date calculations and must be
 | ___Detectives | `m_code/detectives/___Detectives.m` | Rolling window + timestamp |
 | ___Det_case_dispositions_clearance | `m_code/detectives/___Det_case_dispositions_clearance.m` | Rolling window |
 | ___Drone | `m_code/drone/___Drone.m` | Rolling window |
-| ESU_13Month | `m_code/esu/ESU_13Month.m` | Rolling window |
+| ESU_13Month | `m_code/esu/ESU_13Month.m` | Rolling window (includes report month; excludes _Log tables) |
 | MonthlyActivity | `m_code/esu/MonthlyActivity.m` | Rolling window |
 | ___Overtime_Timeoff_v3 | `m_code/overtime/___Overtime_Timeoff_v3.m` | Rolling window |
 | ___DimMonth | `m_code/shared/___DimMonth.m` | Rolling window |

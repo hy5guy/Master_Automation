@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.28] - 2026-03-05
+
+### Changed — ESU_13Month.m and Documentation
+
+**ESU_13Month.m:**
+- **Rolling window:** `EndMonth = ReportMonth` (includes report month). Example: `pReportMonth = 02/01/2026` → window 02-25 through 02-26 (was 02-25 through 01-26).
+- **Exclude _Log tables:** Daily Log tables (`_26_JAN_Log`, etc.) excluded from TablesOnly to avoid processing non-metric data.
+- **TrackedItem normalization:** "1 Man ESU" and "1 man ESU" normalized to "ESU Single Operator" for consistent joins across monthly sheets.
+- **Type number:** Total column uses `type number` (not Int64) to preserve decimals (e.g. 5.5 for ESU OOS half-days).
+- **Per-table TrackedCol:** Resolves "Tracked Items" column per monthly table (handles varying column names).
+
+**Documentation updated:**
+- `docs/ESU_POWER_BI_LOAD_AND_PUBLISH.md` — pReportMonth requirement, _Log exclusion, normalization, rolling window behavior
+- `m_code/esu/README.md` — Rolling window and fixes summary
+
+---
+
 ## [1.17.27] - 2026-03-04
 
 ### Changed — M Code and Docs

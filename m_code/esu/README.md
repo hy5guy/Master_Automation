@@ -20,7 +20,9 @@ Use **ESU_13Month.m** only. You do **not** need MonthlyActivity, TrackedItems, f
 | ItemKey   | From _mom_hacsoc (identifier)        |
 | Month_Year| MM-yy (e.g. 01-26)                   |
 
-**Rolling 13 months:** Last 13 complete months. If the workbook has only older months, the query returns all loaded months so you still get data; filter by MonthKey in the report if needed.
+**Rolling 13 months:** Driven by **pReportMonth** — includes the report month (e.g. `pReportMonth = 02/01/2026` → 02-25 through 02-26). If the workbook has only older months, the query returns all loaded months so you still get data; filter by MonthKey in the report if needed.
+
+**Fixes (2026-03-05):** Excludes `_Log` tables (Daily Log); normalizes "1 Man ESU" → "ESU Single Operator"; uses type number for decimals (ESU OOS half-days).
 
 **Workbook requirements:**
 - **Source:** `Shared Folder\Compstat\Contributions\ESU\ESU.xlsx`
