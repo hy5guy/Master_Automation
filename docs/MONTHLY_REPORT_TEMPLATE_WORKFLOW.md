@@ -106,7 +106,7 @@ These do not use `DateTime.LocalNow()` but should still be deployed to ensure th
 | ___Chief2 | `m_code/patrol/___Chief2.m` |
 | ___Patrol | `m_code/patrol/___Patrol.m` |
 | ___REMU | `m_code/patrol/___REMU.m` |
-| ___ResponseTimeCalculator | `m_code/response_time/___ResponseTimeCalculator.m` |
+| ___ResponseTime_AllMetrics | `m_code/response_time/___ResponseTime_AllMetrics.m` |
 | ___ComprehensiveDateTable | `m_code/shared/___ComprehensiveDateTable.m` |
 | ___DimEventType | `m_code/shared/___DimEventType.m` |
 | Parameters_Check | `m_code/shared/Parameters_Check.m` |
@@ -116,7 +116,6 @@ These do not use `DateTime.LocalNow()` but should still be deployed to ensure th
 | summons_13month_trend | `m_code/summons/summons_13month_trend.m` |
 | ___Summons_Diagnostic | `m_code/summons/___Summons_Diagnostic.m` |
 | ___In_Person_Training | `m_code/training/___In_Person_Training.m` |
-| ___ResponseTimeCalculator | `m_code/response_time/___ResponseTimeCalculator.m` |
 
 ### Helper Functions (5 queries)
 
