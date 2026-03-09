@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.29] - 2026-03-09
+
+### Changed — pReportMonth Migration Prompt & Claude.md Streamline
+
+**pReportMonth Migration Prompt (`docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`):**
+- Complete MCP execution prompt for updating 16 M code queries to use `pReportMonth` instead of `DateTime.LocalNow()`
+- Group A (12 queries): Replace `DateTime.LocalNow()` with `pReportMonth`-derived window logic
+- Group B (2 queries): Standardize existing `pReportMonth` calculations to `Date.EndOfMonth`/`Date.StartOfMonth`
+- Group C (2 queries): Add 13-month window filter to unfiltered response time queries
+- Standard pattern: `EndOfWindow = Date.EndOfMonth(pReportMonth)`, `StartOfWindow = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12))`
+- Includes full replacement M expressions, MCP tool call format, DAX verification queries, and rollback instructions
+
+**Claude.md streamlined:**
+- Reduced from 40.8k chars (641 lines) to 9.3k chars (175 lines) — 77% reduction
+- Moved all detailed version history to CHANGELOG.md (where it belongs)
+- Added current status table, pReportMonth migration summary, architecture notes
+- Performance warning eliminated for Claude Code
+
+**SUMMARY.md and CHANGELOG.md updated** to reflect v1.17.29
+
+---
+
 ## [1.17.28] - 2026-03-05
 
 ### Changed — ESU_13Month.m and Documentation

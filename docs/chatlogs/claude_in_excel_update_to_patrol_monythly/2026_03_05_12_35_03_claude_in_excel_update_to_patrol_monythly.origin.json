@@ -1,0 +1,39 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "row",
+        "data",
+        "feb",
+        "let",
+        "rows",
+        "main"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "Role\nYou are a Senior Spreadsheet Architect and Excel Automation Expert. You specialize in building scalable, interconnected workbooks, advanced formula logic (XLOOKUP, Dynamic Arrays), and structured data naming conventions.",
+      "first_line": "Role"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-03-05T12:35:03.013627",
+  "department": "admin"
+}
