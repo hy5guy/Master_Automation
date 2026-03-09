@@ -1,0 +1,192 @@
+table summons_all_bureaus
+	lineageTag: 7a1ccb3a-b2ac-41b6-b12d-e83ff453745a
+
+	measure AllBureaus_Subtitle =
+			
+			"Summons issued during " & FORMAT(EOMONTH(TODAY(), -1), "MMMM yyyy")
+		lineageTag: 010f86dd-8115-4bf5-93c7-ae675847ad21
+
+	column Bureau
+		dataType: string
+		lineageTag: 481dec4f-4ce8-4a40-b889-7505f6d7e8ec
+		summarizeBy: none
+		sourceColumn: Bureau
+
+		annotation SummarizationSetBy = Automatic
+
+	column M
+		dataType: double
+		lineageTag: d4458543-394b-4896-8ac5-fa03927cc3b3
+		summarizeBy: sum
+		sourceColumn: M
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column P
+		dataType: double
+		lineageTag: 1cce91db-354f-45ef-8c46-2b0a4338e84a
+		summarizeBy: sum
+		sourceColumn: P
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Total
+		dataType: double
+		lineageTag: c1206447-988c-49b7-93ea-eb7a0af623a6
+		summarizeBy: sum
+		sourceColumn: Total
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column C
+		dataType: double
+		lineageTag: 144e6744-7e55-4f5c-b465-c20e36fe156d
+		summarizeBy: sum
+		sourceColumn: C
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Moving Violation'
+		dataType: double
+		lineageTag: e7b5d0dd-2ef7-4117-802a-7b49c97e94cb
+		summarizeBy: sum
+		sourceColumn: Moving Violation
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column License/Registration
+		dataType: double
+		lineageTag: 260e7aad-4067-4a0a-95d0-5fe295630fbf
+		summarizeBy: sum
+		sourceColumn: License/Registration
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Equipment
+		dataType: double
+		lineageTag: 602a0fc3-1993-4495-bd2a-152be352b1f9
+		summarizeBy: sum
+		sourceColumn: Equipment
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Other
+		dataType: double
+		lineageTag: 2e07f2c5-39cc-4d11-8a32-0c6118dc5d3b
+		summarizeBy: sum
+		sourceColumn: Other
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Parking
+		dataType: double
+		lineageTag: 4b2e2087-83b1-46fd-84df-89f6c94c1f8e
+		summarizeBy: sum
+		sourceColumn: Parking
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column DWI/DUI
+		dataType: double
+		lineageTag: 2d908310-6b62-4bee-ae33-9868a548b82a
+		summarizeBy: sum
+		sourceColumn: DWI/DUI
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition summons_all_bureaus = m
+		mode: import
+		source =
+				// 🕒 2026-02-26-19-00-00 (EST)
+				// # summons/summons_all_bureaus.m
+				// # Author: R. A. Carucci
+				// # Purpose: Aggregate summons counts by bureau for moving and parking violations (previous complete month).
+				// # Note: pReportMonth is a Date type (#date(YYYY,M,1)); uses AddMonths(-1) to target the previous
+				// #   complete month so partial next-month records in the staging file cannot bleed into the visual.
+				
+				let
+				    // Previous complete month (e.g. pReportMonth=02/01/2026 -> Jan 2026 -> PreviousMonthKey=202601)
+				    PrevDate = Date.AddMonths(DateTime.Date(pReportMonth), -1),
+				    PreviousMonthKey = Date.Year(PrevDate) * 100 + Date.Month(PrevDate),
+				
+				    Source = Csv.Document(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"YearMonthKey", Int64.Type}, {"TYPE", type text}, {"WG2", type text}}),
+				
+				    // Filter out UNKNOWN / blank WG2, then filter to previous complete month
+				    FilteredClean = Table.SelectRows(ChangedType, each [WG2] <> "UNKNOWN" and [WG2] <> null and [WG2] <> ""),
+				    FilteredLatestMonth = Table.SelectRows(FilteredClean, each [YearMonthKey] = PreviousMonthKey),
+				
+				    // Group by Bureau (WG2) and Type
+				    GroupedRows = Table.Group(
+				        FilteredLatestMonth,
+				        {"WG2", "TYPE"},
+				        {{"Count", each Table.RowCount(_), type number}}
+				    ),
+				
+				    // Consolidate HOUSING, OSO, and PATROL BUREAU into PATROL DIVISION
+				    ConsolidatedBureaus = Table.TransformColumns(
+				        GroupedRows,
+				        {"WG2", each if _ = "HOUSING" or _ = "OFFICE OF SPECIAL OPERATIONS" or _ = "PATROL BUREAU"
+				            then "PATROL DIVISION" else _}
+				    ),
+				
+				    // Re-group after consolidation to merge any combined rows
+				    RegroupedRows = Table.Group(
+				        ConsolidatedBureaus,
+				        {"WG2", "TYPE"},
+				        {{"Count", each List.Sum([Count]), type number}}
+				    ),
+				
+				    // Pivot by TYPE to get M, P columns
+				    PivotedColumn = Table.Pivot(
+				        RegroupedRows,
+				        List.Distinct(RegroupedRows[TYPE]),
+				        "TYPE",
+				        "Count",
+				        List.Sum
+				    ),
+				
+				    AddM = if Table.HasColumns(PivotedColumn, "M") then PivotedColumn
+				        else Table.AddColumn(PivotedColumn, "M", each 0, Int64.Type),
+				    AddP = if Table.HasColumns(AddM, "P") then AddM
+				        else Table.AddColumn(AddM, "P", each 0, Int64.Type),
+				
+				    ReplacedValue = Table.ReplaceValue(AddP, null, 0, Replacer.ReplaceValue, {"M", "P"}),
+				
+				    AddedTotal = Table.AddColumn(
+				        ReplacedValue,
+				        "Total",
+				        each [M] + [P] + (try [C] otherwise 0),
+				        type number
+				    ),
+				
+				    // Rename WG2 to Bureau for cleaner visual display
+				    RenamedColumns = Table.RenameColumns(AddedTotal, {{"WG2", "Bureau"}})
+				in
+				    RenamedColumns
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

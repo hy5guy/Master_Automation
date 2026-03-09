@@ -1,0 +1,593 @@
+table ___Drone
+	lineageTag: 1798d6b0-e74f-466c-b614-7ee8228bc8b9
+
+	measure _TotalValue = ```
+			
+			VAR CurrentMetric = SELECTEDVALUE(___Drone[Metric])
+			VAR IsResponseTime = 
+			    CurrentMetric IN {
+			        "DFR Activity AVG Response Times - First on Scene (Hrs:Mins:Secs)",
+			        "DFR Activity AVG Response Times - All Calls (Hrs:Mins:Secs)"
+			    }
+			VAR HasSinglePeriod = HASONEVALUE(___Drone[Period])
+			RETURN
+			    IF(
+			        IsResponseTime,
+			        IF(
+			            HasSinglePeriod,
+			            SELECTEDVALUE(___Drone[Value]),
+			            "--"
+			        ),
+			        SUMX(
+			            ___Drone,
+			            VAR v = TRIM( ___Drone[Value] )
+			            VAR CurrentRowMetric = ___Drone[Metric]
+			            VAR IsCurrentRowResponseTime = 
+			                CurrentRowMetric IN {
+			                    "DFR Activity AVG Response Times - First on Scene (Hrs:Mins:Secs)",
+			                    "DFR Activity AVG Response Times - All Calls (Hrs:Mins:Secs)"
+			                }
+			            RETURN
+			                IF(
+			                    IsCurrentRowResponseTime,
+			                    0,
+			                    IFERROR( VALUE(v), 0 )
+			                )
+			        )
+			    )
+			```
+		formatString: 0
+		lineageTag: 532b7be5-3ef9-415b-a2d2-3876246b24ba
+
+	measure FormattedValueImproved = ```
+			
+			VAR m = SELECTEDVALUE( ___Drone[Metric] )
+			VAR HasSinglePeriod = HASONEVALUE(___Drone[Period])
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    
+			    // decimal-hour rows - UPDATED with prefixes
+			    m IN {
+			        "DFR Activity Flight Time - Calls Responded To (Hours)",
+			        "DFR Activity Flight Time - Training Flights (Hours)",
+			        "DFR Activity Total Flight Time (Hours)",
+			        "Non-DFR Flight Time - Calls Responded To (Hours)",
+			        "Non-DFR Flight Time - Training Flights (Hours)",
+			        "Non-DFR Total Flight Time (Hours)"
+			    },
+			        FORMAT( [NumericValue], "0.00" ),
+			
+			    // count rows - UPDATED with prefixes  
+			    m IN {
+			        "DFR Activity Total Calls Responded To",
+			        "DFR Activity DFR Assisted Arrests",
+			        "DFR Activity DFR Deployments that Avoided Dispatching a Patrol Unit",
+			        "DFR Activity DFR First on Scene Count",
+			        "DFR Activity DFR Shift (Hours)",
+			        "Non-DFR Total Calls Responded To",
+			        "Non-DFR DFR Assisted Arrests",
+			        "Non-DFR DFR Deployments that Avoided Dispatching a Patrol Unit",
+			        "Non-DFR DFR First on Scene Count",
+			        "Non-DFR DFR Shift (Hours)"
+			    },
+			        FORMAT( [NumericValue], "0" ),
+			
+			    // duration rows - EXCLUDE from totals
+			    m IN {
+			        "DFR Activity AVG Response Times - First on Scene (Hrs:Mins:Secs)",
+			        "DFR Activity AVG Response Times - All Calls (Hrs:Mins:Secs)"
+			    },
+			        IF(
+			            HasSinglePeriod,
+			            VAR RawValue = SELECTEDVALUE( ___Drone[Value] )
+			            VAR CleanValue = SUBSTITUTE(SUBSTITUTE(RawValue, "12/31/1899 ", ""), " AM", "")
+			            RETURN
+			                IF(
+			                    FIND("12/31/1899", RawValue, 1, 0) > 0,
+			                    CleanValue,
+			                    RawValue
+			                ),
+			            "--"  // Show dashes in total column
+			        ),
+			
+			    // fallback
+			    FORMAT( [NumericValue], "0.00" )
+			)
+			
+			```
+		lineageTag: 3f20190a-07e8-47e8-8417-03b0f9879bd7
+
+	measure NonDFR_Title =
+			
+			"Non-DFR Performance Metrics"
+		lineageTag: 9c0ae134-0ab4-4fb3-a386-7aca88a6aa25
+
+	measure DataCaptureNote =
+			
+			"**As of January 2025**, the amount of data being captured has been enhanced; dates before January 2025 will retain the old format."
+		lineageTag: f83ac669-17dc-4d2e-b74a-28d438a0dee5
+
+	measure NumericValue =
+			
+			SUMX(
+			    ___Drone,
+			    VAR v = TRIM( ___Drone[Value] )
+			    RETURN
+			        IFERROR( VALUE(v), 0 )
+			)
+		lineageTag: 41a50264-fd11-4b96-b2b6-c35a4f5329e1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure NonDFR_Subtitle =
+			
+			VAR MinDate = CALCULATE( MIN( ___Drone[PeriodDate] ), ___Drone[Source] = "Non-DFR", ___Drone[Period] <> "Total" )
+			VAR MaxDate = CALCULATE( MAX( ___Drone[PeriodDate] ), ___Drone[Source] = "Non-DFR", ___Drone[Period] <> "Total" )
+			VAR StartMonth = FORMAT( MinDate, "MMM yyyy" )
+			VAR EndMonth = FORMAT( MaxDate, "MMM yyyy" )
+			VAR MonthCount = DATEDIFF( MinDate, MaxDate, MONTH ) + 1
+			RETURN
+			    "Rolling " & MonthCount & "-Month Analysis | " &
+			    StartMonth & " through " & EndMonth
+		lineageTag: 421b8199-d68d-4dc0-bc04-dfa6db17c5c8
+
+	measure ResponseTimeValue = ```
+			
+			VAR CurrentMetric = SELECTEDVALUE(___Drone[Metric])
+			VAR IsResponseTime = 
+			    CurrentMetric IN {
+			        "DFR Activity AVG Response Times - First on Scene (Hrs:Mins:Secs)",
+			        "DFR Activity AVG Response Times - All Calls (Hrs:Mins:Secs)"
+			    }
+			VAR RawValue = SELECTEDVALUE(___Drone[Value])
+			VAR CleanValue = SUBSTITUTE(SUBSTITUTE(RawValue, "12/31/1899 ", ""), " AM", "")
+			VAR HasSinglePeriod = HASONEVALUE(___Drone[Period])
+			
+			RETURN
+			    IF(
+			        IsResponseTime,
+			        IF(
+			            HasSinglePeriod,
+			            IF(
+			                FIND("12/31/1899", RawValue, 1, 0) > 0,
+			                CleanValue,
+			                RawValue
+			            ),
+			            "--"  // Show dashes for totals instead of blank
+			        ),
+			        BLANK()
+			    )
+			```
+		lineageTag: e4424ffe-1110-41ea-ab91-5c66353a7ae1
+
+	measure Title =
+			
+			"Monthly DFR / Non-DFR Performance Metrics"
+		lineageTag: e1fc9721-80db-4255-b262-0fedea4bdbc0
+
+	measure DFR_Subtitle =
+			
+			VAR MinDate = CALCULATE( MIN( ___Drone[PeriodDate] ), ___Drone[Source] = "DFR Activity", ___Drone[Period] <> "Total" )
+			VAR MaxDate = CALCULATE( MAX( ___Drone[PeriodDate] ), ___Drone[Source] = "DFR Activity", ___Drone[Period] <> "Total" )
+			VAR StartMonth = FORMAT( MinDate, "MMM yyyy" )
+			VAR EndMonth = FORMAT( MaxDate, "MMM yyyy" )
+			VAR MonthCount = DATEDIFF( MinDate, MaxDate, MONTH ) + 1
+			RETURN
+			    "Rolling " & MonthCount & "-Month Analysis | " &
+			    StartMonth & " through " & EndMonth
+		lineageTag: 09cf1a51-7dc9-4916-8700-5ad3015f5cea
+
+	measure TotalValue = ```
+			
+			VAR CurrentMetric = SELECTEDVALUE(___Drone[Metric])
+			VAR IsResponseTime = 
+			    CurrentMetric IN {
+			        "DFR Activity AVG Response Times - First on Scene (Hrs:Mins:Secs)",
+			        "DFR Activity AVG Response Times - All Calls (Hrs:Mins:Secs)"
+			    }
+			VAR HasSinglePeriod = HASONEVALUE(___Drone[Period])
+			RETURN
+			    IF(
+			        IsResponseTime,
+			        IF(
+			            HasSinglePeriod,
+			            SELECTEDVALUE(___Drone[Value]),
+			            "--"
+			        ),
+			        [NumericValue]
+			    )
+			```
+		lineageTag: 309a33ee-4401-4849-a48b-0b8175e1974c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure CorrectedTotalValue = ```
+			
+			VAR CurrentMetric = SELECTEDVALUE(___Drone[Metric])
+			VAR IsResponseTime = 
+			    CurrentMetric IN {
+			        "DFR Activity AVG Response Times - First on Scene (Hrs:Mins:Secs)",
+			        "DFR Activity AVG Response Times - All Calls (Hrs:Mins:Secs)"
+			    }
+			VAR HasSinglePeriod = HASONEVALUE(___Drone[Period])
+			RETURN
+			    IF(
+			        IsResponseTime,
+			        IF(
+			            HasSinglePeriod,
+			            SELECTEDVALUE(___Drone[Value]),
+			            "--"
+			        ),
+			        SUMX(
+			            ___Drone,
+			            VAR v = TRIM( ___Drone[Value] )
+			            VAR CurrentRowMetric = ___Drone[Metric]
+			            VAR IsCurrentRowResponseTime = 
+			                CurrentRowMetric IN {
+			                    "DFR Activity AVG Response Times - First on Scene (Hrs:Mins:Secs)",
+			                    "DFR Activity AVG Response Times - All Calls (Hrs:Mins:Secs)"
+			                }
+			            VAR IsSameMetric = CurrentRowMetric = CurrentMetric
+			            RETURN
+			                IF(
+			                    IsCurrentRowResponseTime || NOT IsSameMetric,
+			                    0,
+			                    IFERROR( VALUE(v), 0 )
+			                )
+			        )
+			    )
+			```
+		lineageTag: 4dc03d8e-1f81-4c26-9ee4-e4784e8648b4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure ResponseTimeTotal = ```
+			
+			VAR CurrentMetric = SELECTEDVALUE(___Drone[Metric])
+			VAR IsResponseTime = 
+			    CurrentMetric IN {
+			        "DFR Activity AVG Response Times - First on Scene (Hrs:Mins:Secs)",
+			        "DFR Activity AVG Response Times - All Calls (Hrs:Mins:Secs)"
+			    }
+			VAR HasSinglePeriod = HASONEVALUE(___Drone[Period])
+			RETURN
+			    IF(
+			        IsResponseTime,
+			        IF(
+			            HasSinglePeriod,
+			            SELECTEDVALUE(___Drone[Value]),
+			            // Calculate average of response times for totals
+			            VAR ResponseTimes = 
+			                FILTER(
+			                    ___Drone,
+			                    ___Drone[Metric] = CurrentMetric && 
+			                    ___Drone[Value] <> "" && 
+			                    ___Drone[Value] <> BLANK()
+			                )
+			            VAR AvgSeconds = AVERAGEX(
+			                ResponseTimes,
+			                VAR TimeStr = TRIM(___Drone[Value])
+			                VAR FirstColon = FIND(":", TimeStr, 1, 0)
+			                VAR SecondColon = FIND(":", TimeStr, FirstColon + 1, 0)
+			                VAR Hours = IFERROR(VALUE(LEFT(TimeStr, FirstColon - 1)), 0)
+			                VAR Minutes = IFERROR(VALUE(MID(TimeStr, FirstColon + 1, SecondColon - FirstColon - 1)), 0)
+			                VAR Seconds = IFERROR(VALUE(RIGHT(TimeStr, LEN(TimeStr) - SecondColon)), 0)
+			                RETURN Hours * 3600 + Minutes * 60 + Seconds
+			            )
+			            VAR AvgHours = INT(AvgSeconds / 3600)
+			            VAR AvgMinutes = INT(MOD(AvgSeconds, 3600) / 60)
+			            VAR AvgSecs = MOD(AvgSeconds, 60)
+			            RETURN FORMAT(AvgHours, "00") & ":" & FORMAT(AvgMinutes, "00") & ":" & FORMAT(AvgSecs, "00")
+			        ),
+			        SUMX(
+			            ___Drone,
+			            VAR v = TRIM( ___Drone[Value] )
+			            VAR CurrentRowMetric = ___Drone[Metric]
+			            VAR IsCurrentRowResponseTime = 
+			                CurrentRowMetric IN {
+			                    "DFR Activity AVG Response Times - First on Scene (Hrs:Mins:Secs)",
+			                    "DFR Activity AVG Response Times - All Calls (Hrs:Mins:Secs)"
+			                }
+			            VAR IsSameMetric = CurrentRowMetric = CurrentMetric
+			            RETURN
+			                IF(
+			                    IsCurrentRowResponseTime || NOT IsSameMetric,
+			                    0,
+			                    IFERROR( VALUE(v), 0 )
+			                )
+			        )
+			    )
+			```
+		lineageTag: 99cf29eb-8184-4308-a514-0605d23dc2fb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure DFR_Title =
+			
+			"DFR Activity Performance Metrics"
+		lineageTag: ec57bb94-28ce-4fda-837b-2420af24f6b5
+
+	column Metric
+		dataType: string
+		lineageTag: 293c8650-eda7-4544-a58b-fce4d6accfd4
+		summarizeBy: none
+		sourceColumn: Metric
+
+		annotation SummarizationSetBy = Automatic
+
+	column Period
+		dataType: string
+		lineageTag: 3cde7d4a-5b0c-4054-b461-ad7118c223db
+		summarizeBy: none
+		sourceColumn: Period
+		sortByColumn: DateSortKey
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Value
+		dataType: string
+		lineageTag: 9313fb45-a2ac-4662-9ad1-6026f26dda63
+		summarizeBy: none
+		sourceColumn: Value
+
+		annotation SummarizationSetBy = Automatic
+
+	column Source
+		dataType: string
+		lineageTag: 210915c2-ccf6-4e09-92d5-a1a27c9f8d14
+		summarizeBy: none
+		sourceColumn: Source
+
+		annotation SummarizationSetBy = Automatic
+
+	column PeriodDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: ba0c92e9-5c96-4505-9c8f-f19cf37591fc
+		summarizeBy: none
+		sourceColumn: PeriodDate
+
+		variation Variation
+			isDefault
+			relationship: 108e9bf6-f5b5-4f41-b6dc-aa1fb33be3d1
+			defaultHierarchy: LocalDateTable_ef141304-ebfd-4a28-a4c1-d5ed462272b0.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DateSortKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 7b1fdc10-32c5-4894-86e6-6f2d4f794243
+		summarizeBy: count
+		sourceColumn: DateSortKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column col_ResponseTimeTotal = ```
+			
+			VAR CurrentMetric = SELECTEDVALUE(___Drone[Metric])
+			VAR IsResponseTime = 
+			    CurrentMetric IN {
+			        "DFR Activity AVG Response Times - First on Scene (Hrs:Mins:Secs)",
+			        "DFR Activity AVG Response Times - All Calls (Hrs:Mins:Secs)"
+			    }
+			VAR HasSinglePeriod = HASONEVALUE(___Drone[Period])
+			RETURN
+			    IF(
+			        IsResponseTime,
+			        IF(
+			            HasSinglePeriod,
+			            SELECTEDVALUE(___Drone[Value]),
+			            // Calculate average of response times for totals
+			            VAR ResponseTimes = 
+			                FILTER(
+			                    ___Drone,
+			                    ___Drone[Metric] = CurrentMetric && 
+			                    ___Drone[Value] <> "" && 
+			                    ___Drone[Value] <> BLANK()
+			                )
+			            VAR AvgSeconds = AVERAGEX(
+			                ResponseTimes,
+			                VAR TimeStr = TRIM(___Drone[Value])
+			                VAR FirstColon = FIND(":", TimeStr, 1, 0)
+			                VAR SecondColon = FIND(":", TimeStr, FirstColon + 1, 0)
+			                VAR Hours = IFERROR(VALUE(LEFT(TimeStr, FirstColon - 1)), 0)
+			                VAR Minutes = IFERROR(VALUE(MID(TimeStr, FirstColon + 1, SecondColon - FirstColon - 1)), 0)
+			                VAR Seconds = IFERROR(VALUE(RIGHT(TimeStr, LEN(TimeStr) - SecondColon)), 0)
+			                RETURN Hours * 3600 + Minutes * 60 + Seconds
+			            )
+			            VAR AvgHours = INT(AvgSeconds / 3600)
+			            VAR AvgMinutes = INT(MOD(AvgSeconds, 3600) / 60)
+			            VAR AvgSecs = MOD(AvgSeconds, 60)
+			            RETURN FORMAT(AvgHours, "00") & ":" & FORMAT(AvgMinutes, "00") & ":" & FORMAT(AvgSecs, "00")
+			        ),
+			        SUMX(
+			            ___Drone,
+			            VAR v = TRIM( ___Drone[Value] )
+			            VAR CurrentRowMetric = ___Drone[Metric]
+			            VAR IsCurrentRowResponseTime = 
+			                CurrentRowMetric IN {
+			                    "DFR Activity AVG Response Times - First on Scene (Hrs:Mins:Secs)",
+			                    "DFR Activity AVG Response Times - All Calls (Hrs:Mins:Secs)"
+			                }
+			            VAR IsSameMetric = CurrentRowMetric = CurrentMetric
+			            RETURN
+			                IF(
+			                    IsCurrentRowResponseTime || NOT IsSameMetric,
+			                    0,
+			                    IFERROR( VALUE(v), 0 )
+			                )
+			        )
+			    )
+			```
+		lineageTag: 58ce3af2-111f-4cf3-964f-cb94a91ea7a6
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column SortOrder
+		dataType: int64
+		formatString: 0
+		lineageTag: 6991e814-91a8-4ae7-b4e3-ac631563d22d
+		summarizeBy: sum
+		sourceColumn: SortOrder
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___Drone = m
+		mode: import
+		source = ```
+				// 🕒 2025-08-19-17-30-00
+				// Project: Drone_Analytics/Final_Duration_Based_Handling
+				// Author: R. A. Carucci
+				// Purpose: Properly handle Excel DURATION values for drone metrics
+				// Updated: pReportMonth-driven (no DateTime.LocalNow)
+				
+				let
+				    // 1) Load the workbook
+				    Source = Excel.Workbook(
+				        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Drone_Monthly.xlsx"),
+				        null, true),
+				
+				    // ─── DFR Activity sheet ──────────────────────────────────────────────────
+				    DFR_Raw = Source{[Name = "DFR Activity", Kind = "Sheet"]}[Data],
+				    DFR_Headers = Table.PromoteHeaders(DFR_Raw, [PromoteAllScalars = true]),
+				    DFR_MetricKey = Table.ColumnNames(DFR_Headers){0},
+				    DFR_PeriodCols = List.Select(Table.ColumnNames(DFR_Headers), each Text.Length(_) = 5 and Text.Middle(_, 2, 1) = "-"),
+				    DFR_Unpivot = Table.Unpivot(DFR_Headers, DFR_PeriodCols, "Period", "RawValue"),
+				    DFR_Renamed = Table.RenameColumns(DFR_Unpivot, {{DFR_MetricKey, "Metric"}}),
+				
+				    DFR_WithOrder = Table.AddColumn(DFR_Renamed, "SortOrder", each 
+				        if [Metric] = "DRF - Total Calls Responded To" then 1 
+				        else if [Metric] = "DRF - Assisted Arrests" then 2 
+				        else if [Metric] = "DRF - Deployments that Avoided Dispatching a Patrol Unit" then 3 
+				        else if [Metric] = "DRF - First on Scene Count" then 4 
+				        else if [Metric] = "DRF - AVG Response Times - First on Scene (Mins:Secs)" then 5 
+				        else if [Metric] = "DRF - AVG Response Times - All Calls (Mins:Secs)" then 6 
+				        else if [Metric] = "DRF - Shift (Hours:Mins)" then 7 
+				        else if [Metric] = "DRF - Flight Time - Calls Responded To (Hours:Mins)" then 8 
+				        else if [Metric] = "DRF - Flight Time - Training Flights (Hours:Mins)" then 9 
+				        else if [Metric] = "DRF - Total Flight Time (Hours:Mins:Secs)" then 10 
+				        else 99, Int64.Type),
+				
+				    DFR_Converted = Table.AddColumn(DFR_WithOrder, "Value", each 
+				        let RawVal = [RawValue], MetricName = [Metric] in
+				            if Value.Is(RawVal, type datetime) or Value.Is(RawVal, type time) then
+				                let TimeVal = if Value.Is(RawVal, type datetime) then Time.From(RawVal) else RawVal,
+				                    Hours = Time.Hour(TimeVal), Minutes = Time.Minute(TimeVal), Seconds = Time.Second(TimeVal) in
+				                    if Text.Contains(MetricName, "(Mins:Secs)") then
+				                        let TotalMinutes = Hours * 60 + Minutes in Text.From(TotalMinutes) & ":" & Text.PadStart(Text.From(Seconds), 2, "0")
+				                    else if Text.Contains(MetricName, "(Hours:Mins)") and not Text.Contains(MetricName, "Secs") then
+				                        Text.PadStart(Text.From(Hours), 2, "0") & ":" & Text.PadStart(Text.From(Minutes), 2, "0")
+				                    else if Text.Contains(MetricName, "(Hours:Mins:Secs)") then
+				                        Text.PadStart(Text.From(Hours), 2, "0") & ":" & Text.PadStart(Text.From(Minutes), 2, "0") & ":" & Text.PadStart(Text.From(Seconds), 2, "0")
+				                    else Text.From(RawVal)
+				            else if Value.Is(RawVal, type duration) then
+				                if Text.Contains(MetricName, "(Mins:Secs)") then
+				                    let TotalSeconds = Duration.TotalSeconds(RawVal), TotalMinutes = Number.IntegerDivide(TotalSeconds, 60), RemainderSeconds = Number.Mod(TotalSeconds, 60)
+				                    in Text.From(TotalMinutes) & ":" & Text.PadStart(Text.From(Number.Round(RemainderSeconds, 0)), 2, "0")
+				                else if Text.Contains(MetricName, "(Hours:Mins)") then
+				                    let TotalSeconds = Duration.TotalSeconds(RawVal), TotalHours = Number.IntegerDivide(TotalSeconds, 3600), RemainderMinutes = Number.IntegerDivide(Number.Mod(TotalSeconds, 3600), 60)
+				                    in Text.PadStart(Text.From(TotalHours), 2, "0") & ":" & Text.PadStart(Text.From(RemainderMinutes), 2, "0")
+				                else Duration.ToText(RawVal, "h:mm:ss")
+				            else if Value.Is(RawVal, type number) then
+				                if Text.Contains(MetricName, "(Mins:Secs)") or Text.Contains(MetricName, "(Hours:Mins)") then
+				                    let TotalSeconds = RawVal * 24 * 60 * 60, Hours = Number.IntegerDivide(TotalSeconds, 3600), Minutes = Number.IntegerDivide(Number.Mod(TotalSeconds, 3600), 60), Seconds = Number.Round(Number.Mod(TotalSeconds, 60), 0) in
+				                        if Text.Contains(MetricName, "(Mins:Secs)") then let TotalMinutes = Hours * 60 + Minutes in Text.From(TotalMinutes) & ":" & Text.PadStart(Text.From(Seconds), 2, "0")
+				                        else Text.PadStart(Text.From(Hours), 2, "0") & ":" & Text.PadStart(Text.From(Minutes), 2, "0")
+				                else Text.From(RawVal)
+				            else Text.From(RawVal)),
+				    DFR_Clean = Table.RemoveColumns(DFR_Converted, {"RawValue"}),
+				    DFR_Tagged = Table.AddColumn(DFR_Clean, "Source", each "DFR Activity"),
+				
+				    // ─── Non-DFR sheet ─────────────────────────────────────────────────────
+				    NonDFR_Raw = Source{[Name = "Non-DFR", Kind = "Sheet"]}[Data],
+				    NonDFR_Headers = Table.PromoteHeaders(NonDFR_Raw, [PromoteAllScalars = true]),
+				    NonDFR_MetricKey = Table.ColumnNames(NonDFR_Headers){0},
+				    NonDFR_PeriodCols = List.Select(Table.ColumnNames(NonDFR_Headers), each Text.Length(_) = 5 and Text.Middle(_, 2, 1) = "-"),
+				    NonDFR_Unpivot = Table.Unpivot(NonDFR_Headers, NonDFR_PeriodCols, "Period", "RawValue"),
+				    NonDFR_Renamed = Table.RenameColumns(NonDFR_Unpivot, {{NonDFR_MetricKey, "Metric"}}),
+				
+				    NonDFR_WithOrder = Table.AddColumn(NonDFR_Renamed, "SortOrder", each 
+				        if [Metric] = "Non-DFR - Flight Time - Calls Responded To (Hours:Mins)" then 1 
+				        else if [Metric] = "Non-DFR - Flight Time - Trainging Flights (Hours:Mins)" then 2 
+				        else if [Metric] = "Non-DFR - Total Flight Time (Hours:Mins)" then 3 
+				        else 99, Int64.Type),
+				
+				    NonDFR_Converted = Table.AddColumn(NonDFR_WithOrder, "Value", each 
+				        let RawVal = [RawValue], MetricName = [Metric] in
+				            if Value.Is(RawVal, type datetime) or Value.Is(RawVal, type time) then
+				                let TimeVal = if Value.Is(RawVal, type datetime) then Time.From(RawVal) else RawVal,
+				                    Hours = Time.Hour(TimeVal), Minutes = Time.Minute(TimeVal) in
+				                    if Text.Contains(MetricName, "(Hours:Mins)") then
+				                        Text.PadStart(Text.From(Hours), 2, "0") & ":" & Text.PadStart(Text.From(Minutes), 2, "0")
+				                    else Text.From(RawVal)
+				            else if Value.Is(RawVal, type duration) then
+				                if Text.Contains(MetricName, "(Hours:Mins)") then
+				                    let TotalSeconds = Duration.TotalSeconds(RawVal), TotalHours = Number.IntegerDivide(TotalSeconds, 3600), RemainderMinutes = Number.IntegerDivide(Number.Mod(TotalSeconds, 3600), 60)
+				                    in Text.PadStart(Text.From(TotalHours), 2, "0") & ":" & Text.PadStart(Text.From(RemainderMinutes), 2, "0")
+				                else Duration.ToText(RawVal, "h:mm:ss")
+				            else if Value.Is(RawVal, type number) then
+				                if Text.Contains(MetricName, "(Hours:Mins)") then
+				                    let TotalSeconds = RawVal * 24 * 60 * 60, Hours = Number.IntegerDivide(TotalSeconds, 3600), Minutes = Number.IntegerDivide(Number.Mod(TotalSeconds, 3600), 60)
+				                    in Text.PadStart(Text.From(Hours), 2, "0") & ":" & Text.PadStart(Text.From(Minutes), 2, "0")
+				                else Text.From(RawVal)
+				            else Text.From(RawVal)),
+				    NonDFR_Clean = Table.RemoveColumns(NonDFR_Converted, {"RawValue"}),
+				    NonDFR_Tagged = Table.AddColumn(NonDFR_Clean, "Source", each "Non-DFR"),
+				
+				    // ─── Combine both tables & add date keys ─────────────────────────────────
+				    Combined = Table.Combine({DFR_Tagged, NonDFR_Tagged}),
+				    WithDate = Table.AddColumn(Combined, "PeriodDate", each 
+				        #date(2000 + Number.FromText(Text.End([Period], 2)), Number.FromText(Text.Start([Period], 2)), 1), type date),
+				    WithSort = Table.AddColumn(WithDate, "DateSortKey", each 
+				        Date.Year([PeriodDate]) * 100 + Date.Month([PeriodDate]), Int64.Type),
+				
+				    // ─── Filter to Rolling 13 Months (pReportMonth-driven) ───
+				    EndOfWindow = Date.EndOfMonth(pReportMonth),
+				    StartOfWindow = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12)),
+				    FilteredData = Table.SelectRows(WithSort, each [PeriodDate] >= StartOfWindow and [PeriodDate] <= EndOfWindow),
+				
+				    // ─── Create totals with proper duration arithmetic ─────────────────────
+				    AllMetricGroups = Table.Group(FilteredData, {"Metric", "Source", "SortOrder"}, {
+				        {"TotalValue", each 
+				            let CurrentTable = _, MetricName = CurrentTable[Metric]{0} in
+				                if MetricName = "DRF - AVG Response Times - All Calls (Mins:Secs)" or MetricName = "DRF - AVG Response Times - First on Scene (Mins:Secs)" then "N/A"
+				                else if Text.Contains(MetricName, "(Mins:Secs)") then
+				                    let TimeValues = List.Transform(CurrentTable[Value], each try let TimeStr = Text.From(_), Parts = Text.Split(TimeStr, ":"), Minutes = if List.Count(Parts) >= 2 then Number.From(Parts{0}) else 0, Seconds = if List.Count(Parts) >= 2 then Number.From(Parts{1}) else 0 in Minutes * 60 + Seconds otherwise 0),
+				                        ValidTimeValues = List.Select(TimeValues, each _ > 0), AvgSeconds = if List.Count(ValidTimeValues) > 0 then List.Average(ValidTimeValues) else 0,
+				                        AvgMinutes = Number.IntegerDivide(AvgSeconds, 60), AvgSecs = Number.Round(Number.Mod(AvgSeconds, 60), 0)
+				                    in Text.From(AvgMinutes) & ":" & Text.PadStart(Text.From(AvgSecs), 2, "0")
+				                else if Text.Contains(MetricName, "(Hours:Mins)") and not Text.Contains(MetricName, "Secs") then
+				                    let TimeValues = List.Transform(CurrentTable[Value], each try let TimeStr = Text.From(_), Parts = Text.Split(TimeStr, ":"), Hours = if List.Count(Parts) >= 2 then Number.From(Parts{0}) else 0, Minutes = if List.Count(Parts) >= 2 then Number.From(Parts{1}) else 0 in Hours * 60 + Minutes otherwise 0),
+				                        TotalMinutes = List.Sum(TimeValues), TotalHours = Number.IntegerDivide(TotalMinutes, 60), FinalMinutes = Number.Mod(TotalMinutes, 60)
+				                    in Text.PadStart(Text.From(TotalHours), 2, "0") & ":" & Text.PadStart(Text.From(FinalMinutes), 2, "0")
+				                else if Text.Contains(MetricName, "(Hours:Mins:Secs)") then
+				                    let TimeValues = List.Transform(CurrentTable[Value], each try let TimeStr = Text.From(_), Parts = Text.Split(TimeStr, ":"), Hours = if List.Count(Parts) >= 3 then Number.From(Parts{0}) else 0, Minutes = if List.Count(Parts) >= 3 then Number.From(Parts{1}) else 0, Seconds = if List.Count(Parts) >= 3 then Number.From(Parts{2}) else 0 in Hours * 3600 + Minutes * 60 + Seconds otherwise 0),
+				                        TotalSeconds = List.Sum(TimeValues), TotalHours = Number.IntegerDivide(TotalSeconds, 3600), TotalMinutes = Number.IntegerDivide(Number.Mod(TotalSeconds, 3600), 60), FinalSeconds = Number.Round(Number.Mod(TotalSeconds, 60), 0)
+				                    in Text.PadStart(Text.From(TotalHours), 2, "0") & ":" & Text.PadStart(Text.From(TotalMinutes), 2, "0") & ":" & Text.PadStart(Text.From(FinalSeconds), 2, "0")
+				                else Text.From(Number.Round(List.Sum(List.Transform(CurrentTable[Value], each try Number.From(_) otherwise 0)), 2))
+				        }
+				    }),
+				
+				    TotalsWithPeriod = Table.AddColumn(AllMetricGroups, "Period", each "Total"),
+				    TotalsWithValue = Table.AddColumn(TotalsWithPeriod, "Value", each [TotalValue]),
+				    TotalsWithDate = Table.AddColumn(TotalsWithValue, "PeriodDate", each #date(2099, 12, 31), type date),
+				    TotalsWithSort = Table.AddColumn(TotalsWithDate, "DateSortKey", each 999999, Int64.Type),
+				
+				    CombinedWithAllTotals = Table.Combine({FilteredData, TotalsWithSort}),
+				    Sorted = Table.Sort(CombinedWithAllTotals, {{"Source", Order.Ascending}, {"SortOrder", Order.Ascending}, {"DateSortKey", Order.Ascending}}),
+				    Final = Table.SelectColumns(Sorted, {"Metric", "Period", "Value", "Source", "PeriodDate", "DateSortKey", "SortOrder"})
+				
+				in Final
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,57 @@
+table ___DimMonth
+	lineageTag: 9c967eeb-bc56-4235-aba4-b3046ad0fbb4
+
+	column MonthStart
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 18cd5c71-4d1c-4c20-a1e7-cf8dd62afd4a
+		summarizeBy: none
+		sourceColumn: MonthStart
+
+		variation Variation
+			isDefault
+			relationship: 19b231a6-7961-4bb9-a384-236f4a70d2bf
+			defaultHierarchy: LocalDateTable_39197c5d-7895-4d46-ae59-eecfb8f374cd.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column MonthLabel
+		dataType: string
+		lineageTag: 7717c46d-2646-4f1f-92af-a145282e3180
+		summarizeBy: none
+		sourceColumn: MonthLabel
+		sortByColumn: MonthSort
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthSort
+		dataType: int64
+		formatString: 0
+		lineageTag: 8908f4f4-a103-444b-b39e-fe61817fa5b9
+		summarizeBy: none
+		sourceColumn: MonthSort
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___DimMonth = m
+		mode: import
+		source =
+				let
+				    EndOfWindow = Date.EndOfMonth(pReportMonth),
+				    StartOfWindow = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12)),
+				    MonthStarts = List.Generate(() => StartOfWindow, each _ <= EndOfWindow, each Date.AddMonths(_, 1)),
+				    ToTable = Table.FromList(MonthStarts, Splitter.SplitByNothing(), {"MonthStart"}),
+				    TypedDate = Table.TransformColumnTypes(ToTable, {{"MonthStart", type date}}),
+				    AddLabel = Table.AddColumn(TypedDate, "MonthLabel", each Date.ToText([MonthStart], "MM-yy"), type text),
+				    AddSort = Table.AddColumn(AddLabel, "MonthSort", each Date.Year([MonthStart]) * 100 + Date.Month([MonthStart]), Int64.Type)
+				in
+				    AddSort
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

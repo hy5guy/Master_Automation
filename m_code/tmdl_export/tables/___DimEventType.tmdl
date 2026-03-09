@@ -1,0 +1,32 @@
+table ___DimEventType
+	lineageTag: e1621208-7de6-4195-9391-c3a5265847ef
+
+	column EventType
+		dataType: string
+		lineageTag: 91aad07e-97e7-44cc-998f-1589da3aec1c
+		summarizeBy: none
+		sourceColumn: EventType
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___DimEventType = m
+		mode: import
+		source =
+				// Name this query: DimEventType
+				let
+				    Source = #table(
+				        {"EventType"},
+				        {
+				            {"Show of Force"},
+				            {"Use of Force"},
+				            {"Vehicle Pursuit"}
+				        }
+				    ),
+				    Typed = Table.TransformColumnTypes(Source, {{"EventType", type text}})
+				in
+				    Typed
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

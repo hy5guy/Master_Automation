@@ -1,0 +1,95 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation PBI_QueryOrder = ["___Arrest_13Month","___Arrest_Categories","___Arrest_Distro","___Top_5_Arrests","___Benchmark","___Chief2","___chief_projects","___Combined_Outreach_All","___ComprehensiveDateTable","___Cost_of_Training","___CSB_Monthly","___DimEventType","___DimMonth","___Det_case_dispositions_clearance","___Detectives","___Drone","ESU_13Month","___In_Person_Training","___NIBRS_Monthly_Report","___Overtime_Timeoff_v3","___Patrol","___REMU","___ResponseTime_AllMetrics","___ResponseTimeCalculator","___ResponseTime_DispVsCall","___ResponseTime_OutVsCall","___Social_Media","___SSOCC_Data","___STACP_pt_1_2","STACP_DIAGNOSTIC","___Summons","summons_13month_trend","summons_all_bureaus","___Summons_Diagnostic","summons_top5_moving","summons_top5_parking","TAS_Dispatcher_Incident","___Traffic","RootExportPath","EtlRootPath","SourceMode","RangeStart","RangeEnd","pReportMonth","Parameters_Check","RequiredTypes","fnGetFiles","fnReadCsv","fnEnsureColumns","fnApplyRenameMap","fnLoadRaw"]
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_ProTooling = ["TMDLView_Desktop","MCP-PBIModeling"]
+
+ref table ___REMU
+ref table ___Chief2
+ref table DateTableTemplate_5678adcb-36e7-4105-b8bf-02a33cc24f8b
+ref table LocalDateTable_8f34d3fe-898e-4c92-a658-b9e90ec7f04f
+ref table ___Arrest_Categories
+ref table ___Arrest_Distro
+ref table ___NIBRS_Monthly_Report
+ref table ___Combined_Outreach_All
+ref table summons_13month_trend
+ref table ___Patrol
+ref table ___Traffic
+ref table ___Social_Media
+ref table ___STACP_pt_1_2
+ref table LocalDateTable_cb369f3c-5991-4105-a6ad-7cb20b262db0
+ref table LocalDateTable_4ddba0f8-d298-421a-af41-b1a146018760
+ref table ProjectsInitiatives
+ref table _Measures
+ref table LocalDateTable_9a3df765-d81f-45af-bb19-317739e17338
+ref table STACP_Measures
+ref table ___Det_case_dispositions_clearance
+ref table LocalDateTable_518f0485-8252-4d1c-b9c3-64da7988c2fd
+ref table ___CSB_Monthly
+ref table LocalDateTable_31aeac36-d226-443f-86a5-e23c8b9cef1c
+ref table ___In_Person_Training
+ref table ___SSOCC_Data
+ref table LocalDateTable_3f5b4743-f7a2-4ee1-b037-8a95c3131b2c
+ref table ___Drone
+ref table LocalDateTable_ef141304-ebfd-4a28-a4c1-d5ed462272b0
+ref table ServiceCategory
+ref table 'SSOCC Categories'
+ref table ___ComprehensiveDateTable
+ref table LocalDateTable_7e2f40f6-07e8-426a-ba35-c3f00106dd85
+ref table ___Top_5_Arrests
+ref table ___chief_projects
+ref table ___Detectives
+ref table LocalDateTable_0108e871-d1c9-4be4-8891-79f9d327a2b4
+ref table LocalDateTable_da5de5de-1abf-4196-ad2f-8aac4fc46814
+ref table LocalDateTable_5ea5db37-e43d-4390-ab7d-0147be105c31
+ref table LocalDateTable_a92b67c9-2529-42b5-8346-6475d25fa653
+ref table LocalDateTable_81a3fc4e-e270-445f-a0af-f0bcd61741c3
+ref table ___Cost_of_Training
+ref table LocalDateTable_09748da8-7d8b-40bd-b61a-5c8272e80dac
+ref table LocalDateTable_5166365e-fb5e-4b5a-a6a2-17deed5cb8ff
+ref table Parameters_Check
+ref table BM_Calendar
+ref table LocalDateTable_ea539bab-1015-40d5-a92e-ce99d7aa8966
+ref table LocalDateTable_b8096e2a-739e-4bfe-b4e4-aff2216779f3
+ref table ___Benchmark
+ref table ___DimMonth
+ref table LocalDateTable_39197c5d-7895-4d46-ae59-eecfb8f374cd
+ref table ___DimEventType
+ref table ___Overtime_Timeoff_v3
+ref table summons_top5_parking
+ref table summons_all_bureaus
+ref table UI
+ref table LocalDateTable_711842b5-db0a-4b82-9619-ba9028b0d66b
+ref table LocalDateTable_4d959cda-44b1-4c18-9407-f8dcd3edbd91
+ref table ___Summons_Diagnostic
+ref table summons_top5_moving
+ref table TAS_Dispatcher_Incident
+ref table LocalDateTable_be5e04ce-9942-4a3d-aebc-7d73f3f7f6c2
+ref table ESU_13Month
+ref table ___Summons
+ref table LocalDateTable_26faf302-b49f-4df3-8773-d755042f7077
+ref table ___ResponseTime_DispVsCall
+ref table LocalDateTable_acd8c52c-52b5-4a8a-a84b-bdd93a8402fa
+ref table LocalDateTable_7cec9b52-776c-43a7-b334-892bd19e5ea2
+ref table ___ResponseTime_OutVsCall
+ref table LocalDateTable_ccc0909f-a17b-45d4-aaf1-273dcafca9be
+ref table LocalDateTable_5f626764-2c7b-4089-8b40-e5558d751d35
+ref table ___ResponseTimeCalculator
+ref table LocalDateTable_696faa46-a750-40bb-ab95-1b8eb289c9fa
+ref table LocalDateTable_9e493e0f-2745-46a1-9b13-76111e0cc0dc
+ref table LocalDateTable_f061fb15-0f21-457e-a8cd-3fc26bc38919
+ref table ___ResponseTime_AllMetrics
+ref table ___Arrest_13Month
+ref table LocalDateTable_8a1b42e2-7d11-41b0-a149-31fc4da1c87e
+ref table LocalDateTable_6f3fe6b0-c752-4769-b3cd-f23bd894c7bf
+
+ref cultureInfo en-US
+

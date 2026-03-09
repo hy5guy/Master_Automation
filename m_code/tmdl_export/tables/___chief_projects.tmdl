@@ -1,0 +1,126 @@
+table ___chief_projects
+	lineageTag: 5017986f-d23d-45d4-8a71-df19436943a5
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 1989a23c-e722-42b2-b1eb-853f6d78633a
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Notes
+		dataType: string
+		lineageTag: 8292682f-6e14-4231-a138-79cd5fcf0421
+		summarizeBy: none
+		sourceColumn: Notes
+
+		annotation SummarizationSetBy = Automatic
+
+	column Duration
+		dataType: string
+		lineageTag: 08114e17-bbfd-4f15-81bc-ed435d6e79da
+		summarizeBy: none
+		sourceColumn: Duration
+
+		annotation SummarizationSetBy = Automatic
+
+	column Location
+		dataType: string
+		lineageTag: 6327c782-76b4-4e3e-aa3b-e6c476a4812d
+		summarizeBy: none
+		sourceColumn: Location
+
+		annotation SummarizationSetBy = Automatic
+
+	column Event
+		dataType: string
+		lineageTag: 407a46d6-ba78-4b53-8df6-952870899833
+		summarizeBy: none
+		sourceColumn: Event
+
+		annotation SummarizationSetBy = Automatic
+
+	column Category
+		dataType: string
+		lineageTag: fbd0b909-3dd0-44d7-a76c-edb156122379
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Subcategory
+		dataType: string
+		lineageTag: a62ed344-77db-46f3-bde0-fb40bb2e325b
+		summarizeBy: none
+		sourceColumn: Subcategory
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___chief_projects = m
+		mode: import
+		source = ```
+				// 🕒 2026-03-04-23-55-00
+				// # PowerBI_ChiefMonthly/___chief_projects.m
+				// # Author: R. A. Carucci
+				// # Purpose: Load chief project/event data from Raw_Input table, clean event names, and enrich with category lookup from Categories table.
+				
+				let
+				    Source = Excel.Workbook(
+				        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Chief\chief_monthly.xlsx"), 
+				        null, true
+				    ),
+				    
+				    // Load the Raw_Input data
+				    Table8_Table = Source{[Item="Raw_Input",Kind="Table"]}[Data],
+				    
+				    #"Changed Type" = Table.TransformColumnTypes(Table8_Table, {
+				        {"Date", type date}, 
+				        {"Event", type text}, 
+				        {"Notes", type text}, 
+				        {"Duration", type text}, 
+				        {"Location", type text}
+				    }),
+				    
+				    // Remove parentheses and trailing numbers from Event column
+				    // e.g., "Meeting (3)" → "Meeting"
+				    #"Cleaned Events" = Table.TransformColumns(#"Changed Type", {
+				        {"Event", each if Text.Contains(_, " (") 
+				            then Text.BeforeDelimiter(_, " (") 
+				            else _, type text}
+				    }),
+				    
+				    // Remove blank rows (rows with no Date)
+				    #"Removed Blanks" = Table.SelectRows(#"Cleaned Events", each [Date] <> null),
+				    
+				    // Load Categories lookup table
+				    Categories_Table = Source{[Item="Categories",Kind="Table"]}[Data],
+				    #"Categories Typed" = Table.TransformColumnTypes(Categories_Table, {
+				        {"Event", type text}, 
+				        {"Category", type text}, 
+				        {"Subcategory", type text}
+				    }),
+				    
+				    // Merge with Categories to enrich events
+				    #"Merged Categories" = Table.NestedJoin(
+				        #"Removed Blanks", {"Event"}, 
+				        #"Categories Typed", {"Event"}, 
+				        "CatLookup", JoinKind.LeftOuter
+				    ),
+				    
+				    // Expand Category and Subcategory columns
+				    #"Expanded Categories" = Table.ExpandTableColumn(
+				        #"Merged Categories", "CatLookup", 
+				        {"Category", "Subcategory"}, {"Category", "Subcategory"}
+				    )
+				in
+				    #"Expanded Categories"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

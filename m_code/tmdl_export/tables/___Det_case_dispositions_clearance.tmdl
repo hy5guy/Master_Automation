@@ -1,0 +1,760 @@
+table ___Det_case_dispositions_clearance
+	lineageTag: 854ea516-fde6-4815-b944-4d976dea4bc9
+
+	measure 'Case Dispositions Subtitle' = ```
+			
+			VAR MinDate = MIN('___Det_case_dispositions_clearance'[Date])
+			VAR MaxDate = MAX('___Det_case_dispositions_clearance'[Date])
+			VAR StartMonth = FORMAT(MinDate, "MMM YYYY")
+			VAR EndMonth = FORMAT(MaxDate, "MMM YYYY") 
+			VAR MonthCount = DATEDIFF(MinDate, MaxDate, MONTH) + 1
+			RETURN 
+			"Rolling " & MonthCount & "-Month Case Disposition Analysis | " & 
+			StartMonth & " through " & EndMonth
+			```
+		lineageTag: 68a3aea4-c63a-4d1e-958f-8a2de777acb4
+
+	measure 'Month Sort Order' = ```
+			
+			VAR SelectedMonth = SELECTEDVALUE('___Det_case_dispositions_clearance'[Month_Abbrev])
+			VAR SortValue = SELECTEDVALUE('___Det_case_dispositions_clearance'[Sort_Order])
+			RETURN 
+			IF(ISBLANK(SortValue), 999999, SortValue)
+			```
+		formatString: 0
+		lineageTag: bc601731-63a8-4272-b48a-7b698dae8d38
+
+	measure 'Clearance Rate Color' = ```
+			
+			VAR ClearanceRate = SELECTEDVALUE('___Det_case_dispositions_clearance'[Value])
+			VAR DispositionType = SELECTEDVALUE('___Det_case_dispositions_clearance'[Closed Case Dispositions])
+			RETURN
+			IF(
+			    DispositionType = "Clearance Percentage",
+			    SWITCH(
+			        TRUE(),
+			        ClearanceRate >= 60, "#2E7D32", // Dark Green - Excellent
+			        ClearanceRate >= 50, "#4CAF50", // Green - Good  
+			        ClearanceRate >= 40, "#FF9800", // Orange - Fair
+			        "#F44336" // Red - Needs Improvement
+			    ),
+			    "#757575" // Gray for non-clearance rows
+			)
+			```
+		lineageTag: 258894f0-3fbb-4a6e-9213-119d3dfe1691
+
+	measure 'Current Month Total Cases' =
+			
+			CALCULATE(
+			    SUM('___Det_case_dispositions_clearance'[Value]),
+			    '___Det_case_dispositions_clearance'[Date] = MAX('___Det_case_dispositions_clearance'[Date]),
+			    '___Det_case_dispositions_clearance'[Closed Case Dispositions] = "Total Closed Cases This Month"
+			)
+		lineageTag: b848b656-440a-4826-8284-0559a9f34396
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Performance Icon' = ```
+			
+			VAR PreviousMonthStart = EOMONTH(TODAY(), -2) + 1
+			VAR PreviousMonthEnd = EOMONTH(TODAY(), -1)
+			VAR PreviousMonthMMYY = FORMAT(PreviousMonthStart, "MM-yy")
+			
+			VAR ClearanceRateForPreviousMonth = 
+			    CALCULATE(
+			        MAX('___Det_case_dispositions_clearance'[Value]),
+			        '___Det_case_dispositions_clearance'[Closed Case Dispositions] = "Clearance Percentage",
+			        '___Det_case_dispositions_clearance'[Month] = PreviousMonthMMYY,
+			        ALL('___Det_case_dispositions_clearance'[Month]),
+			        ALL('___Det_case_dispositions_clearance'[Closed Case Dispositions])
+			    )
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    ClearanceRateForPreviousMonth >= 50, "🟢 " & FORMAT(ClearanceRateForPreviousMonth, "0.0") & "%",
+			    ClearanceRateForPreviousMonth >= 45, "🟡 " & FORMAT(ClearanceRateForPreviousMonth, "0.0") & "%", 
+			    ClearanceRateForPreviousMonth >= 40, "🟠 " & FORMAT(ClearanceRateForPreviousMonth, "0.0") & "%",
+			    ClearanceRateForPreviousMonth >= 35, "🔴 " & FORMAT(ClearanceRateForPreviousMonth, "0.0") & "%",
+			    "🔴 " & FORMAT(ClearanceRateForPreviousMonth, "0.0") & "%"
+			)
+			```
+		lineageTag: 310936a9-4d5b-4f35-821c-011e7ab329de
+
+	measure 'MoM Change' = ```
+			
+			VAR CurrentValue = SELECTEDVALUE('___Det_case_dispositions_clearance'[Value])
+			VAR CurrentDate = SELECTEDVALUE('___Det_case_dispositions_clearance'[Date])
+			VAR CurrentDisposition = SELECTEDVALUE('___Det_case_dispositions_clearance'[Closed Case Dispositions])
+			VAR PreviousMonthDate = EDATE(CurrentDate, -1)
+			VAR PreviousValue = 
+			    CALCULATE(
+			        SELECTEDVALUE('___Det_case_dispositions_clearance'[Value]),
+			        '___Det_case_dispositions_clearance'[Date] = PreviousMonthDate,
+			        '___Det_case_dispositions_clearance'[Closed Case Dispositions] = CurrentDisposition
+			    )
+			VAR Change = CurrentValue - PreviousValue
+			RETURN
+			IF(
+			    ISBLANK(PreviousValue) || ISBLANK(CurrentValue),
+			    BLANK(),
+			    IF(
+			        CurrentDisposition = "Clearance Percentage",
+			        FORMAT(Change, "+0.0;-0.0") & "pp",
+			        FORMAT(Change, "+#,0;-#,0;0")
+			    )
+			)
+			```
+		lineageTag: 7f34459e-2d40-4b5e-85ed-d03ad888f9fe
+
+	measure 'Total Cases This Month' =
+			
+			CALCULATE(
+			    SUMX(
+			        FILTER(
+			            '___Det_case_dispositions_clearance',
+			            '___Det_case_dispositions_clearance'[Closed Case Dispositions] <> "Clearance Percentage"
+			        ),
+			        '___Det_case_dispositions_clearance'[Value]
+			    )
+			)
+		lineageTag: c513e08a-bcce-4587-9d90-2dfaf840a92c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Clearance Rate' =
+			
+			CALCULATE(
+			    AVERAGE('___Det_case_dispositions_clearance'[Value]),
+			    '___Det_case_dispositions_clearance'[Closed Case Dispositions] = "Clearance Percentage"
+			)
+		lineageTag: b9026996-20f0-48f9-9619-d63e2c3509ab
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Clearance Trend' = ```
+			
+			VAR CurrentClearance = 
+			    CALCULATE(
+			        SELECTEDVALUE('___Det_case_dispositions_clearance'[Value]),
+			        '___Det_case_dispositions_clearance'[Closed Case Dispositions] = "Clearance Percentage"
+			    )
+			VAR AvgClearance = [Average Clearance Rate]
+			RETURN
+			IF(
+			    ISBLANK(CurrentClearance),
+			    BLANK(),
+			    IF(
+			        CurrentClearance > AvgClearance + 5, "📈 Above Average",
+			        IF(
+			            CurrentClearance < AvgClearance - 5, "📉 Below Average",
+			            "➡️ Average"
+			        )
+			    )
+			)
+			
+			```
+		lineageTag: ce412493-9fab-450a-ac0b-19686a0df5a3
+
+	measure 'Current Quarter Summary' = ```
+			
+			VAR CurrentDate = MAX('___Det_case_dispositions_clearance'[Date])
+			VAR QuarterStart = 
+			    DATE(
+			        YEAR(CurrentDate),
+			        (QUARTER(CurrentDate) - 1) * 3 + 1,
+			        1
+			    )
+			VAR QuarterClearance = 
+			    CALCULATE(
+			        AVERAGE('___Det_case_dispositions_clearance'[Value]),
+			        '___Det_case_dispositions_clearance'[Date] >= QuarterStart,
+			        '___Det_case_dispositions_clearance'[Closed Case Dispositions] = "Clearance Percentage"
+			    )
+			RETURN
+			"Q" & QUARTER(CurrentDate) & " " & YEAR(CurrentDate) & 
+			" Avg: " & FORMAT(QuarterClearance, "0.0") & "%"
+			```
+		lineageTag: e294e486-30af-43d1-a1da-95f5a4adfedc
+
+	measure 'Value Display' =
+			
+			VAR CurrentValue = SELECTEDVALUE('___Det_case_dispositions_clearance'[Value])
+			VAR DispositionType = SELECTEDVALUE('___Det_case_dispositions_clearance'[Closed Case Dispositions])
+			RETURN
+			IF(
+			    DispositionType = "Clearance Percentage",
+			    FORMAT(CurrentValue, "0.0") & "%",
+			    FORMAT(CurrentValue, "#,0")
+			)
+		lineageTag: 7d79907c-9d99-49f1-a3c3-a24f2dae4be7
+
+	measure 'Case Dispositions Title' = ```
+			
+			VAR AvgClearance = 
+			    CALCULATE(
+			        AVERAGE('___Det_case_dispositions_clearance'[Value]),
+			        '___Det_case_dispositions_clearance'[Closed Case Dispositions] = "Clearance Percentage"
+			    )
+			VAR Performance = 
+			    IF(AvgClearance >= 60, "Strong Performance", 
+			    IF(AvgClearance >= 50, "Moderate Performance", "Performance Review"))
+			RETURN 
+			"Detective Case Dispositions - " & Performance
+			```
+		lineageTag: e22a7f5c-6a1f-42ce-8027-bc6f2f045130
+
+	measure 'Current Month Clearance' =
+			
+			CALCULATE(
+			    SELECTEDVALUE('___Det_case_dispositions_clearance'[Value]),
+			    '___Det_case_dispositions_clearance'[Date] = MAX('___Det_case_dispositions_clearance'[Date]),
+			    '___Det_case_dispositions_clearance'[Closed Case Dispositions] = "Clearance Percentage"
+			)
+		lineageTag: 44747926-2520-4dea-b40d-22230d8b1208
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'YoY Clearance Change' = ```
+			
+			VAR CurrentYear = 
+			    CALCULATE(
+			        AVERAGE('___Det_case_dispositions_clearance'[Value]),
+			        '___Det_case_dispositions_clearance'[Closed Case Dispositions] = "Clearance Percentage",
+			        YEAR('___Det_case_dispositions_clearance'[Date]) = YEAR(TODAY())
+			    )
+			VAR LastYear = 
+			    CALCULATE(
+			        AVERAGE('___Det_case_dispositions_clearance'[Value]),
+			        '___Det_case_dispositions_clearance'[Closed Case Dispositions] = "Clearance Percentage",
+			        YEAR('___Det_case_dispositions_clearance'[Date]) = YEAR(TODAY()) - 1
+			    )
+			RETURN CurrentYear - LastYear
+			```
+		lineageTag: fe18050c-8dac-42f5-8e08-a7570deb7fb9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Clearance Trend Title' = "Detective Clearance Rate Performance"
+		lineageTag: af5aac1e-78c0-4d91-a252-4c0f83241ea9
+
+	measure 'Clearance Rate Display' = ```
+			
+			VAR ClearanceValue = 
+			    CALCULATE(
+			        SELECTEDVALUE('___Det_case_dispositions_clearance'[Value]),
+			        '___Det_case_dispositions_clearance'[Closed Case Dispositions] = "Clearance Percentage"
+			    )
+			RETURN ClearanceValue / 100  // Convert 71.2 to 0.712 for proper % display
+			```
+		lineageTag: 96c8f6ce-029b-4578-badc-50111ab2d348
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Debug Measure' =
+			
+			VAR CurrentMonth = SELECTEDVALUE('___Det_case_dispositions_clearance'[Month])
+			VAR CurrentDisposition = SELECTEDVALUE('___Det_case_dispositions_clearance'[Closed Case Dispositions])
+			VAR AllValues = CALCULATE(COUNTROWS('___Det_case_dispositions_clearance'))
+			VAR ClearanceValues = CALCULATE(COUNTROWS('___Det_case_dispositions_clearance'), '___Det_case_dispositions_clearance'[Closed Case Dispositions] = "Clearance Percentage")
+			RETURN
+			"Month: " & CurrentMonth & " | Disposition: " & CurrentDisposition & " | Total Rows: " & AllValues & " | Clearance Rows: " & ClearanceValues
+		lineageTag: d4412fd5-365a-49af-b527-62b64ab5f59d
+
+	measure '_Performance Icon' =
+			
+			VAR isClearanceRow =
+			    SELECTEDVALUE('___Det_case_dispositions_clearance'[Closed Case Dispositions]) = "Clearance Percentage"
+			VAR curMonth =
+			    SELECTEDVALUE('___Det_case_dispositions_clearance'[Month])
+			VAR pctText =
+			    CALCULATE(
+			        SELECTEDVALUE('___Det_case_dispositions_clearance'[Value]),
+			        '___Det_case_dispositions_clearance'[Closed Case Dispositions] = "Clearance Percentage",
+			        '___Det_case_dispositions_clearance'[Month] = curMonth
+			    )
+			/* Clean the text: trim, remove NBSP, commas, and the % sign */
+			VAR cleanedText =
+			    SUBSTITUTE(
+			        SUBSTITUTE(
+			            SUBSTITUTE(TRIM(pctText), UNICHAR(160), ""),  -- non-breaking space
+			        ",", ""),
+			    "%", "")
+			VAR pctNumRaw = IFERROR(VALUE(cleanedText), BLANK())   -- avoid visual-breaking error
+			VAR pct = DIVIDE(pctNumRaw, 100)
+			RETURN
+			IF(
+			    NOT isClearanceRow || ISBLANK(pct),
+			    BLANK(),
+			    SWITCH(
+			        TRUE(),
+			        pct >= 0.50, "🟢 " & FORMAT(pct, "0.0%"),
+			        pct >= 0.45, "🟡 " & FORMAT(pct, "0.0%"),
+			        pct >= 0.40, "🟠 " & FORMAT(pct, "0.0%"),
+			        pct >= 0.35, "🔴 " & FORMAT(pct, "0.0%"),
+			        "🔴 " & FORMAT(pct, "0.0%")
+			    )
+			)
+		lineageTag: 87c087bd-9867-4a26-88dc-859fac840afe
+
+	measure 'Performance Icon Only' = ```
+			
+			VAR isClearanceRow =
+			    SELECTEDVALUE('___Det_case_dispositions_clearance'[Closed Case Dispositions]) = "Clearance Percentage"
+			VAR curMonth =
+			    SELECTEDVALUE('___Det_case_dispositions_clearance'[Month])
+			VAR pctValue =
+			    CALCULATE(
+			        SELECTEDVALUE('___Det_case_dispositions_clearance'[Value]),
+			        '___Det_case_dispositions_clearance'[Closed Case Dispositions] = "Clearance Percentage",
+			        '___Det_case_dispositions_clearance'[Month] = curMonth
+			    )
+			VAR pct = DIVIDE(pctValue, 100)
+			RETURN
+			IF(
+			    NOT isClearanceRow || ISBLANK(pct),
+			    BLANK(),
+			    SWITCH(
+			        TRUE(),
+			        pct >= 0.50, "🟢",
+			        pct >= 0.45, "🟡", 
+			        pct >= 0.40, "🟠",
+			        "🔴"
+			    )
+			)
+			```
+		lineageTag: ac4638ac-1425-41d0-9d71-ab31b3559252
+
+	measure 'Performance Text' =
+			
+			VAR isClearanceRow =
+			    SELECTEDVALUE('___Det_case_dispositions_clearance'[Closed Case Dispositions]) = "Clearance Percentage"
+			VAR curMonth =
+			    SELECTEDVALUE('___Det_case_dispositions_clearance'[Month])
+			VAR pctValue =
+			    CALCULATE(
+			        SELECTEDVALUE('___Det_case_dispositions_clearance'[Value]),
+			        '___Det_case_dispositions_clearance'[Closed Case Dispositions] = "Clearance Percentage",
+			        '___Det_case_dispositions_clearance'[Month] = curMonth
+			    )
+			VAR pct = DIVIDE(pctValue, 100)
+			RETURN
+			IF(
+			    NOT isClearanceRow || ISBLANK(pct),
+			    BLANK(),
+			    FORMAT(pct, "0.0%")
+			)
+		lineageTag: 4a8100fe-8204-4103-b677-09d47a6322c8
+
+	measure 'Display Value' = ```
+			
+			VAR currentValue =
+			    SELECTEDVALUE('___Det_case_dispositions_clearance'[Value])
+			VAR isClearanceRow =
+			    SELECTEDVALUE('___Det_case_dispositions_clearance'[Closed Case Dispositions])
+			        = "Monthly Bureau Case Clearance %"
+			RETURN
+			IF(
+			    isClearanceRow,
+			    FORMAT(currentValue, "0.0%"),   -- no DIVIDE(...,100)
+			    currentValue
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: c275cccb-083f-4174-b172-e201abd0db14
+
+	measure 'Disp Value' = ```
+			
+			SUM ( '___Det_case_dispositions_clearance'[Value] )
+			
+			```
+		lineageTag: f0dc462a-d39e-46ee-be8e-2c29efbdf0bb
+
+		formatStringDefinition = "0.00%;-0.00%;0.00%"
+
+	measure 'Disp Value Format' = ```
+			
+			IF ( MAX('___Det_case_dispositions_clearance'[Is_Percent]), "0%", "#,0" )
+			
+			```
+		formatString: 0
+		lineageTag: 4716d441-a46f-45b0-8efb-6fcb72a549ad
+
+	measure '_Clearance Rate %' = ```
+			
+			CALCULATE (
+			    MAX ( '___Det_case_dispositions_clearance'[Value] ),
+			    '___Det_case_dispositions_clearance'[Is_Percent] = TRUE()
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 8c66fdab-91d9-45df-9be5-0ae8844cfda5
+
+	column 'Closed Case Dispositions'
+		dataType: string
+		lineageTag: d328b44c-7dec-403c-a88c-99200c3328ee
+		summarizeBy: none
+		sourceColumn: Closed Case Dispositions
+		sortByColumn: Row_Sort
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Value
+		dataType: double
+		lineageTag: 4c6b1c48-ef2c-45bf-b4cc-7c0c9bc9a4c2
+		summarizeBy: sum
+		sourceColumn: Value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 5a6fa402-b6ff-406d-9907-842b2d626de3
+		summarizeBy: none
+		sourceColumn: Date
+
+		variation Variation
+			isDefault
+			relationship: 30c5cf71-0ea9-4d00-a563-fcc06ebc22a7
+			defaultHierarchy: LocalDateTable_518f0485-8252-4d1c-b9c3-64da7988c2fd.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Month_Year
+		dataType: string
+		lineageTag: c65f623d-7fad-4905-b0ac-75fef0674ee8
+		summarizeBy: none
+		sourceColumn: Month_Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sort_Order
+		dataType: int64
+		formatString: 0
+		lineageTag: 1937f015-2458-4c83-a031-87d988c361ab
+		summarizeBy: sum
+		sourceColumn: Sort_Order
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month_Abbrev
+		dataType: string
+		lineageTag: e3b159e7-493f-43c4-a3a7-0cf0038acc92
+		summarizeBy: none
+		sourceColumn: Month_Abbrev
+		sortByColumn: Sort_Order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Disposition_Category
+		dataType: string
+		lineageTag: 76ff1380-e7ea-46e2-be93-930466229b24
+		summarizeBy: none
+		sourceColumn: Disposition_Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month_MM_YY =
+			
+			FORMAT([Date], "MM-YY")
+		lineageTag: 1af73f97-161e-4c14-92ba-21307e1f4d7e
+		summarizeBy: none
+		sortByColumn: Sort_Order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Performance Icon Simple' = ```
+			
+			VAR isClearanceRow = 
+			    SELECTEDVALUE('___Det_case_dispositions_clearance'[Closed Case Dispositions]) = "Clearance Percentage"
+			VAR pctValue = 
+			    SELECTEDVALUE('___Det_case_dispositions_clearance'[Value])
+			RETURN
+			    IF(
+			        NOT isClearanceRow || ISBLANK(pctValue),
+			        BLANK(),
+			        SWITCH(
+			            TRUE(),
+			            pctValue >= 50, 50,
+			            pctValue >= 45, 45,
+			            pctValue >= 40, 40,
+			            pctValue >= 35, 35,
+			            30
+			        )
+			    )
+			```
+		formatString: 0
+		lineageTag: 8dd1b8f3-fe31-417d-9f43-af01201dfd1a
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column Row_Sort
+		dataType: int64
+		formatString: 0
+		lineageTag: 6772a5c6-b054-4b19-bb1a-a06e6cd3eace
+		summarizeBy: sum
+		sourceColumn: Row_Sort
+
+		annotation SummarizationSetBy = Automatic
+
+	column Is_Percent
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 02c1c4fc-b691-4bfd-866a-b1bc714b772e
+		summarizeBy: none
+		sourceColumn: Is_Percent
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: string
+		lineageTag: 40abe428-959c-4d35-be35-e8f1026bb495
+		summarizeBy: none
+		sourceColumn: Month
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___Det_case_dispositions_clearance = m
+		mode: import
+		source = ```
+				// 🕒 2026-02-13-18-05-00
+				// # Master_Automation/Detectives/___Det_case_dispositions_clearance_2026.m
+				// # Author: R. A. Carucci
+				// # Purpose: Import Detective case clearance and dispositions from restructured 2026-only workbook (_CCD_MOM table) with rolling 13-month window and robust % normalization.
+				// Updated: pReportMonth-driven (no DateTime.LocalNow)
+				
+				let
+				    // =================================================================
+				    // FILE PATH AND TABLE LOAD
+				    // =================================================================
+				    Source = Excel.Workbook(
+				        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Detectives\detectives_monthly.xlsx"),
+				        null, true
+				    ),
+				    
+				    CCD_Table = Source{[Item="_CCD_MOM", Kind="Table"]}[Data],
+				
+				    // =================================================================
+				    // REQUIRED ROW ORDER (EXACT LABELS)
+				    // =================================================================
+				    RequiredOrder = {
+				        "Active / Administratively Closed",
+				        "Arrest",
+				        "Complaint Signed",
+				        "Ex Cleared / Closed",
+				        "Juvenile Complaint",
+				        "Stationhouse Adjustment",
+				        "TOT DCP&P",
+				        "Unfounded / Closed",
+				        "Monthly Bureau Case  Clearance % ",
+				        "YTD Bureau Case Clearance % "
+				    },
+				
+				    // =================================================================
+				    // COLUMN NAME DETECTION
+				    // =================================================================
+				    ColNames        = Table.ColumnNames(CCD_Table),
+				    FirstColumnName = ColNames{0},
+				    MonthColumns    = List.Skip(ColNames, 1),
+				
+				    // =================================================================
+				    // FILTER TO REQUIRED ROWS ONLY
+				    // =================================================================
+				    KeptRows = Table.SelectRows(
+				        CCD_Table,
+				        (r) => List.Contains(RequiredOrder, Record.Field(r, FirstColumnName))
+				    ),
+				
+				    // =================================================================
+				    // ADD ROW SORT ORDER
+				    // =================================================================
+				    WithRowSort = Table.AddColumn(
+				        KeptRows, "Row_Sort",
+				        each List.PositionOf(RequiredOrder, Record.Field(_, FirstColumnName)),
+				        Int64.Type
+				    ),
+				    
+				    OrderedRows = Table.Sort(WithRowSort, {{"Row_Sort", Order.Ascending}}),
+				
+				    // =================================================================
+				    // INITIAL TYPE CONVERSION (WIDE FORMAT)
+				    // =================================================================
+				    TypedWide = Table.TransformColumnTypes(
+				        OrderedRows,
+				        {{FirstColumnName, type text}} & 
+				        List.Transform(MonthColumns, each {_, type any})
+				    ),
+				
+				    // =================================================================
+				    // FLAG PERCENT ROWS
+				    // =================================================================
+				    MarkPercentRow = Table.AddColumn(
+				        TypedWide, "Is_Percent",
+				        each Text.Contains(Record.Field(_, FirstColumnName), "%"),
+				        type logical
+				    ),
+				
+				    // =================================================================
+				    // UNPIVOT TO LONG FORMAT
+				    // =================================================================
+				    Unpivoted = Table.UnpivotOtherColumns(
+				        MarkPercentRow,
+				        {FirstColumnName, "Row_Sort", "Is_Percent"},
+				        "Month",
+				        "ValueRaw"
+				    ),
+				
+				    // =================================================================
+				    // ROBUST PERCENTAGE NORMALIZATION
+				    // =================================================================
+				    Normalized = Table.AddColumn(
+				        Unpivoted, "Value",
+				        each
+				            let 
+				                v = [ValueRaw] 
+				            in
+				            if [Is_Percent] then
+				                if Value.Is(v, type text) then
+				                    let
+				                        s   = Text.Trim(v),
+				                        hasPct = Text.Contains(s, "%"),
+				                        n0  = try Number.From(Text.Replace(s, "%", "")) otherwise null,
+				                        n   = if n0 = null then null
+				                              else if hasPct then n0 / 100
+				                              else if n0 > 1 then n0 / 100 
+				                              else n0
+				                    in  n
+				                else
+				                    let
+				                        n0 = try Number.From(v) otherwise null,
+				                        n  = if n0 = null then null
+				                             else if n0 > 1 then n0 / 100 
+				                             else n0
+				                    in  n
+				            else
+				                try Number.From(v) otherwise null,
+				        type number
+				    ),
+				    
+				    Cleaned = Table.RemoveColumns(Normalized, {"ValueRaw"}),
+				
+				    // =================================================================
+				    // DATE PARSING FROM MM-YY FORMAT
+				    // =================================================================
+				    WithDate = Table.AddColumn(Cleaned, "Date", each
+				        let
+				            mTxt = [Month],
+				            Parts = Text.Split(mTxt, "-"),
+				            MonthPart = if List.Count(Parts) >= 1 then Parts{0} else "01",
+				            YearPart = if List.Count(Parts) >= 2 then Parts{1} else "26",
+				            
+				            y2 = try Number.From(YearPart) otherwise null,
+				            y4 = if y2 = null then null 
+				                 else if y2 >= 50 then 1900 + y2 
+				                 else 2000 + y2,
+				            
+				            mNum = try Number.From(MonthPart) otherwise null
+				        in
+				            if mNum = null or y4 = null then null 
+				            else try #date(y4, mNum, 1) otherwise null,
+				        type date
+				    ),
+				
+				    // =================================================================
+				    // ADDITIONAL DATE HELPER COLUMNS
+				    // =================================================================
+				    WithNormalizedMonth = Table.AddColumn(WithDate, "Month_Normalized", each 
+				        if [Date] <> null then 
+				            Text.PadStart(Text.From(Date.Month([Date])), 2, "0") & "-" & 
+				            Text.End(Text.From(Date.Year([Date])), 2)
+				        else [Month], 
+				        type text),
+				    
+				    RemovedOldMonth = Table.RemoveColumns(WithNormalizedMonth, {"Month"}),
+				    RenamedMonth = Table.RenameColumns(RemovedOldMonth, {{"Month_Normalized", "Month"}}),
+				    
+				    WithMonthYear = Table.AddColumn(RenamedMonth, "Month_Year", each 
+				        if [Date] = null then null 
+				        else Date.MonthName([Date]) & " " & Text.From(Date.Year([Date])), 
+				        type text),
+				    
+				    WithSortOrder = Table.AddColumn(WithMonthYear, "Sort_Order", each 
+				        if [Date] = null then null 
+				        else Date.Year([Date]) * 100 + Date.Month([Date]), 
+				        Int64.Type),
+				    
+				    WithAbbrev = Table.AddColumn(WithSortOrder, "Month_Abbrev", each 
+				        if [Date] = null then null 
+				        else Text.PadStart(Text.From(Date.Month([Date])), 2, "0") & "-" & 
+				             Text.End(Text.From(Date.Year([Date])), 2), 
+				        type text),
+				
+				    // =================================================================
+				    // DISPOSITION CATEGORY GROUPING
+				    // =================================================================
+				    WithDispCat = Table.AddColumn(WithAbbrev, "Disposition_Category", each
+				        let 
+				            disp = Record.Field(_, FirstColumnName)
+				        in
+				            if Text.Contains(disp, "Active") or Text.Contains(disp, "Administratively") 
+				                then "Open Cases"
+				            else if Text.Contains(disp, "Arrest") or Text.Contains(disp, "Complaint") 
+				                then "Prosecuted"
+				            else if Text.Contains(disp, "Cleared") or Text.Contains(disp, "Unfounded") 
+				                then "Cleared"
+				            else if Text.Contains(disp, "%") 
+				                then "Performance Metric"
+				            else "Other",
+				        type text
+				    ),
+				
+				    // =================================================================
+				    // DATE RANGE FILTER (pReportMonth-driven)
+				    // =================================================================
+				    EndOfWindow   = Date.EndOfMonth(pReportMonth),
+				    StartOfWindow = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12)),
+				
+				    FilteredMonths = Table.SelectRows(
+				        WithDispCat,
+				        each [Date] <> null and 
+				             [Date] >= StartOfWindow and 
+				             [Date] <= EndOfWindow
+				    ),
+				
+				    // =================================================================
+				    // FINAL TYPE CONVERSIONS
+				    // =================================================================
+				    Final = Table.TransformColumnTypes(FilteredMonths, {
+				        {FirstColumnName, type text},
+				        {"Month", type text},
+				        {"Value", type number},
+				        {"Date", type date},
+				        {"Month_Year", type text},
+				        {"Sort_Order", Int64.Type},
+				        {"Month_Abbrev", type text},
+				        {"Disposition_Category", type text},
+				        {"Row_Sort", Int64.Type},
+				        {"Is_Percent", type logical}
+				    })
+				    
+				in
+				    Final
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

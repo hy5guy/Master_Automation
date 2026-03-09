@@ -1,0 +1,106 @@
+{
+  "source_file": "Claude-Attached prompt execution.json",
+  "source_path": "C:\\_chunker\\02_data\\Claude-Attached prompt execution.json",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Claude-Attached_prompt_execution\\2026_03_09_18_46_46_Claude-Attached_prompt_execution.origin.json",
+  "created_at": "2026_03_09_18_46_46",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "dataset",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "sql",
+    "training"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "data",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "process",
+      "nthought",
+      "2026",
+      "ntool",
+      "queries",
+      "replace"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "{\n  \"metadata\": {\n    \"title\": \"Attached prompt execution\",\n    \"user\": {\n      \"name\": \"RAC\"\n    },\n    \"dates\": {\n      \"created\": \"2026/3/9 17:26:48\",\n      \"updated\": \"2026/3/9 18:36:10\",\n      \"exported\": \"2026/3/9 18:46:34\"\n    },...",
+    "first_line": "{"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-03-09T18:46:46+00:00_Claude-Attached_prompt_execution_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "dataset",
+        "date",
+        "json",
+        "legal",
+        "markdown",
+        "nthought",
+        "ntool",
+        "police",
+        "process",
+        "queries",
+        "replace",
+        "sql",
+        "training"
+      ],
+      "key_terms": [
+        "process",
+        "nthought",
+        "replace",
+        "ntool",
+        "date",
+        "queries"
+      ],
+      "summary": "{\n  \"metadata\": {\n    \"title\": \"Attached prompt execution\",\n    \"user\": {\n      \"name\": \"RAC\"\n    },\n    \"dates\": {\n      \"created\": \"2026/3/9 17:26:48\",\n      \"updated\": \"2026/3/9 18:36:10\",\n      \"exported\": \"2026/3/9 18:46:34\"\n    },...",
+      "char_length": 29239,
+      "byte_length": 29538
+    },
+    {
+      "chunk_id": "2026-03-09T18:46:46+00:00_Claude-Attached_prompt_execution_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "2026",
+        "ai",
+        "code",
+        "data",
+        "dataset",
+        "expressions",
+        "files",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "sql",
+        "training",
+        "write"
+      ],
+      "key_terms": [
+        "2026",
+        "expressions",
+        "all",
+        "files",
+        "feb",
+        "write"
+      ],
+      "summary": "Now pushing Wave 4.\\n\\n\\n13.",
+      "char_length": 26421,
+      "byte_length": 26650
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

@@ -1,0 +1,688 @@
+table ___Benchmark
+	lineageTag: 16928b5e-23c0-43f2-bf8d-71ac8e1ed278
+
+	measure BM_Rolling13_Count =
+			
+			VAR LastFullMonth = EOMONTH(TODAY(), -1)
+			VAR FirstMonth = EOMONTH(LastFullMonth, -12) + 1
+			RETURN
+			CALCULATE(
+			    DISTINCTCOUNT(___Benchmark[Report Number]),
+			    ___Benchmark[MonthStart] >= FirstMonth,
+			    ___Benchmark[MonthStart] <= LastFullMonth
+			)
+		formatString: 0
+		lineageTag: 524dde06-add2-4b7a-b589-1dd79b33565c
+
+	measure BM_YoY_Change = ```
+			
+			VAR CurrentCount = [BM_Rolling13_Count]
+			VAR PriorYearEnd = EOMONTH(TODAY(), -13)
+			VAR PriorYearStart = EDATE(PriorYearEnd, -12) + 1
+			VAR PriorCount = 
+			    CALCULATE(
+			        DISTINCTCOUNT(___Benchmark[Report Number]),
+			        ___Benchmark[Incident Date] >= PriorYearStart,
+			        ___Benchmark[Incident Date] <= PriorYearEnd
+			    )
+			RETURN
+			    IF(PriorCount = 0, BLANK(), DIVIDE(CurrentCount - PriorCount, PriorCount))
+			```
+		lineageTag: 405f0e32-4865-40b2-8d1d-74d94e759e6c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure BM_Rolling13_Count_Zero =
+			
+			VAR LastFullMonthEnd   = EOMONTH(TODAY(), -1)                  // Oct 31, 2025
+			VAR FirstMonthStart    = EOMONTH(LastFullMonthEnd, -12) + 1   // Nov 1, 2024
+			RETURN
+			COALESCE(
+			    CALCULATE(
+			        DISTINCTCOUNT(___Benchmark[Report Number]),
+			        ___Benchmark[Incident Date] >= FirstMonthStart,
+			        ___Benchmark[Incident Date] <= LastFullMonthEnd
+			    ),
+			    0
+			)
+		formatString: 0
+		lineageTag: 0830c5f9-1006-4856-b28b-76c52f637c0c
+
+	measure Officers_Count = ```
+			
+			VAR CurrentMonth = SELECTEDVALUE(___DimMonth[MonthStart])
+			VAR CurrentEventType = SELECTEDVALUE(___DimEventType[EventType])
+			VAR Result = 
+			    CALCULATE(
+			        SUM(___Benchmark[# of Officers Involved]),
+			        TREATAS({CurrentMonth}, ___Benchmark[MonthStart]),
+			        ___Benchmark[EventType] = CurrentEventType
+			    )
+			RETURN
+			    IF(ISBLANK(Result), 0, Result)
+			```
+		formatString: 0
+		lineageTag: 6e9e7801-449c-497c-b149-26a5ab5e2020
+
+	measure Subjects_Count = ```
+			
+			VAR CurrentMonth = SELECTEDVALUE(___DimMonth[MonthStart])
+			VAR CurrentEventType = SELECTEDVALUE(___DimEventType[EventType])
+			VAR Result = 
+			    CALCULATE(
+			        SUM(___Benchmark[# of Subjects]),
+			        TREATAS({CurrentMonth}, ___Benchmark[MonthStart]),
+			        ___Benchmark[EventType] = CurrentEventType
+			    )
+			RETURN
+			    IF(ISBLANK(Result), 0, Result)
+			```
+		lineageTag: 2474912e-ecc8-413e-a95d-f114295a75ba
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure IncidentCount = ```
+			
+			VAR Result = DISTINCTCOUNT(___Benchmark[Report Key])
+			RETURN 
+			    IF(ISBLANK(Result), 0, Result)
+			```
+		formatString: 0
+		lineageTag: cdec90fa-252e-491e-8895-2e34c6e0d049
+
+	measure MonthHasData = ```
+			
+			VAR MonthTotal =
+			    CALCULATE (
+			        DISTINCTCOUNT ( '___Benchmark'[Report Key] ),
+			        ALL ( '___Benchmark'[EventType] )
+			    )
+			RETURN
+			MonthTotal
+			
+			```
+		formatString: 0
+		lineageTag: afce0f96-b02d-4b33-b3f5-64c7c6b740e9
+
+	measure 'Matrix Title' = "Use of Force Incident Matrix"
+		lineageTag: 155a0835-cefd-421a-a837-26b8baec6abb
+
+	measure 'Matrix Subtitle' =
+			
+			VAR EndDate   = EOMONTH(TODAY(), -1)
+			VAR StartDate = EDATE(EndDate, -12)
+			RETURN
+			"Rolling 13-Month Overview (" &
+			    FORMAT(StartDate, "MMMM yyyy") & " - " & FORMAT(EndDate, "MMMM yyyy") & ")"
+		lineageTag: 9904341e-850d-4402-97aa-185b7ca2639e
+
+	measure 'Total Incidents Rolling 13' =
+			
+			VAR LastMonth = EOMONTH(TODAY(), -1)
+			VAR FirstMonth = EDATE(LastMonth, -12)
+			RETURN
+			CALCULATE(
+			    DISTINCTCOUNT(___Benchmark[Report Key]),
+			    ___Benchmark[MonthStart] >= FirstMonth,
+			    ___Benchmark[MonthStart] <= LastMonth
+			)
+		formatString: 0
+		lineageTag: a7eaea59-29c1-42c7-bce0-843cbb15c924
+
+	measure 'Most Frequent Event Type' = ```
+			
+			VAR LastMonth = EOMONTH(TODAY(), -1)
+			VAR FirstMonth = EDATE(LastMonth, -12)
+			VAR EventCounts = 
+			    ADDCOLUMNS(
+			        VALUES(___DimEventType[EventType]),
+			        "@Count", CALCULATE(
+			            DISTINCTCOUNT(___Benchmark[Report Key]),
+			            ___Benchmark[MonthStart] >= FirstMonth,
+			            ___Benchmark[MonthStart] <= LastMonth
+			        )
+			    )
+			VAR MaxCount = MAXX(EventCounts, [@Count])
+			VAR TopEvent = MAXX(FILTER(EventCounts, [@Count] = MaxCount), ___DimEventType[EventType])
+			RETURN
+			    TopEvent & " (" & FORMAT(MaxCount, "#,0") & ")"
+			```
+		lineageTag: c25b8935-f9aa-49b4-8a60-a9f9948ae9d9
+
+	measure 'Avg Incidents Per Month' =
+			
+			VAR LastMonth = EOMONTH(TODAY(), -1)
+			VAR FirstMonth = EDATE(LastMonth, -12)
+			VAR Total = [Total Incidents Rolling 13]
+			RETURN
+			    DIVIDE(Total, 13, 0)
+		lineageTag: 67616879-83bc-488e-8616-cc811fa072b9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'BM MoM Change' = ```
+			
+			VAR CurrentCount = [IncidentCount]
+			VAR PriorMonthDate = 
+			    CALCULATE(
+			        MAX(___DimMonth[MonthStart]),
+			        DATEADD(___DimMonth[MonthStart], -1, MONTH)
+			    )
+			VAR PriorCount = 
+			    CALCULATE(
+			        [IncidentCount],
+			        ___DimMonth[MonthStart] = PriorMonthDate
+			    )
+			VAR Change = CurrentCount - PriorCount
+			RETURN
+			    IF(ISBLANK(PriorCount), BLANK(), Change)
+			```
+		formatString: 0
+		lineageTag: 13202742-d7dc-44ea-b347-15b17f8ba43a
+
+	measure 'BM MoM Change %' = ```
+			
+			VAR Change = [BM MoM Change]
+			VAR PriorMonthDate = 
+			    CALCULATE(
+			        MAX(___DimMonth[MonthStart]),
+			        DATEADD(___DimMonth[MonthStart], -1, MONTH)
+			    )
+			VAR PriorCount = 
+			    CALCULATE(
+			        [IncidentCount],
+			        ___DimMonth[MonthStart] = PriorMonthDate
+			    )
+			RETURN
+			    IF(PriorCount = 0 || ISBLANK(PriorCount), BLANK(), DIVIDE(Change, PriorCount))
+			```
+		lineageTag: 3765a19e-6e5f-4107-a44d-1988322a915e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Donut Title' = "Incident Distribution by Event Type"
+		lineageTag: fbc766eb-e74f-4599-ae9a-80f8a424eae1
+
+	measure 'Donut Subtitle' =
+			
+			VAR EndDate   = EOMONTH(TODAY(), -1)
+			VAR StartDate = EDATE(EndDate, -12)
+			RETURN
+			"13-Month Period: " & FORMAT(StartDate, "MMM yyyy") & " - " & FORMAT(EndDate, "MMM yyyy")
+		lineageTag: f068c4af-8d86-444d-b54f-7f40b2b03b22
+
+	measure 'Donut Subtitle Short' =
+			
+			VAR EndDate   = EOMONTH(TODAY(), -1)
+			VAR StartDate = EDATE(EndDate, -12)
+			RETURN
+			FORMAT(StartDate, "MMM yy") & " - " & FORMAT(EndDate, "MMM yy")
+		lineageTag: 5a2bc089-3322-4ca4-a496-b2dddf6451b5
+
+	measure 'Donut Subtitle with Count' = ```
+			
+			VAR EndDate   = EOMONTH(TODAY(), -1)
+			VAR StartDate = EDATE(EndDate, -12)
+			VAR TotalIncidents = [IncidentCount_13Month]
+			RETURN
+			FORMAT(StartDate, "MMM yyyy") & " - " & FORMAT(EndDate, "MMM yyyy") & 
+			" | Total: " & FORMAT(TotalIncidents, "#,0")
+			```
+		lineageTag: 0b4924dc-8e73-4098-bfba-d98b4ee5bed1
+
+	measure IncidentCount_NEW = ```
+			
+			IF(
+			    HASONEVALUE(___DimMonth[MonthStart]) && HASONEVALUE(___DimEventType[EventType]),
+			    // Cell-level: specific month + event type
+			    VAR Result = DISTINCTCOUNT(___Benchmark[Report Key])
+			    RETURN IF(ISBLANK(Result), 0, Result),
+			    // Total-level: sum the individual cells
+			    SUMX(
+			        VALUES(___DimMonth[MonthStart]),
+			        VAR CurrentMonth = ___DimMonth[MonthStart]
+			        RETURN
+			            SUMX(
+			                VALUES(___DimEventType[EventType]),
+			                VAR CurrentEvent = ___DimEventType[EventType]
+			                VAR CellCount = 
+			                    CALCULATE(
+			                        DISTINCTCOUNT(___Benchmark[Report Key]),
+			                        ___DimMonth[MonthStart] = CurrentMonth,
+			                        ___DimEventType[EventType] = CurrentEvent
+			                    )
+			                RETURN IF(ISBLANK(CellCount), 0, CellCount)
+			            )
+			    )
+			)
+			```
+		formatString: 0
+		lineageTag: 9f22b851-caa4-42df-9470-ffe34b998e02
+
+	measure 'Line Chart Title' = "Incident Count by Date and Event Type"
+		lineageTag: bfe203d8-01e1-4790-8f3a-7fb4ef47f983
+
+	measure 'Line Chart Subtitle' =
+			
+			VAR EndDate   = EOMONTH(TODAY(), -1)
+			VAR StartDate = EDATE(EndDate, -12)
+			RETURN
+			"Trend Analysis: " & FORMAT(StartDate, "MMMM yyyy") & " - " & FORMAT(EndDate, "MMMM yyyy")
+		lineageTag: 7b0b5b10-b9c0-4abe-a6a2-5e03c09dcfda
+
+	measure 'Line Chart Subtitle Short' =
+			
+			VAR EndDate   = EOMONTH(TODAY(), -1)
+			VAR StartDate = EDATE(EndDate, -12)
+			RETURN
+			FORMAT(StartDate, "MMM yyyy") & " - " & FORMAT(EndDate, "MMM yyyy")
+		lineageTag: f918c4ad-88f1-4f2d-8ed7-6b3f8d6123bd
+
+	measure 'Peak Month' = ```
+			
+			VAR MaxCount = MAXX(ALL(___DimMonth[MonthLabel]), [IncidentCount])
+			VAR PeakMonth = 
+			    MAXX(
+			        FILTER(
+			            ALL(___DimMonth[MonthLabel]),
+			            [IncidentCount] = MaxCount
+			        ),
+			        ___DimMonth[MonthLabel]
+			    )
+			RETURN
+			"Peak: " & PeakMonth & " (" & FORMAT(MaxCount, "#,0") & " incidents)"
+			```
+		lineageTag: de69432a-4593-4e7f-b988-698d3bbb123f
+
+	measure 'Line Chart Avg Incidents Per Month' = ```
+			
+			VAR TotalIncidents = 
+			    CALCULATE(
+			        [IncidentCount],
+			        ALL(___DimMonth[MonthLabel])
+			    )
+			VAR MonthCount = DISTINCTCOUNT(___DimMonth[MonthLabel])
+			RETURN
+			    DIVIDE(TotalIncidents, MonthCount, 0)
+			```
+		lineageTag: 71386b23-0b54-4ba1-9e4c-cd852cf5afa2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Peak Month Indicator' = ```
+			
+			VAR MaxCount = 
+			    MAXX(
+			        ALLSELECTED(___DimMonth[MonthLabel]),
+			        MAXX(
+			            ALLSELECTED(___DimEventType[EventType]),
+			            [IncidentCount]
+			        )
+			    )
+			VAR PeakDetails = 
+			    FILTER(
+			        ADDCOLUMNS(
+			            CROSSJOIN(
+			                ALL(___DimMonth[MonthLabel]),
+			                ALL(___DimEventType[EventType])
+			            ),
+			            "@Count", [IncidentCount]
+			        ),
+			        [@Count] = MaxCount
+			    )
+			VAR PeakMonth = MAXX(PeakDetails, ___DimMonth[MonthLabel])
+			VAR PeakEventType = MAXX(PeakDetails, ___DimEventType[EventType])
+			RETURN
+			"Peak: " & PeakMonth & " (" & PeakEventType & " - " & FORMAT(MaxCount, "#,0") & " incidents)"
+			```
+		lineageTag: e51edd3e-aead-492a-9806-3dec1ae7c59b
+
+	measure PeakMonthIndicatorSimple = ```
+			
+			VAR MaxCount = 
+			    CALCULATE(
+			        [IncidentCount],
+			        TOPN(
+			            1,
+			            ALLSELECTED(___DimMonth[MonthLabel], ___DimEventType[EventType]),
+			            [IncidentCount],
+			            DESC
+			        )
+			    )
+			VAR Result = 
+			    CONCATENATEX(
+			        TOPN(
+			            1,
+			            ALLSELECTED(___DimMonth[MonthLabel], ___DimEventType[EventType]),
+			            [IncidentCount],
+			            DESC
+			        ),
+			        ___DimMonth[MonthLabel] & " (" & ___DimEventType[EventType] & " - " & FORMAT([IncidentCount], "#,0") & " incidents)",
+			        ", "
+			    )
+			RETURN
+			    "Peak: " & Result
+			```
+		lineageTag: 22db959b-36c0-42e5-8267-b739c7d7edaf
+
+	measure 'Peak Incident Count' =
+			
+			MAXX(
+			    ALLSELECTED(___DimMonth[MonthLabel]),
+			    MAXX(
+			        ALLSELECTED(___DimEventType[EventType]),
+			        [IncidentCount]
+			    )
+			)
+		formatString: 0
+		lineageTag: 935013d3-1f53-461c-a4d0-40045dfab21b
+
+	measure 'Peak Month Text' = ```
+			
+			VAR PeakCount = [Peak Incident Count]
+			VAR PeakMonthValue = 
+			    CALCULATE(
+			        SELECTEDVALUE(___DimMonth[MonthLabel]),
+			        FILTER(
+			            ALL(___DimMonth[MonthLabel]),
+			            CALCULATE([IncidentCount]) = PeakCount
+			        )
+			    )
+			RETURN
+			"Peak: " & PeakMonthValue & " (" & FORMAT(PeakCount, "#,0") & " incidents)"
+			```
+		lineageTag: 3cdb6b22-6bb9-43fb-b6fa-7c9c67034866
+
+	measure 'Peak Incidents' =
+			
+			MAXX(
+			    ALL(___DimMonth[MonthLabel]),
+			    [IncidentCount]
+			)
+		formatString: 0
+		lineageTag: a79fdc60-6b19-40a6-b417-6173b2659203
+
+	measure 'EventType Match Check' = ```
+			
+			VAR BenchmarkTypes = 
+			    CONCATENATEX(
+			        DISTINCT(___Benchmark[EventType]),
+			        "'" & ___Benchmark[EventType] & "'",
+			        ", "
+			    )
+			VAR DimTypes = 
+			    CONCATENATEX(
+			        ALL(___DimEventType[EventType]),
+			        "'" & ___DimEventType[EventType] & "'",
+			        ", "
+			    )
+			RETURN
+			    "Benchmark: " & BenchmarkTypes & " | Dim: " & DimTypes
+			```
+		lineageTag: 4c578746-f333-4e9c-beb0-c27148f95b67
+
+	measure IncidentCount_Forced =
+			
+			VAR CurrentEventType = SELECTEDVALUE(___DimEventType[EventType])
+			RETURN
+			    CALCULATE(
+			        DISTINCTCOUNT(___Benchmark[Report Key]),
+			        ___Benchmark[EventType] = CurrentEventType
+			    )
+		formatString: 0
+		lineageTag: 1f19b0c1-77c9-4d7c-b87e-7a65bf87748b
+
+	measure IncidentCount_13Month =
+			
+			VAR LastMonth = EOMONTH(TODAY(), -1)
+			VAR FirstMonth = EDATE(LastMonth, -12)
+			RETURN
+			    CALCULATE(
+			        DISTINCTCOUNT(___Benchmark[Report Key]),
+			        ___DimMonth[MonthStart] >= FirstMonth,
+			        ___DimMonth[MonthStart] <= LastMonth
+			    )
+		formatString: 0
+		lineageTag: fb0bd72a-8ecf-4a4e-88fa-8c2547f2dd12
+
+	measure Count = COUNTROWS(___Benchmark)
+		formatString: 0
+		lineageTag: 05549ea2-45ba-4de5-a299-f3d157de38d2
+
+	measure IncidentCount_ShowAll =
+			
+			VAR CurrentMonth = SELECTEDVALUE(___Benchmark[MonthLabel])
+			VAR CurrentEvent = SELECTEDVALUE(___DimEventType[EventType])
+			VAR ValidMonths = VALUES(___DimMonth[MonthLabel])
+			VAR IsValidMonth = CurrentMonth IN ValidMonths
+			RETURN
+			    IF(
+			        IsValidMonth,
+			        CALCULATE(DISTINCTCOUNT(___Benchmark[Report Key])),
+			        0
+			    )
+		formatString: 0
+		lineageTag: 38ecfff0-68db-486d-ba37-29a0f70af8ed
+
+	column 'Officer Name'
+		dataType: string
+		lineageTag: a76f4d87-e94d-4f77-bce5-066572806420
+		summarizeBy: none
+		sourceColumn: Officer Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Badge Number'
+		dataType: int64
+		formatString: 0
+		lineageTag: bd8c4da5-8d58-43f9-bc33-1b93271e6eb4
+		summarizeBy: sum
+		sourceColumn: Badge Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column Rank
+		dataType: string
+		lineageTag: 046c2f48-7ed0-43ef-ac4f-385cbad8bd0e
+		summarizeBy: none
+		sourceColumn: Rank
+
+		annotation SummarizationSetBy = Automatic
+
+	column Organization
+		dataType: string
+		lineageTag: b9729569-8642-433e-85bf-a6b702b98ffe
+		summarizeBy: none
+		sourceColumn: Organization
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Incident Number'
+		dataType: string
+		lineageTag: d85584ed-d04e-4856-9ce0-b7533ed28eaa
+		summarizeBy: none
+		sourceColumn: Incident Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Report Number'
+		dataType: string
+		lineageTag: e2742e62-5de3-410a-84e6-d3b39347beb6
+		summarizeBy: none
+		sourceColumn: Report Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Incident Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 72ddd877-a556-40bd-8850-bf2f42a772dd
+		summarizeBy: none
+		sourceColumn: Incident Date
+
+		variation Variation
+			isDefault
+			relationship: eda8946b-b05a-46e1-b6fc-aa2463762b04
+			defaultHierarchy: LocalDateTable_be5e04ce-9942-4a3d-aebc-7d73f3f7f6c2.'Date Hierarchy'
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Location
+		dataType: string
+		lineageTag: 46d2ad45-5c86-416f-882b-f17ad79b4278
+		summarizeBy: none
+		sourceColumn: Location
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Initial Contact'
+		dataType: string
+		lineageTag: 1b25e21e-9d05-4a61-8a4e-a669865af940
+		summarizeBy: none
+		sourceColumn: Initial Contact
+
+		annotation SummarizationSetBy = Automatic
+
+	column '# of Officers Involved'
+		dataType: int64
+		formatString: 0
+		lineageTag: 4927ea2e-a593-4a21-834d-2139acfbcb06
+		summarizeBy: sum
+		sourceColumn: # of Officers Involved
+
+		annotation SummarizationSetBy = Automatic
+
+	column '# of Subjects'
+		dataType: int64
+		formatString: 0
+		lineageTag: ea4ae3dd-2506-43ff-b681-e994f0f66da1
+		summarizeBy: sum
+		sourceColumn: # of Subjects
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Subject type'
+		dataType: string
+		lineageTag: 0dd3e8db-bd49-43ab-a5fe-f75a979ffcc5
+		summarizeBy: none
+		sourceColumn: Subject type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Report Key'
+		dataType: string
+		lineageTag: 85cebb17-6d02-4a4e-9e1e-0cadf98374e5
+		summarizeBy: none
+		sourceColumn: Report Key
+
+		annotation SummarizationSetBy = Automatic
+
+	column EventType
+		dataType: string
+		lineageTag: 1b22440b-1a7d-4765-a80f-313db6292459
+		summarizeBy: none
+		sourceColumn: EventType
+
+		annotation SummarizationSetBy = Automatic
+
+	column SourceFile
+		dataType: string
+		lineageTag: 62c45ef6-447c-41ea-a23e-da8209638103
+		summarizeBy: none
+		sourceColumn: SourceFile
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthStart
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 0828bc8f-67b1-423e-a779-6ac3412be123
+		summarizeBy: none
+		sourceColumn: MonthStart
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column MonthLabel
+		dataType: string
+		lineageTag: 2d401090-45f8-4b44-a882-666353f4ceb7
+		summarizeBy: none
+		sourceColumn: MonthLabel
+		sortByColumn: MonthSort
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthSort
+		dataType: int64
+		formatString: 0
+		lineageTag: 1d139010-67ac-4dbc-bc9b-3d5fc416f036
+		summarizeBy: sum
+		sourceColumn: MonthSort
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___Benchmark = m
+		mode: import
+		source = ```
+				// ___Benchmark - FIXED for DAX compatibility
+				// Required by DAX measures: EventType (no space), MonthStart, MonthLabel
+				// Relationships: ___Benchmark[MonthStart] -> ___DimMonth[MonthStart], ___Benchmark[EventType] -> ___DimEventType[EventType]
+				//
+				// Source: 05_EXPORTS\Benchmark\ (use_force, show_force, vehicle_pursuit)
+				
+				let
+				    BenchmarkBasePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\Benchmark\",
+				    
+				    LoadLatestFile = (folderPath as text, eventType as text) =>
+				        let
+				            Source = Folder.Files(folderPath),
+				            FilteredFiles = Table.SelectRows(Source, each Text.EndsWith([Name], ".csv") or Text.EndsWith([Name], ".xlsx")),
+				            SortedFiles = Table.Sort(FilteredFiles, {{"Date modified", Order.Descending}}),
+				            LatestFile = if Table.RowCount(SortedFiles) > 0 then SortedFiles{0}[Content] else error "No files found in " & folderPath,
+				            LoadedData = if Text.EndsWith(SortedFiles{0}[Name], ".csv")
+				                then Csv.Document(LatestFile, [Delimiter=",", Columns=null, Encoding=65001, QuoteStyle=QuoteStyle.None])
+				                else Excel.Workbook(LatestFile){0}[Data],
+				            PromotedHeaders = Table.PromoteHeaders(LoadedData, [PromoteAllScalars=true]),
+				            // FIX: Use "EventType" (no space) - matches ___DimEventType and DAX
+				            AddedEventType = Table.AddColumn(PromotedHeaders, "EventType", each eventType, type text),
+				            AddedSource = Table.AddColumn(AddedEventType, "SourceFile", each SortedFiles{0}[Name], type text)
+				        in
+				            AddedSource,
+				    
+				    UseOfForce = try LoadLatestFile(BenchmarkBasePath & "use_force\", "Use of Force") 
+				                 otherwise #table(type table [Message = text], {{"No Use of Force data found"}}),
+				    ShowOfForce = try LoadLatestFile(BenchmarkBasePath & "show_force\", "Show of Force") 
+				                  otherwise #table(type table [Message = text], {{"No Show of Force data found"}}),
+				    VehiclePursuit = try LoadLatestFile(BenchmarkBasePath & "vehicle_pursuit\", "Vehicle Pursuit") 
+				                     otherwise #table(type table [Message = text], {{"No Vehicle Pursuit data found"}}),
+				    
+				    CombinedBenchmark = Table.Combine({UseOfForce, ShowOfForce, VehiclePursuit}),
+				    
+				    // FIX: Add MonthStart (required by DAX - Total Incidents Rolling 13, BM_Rolling13_Count, etc.)
+				    IncidentDateTyped = Table.TransformColumnTypes(CombinedBenchmark, {{"Incident Date", type datetime}}),
+				    AddMonthStart = Table.AddColumn(IncidentDateTyped, "MonthStart", each Date.StartOfMonth(Date.From([Incident Date])), type date),
+				    AddMonthLabel = Table.AddColumn(AddMonthStart, "MonthLabel", each Date.ToText([MonthStart], "MM-yy"), type text),
+				    AddMonthSort = Table.AddColumn(AddMonthLabel, "MonthSort", each Date.Year([MonthStart]) * 100 + Date.Month([MonthStart]), Int64.Type),
+				    
+				    // Type conversions for numeric columns used by DAX
+				    Typed = Table.TransformColumnTypes(AddMonthSort, {
+				        {"Badge Number", Int64.Type},
+				        {"# of Officers Involved", Int64.Type},
+				        {"# of Subjects", Int64.Type}
+				    }, "en-US"),
+				    
+				    Result = Typed,
+				    #"Sorted Rows" = Table.Sort(Result,{{"MonthLabel", Order.Ascending}})
+				in
+				    #"Sorted Rows"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

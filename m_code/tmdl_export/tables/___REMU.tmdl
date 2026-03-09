@@ -1,0 +1,189 @@
+table ___REMU
+	lineageTag: c91cd10d-88e9-46d5-8367-b4e43b6dda01
+
+	measure 'REMU Value' = ```
+			
+			SWITCH(
+			  TRUE(),
+			
+			  // 1) Data‐cell: both Tracked Items & Month in scope
+			  ISINSCOPE( REMU[Tracked Items] ) && ISINSCOPE( 'Date'[MonthYear] ),
+			    SUM( REMU[Total] ),
+			
+			  // 2) Row‐total: Tracked Items in scope but no Month
+			  ISINSCOPE( REMU[Tracked Items] ) && NOT ISINSCOPE( 'Date'[MonthYear] ),
+			    CALCULATE(
+			      SUM( REMU[Total] ),
+			      ALL( 'Date'[MonthYear] )
+			    ),
+			
+			  // 3) Column‐total: Month in scope but no Tracked Items
+			  NOT ISINSCOPE( REMU[Tracked Items] ) && ISINSCOPE( 'Date'[MonthYear] ),
+			    CALCULATE(
+			      SUM( REMU[Total] ),
+			      ALL( REMU[Tracked Items] )
+			    ),
+			
+			  // 4) Grand‐total: neither Tracked Items nor Month in scope
+			    CALCULATE(
+			      SUM( REMU[Total] ),
+			      ALL( REMU ),
+			      ALL( 'Date'[MonthYear] )
+			    )
+			)
+			
+			```
+		formatString: 0
+		lineageTag: 5f73cb4d-30e7-4c3e-918d-81db5d34cd42
+
+	measure 'Records & Evidence Subtitle' = ```
+			
+			"13-Month Overview (" & 'UI'[UI MonthRange 13m] & ")"
+			
+			```
+		lineageTag: ce2c82b0-e727-4663-99ae-3d48b6aa3e5d
+
+	column 'Tracked Items'
+		dataType: string
+		lineageTag: df37dba7-aba7-44a0-a81b-99c84495fd25
+		summarizeBy: none
+		sourceColumn: Tracked Items
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: string
+		lineageTag: 32578ed2-85bb-4e1f-849e-250e4b6c8d82
+		summarizeBy: none
+		sourceColumn: Month
+		sortByColumn: MonthIndex
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column PeriodDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 47dc5f93-b7ff-4ce8-8a0a-122a01473d50
+		summarizeBy: none
+		sourceColumn: PeriodDate
+
+		variation Variation
+			isDefault
+			relationship: 2dd6431b-e811-45bc-bafb-95e87f5c037d
+			defaultHierarchy: LocalDateTable_cb369f3c-5991-4105-a6ad-7cb20b262db0.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Total
+		dataType: int64
+		formatString: 0
+		lineageTag: e326e4c1-54bb-49ad-a959-bb36fc65be9e
+		summarizeBy: sum
+		sourceColumn: Total
+
+		annotation SummarizationSetBy = Automatic
+
+	column Rolling12Flag = ```
+			
+			VAR LastFullMonth  = EOMONTH( TODAY(), -1 )     // e.g. 6/30/2025
+			VAR FirstFullMonth = EDATE( LastFullMonth, -11 ) // e.g. 7/1/2024
+			RETURN
+			  IF(
+			    '___REMU'[PeriodDate] >= FirstFullMonth
+			    && '___REMU'[PeriodDate] <= LastFullMonth,
+			    1,
+			    0
+			  )
+			
+			```
+		formatString: 0
+		lineageTag: 3ef32233-8486-4471-9601-160e6460308a
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthIndex
+		dataType: int64
+		formatString: 0
+		lineageTag: 557cd24d-7efe-4277-a841-9aa115367135
+		summarizeBy: sum
+		sourceColumn: MonthIndex
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___REMU = m
+		mode: import
+		source =
+				let
+				    // 1. Load Excel & table
+				    WorkbookPath  = "C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\REMU\REMU_Monthly.xlsx",
+				    TableName     = "_mom_remu",
+				    Source        = Excel.Workbook(File.Contents(WorkbookPath), null, true),
+				    REMU_MoM      = Source{[Item=TableName,Kind="Table"]}[Data],
+				
+				    // 2. Clean “Tracked Items”
+				    Cleaned       = Table.TransformColumns(
+				                      REMU_MoM,
+				                      {{"Tracked Items", each Text.Trim(Text.Clean(_)), type text}}
+				                    ),
+				    Filtered      = Table.SelectRows(
+				                      Cleaned,
+				                      each [Tracked Items] <> null and [Tracked Items] <> ""
+				                    ),
+				
+				    // 3. Unpivot all “MM-YY” columns into [Month] & [Total]
+				    MonthCols     = List.Select(
+				                      Table.ColumnNames(Filtered),
+				                      each Text.Length(_) = 5 and Text.Contains(_,"-")
+				                    ),
+				    Unpivoted     = Table.Unpivot(
+				                      Filtered,
+				                      MonthCols,
+				                      "Month",
+				                      "Total"
+				                    ),
+				
+				    // 4. Parse “MM-YY” → first-of-month date
+				    AddDate       = Table.AddColumn(
+				                      Unpivoted,
+				                      "PeriodDate",
+				                      each Date.FromText("01-" & [Month]),
+				                      type date
+				                    ),
+				
+				    // 5. Convert Total to number
+				    ChangeType    = Table.TransformColumnTypes(
+				                      AddDate,
+				                      {{"Total", Int64.Type}}
+				                    ),
+				
+				    // 6. Add MonthIndex (YYYYMM) for chronological sorting
+				    AddMonthIndex = Table.AddColumn(
+				                      ChangeType,
+				                      "MonthIndex",
+				                      each Date.Year([PeriodDate]) * 100 + Date.Month([PeriodDate]),
+				                      Int64.Type
+				                    ),
+				
+				    // 7. Select only the final five columns
+				    Final         = Table.SelectColumns(
+				                      AddMonthIndex,
+				                      {
+				                        "Tracked Items",
+				                        "Month",
+				                        "PeriodDate",
+				                        "Total",
+				                        "MonthIndex"
+				                      }
+				                    )
+				in
+				    Final
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

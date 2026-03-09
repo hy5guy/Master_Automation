@@ -34,24 +34,24 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.17.29 |
-| **Status** | pReportMonth migration prompt complete; Response Time ETL v1.17.21 |
+| **Version** | 1.17.31 |
+| **Status** | pReportMonth migration COMPLETE; all queries verified |
 | **pReportMonth** | `#date(2026, 2, 1)` |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
-| **Power BI Queries** | 46+ queries; 16 pending pReportMonth migration |
+| **Power BI Queries** | 46+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
 | **Report Template** | `15_Templates\Monthly_Report_Template.pbix` |
+| **TMDL Export** | `m_code/tmdl_export/` (85 files, full model snapshot) |
 
-### pReportMonth Migration (in progress)
-All M code queries must use `pReportMonth` instead of `DateTime.LocalNow()` to freeze each `.pbix` as an immutable snapshot. The migration prompt is at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md` -- it covers 16 queries across three categories:
-- **Group A (12)**: Replace `DateTime.LocalNow()` with `pReportMonth`
-- **Group B (2)**: Standardize existing `pReportMonth` logic
-- **Group C (2)**: Add 13-month window filter (currently unfiltered)
+### pReportMonth Migration (COMPLETE)
+All 16 M code queries migrated from `DateTime.LocalNow()` to `pReportMonth` via Claude Desktop MCP on 2026-03-09. Each `.pbix` is now an immutable snapshot -- changing `pReportMonth` and saving-as produces a new month's report without altering historical files.
 
-Standard window pattern:
+Standard window pattern applied uniformly:
 ```
 EndOfWindow   = Date.EndOfMonth(pReportMonth)
 StartOfWindow = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12))
 ```
+
+Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md` for reference.
 
 ### Response Time ETL (updated)
 - `response_time_batch_all_metrics.py` v1.17.21 -- dynamic source discovery, NaT coercion monitoring, per-type configurable bounds

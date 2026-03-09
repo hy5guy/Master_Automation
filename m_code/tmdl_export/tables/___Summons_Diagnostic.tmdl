@@ -1,0 +1,229 @@
+table ___Summons_Diagnostic
+	lineageTag: a2e6e48a-a04c-4dff-97b1-fdbbaa2695ac
+
+	column TICKET_NUMBER
+		dataType: string
+		lineageTag: 865a2c44-e978-4bc0-91c2-18827c5cd0cb
+		summarizeBy: none
+		sourceColumn: TICKET_NUMBER
+
+		annotation SummarizationSetBy = Automatic
+
+	column TICKET_COUNT
+		dataType: string
+		lineageTag: 96017314-7b32-48ec-9e3b-2eed760f170b
+		summarizeBy: none
+		sourceColumn: TICKET_COUNT
+
+		annotation SummarizationSetBy = Automatic
+
+	column IS_AGGREGATE
+		dataType: string
+		lineageTag: 30075b87-53d8-41f7-a79b-3604376ddc7d
+		summarizeBy: none
+		sourceColumn: IS_AGGREGATE
+
+		annotation SummarizationSetBy = Automatic
+
+	column PADDED_BADGE_NUMBER
+		dataType: string
+		lineageTag: 8f7155e6-dae2-4a15-b159-4e5be44a76ca
+		summarizeBy: none
+		sourceColumn: PADDED_BADGE_NUMBER
+
+		annotation SummarizationSetBy = Automatic
+
+	column OFFICER_DISPLAY_NAME
+		dataType: string
+		lineageTag: 7bd0e32f-8ef8-48d5-ae7b-ada71a52c805
+		summarizeBy: none
+		sourceColumn: OFFICER_DISPLAY_NAME
+
+		annotation SummarizationSetBy = Automatic
+
+	column OFFICER_NAME_RAW
+		dataType: string
+		lineageTag: a63bc278-8888-48ab-9dc3-f0196f3b3c22
+		summarizeBy: none
+		sourceColumn: OFFICER_NAME_RAW
+
+		annotation SummarizationSetBy = Automatic
+
+	column ISSUE_DATE
+		dataType: string
+		lineageTag: 30c40942-da21-42e5-8740-b7051cae80f2
+		summarizeBy: none
+		sourceColumn: ISSUE_DATE
+
+		annotation SummarizationSetBy = Automatic
+
+	column VIOLATION_DESCRIPTION
+		dataType: string
+		lineageTag: 0fde4dbb-aa09-4956-a1f4-95c3b3b12d34
+		summarizeBy: none
+		sourceColumn: VIOLATION_DESCRIPTION
+
+		annotation SummarizationSetBy = Automatic
+
+	column TYPE
+		dataType: string
+		lineageTag: 470a879a-220f-4f59-b2f0-da278438e5c4
+		summarizeBy: none
+		sourceColumn: TYPE
+
+		annotation SummarizationSetBy = Automatic
+
+	column STATUS
+		dataType: string
+		lineageTag: ff562165-a3f9-4461-a6b1-a72165d12f4f
+		summarizeBy: none
+		sourceColumn: STATUS
+
+		annotation SummarizationSetBy = Automatic
+
+	column SOURCE_FILE
+		dataType: string
+		lineageTag: 12cffeb0-25b9-4bfc-9849-774bab97c52a
+		summarizeBy: none
+		sourceColumn: SOURCE_FILE
+
+		annotation SummarizationSetBy = Automatic
+
+	column ETL_VERSION
+		dataType: string
+		lineageTag: 0f1692df-fb77-4751-a8aa-6ab0e1aab696
+		summarizeBy: none
+		sourceColumn: ETL_VERSION
+
+		annotation SummarizationSetBy = Automatic
+
+	column Year
+		dataType: string
+		lineageTag: eb41f266-04cf-4b8c-9ef5-907c379ead0a
+		summarizeBy: none
+		sourceColumn: Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: string
+		lineageTag: 4199aee4-ac77-4894-9440-362e53f78048
+		summarizeBy: none
+		sourceColumn: Month
+
+		annotation SummarizationSetBy = Automatic
+
+	column YearMonthKey
+		dataType: string
+		lineageTag: 6c56d3e3-469f-4357-a509-2d44fc6ac69c
+		summarizeBy: none
+		sourceColumn: YearMonthKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month_Year
+		dataType: string
+		lineageTag: eddebccd-110e-4521-9618-e95e03565143
+		summarizeBy: none
+		sourceColumn: Month_Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column WG1
+		dataType: string
+		lineageTag: 350243c1-fdf2-433e-86a2-e3fcd4df0fc5
+		summarizeBy: none
+		sourceColumn: WG1
+
+		annotation SummarizationSetBy = Automatic
+
+	column WG2
+		dataType: string
+		lineageTag: 7e11e189-6b25-4c48-98da-5b792ca9c401
+		summarizeBy: none
+		sourceColumn: WG2
+
+		annotation SummarizationSetBy = Automatic
+
+	column DATA_QUALITY_SCORE
+		dataType: string
+		lineageTag: 8dbc0677-681b-484e-8126-3eabe585f1f0
+		summarizeBy: none
+		sourceColumn: DATA_QUALITY_SCORE
+
+		annotation SummarizationSetBy = Automatic
+
+	column PROCESSING_TIMESTAMP
+		dataType: string
+		lineageTag: 5188e357-f48d-480f-a574-b8950d9eb68c
+		summarizeBy: none
+		sourceColumn: PROCESSING_TIMESTAMP
+
+		annotation SummarizationSetBy = Automatic
+
+	column STATUTE
+		dataType: string
+		lineageTag: e0e33c9d-c877-4ff8-9533-5c6947a2cb16
+		summarizeBy: none
+		sourceColumn: STATUTE
+
+		annotation SummarizationSetBy = Automatic
+
+	column TITLE
+		dataType: string
+		lineageTag: 086bedea-e3a8-4dbb-9ad7-c7cbdab792b6
+		summarizeBy: none
+		sourceColumn: TITLE
+
+		annotation SummarizationSetBy = Automatic
+
+	column RANK
+		dataType: string
+		lineageTag: 4a6c573a-5503-4278-b18c-4486a652b062
+		summarizeBy: none
+		sourceColumn: RANK
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___Summons_Diagnostic = m
+		mode: import
+		source = ```
+				// 🕒 2026-02-20-23-48-50
+				// # summons/___Summons_Diagnostic.m
+				// # Author: R. A. Carucci
+				// # Purpose: Diagnostic query to validate summons data quality and column structure.
+				
+				let
+				    Source = Csv.Document(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    
+				    // Get column names
+				    ColumnNames = Table.ColumnNames(#"Promoted Headers"),
+				    
+				    // Most recent month
+				    MaxYearMonthKey = List.Max(#"Promoted Headers"[YearMonthKey]),
+				    Recent = Table.SelectRows(#"Promoted Headers", each [YearMonthKey] = MaxYearMonthKey),
+				    
+				    // Show distinct TYPE values
+				    DistinctTypes = Table.Distinct(Table.SelectColumns(Recent, {"TYPE"})),
+				    
+				    // Show distinct WG2 values
+				    DistinctWG2 = Table.Distinct(Table.SelectColumns(Recent, {"WG2"})),
+				    
+				    // Count by TYPE
+				    TypeCounts = Table.Group(
+				        Recent,
+				        {"TYPE"},
+				        {{"Count", each Table.RowCount(_), Int64.Type}}
+				    ),
+				    
+				    // Sample of recent data
+				    Sample = Table.FirstN(Recent, 10)
+				in
+				    Sample
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

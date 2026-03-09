@@ -1,0 +1,568 @@
+table summons_13month_trend
+	lineageTag: 471dde8b-b7b2-48a0-a579-090126fb7cf4
+
+	measure Date_Range_Check = ```
+			
+			"Start: " & FORMAT(MIN('summons_13month_trend'[ISSUE_DATE]), "MMM DD, YYYY") & 
+			" | End: " & FORMAT(MAX('summons_13month_trend'[ISSUE_DATE]), "MMM DD, YYYY")
+			```
+		lineageTag: 24815f5f-360a-4bdb-b64f-1ffb768198c9
+
+	measure 'Summons Subtitle' =
+			
+			"13-Month Trend (" & 'UI'[UI MonthRange 13m] & ")"
+		lineageTag: 1354129e-aedd-4934-90ad-092335e4d3f9
+
+	measure 'Traffic Bureau 12-Month Fine Total' =
+			
+			CALCULATE(
+			    SUM('___Summons'[TOTAL_PAID_AMOUNT]),
+			    '___Summons'[WG2] = "Traffic Bureau",
+			    '___Summons'[ASSIGNMENT_FOUND] = TRUE()
+			)
+		lineageTag: e2fba6dd-69b3-4a4d-8779-c52ecb948736
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Traffic Bureau 12-Month Moving Fines' =
+			
+			CALCULATE(
+			    SUM('___Summons'[TOTAL_PAID_AMOUNT]),
+			    '___Summons'[WG2] = "Traffic Bureau",
+			    '___Summons'[ASSIGNMENT_FOUND] = TRUE(),
+			    ALL('___Summons'[TYPE]),  // Clear TYPE filter from matrix
+			    '___Summons'[TYPE] = "M"  // Apply our own TYPE filter
+			)
+		lineageTag: e0252f73-9374-4807-878d-bf3d952ad5a8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Traffic Bureau 12-Month Parking Fines' =
+			
+			CALCULATE(
+			    SUM('___Summons'[TOTAL_PAID_AMOUNT]),
+			    '___Summons'[WG2] = "Traffic Bureau",
+			    '___Summons'[ASSIGNMENT_FOUND] = TRUE(),
+			    ALL('___Summons'[TYPE]),  // Clear TYPE filter from matrix
+			    '___Summons'[TYPE] = "P"  // Apply our own TYPE filter
+			)
+		lineageTag: bc7f28a8-786e-43be-9f11-79cc6b3fe593
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Traffic Bureau Monthly Fine Amount' = ```
+			
+			CALCULATE(
+			    SUM('___Summons'[TOTAL_PAID_AMOUNT]),
+			    '___Summons'[WG2] = "Traffic Bureau",
+			    '___Summons'[ASSIGNMENT_FOUND] = TRUE()
+			)
+			
+			```
+		lineageTag: a40da1f5-321c-436d-9cfb-98b0f92c1ba3
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Traffic Bureau % of Total Fines' = ```
+			
+			VAR TrafficTotal = [Traffic Bureau 12-Month Fine Total]
+			VAR GrandTotal = 
+			    CALCULATE(
+			        SUM('___Summons'[TOTAL_PAID_AMOUNT]),
+			        '___Summons'[ASSIGNMENT_FOUND] = TRUE()
+			    )
+			RETURN 
+			DIVIDE(TrafficTotal, GrandTotal, 0) * 100
+			```
+		lineageTag: 1ba8b555-ff5e-47b9-813c-0d91c65c5d18
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Traffic Bureau Average Monthly Fines' =
+			
+			DIVIDE([Traffic Bureau 12-Month Fine Total], 13, 0)
+		lineageTag: d9949222-c5b0-42c8-b3d9-80377abdeeeb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Traffic Bureau Monthly Target' = ```
+			50000  // Adjust based on department goals
+			
+			```
+		formatString: 0
+		lineageTag: b72613a2-2ef2-4604-a679-d9bafc259848
+
+	measure 'Traffic Bureau vs Target' = ```
+			
+			VAR MonthlyAvg = [Traffic Bureau Average Monthly Fines]
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    MonthlyAvg >= [Traffic Bureau Monthly Target] * 1.1, "🎯 Exceeds Target",
+			    MonthlyAvg >= [Traffic Bureau Monthly Target] * 0.9, "✅ Meets Target", 
+			    MonthlyAvg >= [Traffic Bureau Monthly Target] * 0.75, "⚠️ Below Target",
+			    "🔴 Significantly Below"
+			)
+			```
+		lineageTag: e4b9f0fd-26b4-4107-9576-1f0252bd39bb
+
+	measure 'Traffic Bureau Moving Count' = ```
+			
+			CALCULATE(
+			    COUNTROWS('___Summons'),
+			    '___Summons'[WG2] = "Traffic Bureau",
+			    '___Summons'[ASSIGNMENT_FOUND] = TRUE(),
+			    ALL('___Summons'[TYPE]),  // Clear TYPE filter from matrix
+			    '___Summons'[TYPE] = "M"  // Apply our own TYPE filter
+			)
+			
+			```
+		formatString: 0
+		lineageTag: cc76f0b2-9dd7-4f79-a81c-c15f6191e807
+
+	measure 'Traffic Bureau Parking Count' =
+			
+			CALCULATE(
+			    COUNTROWS('___Summons'),
+			    '___Summons'[WG2] = "Traffic Bureau",
+			    '___Summons'[ASSIGNMENT_FOUND] = TRUE(),
+			    ALL('___Summons'[TYPE]),  // Clear TYPE filter from matrix
+			    '___Summons'[TYPE] = "P"  // Apply our own TYPE filter
+			)
+		formatString: 0
+		lineageTag: 7c8dc821-52dd-48b6-9783-14a3174e64e3
+
+	measure 'Traffic Bureau Total Count' =
+			
+			CALCULATE(
+			    COUNTROWS('___Summons'),
+			    '___Summons'[WG2] = "Traffic Bureau",
+			    '___Summons'[ASSIGNMENT_FOUND] = TRUE()
+			)
+		formatString: 0
+		lineageTag: 1fcc85e4-f197-49cc-a11e-c859e3a765f0
+
+	measure 'Date Range Check' = ```
+			
+			"Min: " & FORMAT(MIN('summons_13month_trend'[ISSUE_DATE]), "MMM-YYYY") & 
+			" | Max: " & FORMAT(MAX('summons_13month_trend'[ISSUE_DATE]), "MMM-YYYY")
+			```
+		lineageTag: a1093016-4a15-4464-ac15-00be9195342d
+
+	measure 'Total Department Fines' =
+			
+			CALCULATE(
+			    SUM('___Summons'[TOTAL_PAID_AMOUNT]),
+			    '___Summons'[ASSIGNMENT_FOUND] = TRUE()
+			)
+		lineageTag: 2a601028-5392-4de4-80da-774e9406ea9c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Traffic Bureau Monthly Fines' =
+			
+			CALCULATE(
+			    SUM('___Summons'[TOTAL_PAID_AMOUNT]),
+			    '___Summons'[WG2] = "Traffic Bureau",
+			    '___Summons'[ASSIGNMENT_FOUND] = TRUE()
+			)
+		lineageTag: 06968293-f374-45e6-973e-09672b3f9398
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Traffic Date Range' = ```
+			
+			"Min: " & FORMAT(MIN('summons_13month_trend'[ISSUE_DATE]), "MMM-YYYY") & 
+			" | Max: " & FORMAT(MAX('summons_13month_trend'[ISSUE_DATE]), "MMM-YYYY")
+			```
+		lineageTag: 10a9aa3a-18b9-436e-a5d5-eba29da14b0e
+
+	measure Patrol_Bureau_Parking_Previous_Month_Date =
+			
+			VAR CurrentDate = TODAY()
+			VAR PreviousMonthStart = EOMONTH(CurrentDate, -2) + 1
+			VAR PreviousMonthEnd = EOMONTH(CurrentDate, -1)
+			RETURN
+			CALCULATE(
+			    COUNTROWS('summons_13month_trend'),
+			    'summons_13month_trend'[WG2] = "Patrol Bureau",
+			    'summons_13month_trend'[TYPE] = "P",
+			    'summons_13month_trend'[ISSUE_DATE] >= PreviousMonthStart,
+			    'summons_13month_trend'[ISSUE_DATE] <= PreviousMonthEnd
+			)
+		formatString: 0
+		lineageTag: 4e3927b8-dcc5-4f70-b08c-1dcaa3997487
+
+	measure Patrol_Bureau_Moving_Previous_Month_Date =
+			
+			VAR CurrentDate = TODAY()
+			VAR PreviousMonthStart = EOMONTH(CurrentDate, -2) + 1
+			VAR PreviousMonthEnd = EOMONTH(CurrentDate, -1)
+			RETURN
+			CALCULATE(
+			    COUNTROWS('summons_13month_trend'),
+			    'summons_13month_trend'[WG2] = "Patrol Bureau",
+			    'summons_13month_trend'[TYPE] = "M",
+			    'summons_13month_trend'[ISSUE_DATE] >= PreviousMonthStart,
+			    'summons_13month_trend'[ISSUE_DATE] <= PreviousMonthEnd
+			)
+		formatString: 0
+		lineageTag: fd246075-9c70-47cc-855d-2dff723d09e4
+
+	measure 'Summons Title' =
+			
+			"Department-Wide Summons | Moving and Parking"
+		lineageTag: c3549bf6-355a-40d1-85f9-bff273066f7c
+
+	measure 'Count of TICKET_COUNT total for TYPE' =
+			
+			CALCULATE(COUNTA('___Summons'[TICKET_COUNT]), ALL('___Summons'[TYPE]))
+		formatString: 0
+		lineageTag: 397262d2-4ccd-4883-9e08-99bd70fe71b4
+
+		extendedProperty MeasureTemplate = {"version":0,"daxTemplateName":"TotalForAllCategory"}
+
+		changedProperty = FormatString
+
+	measure 'Count of TICKET_COUNT total for TICKET_COUNT' =
+			
+			CALCULATE(
+				COUNTA('___Summons'[TICKET_COUNT]),
+				ALL('___Summons'[TICKET_COUNT])
+			)
+		formatString: 0
+		lineageTag: fbd3ae0e-fd35-44ac-9dd6-6233b8234f69
+
+		extendedProperty MeasureTemplate = {"version":0,"daxTemplateName":"TotalForAllCategory"}
+
+		changedProperty = FormatString
+
+	measure Title_MovingParking = ```
+			
+			VAR vScope =
+			    IF(
+			        HASONEVALUE('summons_13month_trend'[WG2]),
+			        SELECTEDVALUE('summons_13month_trend'[WG2]),
+			        "All Bureaus"
+			    )
+			RETURN
+			"Summons | Moving & Parking | " & vScope
+			
+			```
+		lineageTag: 11023792-d0a4-4440-b0a8-ecfdc54dee6c
+
+	measure SubtitleAllDep = ```
+			
+			VAR TodayDate = TODAY()
+			VAR PrevMonthDate = EOMONTH(TodayDate, -1)
+			VAR PrevMonthName = FORMAT(PrevMonthDate, "MMMM")
+			VAR PrevMonthYear = YEAR(PrevMonthDate)
+			RETURN
+			"Summons issued during " & PrevMonthName & " " & PrevMonthYear
+			
+			```
+		lineageTag: 6a476c4e-c0de-4bbb-a8c7-ea507958734e
+
+	measure '___Total Tickets' = ```
+			
+			    CALCULATE(
+			        COUNTROWS('summons_13month_trend')
+			    )
+			---------------
+			```
+		lineageTag: 447a16a8-4fbf-4b9b-8bb1-379a316aaacd
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '___Total Tickets Simple' = COUNTROWS('summons_13month_trend')
+		formatString: 0
+		lineageTag: 8b73dda8-f297-4a72-aaf1-d50b4898a08f
+
+	column TYPE
+		dataType: string
+		lineageTag: 182dd5ae-4b28-4f6c-9bda-c468989a5cd0
+		summarizeBy: none
+		sourceColumn: TYPE
+
+		annotation SummarizationSetBy = Automatic
+
+	column ETL_VERSION
+		dataType: string
+		lineageTag: e78e492c-a575-47e8-8a08-08c9a28d69eb
+		summarizeBy: none
+		sourceColumn: ETL_VERSION
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month_Year
+		dataType: string
+		lineageTag: bce7a415-c78d-4eef-a154-a7bc2c0694bb
+		summarizeBy: none
+		sourceColumn: Month_Year
+		sortByColumn: YearMonthKey
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthStart = ```
+			
+			  DATE(
+			    YEAR( summons_13month_trend[ISSUE_DATE] ),
+			    MONTH( summons_13month_trend[ISSUE_DATE] ),
+			    1
+			  )
+			
+			```
+		formatString: General Date
+		lineageTag: 31a73057-bfaa-4b0c-a86b-089405ae7409
+		summarizeBy: none
+
+		variation Variation
+			isDefault
+			relationship: 36fdcfb6-a291-4bee-8c40-9d98b7bcfafb
+			defaultHierarchy: LocalDateTable_9a3df765-d81f-45af-bb19-317739e17338.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column YearMonthKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 80245cec-ea87-4e77-8f41-04bb1632d8f0
+		summarizeBy: count
+		sourceColumn: YearMonthKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: c4c5be36-524b-4970-978f-e7c7315739a8
+		summarizeBy: sum
+		sourceColumn: Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: int64
+		formatString: 0
+		lineageTag: 9c791e59-845a-411d-a663-484598574f4c
+		summarizeBy: sum
+		sourceColumn: Month
+
+		annotation SummarizationSetBy = Automatic
+
+	column DATA_QUALITY_SCORE
+		dataType: int64
+		lineageTag: be265ea0-2b12-4286-b566-08ce61d2a11f
+		summarizeBy: sum
+		sourceColumn: DATA_QUALITY_SCORE
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column PADDED_BADGE_NUMBER
+		dataType: string
+		lineageTag: 96c086a3-16dc-4cda-8608-b4f1e2ab0b74
+		summarizeBy: none
+		sourceColumn: PADDED_BADGE_NUMBER
+
+		annotation SummarizationSetBy = Automatic
+
+	column OFFICER_DISPLAY_NAME
+		dataType: string
+		lineageTag: 184c1a93-6476-4775-8986-f320136d8404
+		summarizeBy: none
+		sourceColumn: OFFICER_DISPLAY_NAME
+
+		annotation SummarizationSetBy = Automatic
+
+	column WG2
+		dataType: string
+		lineageTag: d44d31cf-3168-4fe5-b9a0-c747839f4fce
+		summarizeBy: none
+		sourceColumn: WG2
+
+		annotation SummarizationSetBy = Automatic
+
+	column ISSUE_DATE
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 8a4baf84-dadb-4a93-b959-6a343c352a13
+		summarizeBy: none
+		sourceColumn: ISSUE_DATE
+
+		variation Variation
+			isDefault
+			relationship: ab77c04d-d516-46ba-9b93-5cfa4eb15462
+			defaultHierarchy: LocalDateTable_81a3fc4e-e270-445f-a0af-f0bcd61741c3.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column OFFICER_NAME_RAW
+		dataType: string
+		lineageTag: 97a08ac6-f5a5-4c40-b3e7-cbf32849d07f
+		summarizeBy: none
+		sourceColumn: OFFICER_NAME_RAW
+
+		annotation SummarizationSetBy = Automatic
+
+	column Bureau_Consolidated
+		dataType: string
+		lineageTag: c5139e5f-5def-452a-92e2-2d0e7045d85d
+		summarizeBy: none
+		sourceColumn: Bureau_Consolidated
+
+		annotation SummarizationSetBy = Automatic
+
+	column TITLE
+		dataType: string
+		lineageTag: 5c155a64-1fc0-4326-a67d-b0c49688975f
+		summarizeBy: none
+		sourceColumn: TITLE
+
+		annotation SummarizationSetBy = Automatic
+
+	column STATUTE
+		dataType: string
+		lineageTag: 537b4835-bf24-473d-81e8-d07562f36487
+		summarizeBy: none
+		sourceColumn: STATUTE
+
+		annotation SummarizationSetBy = Automatic
+
+	column TICKET_COUNT
+		dataType: int64
+		formatString: 0
+		lineageTag: e9b43cad-7bec-40c9-b7ca-ed83732c41fb
+		summarizeBy: sum
+		sourceColumn: TICKET_COUNT
+
+		annotation SummarizationSetBy = Automatic
+
+	column TICKET_NUMBER
+		dataType: string
+		lineageTag: 7cee37b6-ad1f-4732-9509-0653baf92410
+		summarizeBy: none
+		sourceColumn: TICKET_NUMBER
+
+		annotation SummarizationSetBy = Automatic
+
+	column STATUS
+		dataType: string
+		lineageTag: a161fa26-46d9-41b9-b861-abd23406d2a4
+		summarizeBy: none
+		sourceColumn: STATUS
+
+		annotation SummarizationSetBy = Automatic
+
+	column VIOLATION_DESCRIPTION
+		dataType: string
+		lineageTag: a295cb62-0c93-4d93-8fa1-bc02d32aa57a
+		summarizeBy: none
+		sourceColumn: VIOLATION_DESCRIPTION
+
+		annotation SummarizationSetBy = Automatic
+
+	column WG1
+		dataType: string
+		lineageTag: 08a76a84-1ba2-4837-ad93-adfd450b0119
+		summarizeBy: none
+		sourceColumn: WG1
+
+		annotation SummarizationSetBy = Automatic
+
+	column IS_AGGREGATE
+		dataType: string
+		lineageTag: a0e75a3d-00cf-4cb3-84db-2fedba2b10ff
+		summarizeBy: none
+		sourceColumn: IS_AGGREGATE
+
+		annotation SummarizationSetBy = Automatic
+
+	column SOURCE_FILE
+		dataType: string
+		lineageTag: 45f42cb4-0e0e-4c64-863b-64f0423c7e8b
+		summarizeBy: none
+		sourceColumn: SOURCE_FILE
+
+		annotation SummarizationSetBy = Automatic
+
+	column PROCESSING_TIMESTAMP
+		dataType: string
+		lineageTag: 2ce34bff-3436-4e62-a289-e648b03f2187
+		summarizeBy: none
+		sourceColumn: PROCESSING_TIMESTAMP
+
+		annotation SummarizationSetBy = Automatic
+
+	column RANK
+		dataType: string
+		lineageTag: 84a0388a-6fa0-4282-8c44-576c2937445d
+		summarizeBy: none
+		sourceColumn: RANK
+
+		annotation SummarizationSetBy = Automatic
+
+	partition summons_13month_trend = m
+		mode: import
+		source =
+				// 🕒 2026-03-03
+				// # summons/summons_13month_trend.m
+				// # Author: R. A. Carucci
+				// # Purpose: Load summons data from staging workbook for 13-month trend analysis.
+				// # Rolling 13-month window driven by pReportMonth: EndDate = pReportMonth (includes report month),
+				// #   StartDate = 12 months before. E.g. pReportMonth=02/01/2026 → 02-25 through 02-26.
+				// # Filters out blank/malformed Month_Year (fixes "02-25 no header" and wrong values).
+				
+				let
+				    // 13-month window: report month through 12 months back (e.g. pReportMonth=02/01/2026 → 02-25 through 02-26)
+				    EndDate = DateTime.Date(pReportMonth),
+				    StartDate = Date.AddMonths(EndDate, -12),
+				    EndYM = Date.Year(EndDate) * 100 + Date.Month(EndDate),
+				    StartYM = Date.Year(StartDate) * 100 + Date.Month(StartDate),
+				
+				    Source = Csv.Document(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    // Only transform columns that exist (schema-resilient; avoids "column not found" errors)
+				    ExistingCols = Table.ColumnNames(PromotedHeaders),
+				    TypeMap = {
+				        {"PADDED_BADGE_NUMBER", type text},
+				        {"OFFICER_DISPLAY_NAME", type text},
+				        {"OFFICER_NAME_RAW", type text},
+				        {"ISSUE_DATE", type datetime},
+				        {"TYPE", type text},
+				        {"ETL_VERSION", type text},
+				        {"Year", Int64.Type},
+				        {"Month", Int64.Type},
+				        {"YearMonthKey", Int64.Type},
+				        {"Month_Year", type text},
+				        {"WG2", type text},
+				        {"DATA_QUALITY_SCORE", Int64.Type}
+				    },
+				    FilteredTypes = List.Select(TypeMap, each List.Contains(ExistingCols, _{0})),
+				    ChangedType = Table.TransformColumnTypes(PromotedHeaders, FilteredTypes),
+				    FilteredClean = Table.SelectRows(ChangedType, each [WG2] <> null and [WG2] <> "" and [WG2] <> "UNKNOWN"),
+				    // Filter to 13-month window; exclude null YearMonthKey (fixes blank header / wrong values)
+				    FilteredMonthYear = Table.SelectRows(FilteredClean, each
+				        [YearMonthKey] <> null and [YearMonthKey] >= StartYM and [YearMonthKey] <= EndYM
+				    ),
+				    // Only for months where backfill was merged (01-25, 02-25), prefer WG2="Department-Wide" to avoid double-count.
+				    // Gap months 03-25, 07-25, 10-25, 11-25 have e-ticket data only (no backfill); keep bureau rows so they display.
+				    BackfillMonths = {"01-25", "02-25"},
+				    FilteredPreferBackfill = Table.SelectRows(FilteredMonthYear, each
+				        if List.Contains(BackfillMonths, [Month_Year]) then [WG2] = "Department-Wide" else true
+				    ),
+				    // TICKET_COUNT: use from source if present (ETL v2.1+ and backfill); else add 1 per row
+				    WithTicketCount = if Table.HasColumns(FilteredPreferBackfill, "TICKET_COUNT")
+				        then Table.TransformColumnTypes(FilteredPreferBackfill, {{"TICKET_COUNT", Int64.Type}})
+				        else Table.AddColumn(FilteredPreferBackfill, "TICKET_COUNT", each 1, Int64.Type),
+				    AddConsolidatedBureau = Table.AddColumn(WithTicketCount, "Bureau_Consolidated", each if [WG2] = "HOUSING" or [WG2] = "OFFICE OF SPECIAL OPERATIONS" or [WG2] = "PATROL BUREAU" then "PATROL DIVISION" else [WG2], type text)
+				in
+				    AddConsolidatedBureau
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

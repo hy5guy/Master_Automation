@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
 **Last Updated:** 2026-03-09
-**Status:** ✅ v1.17.30 — ___Arrest_13Month rolling query added
-**Version:** 1.17.30
+**Status:** ✅ v1.17.31 — pReportMonth migration COMPLETE; all 16 queries + Arrest_13Month verified
+**Version:** 1.17.31
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.17.30 — ___Arrest_13Month rolling query added |
-| **Version** | 1.17.30 |
+| **Status** | ✅ v1.17.31 — pReportMonth migration COMPLETE; all queries verified |
+| **Version** | 1.17.31 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -101,8 +101,8 @@ Master_Automation/
 │   ├── templates/              # Reusable AI prompt templates (HPD design system)
 │   ├── archived_workflows/     # Archived workflows
 │   └── (migration guides, reports, troubleshooting)
-├── m_code/                      # Power BI M code (45 queries, 20 page folders)
-│   ├── arrests/               # 3 queries (Categories, Distro, Top 5)
+├── m_code/                      # Power BI M code (46 queries, 20 page folders)
+│   ├── arrests/               # 4 queries (Categories, Distro, Top 5, 13Month)
 │   ├── benchmark/             # 1 query
 │   ├── chief/                 # 2 queries (Chief2, chief_projects)
 │   ├── community/             # 1 query (Combined_Outreach_All)
@@ -124,6 +124,7 @@ Master_Automation/
 │   ├── summons/               # 5 queries (13month, top5_parking, top5_moving, all_bureaus, dept_wide)
 │   ├── traffic/               # 1 query
 │   ├── training/              # 2 queries (Cost, In-Person)
+│   ├── tmdl_export/           # Full TMDL model export (85 files, re-importable)
 │   └── archive/               # Archived/superseded M code (53+ files)
 ├── outputs/                     # Organized output files
 │   ├── arrests/                # Arrest exports (3 files)
@@ -423,6 +424,24 @@ Documentation:
 
 ---
 
+## Recent Updates (2026-03-09)
+
+### v1.17.31 — pReportMonth Migration EXECUTED via Claude Desktop MCP ✅
+
+- **All 16 queries migrated** from `DateTime.LocalNow()` to `pReportMonth` on `2026_02_Monthly_Report_laptop`
+- **Executed in 4 waves** (save between each) to manage memory constraints
+- **Post-migration DAX verification passed**: DimMonth (13 rows), Detectives (509 rows), Arrest_13Month (629 rows, 13 months), CSB_Monthly, Drone, RT_AllMetrics (117 rows)
+- **Zero `DateTime.LocalNow()` remaining** in any migrated query
+- **TMDL export**: Full model exported to `m_code/tmdl_export/` (85 files) for version control
+- **Chatlog**: `docs/chatlogs/Claude-Attached_prompt_execution/`
+
+### v1.17.30 — ___Arrest_13Month Rolling Query Added ✅
+
+- New `m_code/arrests/___Arrest_13Month.m` — rolling 13-month arrest data from raw Lawsoft monthly exports
+- Dynamic file discovery, pReportMonth-driven window, charge + home enrichment
+
+---
+
 ## Recent Updates (2026-02-13)
 
 ### v1.15.4 - CSB Workbook 2026 Setup Complete ✅
@@ -689,8 +708,8 @@ The manifest provides a machine-readable reference for the entire Master Automat
 ---
 
 **Maintained by:** R. A. Carucci  
-**Last Updated:** 2026-03-04  
-**Version:** 1.17.27
+**Last Updated:** 2026-03-09  
+**Version:** 1.17.31
 
 ---
 

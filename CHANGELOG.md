@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.31] - 2026-03-09
+
+### Changed — pReportMonth Migration EXECUTED via Claude Desktop MCP
+
+**All 16 queries migrated and verified on `2026_02_Monthly_Report_laptop`:**
+
+Migration executed via Claude Desktop with Power BI MCP tools in 4 waves (save between each):
+- Wave 1: ___DimMonth, ___Arrest_Categories, ___CSB_Monthly, ___Detectives
+- Wave 2: ___Det_case_dispositions_clearance, ___Drone, ___Overtime_Timeoff_v3, ___Social_Media
+- Wave 3: ___STACP_pt_1_2, STACP_DIAGNOSTIC, TAS_Dispatcher_Incident, ___Cost_of_Training
+- Wave 4: ___ResponseTime_AllMetrics, ___ResponseTimeCalculator, ___ResponseTime_DispVsCall, ___ResponseTime_OutVsCall
+
+**Post-migration DAX verification (all passed):**
+- ___DimMonth: 13 rows, Feb 2025 to Feb 2026
+- ___Detectives: Feb 2025 to Feb 2026, 509 rows
+- ___Arrest_13Month: Feb 2025 to Feb 2026, 629 rows, 13 distinct months
+- ___CSB_Monthly: Feb 2025 to Feb 2026
+- ___ResponseTime_AllMetrics: 117 rows (Feb 2026 CSV pending generation)
+- Zero `DateTime.LocalNow()` references remaining in migrated queries
+
+**TMDL export:** Full model exported to `m_code/tmdl_export/` (85 files) for version control and re-import capability.
+
+**Chatlog:** `docs/chatlogs/Claude-Attached_prompt_execution/`
+
+---
+
 ## [1.17.30] - 2026-03-09
 
 ### Added — ___Arrest_13Month Rolling Query

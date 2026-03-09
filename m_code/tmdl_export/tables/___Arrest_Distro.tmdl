@@ -1,0 +1,608 @@
+table ___Arrest_Distro
+	lineageTag: 0772eba2-7012-47f5-b03b-e8057ac98480
+
+	measure Subtitle_Arrest_Distro =
+			
+			VAR EndDate =
+			EOMONTH ( TODAY(), -1 )
+			RETURN
+			FORMAT ( EndDate, "MMMM yyyy" ) & " - All Arrests"
+		lineageTag: c74ad9c8-03a5-44d6-a5d5-765b38b24e15
+
+	column Address
+		dataType: string
+		lineageTag: 8d66cd95-6778-42dd-bc4c-2e21ba604952
+		summarizeBy: none
+		sourceColumn: Address
+
+		annotation SummarizationSetBy = Automatic
+
+	column Age
+		dataType: string
+		lineageTag: b94736ff-82f6-48f5-bd6e-0821bf469430
+		summarizeBy: none
+		sourceColumn: Age
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Arrest Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: b70912e9-43f9-42da-83ca-c14f65ec02e9
+		summarizeBy: none
+		sourceColumn: Arrest Date
+
+		variation Variation
+			isDefault
+			relationship: 1e7c1b8c-5fa7-4943-8e12-ab582b8d97c5
+			defaultHierarchy: LocalDateTable_4ddba0f8-d298-421a-af41-b1a146018760.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Case Number'
+		dataType: string
+		lineageTag: 2903ef81-a5de-4731-b68f-b92373d8c82f
+		summarizeBy: none
+		sourceColumn: Case Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column Charge
+		dataType: string
+		lineageTag: 62032a65-8ceb-4cf8-a805-474d15cd14b0
+		summarizeBy: none
+		sourceColumn: Charge
+
+		annotation SummarizationSetBy = Automatic
+
+	column DOB
+		dataType: string
+		lineageTag: 58bda77a-c92d-44e2-90c1-9a902c50d72a
+		summarizeBy: none
+		sourceColumn: DOB
+
+		annotation SummarizationSetBy = Automatic
+
+	column Name
+		dataType: string
+		lineageTag: a3f7837c-1bed-4644-8855-7ab6d88de64b
+		summarizeBy: none
+		sourceColumn: Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Officer of Record'
+		dataType: string
+		lineageTag: d9b3ec7c-0a58-4497-ba8e-417b129a438a
+		summarizeBy: none
+		sourceColumn: Officer of Record
+
+		annotation SummarizationSetBy = Automatic
+
+	column Race
+		dataType: string
+		lineageTag: b15b360d-d271-4b42-9fa4-730150f013b0
+		summarizeBy: none
+		sourceColumn: Race
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sex
+		dataType: string
+		lineageTag: ff1b53af-63a8-4a18-b890-3db61cdc6f65
+		summarizeBy: none
+		sourceColumn: Sex
+
+		annotation SummarizationSetBy = Automatic
+
+	column UCR_Code
+		dataType: string
+		lineageTag: 62ce0ab0-ac77-4977-b051-db75db8e6bae
+		summarizeBy: none
+		sourceColumn: UCR_Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column UCR_Desc
+		dataType: string
+		lineageTag: c2dd7516-34fd-41ec-a72f-91af8526c3a1
+		summarizeBy: none
+		sourceColumn: UCR_Desc
+
+		annotation SummarizationSetBy = Automatic
+
+	column ZIP
+		dataType: string
+		lineageTag: 4adf8fe2-b22c-4ef9-b045-46fd3381e044
+		summarizeBy: none
+		sourceColumn: ZIP
+
+		annotation SummarizationSetBy = Automatic
+
+	column ValidZIP
+		dataType: string
+		lineageTag: 0bd64cd4-bcd1-49f4-9bb1-606ebb8ef67c
+		summarizeBy: none
+		sourceColumn: ValidZIP
+
+		annotation SummarizationSetBy = Automatic
+
+	column RecordIndex
+		dataType: string
+		lineageTag: 78260902-4db1-4f3a-8098-cbaf200b0bf3
+		summarizeBy: none
+		sourceColumn: RecordIndex
+
+		annotation SummarizationSetBy = Automatic
+
+	column state_id
+		dataType: string
+		lineageTag: e5d423cc-3d3c-4762-b0af-d5c1f5c3a6c4
+		summarizeBy: none
+		sourceColumn: state_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column county_name
+		dataType: string
+		lineageTag: a0bd76f2-12e6-4a64-b4b7-2945bf0281eb
+		summarizeBy: none
+		sourceColumn: county_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column FullAddress2
+		dataType: string
+		lineageTag: d3c88425-c455-40f3-86d8-4a97bd901abc
+		summarizeBy: none
+		sourceColumn: FullAddress2
+
+		annotation SummarizationSetBy = Automatic
+
+	column Home_Category
+		dataType: string
+		lineageTag: ddb1e408-7608-4e22-a746-6a7b5cecc85d
+		summarizeBy: none
+		sourceColumn: Home_Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthYear = ```
+			FORMAT( 
+			    '___Arrest_Distro'[Arrest Date],
+			    "MM-yyyy"
+			)
+			
+			```
+		lineageTag: 489f23cc-623e-4160-b833-eb3626c4b459
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Address_Defaulted
+		dataType: string
+		lineageTag: 4455f829-0957-4091-bb5d-0b7cd5482fdc
+		summarizeBy: none
+		sourceColumn: Address_Defaulted
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'UCR #'
+		dataType: string
+		lineageTag: 02651992-2945-41a6-b323-371f601a0dec
+		summarizeBy: none
+		sourceColumn: UCR #
+
+		annotation SummarizationSetBy = Automatic
+
+	column SourceFile
+		dataType: string
+		lineageTag: 6758682b-8d03-4aaf-a1b1-e27aba974d33
+		summarizeBy: none
+		sourceColumn: SourceFile
+
+		annotation SummarizationSetBy = Automatic
+
+	column FileModifiedDate
+		dataType: string
+		lineageTag: 25075f2b-119f-4cc9-8c80-478d534496c4
+		summarizeBy: none
+		sourceColumn: FileModifiedDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column TotalRecordsLoaded
+		dataType: double
+		lineageTag: 5ad928bc-75fc-4107-ab91-4b1e303ffbce
+		summarizeBy: sum
+		sourceColumn: TotalRecordsLoaded
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Total July Arrests' = COUNTROWS('___Arrest_Distro')
+		formatString: 0
+		lineageTag: a99d024f-16cd-4836-8af5-afa9ea22c0c5
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column blank
+		dataType: string
+		lineageTag: 3f6ba53e-7e3f-4cf4-80d7-667640ad62d9
+		summarizeBy: none
+		sourceColumn: blank
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Place of Arrest StNumber'
+		dataType: string
+		lineageTag: d654a954-f37c-47aa-a117-eb17e5890208
+		summarizeBy: none
+		sourceColumn: Place of Arrest StNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Place of Arrest Street'
+		dataType: string
+		lineageTag: 77f1033e-95f1-4371-bbea-9b8633021119
+		summarizeBy: none
+		sourceColumn: Place of Arrest Street
+
+		annotation SummarizationSetBy = Automatic
+
+	column city_of_residence
+		dataType: string
+		lineageTag: d8334144-fb5e-42ca-9f09-edc330701b85
+		summarizeBy: none
+		sourceColumn: city_of_residence
+
+		annotation SummarizationSetBy = Automatic
+
+	column charge_category
+		dataType: string
+		lineageTag: 6fd2b8e8-6ecb-4bf4-a757-c15ae02592fb
+		summarizeBy: none
+		sourceColumn: charge_category
+
+		annotation SummarizationSetBy = Automatic
+
+	column statute
+		dataType: string
+		lineageTag: 54fadae6-b77d-4666-b925-0918b37ba0fe
+		summarizeBy: none
+		sourceColumn: statute
+
+		annotation SummarizationSetBy = Automatic
+
+	column charge_description
+		dataType: string
+		lineageTag: 41cd7671-181e-4fea-8693-61f258447864
+		summarizeBy: none
+		sourceColumn: charge_description
+
+		annotation SummarizationSetBy = Automatic
+
+	column JuvenileFlag
+		dataType: string
+		lineageTag: 271efa1f-9c28-4567-abfd-45d745d7ef25
+		summarizeBy: none
+		sourceColumn: JuvenileFlag
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReportCalcSummary
+		dataType: string
+		lineageTag: 4b24f218-899e-4162-ba2a-2e78a26f0284
+		summarizeBy: none
+		sourceColumn: ReportCalcSummary
+
+		annotation SummarizationSetBy = Automatic
+
+	column Reviewed
+		dataType: string
+		lineageTag: aa72531f-567a-4dbf-a0b1-15b242cb6827
+		summarizeBy: none
+		sourceColumn: Reviewed
+
+		annotation SummarizationSetBy = Automatic
+
+	column SS#Calc
+		dataType: string
+		lineageTag: 0d6cd988-e398-4bac-92f7-17e7eb4b98b2
+		summarizeBy: none
+		sourceColumn: SS#Calc
+
+		annotation SummarizationSetBy = Automatic
+
+	column source_file
+		dataType: string
+		lineageTag: b4ed9fd6-ebcf-47c0-ad9c-9d8e70d61595
+		summarizeBy: none
+		sourceColumn: source_file
+
+		annotation SummarizationSetBy = Automatic
+
+	column source_sheet
+		dataType: string
+		lineageTag: c6a8bd36-3d97-48dd-a9f9-c177bbe1226e
+		summarizeBy: none
+		sourceColumn: source_sheet
+
+		annotation SummarizationSetBy = Automatic
+
+	column ExtractedZIP
+		dataType: string
+		lineageTag: cddb20b2-ebc9-49bd-b5cd-2406c91c75bb
+		summarizeBy: none
+		sourceColumn: ExtractedZIP
+
+		annotation SummarizationSetBy = Automatic
+
+	column OriginalZipColumn
+		dataType: string
+		lineageTag: 6d8b5705-394f-4a30-ae76-223924f92b81
+		summarizeBy: none
+		sourceColumn: OriginalZipColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column zip_code
+		dataType: string
+		lineageTag: ff557a57-5d59-489e-80c9-fae0b4ec72fe
+		summarizeBy: none
+		sourceColumn: zip_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column county_state
+		dataType: string
+		lineageTag: f0aa84b2-da4d-4712-b51a-18a0d76c0ad6
+		summarizeBy: none
+		sourceColumn: county_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column state
+		dataType: string
+		lineageTag: 523feb2b-d9ae-47a4-841e-87001e10e70c
+		summarizeBy: none
+		sourceColumn: state
+
+		annotation SummarizationSetBy = Automatic
+
+	column residence_category
+		dataType: string
+		lineageTag: 5f1168d2-29c1-47a3-9248-2fc3ae21843e
+		summarizeBy: none
+		sourceColumn: residence_category
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthProcessed
+		dataType: string
+		lineageTag: 5214851b-d761-4da1-90cd-1770e6447a0d
+		summarizeBy: none
+		sourceColumn: MonthProcessed
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateFilterRange
+		dataType: string
+		lineageTag: e71afc4f-961e-43ce-a7a7-5f5787ab754e
+		summarizeBy: none
+		sourceColumn: DateFilterRange
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProcessingTimestamp
+		dataType: string
+		lineageTag: 98ddeac4-b78d-4f06-8174-0b55e84aa28b
+		summarizeBy: none
+		sourceColumn: ProcessingTimestamp
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthKey
+		dataType: string
+		lineageTag: 72ed86be-0cf5-4081-9173-b93b34d98597
+		summarizeBy: none
+		sourceColumn: MonthKey
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___Arrest_Distro = m
+		mode: import
+		source = ```
+				// 🕒 2025-08-07-14-45-00
+				// Project: Arrest_Analysis/Arrest_Distro
+				// Author: R. A. Carucci
+				// Purpose: Process arrest data from most recent Power BI ready file with enhanced null handling
+				// Fixed: Resolved all column conflict issues
+				
+				let
+				    // 1. Load folder of Power BI ready files
+				    Source = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"),
+				    
+				    // 2. Filter for UCR-updated files (CSV or Excel)
+				    PowerBIFiles = Table.SelectRows(Source, each
+				        [Attributes]?[Hidden]? <> true and
+				        (Text.EndsWith([Name], ".xlsx") or Text.EndsWith([Name], ".csv")) and
+				        (Text.Contains([Name], "ucr_updated") or Text.Contains([Name], "POWERBI_READY") or Text.Contains([Name], "PowerBI_Ready"))
+				    ),
+				    
+				    // 3. Sort by date modified to get the most recent file
+				    SortedFiles = Table.Sort(PowerBIFiles, {{"Date modified", Order.Descending}}),
+				    
+				    // 4. Diagnostic: record which file we're loading
+				    LatestFile = if Table.RowCount(SortedFiles) > 0 then SortedFiles{0} else error "No Power BI ready files found",
+				    FileName = LatestFile[Name],
+				    FileModifiedDate = LatestFile[Date modified],
+				    DiagnosticInfo = Table.AddColumn(Table.FromRecords({LatestFile}), "FileDebug", each "Processing: " & [Name] & " (Modified: " & Date.ToText([Date modified]) & ")"),
+				    
+				    // 5. Load the most recent file
+				    LoadedData = Table.AddColumn(DiagnosticInfo, "Data", each 
+				        try 
+				            if Text.EndsWith([Name], ".csv") then
+				                let
+				                    CsvData = Csv.Document([Content], [Delimiter=",", Columns=null, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+				                    PromotedHeaders = Table.PromoteHeaders(CsvData, [PromoteAllScalars=true])
+				                in
+				                    PromotedHeaders
+				            else
+				                let
+				                    ExcelFile = Excel.Workbook([Content], null, true),
+				                    FirstSheet = ExcelFile{0}[Data],
+				                    PromotedHeaders = Table.PromoteHeaders(FirstSheet, [PromoteAllScalars=true])
+				                in
+				                    PromotedHeaders
+				        otherwise error "Failed to load file: " & [Name]
+				    ),
+				    
+				    // 6. Extract the data table
+				    DataTable = LoadedData{0}[Data],
+				    
+				    // 7. Remove entirely blank rows
+				    RemoveNulls = Table.SelectRows(DataTable, each List.NonNullCount(Record.FieldValues(_))>0),
+				    
+				    // 8. Default "Not Provided" for missing addresses (only if Address_Defaulted doesn't exist)
+				    WithDefaultAddress = if Table.HasColumns(RemoveNulls, "Address_Defaulted") then
+				        RemoveNulls
+				    else
+				        Table.AddColumn(RemoveNulls, "Address_Defaulted", each 
+				            if [Address] = null or [Address] = "" then "Not Provided" else try Text.From([Address]) otherwise "Not Provided"
+				        , type text),
+				    
+				    // 9. Handle ZIP column - use existing if available, otherwise extract from address
+				    WithZIP = if Table.HasColumns(WithDefaultAddress, "ZIP") then
+				        // ZIP column already exists, just ensure it's text type
+				        Table.TransformColumns(WithDefaultAddress, {{"ZIP", each try Text.From(_) otherwise "", type text}})
+				    else if Table.HasColumns(WithDefaultAddress, "ExtractedZIP") then
+				        // Use ExtractedZIP and rename it to ZIP
+				        Table.RenameColumns(WithDefaultAddress, {{"ExtractedZIP", "ZIP"}})
+				    else
+				        // Extract ZIP from address
+				        Table.AddColumn(WithDefaultAddress, "ZIP", each
+				            let
+				                addr = [Address_Defaulted],
+				                tokens = if addr = "Not Provided" then {} else Text.Split(addr, " "),
+				                candidates = List.Select(tokens, each 
+				                    let s = Text.Select(_, {"0".."9"})
+				                    in Text.Length(if Text.Contains(_, "-") then Text.BeforeDelimiter(_, "-") else s)=5
+				                )
+				            in
+				                if List.Count(candidates)>0 
+				                then Text.Select(if Text.Contains(candidates{0},"-") then Text.BeforeDelimiter(candidates{0},"-") else candidates{0}, {"0".."9"})
+				                else null
+				            , type text),
+				    
+				    // 10. Flag valid 5-digit ZIPs (only if ValidZIP doesn't exist)
+				    WithValidZipFlag = if Table.HasColumns(WithZIP, "ValidZIP") then
+				        WithZIP
+				    else
+				        Table.AddColumn(WithZIP, "ValidZIP", each
+				            let z = try Text.From([ZIP]) otherwise ""
+				            in Text.Length(z)=5 and Text.Length(Text.Select(z,{"0".."9"}))=5
+				        , type logical),
+				    
+				    // 11. Ensure Arrest Date is a nullable date
+				    ConvertedDates = if Table.HasColumns(WithValidZipFlag, "Arrest Date") then
+				        Table.TransformColumns(WithValidZipFlag, {{"Arrest Date", each try Date.From(_) otherwise null, type nullable date}})
+				    else
+				        WithValidZipFlag,
+				    
+				    // 12. Add final record index (only if it doesn't already exist)
+				    AddFinalIndex = if Table.HasColumns(ConvertedDates, "RecordIndex") then
+				        ConvertedDates
+				    else
+				        Table.AddIndexColumn(ConvertedDates, "RecordIndex", 1, 1, Int64.Type),
+				    
+				    // 13. Load ZIP reference data
+				    ZIPRef = try Csv.Document(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\GeographicData\ZipCodes\uszips.csv"), [Delimiter=",", Encoding=1252, QuoteStyle=QuoteStyle.None]) otherwise #table({"zip","state_id","county_name"},{}),
+				    ZIPHeaders = Table.PromoteHeaders(ZIPRef, [PromoteAllScalars=true]),
+				    ZIPNullHandled = Table.ReplaceValue(ZIPHeaders, null, "", Replacer.ReplaceValue, {"zip","state_id","county_name"}),
+				    ZIPCleaned = Table.TransformColumnTypes(Table.SelectColumns(ZIPNullHandled,{"zip","state_id","county_name"}), {{"zip", type text}}),
+				    
+				    // 14. Join in state_id + county_name (only if they don't already exist)
+				    JoinZip = if Table.HasColumns(AddFinalIndex, "state_id") and Table.HasColumns(AddFinalIndex, "county_name") then
+				        AddFinalIndex
+				    else
+				        let
+				            JoinResult = Table.NestedJoin(AddFinalIndex, "ZIP", ZIPCleaned, "zip", "ZipMeta", JoinKind.LeftOuter),
+				            ExpandResult = Table.ExpandTableColumn(JoinResult, "ZipMeta", {"state_id","county_name"})
+				        in ExpandResult,
+				    
+				    // 15. Uppercase full address for keyword logic (only if FullAddress2 doesn't exist)
+				    AddFullAddress2 = if Table.HasColumns(JoinZip, "FullAddress2") then
+				        JoinZip
+				    else
+				        Table.AddColumn(JoinZip, "FullAddress2", each 
+				            if [Address_Defaulted] = "Not Provided" then "" else try Text.Upper([Address_Defaulted]) otherwise ""
+				        , type text),
+				    
+				    // 16. Handle UCR columns (use existing if available, otherwise split)
+				    WithUCR = if Table.HasColumns(AddFullAddress2, "UCR_Code") and Table.HasColumns(AddFullAddress2, "UCR_Desc") then
+				        AddFullAddress2
+				    else if Table.HasColumns(AddFullAddress2, "UCR #") then
+				        let 
+				            RemovedExisting = Table.RemoveColumns(AddFullAddress2, {"UCR_Code", "UCR_Desc"}, MissingField.Ignore),
+				            split1 = Table.SplitColumn(RemovedExisting, "UCR #", Splitter.SplitTextByDelimiter(" ", QuoteStyle.Csv), {"UCR_Code","UCR_Desc"})
+				        in Table.TransformColumns(split1, {
+				               {"UCR_Code", each if _ = null then "" else Text.Trim(_), type text},
+				               {"UCR_Desc", each if _ = null then "" else Text.Trim(_), type text}
+				           })
+				    else
+				        let
+				            AddUCRCode = if Table.HasColumns(AddFullAddress2, "UCR_Code") then AddFullAddress2 else Table.AddColumn(AddFullAddress2, "UCR_Code", each "", type text),
+				            AddUCRDesc = if Table.HasColumns(AddUCRCode, "UCR_Desc") then AddUCRCode else Table.AddColumn(AddUCRCode, "UCR_Desc", each "", type text)
+				        in AddUCRDesc,
+				    
+				    // 17. Categorize by home location (only if Home_Category doesn't exist)
+				    AddHomeCategory = if Table.HasColumns(WithUCR, "Home_Category") then
+				        WithUCR
+				    else
+				        Table.AddColumn(WithUCR, "Home_Category", each
+				            let
+				                addr = [FullAddress2],
+				                st = try Text.From([state_id]) otherwise "",
+				                cnty = try Text.From([county_name]) otherwise "",
+				                z = try Text.From([ZIP]) otherwise "",
+				                localZ = {"07601","07602"},
+				                isLocalZip = if z = "" then false else List.Contains(localZ, z),
+				                isHomeless = if addr = "" then false else Text.Contains(addr, "HOMELESS"),
+				                isHack = if addr = "" then false else Text.Contains(addr, "HACKENSACK"),
+				                inBergen = if cnty = "" then false else Text.Contains(Text.Upper(cnty), "BERGEN")
+				            in
+				                if addr = "" or isLocalZip or isHomeless or isHack then "Local"
+				                else if st="NJ" and inBergen then "In-County"
+				                else if st="NJ" then "Out-of-County | " & cnty
+				                else if st<>"" then "Out-of-State | " & st
+				                else "Unknown"
+				        , type text),
+				    
+				    // 18. Add diagnostics for the loaded file (only if they don't exist)
+				    AddDiagnostics = let
+				        WithSourceFile = if Table.HasColumns(AddHomeCategory, "SourceFile") then
+				            AddHomeCategory
+				        else
+				            Table.AddColumn(AddHomeCategory, "SourceFile", each FileName, type text),
+				        WithFileDate = if Table.HasColumns(WithSourceFile, "FileModifiedDate") then
+				            WithSourceFile
+				        else
+				            Table.AddColumn(WithSourceFile, "FileModifiedDate", each try Date.ToText(FileModifiedDate) otherwise "Unknown", type text),
+				        WithTotalRecords = if Table.HasColumns(WithFileDate, "TotalRecordsLoaded") then
+				            WithFileDate
+				        else
+				            Table.AddColumn(WithFileDate, "TotalRecordsLoaded", each Table.RowCount(WithFileDate), type number)
+				    in WithTotalRecords
+				in
+				    AddDiagnostics
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+

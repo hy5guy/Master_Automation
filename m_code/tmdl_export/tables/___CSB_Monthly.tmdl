@@ -1,0 +1,371 @@
+table ___CSB_Monthly
+	lineageTag: b148e261-cc51-451a-9622-e53d3e0e258e
+
+	measure 'CSB Activity Title' = ```
+			"Crime Suppressions Bureau Monthly Activity Analysis"
+			
+			```
+		lineageTag: d4fcc401-eb1e-4b70-8eac-74a3c448c41f
+
+	measure 'CSB Activity Subtitle' = ```
+			
+			VAR MinDate = MIN('___CSB_Monthly'[Date])
+			VAR MaxDate = MAX('___CSB_Monthly'[Date])
+			VAR StartMonth = FORMAT(MinDate, "MMM YYYY")
+			VAR EndMonth = FORMAT(MaxDate, "MMM YYYY") 
+			VAR MonthCount = DATEDIFF(MinDate, MaxDate, MONTH) + 1
+			VAR CategoryCount = DISTINCTCOUNT('___CSB_Monthly'[CSB_Category])
+			VAR LastRefresh = FORMAT(TODAY(), "MMM DD, YYYY")
+			RETURN 
+			"Rolling " & MonthCount & "-Month Analysis | " & 
+			StartMonth & " through " & EndMonth & " | " &
+			CategoryCount & " Activity Categories | Updated " & LastRefresh
+			```
+		lineageTag: ddd78e6a-a17f-4317-925a-2bfe5f53d57a
+
+	measure 'Active CSB Categories' = ```
+			
+			SUMX(
+			    VALUES('___CSB_Monthly'[CSB_Category]),
+			    IF(
+			        CALCULATE(SUM('___CSB_Monthly'[Value])) > 0,
+			        1,
+			        0
+			    )
+			)
+			
+			```
+		formatString: 0
+		lineageTag: 85bd046f-a723-473e-a385-0520eac97e60
+
+	measure 'Average Monthly Activity' =
+			
+			VAR TotalActivity = [Total CSB Activity]
+			VAR MonthCount = DISTINCTCOUNT('___CSB_Monthly'[Month_MM_YY])
+			RETURN
+			DIVIDE(TotalActivity, MonthCount, 0)
+		lineageTag: a20ef995-fa23-4ebc-91bb-4774854ae8ba
+
+	measure 'Total CSB Activity' =
+			
+			SUM('___CSB_Monthly'[Value])
+		lineageTag: a87b0ed3-35f5-41a3-a97a-2f07cdd33368
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Current Month CSB Total' =
+			
+			VAR CurrentMonth = MAX('___CSB_Monthly'[Date])
+			RETURN
+			CALCULATE(
+			    SUM('___CSB_Monthly'[Value]),
+			    '___CSB_Monthly'[Date] = CurrentMonth
+			)
+		lineageTag: 50438e1c-79fa-4a0d-9a6a-92c9a8dc5b9f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Prior Month CSB Total' =
+			
+			VAR CurrentMonth = MAX('___CSB_Monthly'[Date])
+			VAR PriorMonth = EOMONTH(CurrentMonth, -1)
+			RETURN
+			CALCULATE(
+			    SUM('___CSB_Monthly'[Value]),
+			    '___CSB_Monthly'[Date] = PriorMonth
+			)
+		lineageTag: 8c179804-a9f8-4628-bf6b-2d74e62b93d4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CSB Month Over Month Change' =
+			
+			VAR Current = [Current Month CSB Total]
+			VAR Prior = [Prior Month CSB Total]
+			VAR Change = Current - Prior
+			VAR ChangePercent = DIVIDE(Change, Prior, 0)
+			RETURN
+			IF(
+			    Prior = 0,
+			    "N/A",
+			    FORMAT(Change, "+#,0;-#,0;0") & " (" & FORMAT(ChangePercent, "+0.0%;-0.0%") & ")"
+			)
+		lineageTag: 3430ee3c-99d1-42b7-b5c3-a0c68c58d60b
+
+	measure 'Top CSB Category This Month' = ```
+			
+			VAR CurrentMonth = MAX('CSB_Monthly'[Date])
+			VAR TopCategory = 
+			    CALCULATE(
+			        TOPN(1, VALUES('CSB_Monthly'[CSB_Category]), CALCULATE(SUM('CSB_Monthly'[Value]))),
+			        'CSB_Monthly'[Date] = CurrentMonth
+			    )
+			RETURN
+			CONCATENATEX(TopCategory, 'CSB_Monthly'[CSB_Category])
+			
+			```
+		lineageTag: ecf9998e-1245-45e6-8682-85796f89833c
+
+	measure 'VAR CurrentMonth' = ```
+			MAX('CSB_Monthly'[Date])
+			VAR TopCategory = 
+			    CALCULATE(
+			        TOPN(1, VALUES('CSB_Monthly'[CSB_Category]), CALCULATE(SUM('CSB_Monthly'[Value]))),
+			        'CSB_Monthly'[Date] = CurrentMonth
+			    )
+			RETURN
+			CALCULATE(
+			    SUM('CSB_Monthly'[Value]),
+			    'CSB_Monthly'[Date] = CurrentMonth,
+			    'CSB_Monthly'[CSB_Category] = CONCATENATEX(TopCategory, 'CSB_Monthly'[CSB_Category])
+			)
+			```
+		lineageTag: 602c39bb-5b2b-436b-82aa-17672c49da0c
+
+	measure 'CSB Performance Status' =
+			
+			VAR CurrentTotal = [Current Month CSB Total]
+			VAR MonthlyAverage = [Average Monthly Activity]
+			VAR PerformanceRatio = DIVIDE(CurrentTotal, MonthlyAverage, 0)
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    PerformanceRatio >= 1.2, "🟢 High Activity (" & FORMAT(CurrentTotal, "#,0") & ")",
+			    PerformanceRatio >= 0.8, "🟡 Normal Activity (" & FORMAT(CurrentTotal, "#,0") & ")",
+			    "🔴 Low Activity (" & FORMAT(CurrentTotal, "#,0") & ")"
+			)
+		lineageTag: 9fc239bd-fdd1-406c-a40c-c5b795c4bc6d
+
+	measure 'CSB 3 Month Trend' = ```
+			
+			VAR CurrentMonth = MAX('CSB_Monthly'[Date])
+			VAR Month1 = CALCULATE(SUM('CSB_Monthly'[Value]), 'CSB_Monthly'[Date] = CurrentMonth)
+			VAR Month2 = CALCULATE(SUM('CSB_Monthly'[Value]), 'CSB_Monthly'[Date] = EOMONTH(CurrentMonth, -1))
+			VAR Month3 = CALCULATE(SUM('CSB_Monthly'[Value]), 'CSB_Monthly'[Date] = EOMONTH(CurrentMonth, -2))
+			VAR Trend = 
+			    IF(
+			        Month1 > Month2 && Month2 > Month3, "📈 Increasing",
+			        IF(
+			            Month1 < Month2 && Month2 < Month3, "📉 Decreasing",
+			            "➡️ Stable"
+			        )
+			    )
+			RETURN
+			Trend & " | " & FORMAT(Month3, "#,0") & " → " & FORMAT(Month2, "#,0") & " → " & FORMAT(Month1, "#,0")
+			```
+		lineageTag: 0ac0ffd1-2c66-4af9-8c9d-38373ff36d48
+
+	measure 'CSB Value' = ```
+			
+			SUM ( '___CSB_Monthly'[Value] )
+			
+			```
+		lineageTag: 89759ad0-afab-4e24-9257-a7fb8f5c0487
+
+		formatStringDefinition = ""
+
+	measure 'CSB Value Format' = ```
+			
+			VAR cat = SELECTEDVALUE ( '___CSB_Monthly'[CSB_Category] )
+			RETURN
+			IF (
+			    cat IN { "Currency Seized", "High Valued Item Seized" },
+			    "$#,0",
+			    "#,0"
+			)
+			
+			```
+		lineageTag: 00c98aa0-b581-415c-aa37-c21b137f2cc6
+
+	column CSB_Category
+		dataType: string
+		lineageTag: af92e53a-e8ec-4595-aae4-0367e49d3103
+		summarizeBy: none
+		sourceColumn: CSB_Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month_MM_YY
+		dataType: string
+		lineageTag: 1de48b94-404d-4152-9a9c-ae199fa335bd
+		summarizeBy: none
+		sourceColumn: Month_MM_YY
+		sortByColumn: Month_Sort_Order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Value
+		dataType: decimal
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 5d0d28a2-b0f0-4f0b-9867-6aa44bb413ca
+		summarizeBy: sum
+		sourceColumn: Value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: da3c363a-c43c-431d-ba56-73ecd26d3bf6
+		summarizeBy: none
+		sourceColumn: Date
+
+		variation Variation
+			isDefault
+			relationship: 3cc7b963-88f6-4de7-83b7-fc1588fc81ec
+			defaultHierarchy: LocalDateTable_31aeac36-d226-443f-86a5-e23c8b9cef1c.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Month_Sort_Order
+		dataType: int64
+		lineageTag: ccb48145-951f-4672-aa03-a5e35752a814
+		summarizeBy: sum
+		sourceColumn: Month_Sort_Order
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Month_Display
+		dataType: string
+		lineageTag: 8a094e2b-034a-4546-911b-5a0a56147fba
+		summarizeBy: none
+		sourceColumn: Month_Display
+
+		annotation SummarizationSetBy = Automatic
+
+	column SelectedColumns
+		type: calculated
+		lineageTag: 53653b34-b925-4e73-8cc1-53370fd89b9f
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___CSB_Monthly = m
+		mode: import
+		source =
+				let
+				    //==== Source & initial cleanup ============================================================
+				    Source = Excel.Workbook(
+				        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\CSB\csb_monthly.xlsm"),
+				        null, true
+				    ),
+				    MoM_Sheet = Source{[Item="MoM",Kind="Sheet"]}[Data],
+				    PromotedHeaders = Table.PromoteHeaders(MoM_Sheet, [PromoteAllScalars=true]),
+				    CleanedData = Table.SelectRows(PromotedHeaders, each [#"Tracked Items"] <> null and [#"Tracked Items"] <> ""),
+				
+				    //==== Column bookkeeping =================================================================
+				    ColumnNames = Table.ColumnNames(CleanedData),
+				    FirstColumnName = ColumnNames{0},
+				    DateColumns = List.Skip(ColumnNames, 1),
+				
+				    //==== Rolling 13-month window (pReportMonth-driven) ======================================
+				    EndOfWindow = Date.EndOfMonth(pReportMonth),
+				    StartOfWindow = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12)),
+				
+				    //==== Validate/select only date columns within the window ================================
+				    ValidDateColumns =
+				        List.Select(
+				            DateColumns,
+				            (colName as text) as logical =>
+				                let
+				                    parts = Text.Split(colName, "-"),
+				                    MonthNum =
+				                        if List.Count(parts) >= 2
+				                        then try Number.FromText(parts{0}) otherwise null
+				                        else null,
+				                    YearTwo =
+				                        if List.Count(parts) >= 2
+				                        then try Number.FromText(parts{1}) otherwise null
+				                        else null,
+				                    FullYear =
+				                        if YearTwo <> null
+				                        then (if YearTwo >= 50 then 1900 + YearTwo else 2000 + YearTwo)
+				                        else null,
+				                    ColumnDate =
+				                        if MonthNum <> null and FullYear <> null
+				                        then try #date(FullYear, MonthNum, 1) otherwise null
+				                        else null
+				                in
+				                    ColumnDate <> null and ColumnDate >= StartOfWindow and ColumnDate <= EndOfWindow
+				        ),
+				
+				    SelectedColumns = List.Combine({ {FirstColumnName}, ValidDateColumns }),
+				    Pruned = Table.SelectColumns(CleanedData, SelectedColumns),
+				
+				    //==== Unpivot & enrich ===================================================================
+				    Unpivoted =
+				        Table.UnpivotOtherColumns(
+				            Pruned,
+				            {FirstColumnName},
+				            "Month_MM_YY",
+				            "Value"
+				        ),
+				    Renamed = Table.RenameColumns(Unpivoted, {{FirstColumnName, "CSB_Category"}}),
+				
+				    WithDate =
+				        Table.AddColumn(
+				            Renamed,
+				            "Date",
+				            each
+				                let
+				                    monthText = [Month_MM_YY],
+				                    parts = Text.Split(monthText, "-"),
+				                    m = if List.Count(parts) >= 2 then try Number.FromText(parts{0}) otherwise 1 else 1,
+				                    yy = if List.Count(parts) >= 2 then try Number.FromText(parts{1}) otherwise 25 else 25,
+				                    yyyy = if yy >= 50 then 1900 + yy else 2000 + yy
+				                in
+				                    #date(yyyy, m, 1),
+				            type date
+				        ),
+				
+				    WithSort =
+				        Table.AddColumn(
+				            WithDate,
+				            "Month_Sort_Order",
+				            each
+				                let
+				                    d = [Date],
+				                    months =
+				                        (Date.Year(d) - Date.Year(StartOfWindow)) * 12
+				                        + (Date.Month(d) - Date.Month(StartOfWindow))
+				                        + 1
+				                in
+				                    months,
+				            Int64.Type
+				        ),
+				
+				    WithDisplay =
+				        Table.AddColumn(WithSort, "Month_Display", each Date.ToText([Date], "MMM yyyy"), type text),
+				
+				    //==== Sort & types =======================================================================
+				    Sorted = Table.Sort(WithDisplay, {{"Date", Order.Ascending}}),
+				    Typed =
+				        Table.TransformColumnTypes(
+				            Sorted,
+				            {
+				                {"CSB_Category", type text},
+				                {"Month_MM_YY", type text},
+				                {"Value", Currency.Type},
+				                {"Date", type date},
+				                {"Month_Sort_Order", Int64.Type},
+				                {"Month_Display", type text}
+				            }
+				        ),
+				
+				    //==== Final hygiene ======================================================================
+				    Final = Table.SelectRows(Typed, each [CSB_Category] <> null and [CSB_Category] <> "")
+				in
+				    Final
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

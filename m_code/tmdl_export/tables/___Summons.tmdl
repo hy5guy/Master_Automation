@@ -1,0 +1,319 @@
+table ___Summons
+	lineageTag: 517dd132-c0e6-496e-bdbb-801045e4dff9
+
+	column OFFICER_NAME_RAW
+		dataType: string
+		lineageTag: e58246d1-3230-46bc-a926-5d0dc6bfb96a
+		summarizeBy: none
+		sourceColumn: OFFICER_NAME_RAW
+
+		annotation SummarizationSetBy = Automatic
+
+	column PADDED_BADGE_NUMBER
+		dataType: string
+		lineageTag: e31dd3e9-579f-4672-b483-2864739697c2
+		summarizeBy: none
+		sourceColumn: PADDED_BADGE_NUMBER
+
+		annotation SummarizationSetBy = Automatic
+
+	column ISSUE_DATE
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: c0a2f771-cb8a-4413-807b-98b81a3519ee
+		summarizeBy: none
+		sourceColumn: ISSUE_DATE
+
+		variation Variation
+			isDefault
+			relationship: b5099451-cd58-421f-a15f-28a0985d27e4
+			defaultHierarchy: LocalDateTable_26faf302-b49f-4df3-8773-d755042f7077.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column ETL_VERSION
+		dataType: string
+		lineageTag: 49b85c18-65b0-4c32-bfb7-918579d30b76
+		summarizeBy: none
+		sourceColumn: ETL_VERSION
+
+		annotation SummarizationSetBy = Automatic
+
+	column Year
+		dataType: double
+		lineageTag: 177b57dc-d543-447c-8506-5ce9f451bfd6
+		summarizeBy: sum
+		sourceColumn: Year
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Month
+		dataType: double
+		lineageTag: 44f068fe-d450-46ce-8b54-5726741c390f
+		summarizeBy: sum
+		sourceColumn: Month
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column YearMonthKey
+		dataType: double
+		lineageTag: 2b5ff5c8-3180-4101-98ee-35810592cc29
+		summarizeBy: count
+		sourceColumn: YearMonthKey
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Month_Year
+		dataType: string
+		lineageTag: bbc3dff3-2354-4356-8564-9ce7d0a95eb2
+		summarizeBy: none
+		sourceColumn: Month_Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column OFFICER_DISPLAY_NAME
+		dataType: string
+		lineageTag: 21144313-d7e6-4fab-96e1-bfc79ce2d806
+		summarizeBy: none
+		sourceColumn: OFFICER_DISPLAY_NAME
+
+		annotation SummarizationSetBy = Automatic
+
+	column WG2
+		dataType: string
+		lineageTag: ad0cfe64-9445-4979-8ebe-ddb085019a18
+		summarizeBy: none
+		sourceColumn: WG2
+
+		annotation SummarizationSetBy = Automatic
+
+	column DATA_QUALITY_SCORE
+		dataType: double
+		lineageTag: 0b4645f3-6147-418a-8c20-867245003e56
+		summarizeBy: sum
+		sourceColumn: DATA_QUALITY_SCORE
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column TYPE
+		dataType: string
+		lineageTag: 9b664543-ae55-43c3-afed-533401423e08
+		summarizeBy: none
+		sourceColumn: TYPE
+
+		annotation SummarizationSetBy = Automatic
+
+	column TICKET_COUNT
+		dataType: int64
+		formatString: 0
+		lineageTag: 88a6f746-3436-4365-97ce-01d2343858bf
+		summarizeBy: sum
+		sourceColumn: TICKET_COUNT
+
+		annotation SummarizationSetBy = Automatic
+
+	column ASSIGNMENT_FOUND
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: e185224b-0db2-49b9-a493-b42085f6ec67
+		summarizeBy: none
+		sourceColumn: ASSIGNMENT_FOUND
+
+		annotation SummarizationSetBy = Automatic
+
+	column TITLE
+		dataType: string
+		lineageTag: ca49b945-30d7-441b-b95a-8911a47465cf
+		summarizeBy: none
+		sourceColumn: TITLE
+
+		annotation SummarizationSetBy = Automatic
+
+	column STATUTE
+		dataType: string
+		lineageTag: 2a58484a-c45d-4380-91bf-e43744a32915
+		summarizeBy: none
+		sourceColumn: STATUTE
+
+		annotation SummarizationSetBy = Automatic
+
+	column TICKET_NUMBER
+		dataType: string
+		lineageTag: 1c67ce25-56f3-4d07-9bec-a1c89c5c5793
+		summarizeBy: none
+		sourceColumn: TICKET_NUMBER
+
+		annotation SummarizationSetBy = Automatic
+
+	column STATUS
+		dataType: string
+		lineageTag: bbee4fe0-b8b8-45c2-9032-626361c79001
+		summarizeBy: none
+		sourceColumn: STATUS
+
+		annotation SummarizationSetBy = Automatic
+
+	column VIOLATION_DESCRIPTION
+		dataType: string
+		lineageTag: c9970e52-c8ec-4b41-ad2e-79ffc0f8b59f
+		summarizeBy: none
+		sourceColumn: VIOLATION_DESCRIPTION
+
+		annotation SummarizationSetBy = Automatic
+
+	column WG1
+		dataType: string
+		lineageTag: 726fa03d-58ac-4eaf-9205-f2711bbb4f27
+		summarizeBy: none
+		sourceColumn: WG1
+
+		annotation SummarizationSetBy = Automatic
+
+	column IS_AGGREGATE
+		dataType: string
+		lineageTag: 047460f0-d86e-4a59-abbf-efaccbfe6671
+		summarizeBy: none
+		sourceColumn: IS_AGGREGATE
+
+		annotation SummarizationSetBy = Automatic
+
+	column SOURCE_FILE
+		dataType: string
+		lineageTag: fd780f7d-52db-44ff-8c5a-c88f1bcfb395
+		summarizeBy: none
+		sourceColumn: SOURCE_FILE
+
+		annotation SummarizationSetBy = Automatic
+
+	column PROCESSING_TIMESTAMP
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 5ce23a1c-6ab2-418d-8674-941e9be07076
+		summarizeBy: none
+		sourceColumn: PROCESSING_TIMESTAMP
+
+		variation Variation
+			isDefault
+			relationship: db9b1736-4276-45a6-bb35-5371c2b10581
+			defaultHierarchy: LocalDateTable_f061fb15-0f21-457e-a8cd-3fc26bc38919.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column RANK
+		dataType: string
+		lineageTag: ea25954a-57d4-4def-99c9-a6bb9584760e
+		summarizeBy: none
+		sourceColumn: RANK
+
+		annotation SummarizationSetBy = Automatic
+
+	column TOTAL_PAID_AMOUNT
+		dataType: double
+		lineageTag: d33c6338-57a4-451f-b821-54754e2a32ff
+		summarizeBy: sum
+		sourceColumn: TOTAL_PAID_AMOUNT
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column FINE_AMOUNT
+		dataType: double
+		lineageTag: 3f83d323-683f-4fbe-bf93-99f5d6aee294
+		summarizeBy: sum
+		sourceColumn: FINE_AMOUNT
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column COST_AMOUNT
+		dataType: double
+		lineageTag: 0472c188-76a6-488f-85fa-c530f653a035
+		summarizeBy: sum
+		sourceColumn: COST_AMOUNT
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column MISC_AMOUNT
+		dataType: double
+		lineageTag: 5349ca46-5c75-49bb-8eac-8d9c987e23be
+		summarizeBy: sum
+		sourceColumn: MISC_AMOUNT
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition ___Summons = m
+		mode: import
+		source =
+				// 🕒 2026-03-03
+				// # summons/___Summons.m
+				// # Author: R. A. Carucci
+				// # Purpose: Load enhanced summons dataset from ETL output (summons_powerbi_latest.xlsx).
+				// # TICKET_COUNT: use from source if present (ETL v2.1+); else add 1 per row.
+				
+				let
+				    Source = Csv.Document(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				
+				    ColumnTypes = {
+				        {"PADDED_BADGE_NUMBER", type text},
+				        {"OFFICER_DISPLAY_NAME", type text},
+				        {"WG1", type text}, {"WG2", type text}, {"WG3", type text}, {"WG4", type text}, {"WG5", type text},
+				        {"TICKET_NUMBER", type text},
+				        {"ISSUE_DATE", type datetime},
+				        {"VIOLATION_NUMBER", type text},
+				        {"VIOLATION_TYPE", type text},
+				        {"TYPE", type text},
+				        {"STATUS", type text},
+				        {"TOTAL_PAID_AMOUNT", type number},
+				        {"FINE_AMOUNT", type number},
+				        {"COST_AMOUNT", type number},
+				        {"MISC_AMOUNT", type number},
+				        {"Year", type number},
+				        {"Month", type number},
+				        {"YearMonthKey", type number},
+				        {"Month_Year", type text},
+				        {"DATA_QUALITY_SCORE", type number},
+				        {"DATA_QUALITY_TIER", type text},
+				        {"SOURCE_FILE", type text},
+				        {"PROCESSING_TIMESTAMP", type datetime},
+				        {"ETL_VERSION", type text}
+				    },
+				    ExistingColumns = Table.ColumnNames(#"Promoted Headers"),
+				    FilteredTypes = List.Select(ColumnTypes, each List.Contains(ExistingColumns, _{0})),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", FilteredTypes),
+				
+				    // TICKET_COUNT: use from source if present (ETL v2.1+); else add 1 per row
+				    WithTicketCount = if Table.HasColumns(#"Changed Type", "TICKET_COUNT")
+				        then Table.TransformColumnTypes(#"Changed Type", {{"TICKET_COUNT", Int64.Type}})
+				        else Table.AddColumn(#"Changed Type", "TICKET_COUNT", each 1, Int64.Type),
+				
+				    WithAssignmentFound = if Table.HasColumns(WithTicketCount, "ASSIGNMENT_FOUND")
+				        then WithTicketCount
+				        else Table.AddColumn(WithTicketCount, "ASSIGNMENT_FOUND", each true, type logical),
+				
+				    // Add financial columns when missing (ETL v2.1 may not output them; DAX measures expect them)
+				    WithTotalPaid = if Table.HasColumns(WithAssignmentFound, "TOTAL_PAID_AMOUNT") then WithAssignmentFound else Table.AddColumn(WithAssignmentFound, "TOTAL_PAID_AMOUNT", each 0, type number),
+				    WithFineAmount = if Table.HasColumns(WithTotalPaid, "FINE_AMOUNT") then WithTotalPaid else Table.AddColumn(WithTotalPaid, "FINE_AMOUNT", each 0, type number),
+				    WithCostAmount = if Table.HasColumns(WithFineAmount, "COST_AMOUNT") then WithFineAmount else Table.AddColumn(WithFineAmount, "COST_AMOUNT", each 0, type number),
+				    WithMiscAmount = if Table.HasColumns(WithCostAmount, "MISC_AMOUNT") then WithCostAmount else Table.AddColumn(WithCostAmount, "MISC_AMOUNT", each 0, type number)
+				in
+				    WithMiscAmount
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

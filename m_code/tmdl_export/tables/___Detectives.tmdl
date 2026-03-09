@@ -1,0 +1,310 @@
+table ___Detectives
+	lineageTag: 04f49bfe-a85f-4224-908e-42342d24d5b7
+
+	measure 'Detectives P1 Subtitle' = ```
+			
+			VAR StartDate = [Det1 Rolling13 StartDate]
+			VAR EndDate   = [Det1 Rolling13 EndDate]
+			RETURN
+			    "Rolling 13-Month Overview (" &
+			    FORMAT ( StartDate, "MMMM yyyy" ) & " - " &
+			    FORMAT ( EndDate, "MMMM yyyy" ) & ")"
+			
+			
+			```
+		lineageTag: eede64d4-22f4-42cb-9217-768414a0b98e
+
+	measure 'Detectives P2 Subtitle' =
+			
+			"13-Month Overview (" & 'UI'[UI MonthRange 13m] & ")"
+		lineageTag: b799d2e1-adb4-4f8e-81d3-8d21e89e89dd
+
+	measure 'Det1 Rolling13 EndDate' = ```
+			
+			EOMONTH ( TODAY(), -1 )
+			
+			```
+		formatString: General Date
+		lineageTag: d8bbd2e9-29a1-41d6-bb3d-16e35b8a23f4
+
+	measure 'Det1 Rolling13 StartDate' = ```
+			
+			VAR EndDate = [Det1 Rolling13 EndDate]
+			RETURN
+			    EOMONTH ( EndDate, -13 ) + 1
+			
+			```
+		formatString: General Date
+		lineageTag: 2c60a864-4e73-4358-a2e4-0b5db9bbf287
+
+	column 'Tracked Items'
+		dataType: string
+		lineageTag: b03c3a6d-3859-4d24-8436-5351a6aead1e
+		summarizeBy: none
+		sourceColumn: Tracked Items
+
+		annotation SummarizationSetBy = Automatic
+
+	column Value
+		dataType: double
+		lineageTag: 0f072ddc-b4e3-4b42-b196-ca13658b9f4b
+		summarizeBy: sum
+		sourceColumn: Value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 02a0dc04-25ed-40d1-b25a-61ffa10bf09a
+		summarizeBy: none
+		sourceColumn: Date
+
+		variation Variation
+			isDefault
+			relationship: b702edc6-7eca-4574-9729-ba7bf3b19dcc
+			defaultHierarchy: LocalDateTable_0108e871-d1c9-4be4-8891-79f9d327a2b4.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Month_Sort_Order
+		dataType: int64
+		formatString: 0
+		lineageTag: 81870f7e-7fa5-41db-b33a-d91fb937c862
+		summarizeBy: sum
+		sourceColumn: Month_Sort_Order
+
+		annotation SummarizationSetBy = Automatic
+
+	column Case_Type
+		dataType: string
+		lineageTag: 9ee0f60b-0dff-43ba-9fbb-fae0194b1952
+		summarizeBy: none
+		sourceColumn: Case_Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReportTitle
+		dataType: string
+		lineageTag: 2fe98cf2-e097-407f-9e02-41828069c044
+		summarizeBy: none
+		sourceColumn: ReportTitle
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReportSubtitle
+		dataType: string
+		lineageTag: 31ba829a-1be1-42f2-ad62-d357b2bb0b8e
+		summarizeBy: none
+		sourceColumn: ReportSubtitle
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataRefreshTime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 3665a646-9957-4547-95e0-969d71be1b9f
+		summarizeBy: none
+		sourceColumn: DataRefreshTime
+
+		variation Variation
+			isDefault
+			relationship: acfbf7f3-dd34-4a69-ba20-f13061edbab3
+			defaultHierarchy: LocalDateTable_da5de5de-1abf-4196-ad2f-8aac4fc46814.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReportingPeriod
+		dataType: string
+		lineageTag: e03dfec1-d7ee-4e5b-8afd-f01ce06b4026
+		summarizeBy: none
+		sourceColumn: ReportingPeriod
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthsIncluded
+		dataType: double
+		lineageTag: 2c8efb5f-4b14-4bf5-9806-3796057d78a8
+		summarizeBy: sum
+		sourceColumn: MonthsIncluded
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Month_MM_YY
+		dataType: string
+		lineageTag: c2821ce1-1fa7-4022-999c-5c2158c0de39
+		summarizeBy: none
+		sourceColumn: Month_MM_YY
+		sortByColumn: Month_Sort_Order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___Detectives = m
+		mode: import
+		source =
+				// 🕒 2026-02-13-18-00-00
+				// # Master_Automation/Detectives/___Detectives.m
+				// # Author: R. A. Carucci
+				// # Purpose: Import Detective Division cases from restructured 2026-only
+				// workbook with rolling 13-month window (pReportMonth-driven).
+				
+				let
+				    // =================================================================
+				    // FILE PATH AND TABLE LOAD
+				    // =================================================================
+				    FilePath =
+				        "C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Detectives\detectives_monthly.xlsx",
+				
+				    Source = Excel.Workbook(File.Contents(FilePath), null, true),
+				
+				    MoM_Det_Table = Source{[Item = "_mom_det", Kind = "Table"]}[Data],
+				
+				    DetectedTypes = Table.TransformColumnTypes(MoM_Det_Table, {}, "en-US"),
+				
+				    // =================================================================
+				    // DATA CLEANING
+				    // =================================================================
+				    RemovedEmptyRows = Table.SelectRows(
+				        DetectedTypes, each not List.IsEmpty(List.RemoveMatchingItems(
+				                           Record.FieldValues(_), {"", null}))),
+				
+				    ColumnNames = Table.ColumnNames(RemovedEmptyRows),
+				    FirstColumn = ColumnNames{0},
+				
+				    FilteredToActiveCases = Table.SelectRows(
+				        RemovedEmptyRows, each let CategoryName = Record.Field(_, FirstColumn),
+				        RowValues = List.Skip(Record.FieldValues(_), 1),
+				        HasActivity = List.AnyTrue(List.Transform(
+				            RowValues, each try(_ <> null and _ <> "" and Number.From(_) > 0)
+				                           otherwise false)) in HasActivity),
+				
+				    // =================================================================
+				    // UNPIVOT TO LONG FORMAT
+				    // =================================================================
+				    UnpivotedData = Table.UnpivotOtherColumns(
+				        FilteredToActiveCases, {FirstColumn}, "Month_MM_YY", "Value"),
+				
+				    // =================================================================
+				    // DATE PARSING AND SORT ORDER
+				    // =================================================================
+				    AddedDateInfo = Table.AddColumn(
+				        UnpivotedData, "Date", each let MonthText = [Month_MM_YY],
+				        Parts = Text.Split(MonthText, "-"),
+				        MonthPart = if List.Count(Parts) >= 1 then Parts{0} else "01",
+				        YearPart = if List.Count(Parts) >= 2 then Parts{1} else "26",
+				
+				        YearNum = try Number.From(YearPart) otherwise null,
+				        FullYear = if YearNum = null then null else if YearNum >=
+				                                50 then 1900 + YearNum else 2000 + YearNum,
+				
+				        MonthNum = try Number.From(MonthPart) otherwise null,
+				
+				        DateValue = if MonthNum =
+				            null or FullYear =
+				                null then null else try #date(FullYear, MonthNum, 1)
+				                    otherwise null in DateValue,
+				        type date),
+				
+				    AddedNormalizedMonth = Table.AddColumn(
+				        AddedDateInfo, "Month_Normalized",
+				        each if[Date]<> null then Text.PadStart(Text.From(Date.Month([Date])),
+				                                                2, "0") &
+				            "-" & Text.End(Text.From(Date.Year([Date])), 2) else[Month_MM_YY],
+				        type text),
+				
+				    RemovedOldMonth =
+				        Table.RemoveColumns(AddedNormalizedMonth, {"Month_MM_YY"}),
+				    RenamedMonth = Table.RenameColumns(RemovedOldMonth,
+				                                       {{"Month_Normalized", "Month_MM_YY"}}),
+				
+				    AddedSortOrder =
+				        Table.AddColumn(RenamedMonth, "Month_Sort_Order",
+				                        each if[Date]<> null then Date.Year([Date]) * 100 +
+				                            Date.Month([Date]) else null,
+				                        Int64.Type),
+				
+				    // =================================================================
+				    // ROLLING 13-MONTH WINDOW (pReportMonth-driven)
+				    // =================================================================
+				    EndOfWindow = Date.EndOfMonth(pReportMonth),
+				    StartOfWindow = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12)),
+				
+				    ReportingPeriod = Date.ToText(StartOfWindow, "MM/yy") & " - " &
+				                      Date.ToText(EndOfWindow, "MM/yy"),
+				
+				    FilteredMonths = Table.SelectRows(
+				        AddedSortOrder, each[Date]<> null and[Date] >=
+				                            StartOfWindow and[Date] <= EndOfWindow),
+				
+				    // =================================================================
+				    // METADATA COLUMNS
+				    // =================================================================
+				    AddedReportingMeta = Table.AddColumn(FilteredMonths, "ReportingPeriod",
+				                                         each ReportingPeriod, type text),
+				
+				    UniqueMonthsCount = Table.RowCount(
+				        Table.Group(FilteredMonths, {"Date"},
+				                    {{"Count", each Table.RowCount(_), type number}})),
+				
+				    AddedMonthCount = Table.AddColumn(AddedReportingMeta, "MonthsIncluded",
+				                                      each UniqueMonthsCount, type number),
+				
+				    AddedCaseType = Table.AddColumn(
+				        AddedMonthCount, "Case_Type",
+				        each let CategoryName = Record.Field(_, FirstColumn),
+				        HighImpactCategories = {"ABC Investigation(s)", "Background Check(s)",
+				                                "Firearm Background Check(s)",
+				                                "Criminal Mischief", "Fraud",
+				                                "Generated Complaint(s)", "BWC Review(s)",
+				                                "Aggravated Assault", "Animal Cruelty",
+				                                "Burglary - Auto", "Domestic Violence",
+				                                "Drug Investigation(s)", "Harassment",
+				                                "Motor Vehicle Theft"},
+				        CaseType = if List.Contains(HighImpactCategories, CategoryName) then
+				                   "High Impact" else "Administrative" in CaseType,
+				        type text),
+				
+				    // =================================================================
+				    // FINAL TYPE CONVERSIONS
+				    // =================================================================
+				    FinalDataTypes = Table.TransformColumnTypes(
+				        AddedCaseType, {{FirstColumn, type text},
+				                        {"Month_MM_YY", type text},
+				                        {"Value", type number},
+				                        {"Date", type date},
+				                        {"Month_Sort_Order", Int64.Type},
+				                        {"Case_Type", type text}}),
+				
+				    // =================================================================
+				    // REPORT TITLE AND SUBTITLE
+				    // =================================================================
+				    AddedTitle = Table.AddColumn(
+				        FinalDataTypes, "ReportTitle",
+				        each "Detective Division - Comprehensive Case Analysis", type text),
+				
+				    AddedSubtitle = Table.AddColumn(
+				        AddedTitle, "ReportSubtitle",
+				        each let StartLabel = Date.ToText(StartOfWindow, "MMMM yyyy"),
+				        EndLabel = Date.ToText(EndOfWindow, "MMMM yyyy"),
+				        ReportLabel = Date.ToText(pReportMonth, "MMMM yyyy") in
+				            "Rolling 13-Month Period: " &
+				            StartLabel & " - " & EndLabel & " | Report Month: " & ReportLabel,
+				        type text),
+				
+				    AddedRefreshTime = Table.AddColumn(AddedSubtitle, "DataRefreshTime",
+				                                       each DateTime.From(pReportMonth), type datetime)
+				
+				                           in AddedRefreshTime
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

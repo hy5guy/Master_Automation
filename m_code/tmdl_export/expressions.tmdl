@@ -1,0 +1,265 @@
+expression RootExportPath = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Benchmark" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 4aa1deec-833c-4133-bc3e-b7988498f70c
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression EtlRootPath = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Benchmark" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: a9b62d8e-8c6d-4cf5-9814-a842ed269e59
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression SourceMode = "Excel" meta [IsParameterQuery=true, List={"Excel", "Folder"}, DefaultValue="Excel", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: ddcec1a3-6654-4b4a-a103-23f22365d396
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression RangeStart = #datetime(2024, 1, 1, 0, 0, 0) meta [IsParameterQuery=true, Type="DateTime", IsParameterQueryRequired=true]
+	lineageTag: 0186164f-cf61-4806-a02c-268b841ab901
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = DateTime
+
+expression RangeEnd = #datetime(2099, 12, 31, 0, 0, 0) meta [IsParameterQuery=true, Type="DateTime", IsParameterQueryRequired=true]
+	lineageTag: 59ec8435-2f57-4fb7-acb4-4cf503e5bd5d
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = DateTime
+
+expression RequiredTypes =
+		let
+		    RequiredTypes = type table [
+		        #"Officer Name" = text,
+		        #"Badge Number" = Int64.Type,
+		        Rank = text,
+		        Organization = text,
+		        #"Incident Number" = text,
+		        #"Report Number" = text,
+		        #"Incident Date" = datetime,
+		        Location = text,
+		        #"Initial Contact" = text,
+		        #"# of Officers Involved" = Int64.Type,
+		        #"# of Subjects" = Int64.Type,
+		        #"Subject type" = text,
+		        #"Report Key" = text,
+		        SourceFile = text,
+		        SourceModified = datetime,
+		        EventType = text
+		    ]
+		in
+		    RequiredTypes
+	lineageTag: 2c6dea57-a5ab-444a-bca7-a16f905084c0
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Type
+
+expression fnGetFiles =
+		(eventFolder as text) as table =>
+		let
+		    folderPath = RootExportPath & "\" & eventFolder,
+		    files = Folder.Files(folderPath),
+		    csv   = Table.SelectRows(files, each Text.Lower([Extension]) = ".csv"),
+		    keep  = Table.SelectColumns(csv, {"Content","Name","Date modified"})
+		in
+		    keep
+	lineageTag: e85426f8-1030-4a2e-838c-871e7000fb42
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+
+expression fnReadCsv =
+		(content as binary, fileName as text, fileModified as datetime) as table =>
+		let
+		    src     = Csv.Document(content, [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.None]),
+		    headers = Table.PromoteHeaders(src, [PromoteAllScalars=true]),
+		    typed   = Table.TransformColumnTypes(headers, {
+		                {"Badge Number", Int64.Type},
+		                {"# of Officers Involved", Int64.Type},
+		                {"# of Subjects", Int64.Type},
+		                {"Incident Date", type datetime}
+		             }, "en-US"),
+		    withSF  = Table.AddColumn(typed, "SourceFile", each fileName, type text),
+		    withSM  = Table.AddColumn(withSF, "SourceModified", each fileModified, type datetime)
+		in
+		    withSM
+	lineageTag: d545f0b3-609e-48c7-9b17-e0b09b7c35eb
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+
+expression fnEnsureColumns =
+		(tbl as table, required as type) as table =>
+		let
+		    flds    = Type.RecordFields(required),
+		    names   = Record.FieldNames(flds),
+		    ensure  = List.Accumulate(names, tbl, (state, col) =>
+		                if Table.HasColumns(state, {col})
+		                then state
+		                else Table.AddColumn(state, col, each null, Value.Type(Record.Field(flds, col)[Type]))),
+		    casted  = Table.TransformColumnTypes(
+		                ensure,
+		                List.Transform(names, each {_, Value.Type(Record.Field(flds, _)[Type])}),
+		                "en-US")
+		in
+		    casted
+	lineageTag: ae202863-98bf-44fb-b11c-589ff2539d16
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+
+expression fnApplyRenameMap =
+		(tbl as table, renameMap as list) as table =>
+		let
+		    renamed = if List.Count(renameMap)=0 then tbl else Table.RenameColumns(tbl, renameMap, MissingField.Ignore)
+		in
+		    renamed
+	lineageTag: 01c5ad0f-e26e-4015-961c-a07e49026377
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+
+expression fnLoadRaw =
+		(eventFolder as text, eventTypeName as text, renameMap as list) as table =>
+		let
+		    files    = fnGetFiles(eventFolder),
+		    rows     = List.Transform(Table.ToRecords(files), each fnReadCsv([Content],[Name],[Date modified])),
+		    combined = if List.Count(rows) = 0 then #table({}, {}) else Table.Combine(rows),
+		    renamed  = fnApplyRenameMap(combined, renameMap),
+		    withType = if Table.HasColumns(renamed, {"EventType"}) then renamed else Table.AddColumn(renamed, "EventType", each eventTypeName, type text),
+		    aligned  = fnEnsureColumns(withType, RequiredTypes),
+		    sorted   = Table.Sort(aligned, {{"Report Key", Order.Ascending}, {"SourceModified", Order.Descending}}),
+		    deduped  = Table.Distinct(sorted, {"Report Key"})
+		in
+		    deduped
+	lineageTag: afc1fe23-1a10-41f0-9cb9-3a192ee715f9
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+
+expression STACP_DIAGNOSTIC = ```
+		// 🕒 2026-02-13-17-15-00
+		// # Master_Automation/STACP/STACP_DIAGNOSTIC.m
+		// # Author: R. A. Carucci
+		// # Purpose: Diagnostic query to troubleshoot STACP column detection.
+		// Updated: pReportMonth-driven (no DateTime.LocalNow)
+		
+		let
+		    // =================================================================
+		    // ROLLING 13-MONTH WINDOW (pReportMonth-driven)
+		    // =================================================================
+		    Report_Start_Date = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12)),
+		    Report_End_Date = Date.StartOfMonth(pReportMonth),
+		    
+		    WindowInfo = #table(
+		        {"Parameter", "Value"},
+		        {
+		            {"pReportMonth", Date.ToText(pReportMonth)},
+		            {"Report_Start_Date", Date.ToText(Report_Start_Date)},
+		            {"Report_End_Date", Date.ToText(Report_End_Date)},
+		            {"Start Period (MM-YY)", Date.ToText(Report_Start_Date, "MM-yy")},
+		            {"End Period (MM-YY)", Date.ToText(Report_End_Date, "MM-yy")}
+		        }
+		    ),
+		    
+		    Source = Excel.Workbook(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\STACP\STACP.xlsm")),
+		    MoMTotals_Sheet = Source{[Item="MoMTotals",Kind="Sheet"]}[Data],
+		    
+		    PromotedHeaders = Table.PromoteHeaders(MoMTotals_Sheet, [PromoteAllScalars=true]),
+		    ColumnNames = Table.ColumnNames(PromotedHeaders),
+		    FirstColumnName = if List.IsEmpty(ColumnNames) then "Tracked Items " else ColumnNames{0},
+		    
+		    AllColumnsTable = #table(
+		        {"Column_Index", "Column_Name", "Has_Hyphen", "Length"},
+		        List.Transform(
+		            List.Positions(ColumnNames),
+		            each {
+		                _ + 1,
+		                ColumnNames{_},
+		                Text.Contains(ColumnNames{_}, "-"),
+		                Text.Length(ColumnNames{_})
+		            }
+		        )
+		    ),
+		    
+		    AllMonthColumns = List.Select(ColumnNames, each 
+		        let
+		            ColumnName = _,
+		            Parts = Text.Split(ColumnName, "-"),
+		            IsDatePattern = List.Count(Parts) = 2,
+		            MonthPart = if IsDatePattern then Parts{0} else "",
+		            IsMonthValid = Text.Length(MonthPart) >= 1 and Text.Length(MonthPart) <= 2 and 
+		                           (try Number.From(MonthPart) >= 1 and Number.From(MonthPart) <= 12 otherwise false),
+		            YearPart = if IsDatePattern then Parts{1} else "",
+		            IsYearValid = Text.Length(YearPart) = 2 and (try Number.From(YearPart) otherwise -1) >= 0,
+		            IsNotFirstColumn = ColumnName <> FirstColumnName
+		        in
+		            IsDatePattern and IsMonthValid and IsYearValid and IsNotFirstColumn
+		    ),
+		    
+		    DetectedMonthsTable = #table(
+		        {"Column_Name", "Month_Num", "Year_Num", "Column_Date", "In_Window"},
+		        List.Transform(
+		            AllMonthColumns,
+		            each 
+		                let
+		                    Parts = Text.Split(_, "-"),
+		                    MonthNum = Number.From(Parts{0}),
+		                    YearNum = Number.From("20" & Parts{1}),
+		                    ColumnDate = #date(YearNum, MonthNum, 1),
+		                    IsWithinWindow = ColumnDate >= Report_Start_Date and ColumnDate <= Report_End_Date
+		                in
+		                    {_, MonthNum, YearNum, ColumnDate, IsWithinWindow}
+		        )
+		    ),
+		    
+		    FilteredMonthColumns = List.Select(AllMonthColumns, each
+		        let
+		            ColumnName = _,
+		            Parts = Text.Split(ColumnName, "-"),
+		            MonthNum = Number.From(Parts{0}),
+		            YearNum = Number.From("20" & Parts{1}),
+		            ColumnDate = #date(YearNum, MonthNum, 1),
+		            IsWithinWindow = ColumnDate >= Report_Start_Date and ColumnDate <= Report_End_Date
+		        in
+		            IsWithinWindow
+		    ),
+		    
+		    DiagnosticSummary = #table(
+		        {"Metric", "Count", "Details"},
+		        {
+		            {"Total Columns in MoMTotals", List.Count(ColumnNames), Text.Combine(ColumnNames, ", ")},
+		            {"Detected Month Columns", List.Count(AllMonthColumns), Text.Combine(AllMonthColumns, ", ")},
+		            {"Columns in 13-Month Window", List.Count(FilteredMonthColumns), Text.Combine(FilteredMonthColumns, ", ")},
+		            {"First Column Name", 1, FirstColumnName}
+		        }
+		    )
+		
+		in
+		    DiagnosticSummary
+		```
+	lineageTag: 2fef0ae4-f7c6-4201-8af1-ae555789353f
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression pReportMonth = #date(2026, 2, 1) meta [IsParameterQuery=true, Type="Date", IsParameterQueryRequired=true]
+	lineageTag: a01f126e-9598-4021-90f1-75298cfdeef4
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Date
+

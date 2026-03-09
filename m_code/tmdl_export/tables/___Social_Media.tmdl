@@ -1,0 +1,189 @@
+table ___Social_Media
+	lineageTag: 0ec39a23-693f-4fd8-a0d3-1da84d4e4d52
+
+	measure 'Social Media Title' = ```
+			
+			"Social Media Posts"
+			
+			```
+		lineageTag: 059ab114-b937-492b-afaa-80b09b97767b
+
+	measure 'Social Media Subtitle' = ```
+			
+			'UI'[UI MonthRange 13m]   // renders like: September 2024 - September 2025
+			
+			```
+		lineageTag: 69f3ded9-6cec-4758-9560-cb39b25b9363
+
+	column Platform
+		dataType: string
+		lineageTag: 77e71d42-daac-46a4-a6f0-a0114aa52c19
+		summarizeBy: none
+		sourceColumn: Platform
+
+		annotation SummarizationSetBy = Automatic
+
+	column 02-25
+		dataType: int64
+		formatString: 0
+		lineageTag: ebb05fab-5e94-44f6-8afb-415326d86080
+		summarizeBy: none
+		sourceColumn: 02-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 03-25
+		dataType: int64
+		formatString: 0
+		lineageTag: 60ecb958-cfa8-4c25-b3ae-b9390a7a23bf
+		summarizeBy: none
+		sourceColumn: 03-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 04-25
+		dataType: int64
+		formatString: 0
+		lineageTag: 36d5c4a6-565d-4a72-85c5-b5bae10d1c11
+		summarizeBy: none
+		sourceColumn: 04-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 05-25
+		dataType: int64
+		formatString: 0
+		lineageTag: e6820e2c-45c2-44c7-9b6a-7e0d29f217f7
+		summarizeBy: none
+		sourceColumn: 05-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 06-25
+		dataType: int64
+		formatString: 0
+		lineageTag: 8f2cd7de-fd22-4a6b-9246-c339d87b6586
+		summarizeBy: none
+		sourceColumn: 06-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 07-25
+		dataType: int64
+		formatString: 0
+		lineageTag: e151dbe3-9a12-4803-be54-8add6a0a2fdf
+		summarizeBy: none
+		sourceColumn: 07-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 08-25
+		dataType: int64
+		formatString: 0
+		lineageTag: 6389dd97-5bb5-4efd-b275-8f88b0760fcc
+		summarizeBy: none
+		sourceColumn: 08-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 09-25
+		dataType: int64
+		formatString: 0
+		lineageTag: 6b33bd01-0ee1-429a-9c03-742d9c442d0b
+		summarizeBy: none
+		sourceColumn: 09-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 10-25
+		dataType: int64
+		formatString: 0
+		lineageTag: 200a2070-8060-4b0f-bde3-945ae132e945
+		summarizeBy: none
+		sourceColumn: 10-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 11-25
+		dataType: int64
+		formatString: 0
+		lineageTag: 1acfa3a2-7464-4ab5-878c-0ab859735baf
+		summarizeBy: none
+		sourceColumn: 11-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 12-25
+		dataType: int64
+		formatString: 0
+		lineageTag: 9bc4a115-a603-476c-82a0-d515da573d2e
+		summarizeBy: none
+		sourceColumn: 12-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 01-26
+		dataType: int64
+		formatString: 0
+		lineageTag: 9624814e-9a69-4776-99c6-14680dcd57a5
+		summarizeBy: none
+		sourceColumn: 01-26
+
+		annotation SummarizationSetBy = Automatic
+
+	column 02-26
+		dataType: int64
+		formatString: 0
+		lineageTag: 5c525f6b-801f-48f8-81a7-1e22656c483a
+		summarizeBy: none
+		sourceColumn: 02-26
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___Social_Media = m
+		mode: import
+		source =
+				// 🕒 2026-03-04-03-46-11
+				// # STACP/___Social_Media.m
+				// # Author: R. A. Carucci
+				// # Purpose: Load rolling 13-month social media post counts by platform from STACP workbook for Power BI reporting.
+				// Updated: pReportMonth-driven (no DateTime.LocalNow)
+				
+				let
+				    // === SOURCE ===
+				    Source = Excel.Workbook(
+				        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\STACP\STACP.xlsm"),
+				        null,
+				        true
+				    ),
+				    _stacp_mom_sm_Table = Source{[Item="_stacp_mom_sm", Kind="Table"]}[Data],
+				
+				    // === DYNAMIC TYPES: Platform = text; everything else = Int64 ===
+				    ColumnNames = Table.ColumnNames(_stacp_mom_sm_Table),
+				    TypeList =
+				        List.Transform(
+				            ColumnNames,
+				            (c) => if c = "Platform" then {c, type text} else {c, Int64.Type}
+				        ),
+				    #"Changed Type" = Table.TransformColumnTypes(_stacp_mom_sm_Table, TypeList),
+				
+				    // === ROLLING 13-MONTH WINDOW (pReportMonth-driven) ===
+				    EndOfWindow = Date.EndOfMonth(pReportMonth),
+				    StartOfWindow = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12)),
+				
+				    MonthDates = List.Generate(() => StartOfWindow, each _ <= EndOfWindow, each Date.AddMonths(_, 1)),
+				    MonthKeys  = List.Transform(MonthDates, each Date.ToText(_, "MM-yy")),
+				
+				    DesiredOrder = {"Platform"} & MonthKeys & {"Total"},
+				
+				    ExistingInOrder = List.Select(DesiredOrder, each List.Contains(ColumnNames, _)),
+				
+				    #"Selected Columns" = Table.SelectColumns(#"Changed Type", ExistingInOrder, MissingField.Ignore)
+				
+				in
+				    #"Selected Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
