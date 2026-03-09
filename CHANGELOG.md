@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.30] - 2026-03-09
+
+### Added — ___Arrest_13Month Rolling Query
+
+**New query: `m_code/arrests/___Arrest_13Month.m`**
+- Rolling 13-month arrest data from raw Lawsoft monthly exports (`05_EXPORTS\_Arrest\monthly\YYYY\*.xlsx`)
+- Dynamic file discovery: case-insensitive match on "lawsoft" + "arrest", scans all year subdirectories
+- pReportMonth-driven window: `EndOfWindow = Date.EndOfMonth(pReportMonth)`, `StartOfWindow = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12))`
+- Charge categorization: Assault, Theft, Burglary, Robbery, Warrant, DWI, Drug Related, Weapons, Other
+- Simplified home categorization: Local (Hackensack/07601/07602) vs Out-of-Town
+- Period columns: MM_YY, MonthSort, MonthLabel, ArrestMonth for trend visuals
+- Added to migration prompt checklist as item 17
+
+---
+
 ## [1.17.29] - 2026-03-09
 
 ### Changed — pReportMonth Migration Prompt & Claude.md Streamline

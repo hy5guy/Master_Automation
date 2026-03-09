@@ -38,7 +38,7 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 | **Status** | pReportMonth migration prompt complete; Response Time ETL v1.17.21 |
 | **pReportMonth** | `#date(2026, 2, 1)` |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
-| **Power BI Queries** | 45+ queries; 16 pending pReportMonth migration |
+| **Power BI Queries** | 46+ queries; 16 pending pReportMonth migration |
 | **Report Template** | `15_Templates\Monthly_Report_Template.pbix` |
 
 ### pReportMonth Migration (in progress)
@@ -81,7 +81,7 @@ StartOfWindow = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12))
 - `scripts/` - Execution scripts and Python helpers
 - `logs/` - ETL execution logs (auto-created)
 - `docs/` - Documentation, prompts, chatlogs
-- `m_code/` - Power BI M code queries (45 queries across 20 subfolders)
+- `m_code/` - Power BI M code queries (46 queries across 20 subfolders)
   - `arrests/`, `benchmark/`, `chief/`, `community/`, `csb/`, `detectives/`, `drone/`, `esu/`, `functions/`, `nibrs/`, `overtime/`, `parameters/`, `patrol/`, `remu/`, `response_time/`, `shared/`, `social_media/`, `ssocc/`, `stacp/`, `summons/`, `traffic/`, `training/`
   - `archive/` - Superseded M code versions
 - `outputs/` - Organized output files (arrests, visual_exports, summons_validation, metadata, community_engagement, misc, large_exports)

@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
 **Last Updated:** 2026-03-09
-**Status:** ✅ v1.17.29 — pReportMonth migration prompt complete; Claude.md streamlined
-**Version:** 1.17.29
+**Status:** ✅ v1.17.30 — ___Arrest_13Month rolling query added
+**Version:** 1.17.30
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.17.29 — pReportMonth migration prompt; Claude.md streamlined |
-| **Version** | 1.17.29 |
+| **Status** | ✅ v1.17.30 — ___Arrest_13Month rolling query added |
+| **Version** | 1.17.30 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 

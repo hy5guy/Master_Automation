@@ -1510,3 +1510,24 @@ Alternatively, use `partition_operations -> Get` to retrieve any query's current
 | 14 | `___ResponseTimeCalculator` | FIND/REPLACE | ☐ |
 | 15 | `___ResponseTime_DispVsCall` | Full replace | ☐ |
 | 16 | `___ResponseTime_OutVsCall` | Full replace | ☐ |
+| 17 | `___Arrest_13Month` | NEW table (Create) | ☐ |
+
+---
+
+## Appendix: New Query -- ___Arrest_13Month
+
+This is a **new table** (not an update to an existing query). It provides a rolling 13-month arrest dataset from raw Lawsoft monthly exports.
+
+**Tool:** `table_operations` Create (or import via Tabular Editor / Power Query Editor)
+
+**Source:** `05_EXPORTS\_Arrest\monthly\YYYY\*_LAWSOFT_ARREST*.xlsx`
+
+**Already uses `pReportMonth`** -- no migration needed. The full M expression is in `m_code/arrests/___Arrest_13Month.m`.
+
+### Key features:
+- Dynamic file discovery across all year subdirectories under `monthly\`
+- Case-insensitive file matching (handles `ARREST`, `ARRESTS`, `arrest`)
+- `EndOfWindow = Date.EndOfMonth(pReportMonth)`, `StartOfWindow = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12))`
+- Charge categorization: Assault, Theft, Burglary, Robbery, Warrant, DWI, Drug Related, Weapons, Other
+- Simplified home categorization: Local (Hackensack/07601/07602) vs Out-of-Town
+- Period columns: `MM_YY`, `MonthSort`, `MonthLabel`, `ArrestMonth` for visuals
