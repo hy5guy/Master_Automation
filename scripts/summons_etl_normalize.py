@@ -315,6 +315,9 @@ def write_three_tier_output(df: pd.DataFrame, output_xlsx: str, original_summons
         "PROCESSING_TIMESTAMP", "TITLE", "RANK",
     ]
     slim_df = df[[c for c in slim_cols if c in df.columns]].copy()
+    for col in ("WG1", "WG2"):
+        if col in slim_df.columns:
+            slim_df[col] = slim_df[col].fillna("").replace("nan", "")
     slim_path = output_dir / "summons_slim_for_powerbi.csv"
     slim_df.to_csv(slim_path, index=False, encoding="utf-8-sig")
     logger.info("SLIM Power BI version saved: %s (%s rows, %s cols)", slim_path.name, len(slim_df), len(slim_df.columns))
