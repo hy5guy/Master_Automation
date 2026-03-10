@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.0] - 2026-03-10
+
+### Changed — Summons Pipeline Overhaul (ETL + Power BI M Code)
+
+**Python ETL fixes:**
+- `scripts/summons_etl_normalize.py`: TYPE classification rewritten — uses raw `Case Type Code` (M/P/C) from e-ticket export instead of broken statute-based lookup that was reclassifying ~2,576 Parking tickets as Criminal and splitting Moving into expanded subcategories
+- `run_summons_etl.py`: Multi-year file discovery — scans both 2025/month and 2026/month directories for complete 13-month window; dynamic default `--month` argument
+- `run_summons_etl.py`: FIXED CSV fallback — detects DOpus quote-wrapped headers and falls back to raw .csv (fixed Feb 2025 reading 9 rows → 2,743)
+- `scripts/summons_etl_normalize.py`: `utf-8-sig` encoding for BOM handling in CSV parser; catches `ValueError` alongside `UnicodeDecodeError`
+- `scripts/summons_etl_normalize.py`: WG1/WG2 `fillna("")` + `replace("nan", "")` prevents pandas NaN exporting as literal string "nan" in slim CSV
+- `scripts/summons_backfill_merge.py`: Gap months narrowed to `("07-25",)` only (all other 2025 months have e-ticket files); `SUMMONS_BACKFILL_PREFER_MONTHS` emptied
+
+**Power BI M code fixes (applied via Claude Desktop MCP):**
+- `m_code/summons/summons_13month_trend.m`: Window `EndDate` changed from `pReportMonth` to `Date.AddMonths(pReportMonth, -1)` — aligns with all_bureaus, fixes Feb 2025 missing from trend when pReportMonth=March
+- `m_code/summons/summons_13month_trend.m`: WG2 filter removed — dept-wide trend now includes all officers regardless of bureau assignment (K. Peralta's 30 tickets no longer silently dropped)
+- `m_code/summons/summons_13month_trend.m`: `BackfillMonths` cleared to `{}` — July 2025 17 straggler records now show instead of being hidden
+- `m_code/summons/summons_13month_trend.m`: `IS_AGGREGATE` column added to TypeMap
+- `m_code/summons/summons_all_bureaus.m`: `Table.RowCount(_)` → `List.Sum([TICKET_COUNT])`; TICKET_COUNT added to ChangedType
+- `m_code/summons/summons_all_bureaus.m`: Total formula `try ([C] ?? 0) otherwise 0` — null coalesce fixes blank Total for bureaus without C tickets
+- `m_code/summons/summons_all_bureaus.m`: `[WG2] <> "nan"` added to FilteredClean
+- `m_code/summons/summons_top5_moving.m`, `summons_top5_parking.m`: Same `List.Sum([TICKET_COUNT])` and TICKET_COUNT type fixes
+
+**Repository cleanup:**
+- `scripts/run_summons_pipeline.py` deleted (redundant runner)
+- 15 one-off diagnostic scripts archived to `02_ETL_Scripts/Summons/archive/`
+- `docs/SUMMONS_BACKFILL_INJECTION_POINT.md` corrected to reference actual active scripts
+
+**New documentation:**
+- `docs/PROMPT_Claude_MCP_Summons_Bugfix.md` — Initial M code bugfix prompt for Claude Desktop
+- `docs/PROMPT_Claude_MCP_Summons_Validation_Post_ETL.md` — Post-ETL refresh validation prompt
+- `docs/PROMPT_Claude_MCP_Summons_Round3_Fix.md` — Window, WG2 filter, and Total null fixes
+
+**Validation results (all passed):**
+- 13 months present (02-25 through 02-26 including July stragglers)
+- Feb 2026: M=421, P=2,354, C=74 (total=2,849)
+- SSOCC bureau appears with P=4 (R. Polson #0738)
+- All C values < 100 per month (range 36–92)
+- No "nan" phantom bureau row
+- All bureau Total columns populated
+
+---
+
 ## [1.17.31] - 2026-03-09
 
 ### Changed — pReportMonth Migration EXECUTED via Claude Desktop MCP

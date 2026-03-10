@@ -1,6 +1,6 @@
 # Master_Automation Project Structure
 
-**Last Updated:** 2025-12-11
+**Last Updated:** 2026-03-10
 
 ---
 
@@ -8,29 +8,44 @@
 
 ```
 Master_Automation/
-├── README.md                    # Main project documentation (stays in root)
-├── config/                      # Configuration files
+├── README.md                    # Main project documentation
+├── CHANGELOG.md                 # Version history (v1.18.0+)
+├── SUMMARY.md                   # Project summary / quick reference
+├── run_summons_etl.py           # Summons ETL entry point (multi-year discovery, 3-tier output)
+├── config/
 │   ├── scripts.json            # ETL script configuration
+│   ├── response_time_filters.json  # Response Time filter config
 │   └── scripts.json.bak        # Backup configuration
-├── scripts/                     # PowerShell execution scripts
-│   ├── run_all_etl.ps1         # Main orchestrator
+├── scripts/                     # Python + PowerShell scripts
+│   ├── run_all_etl.ps1         # PowerShell orchestrator
 │   ├── run_all_etl.bat         # Batch wrapper
-│   └── run_etl_script.ps1      # Single script runner
-├── logs/                        # ETL execution logs (auto-created)
-│   └── YYYY-MM-DD_HH-MM-SS_*.log
-├── docs/                        # Documentation files
-│   ├── CHANGELOG.md
-│   ├── MIGRATION_VERIFICATION.md
-│   ├── VERIFICATION_REPORT.md
-│   ├── VERIFICATION_SUMMARY.md
-│   ├── QUICK_START.md
-│   ├── BACKFILL_*.md
-│   └── PROJECT_STRUCTURE.md (this file)
-├── chatlogs/                    # AI chat logs and conversations
-│   └── YYYY-MM-DD_description.md
-├── _DropExports/                # Temporary ETL outputs (before Power BI organization)
-│   └── (CSV files from ETL scripts)
-└── verify_migration.ps1        # Migration verification script
+│   ├── run_etl_script.ps1      # Single script runner
+│   ├── path_config.py          # Centralized get_onedrive_root()
+│   ├── summons_etl_normalize.py     # Core summons ETL (badge lookup, TYPE classification)
+│   ├── summons_backfill_merge.py    # Summons gap-month merge (07-25 only)
+│   ├── summons_derived_outputs_simple.py  # Summons derived outputs
+│   ├── Pre_Flight_Validation.py     # Pre-flight GO/NO-GO gate
+│   ├── overtime_timeoff_with_backfill.py  # OT/TimeOff monthly wrapper
+│   └── (validation, comparison, and diagnostic scripts)
+├── m_code/                      # Power BI M code queries (45+ queries, 20 page folders)
+│   ├── summons/                # summons_13month_trend, all_bureaus, top5_parking, top5_moving
+│   ├── arrests/                # ___Arrest_Categories, ___Arrest_Distro, etc.
+│   ├── functions/              # fnGetFiles, fnReadCsv, fnEnsureColumns, etc.
+│   └── (benchmark, chief, community, csb, detectives, drone, esu, ...)
+├── docs/                        # Project documentation
+│   ├── SUMMONS_DOC_INDEX.md           # Summons doc suite index
+│   ├── SUMMONS_BACKFILL_INJECTION_POINT.md  # Backfill merge details
+│   ├── PROMPT_Claude_MCP_*.md         # Claude Desktop MCP prompts
+│   ├── response_time/                 # Response Time docs and reports
+│   ├── chatlogs/                      # Session transcripts
+│   └── (migration guides, verification reports, troubleshooting)
+├── verifications/               # ETL verification framework
+│   ├── reports/                # Verification markdown reports
+│   └── (verifier scripts)
+├── outputs/                     # Organized output files
+│   ├── arrests/, visual_exports/, summons_validation/, metadata/
+│   └── large_exports/
+└── logs/                        # ETL execution logs (auto-created)
 ```
 
 ---
@@ -43,10 +58,13 @@ Master_Automation/
 - `scripts.json.bak` - Backup of previous configuration
 
 ### `scripts/`
-**Purpose:** PowerShell execution scripts
-- `run_all_etl.ps1` - Main orchestrator (runs all ETL scripts)
+**Purpose:** Python ETL scripts and PowerShell orchestration
+- `run_all_etl.ps1` - Main PowerShell orchestrator (runs all ETL scripts)
 - `run_all_etl.bat` - Batch file wrapper for easy execution
 - `run_etl_script.ps1` - Helper to run individual scripts
+- `summons_etl_normalize.py` - Core summons ETL: CSV parsing, badge lookup, TYPE classification (M/P/C), 3-tier output
+- `summons_backfill_merge.py` - Injects aggregate totals for gap months (currently 07-25 only)
+- `path_config.py` - Centralized `get_onedrive_root()` for portability
 
 ### `logs/`
 **Purpose:** ETL execution logs (auto-created on first run)
@@ -150,5 +168,5 @@ This folder in Master_Automation (`_DropExports/`) is optional and can be used f
 ---
 
 **Maintained by:** R. A. Carucci  
-**Last Updated:** 2025-12-11
+**Last Updated:** 2026-03-10
 
