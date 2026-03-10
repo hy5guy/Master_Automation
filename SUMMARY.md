@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-03-09
-**Status:** ✅ v1.17.31 — pReportMonth migration COMPLETE; all 16 queries + Arrest_13Month verified
-**Version:** 1.17.31
+**Last Updated:** 2026-03-10
+**Status:** ✅ v1.18.1 — Summons pipeline fixes (Ramirez SSOCC, UNASSIGNED, filler rows)
+**Version:** 1.18.1
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.17.31 — pReportMonth migration COMPLETE; all queries verified |
-| **Version** | 1.17.31 |
+| **Status** | ✅ v1.18.1 — Summons pipeline fixes (Ramirez, UNASSIGNED, filler rows) |
+| **Version** | 1.18.1 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -260,6 +260,8 @@ Validation helper:
 **Status (2025-12-12):** ✅ All Issues Resolved - System Healthy
 
 **⚠️ Verification Note (2026-03-03):** Re-export all summons e-ticket data to verify counts. See `docs/SUMMONS_VERIFICATION_NOTE_2026_03.md`.
+
+**v1.18.1 (2026-03-10):** Ramirez SSOCC overrides in ETL; UNASSIGNED mapping in all_bureaus; 07-25 filler rows in 13month_trend; `docs/SUMMONS_M_CODE_NOTES.md` for lessons learned.
 
 Power BI source (v2.3.0+):
 - `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv` (23-col SLIM; all 6 summons queries)
@@ -708,8 +710,8 @@ The manifest provides a machine-readable reference for the entire Master Automat
 ---
 
 **Maintained by:** R. A. Carucci  
-**Last Updated:** 2026-03-09  
-**Version:** 1.17.31
+**Last Updated:** 2026-03-10  
+**Version:** 1.18.1
 
 ---
 

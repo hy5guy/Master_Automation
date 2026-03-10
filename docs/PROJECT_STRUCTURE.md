@@ -78,6 +78,7 @@ Master_Automation/
 - Verification reports
 - Workflow documentation
 - Technical documentation
+- `SUMMONS_M_CODE_NOTES.md` — Lessons learned for summons M code (AI assistant ref)
 
 **Note:** `README.md` stays in root for GitHub/visibility
 

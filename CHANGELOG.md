@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.1] - 2026-03-10
+
+### Changed — Summons Post-v1.18.0 Fixes (Ramirez, UNASSIGNED, Filler Rows)
+
+**Python ETL:**
+- `scripts/summons_etl_normalize.py`: Ramirez (badge 2025) SSOCC overrides — 19 ticket IDs from Ramirez's SSOCC period → WG2=SSOCC; FIRE LANES violations (badge 2025 + violation contains "FIRE LANES") → WG2=SSOCC. Overrides run last so they win over PEO→Traffic.
+
+**Power BI M code:**
+- `m_code/summons/summons_all_bureaus.m`: Map UNKNOWN, blank, "nan", null WG2 → "UNASSIGNED" so All Bureaus total matches department-wide (421 M, 2,354 P for Feb 2026)
+- `m_code/summons/summons_13month_trend.m`: Filler rows for missing (Month_Year, TYPE) — full cross-join of 13 months × {M,P,C}, left join to grouped data, append rows with TICKET_COUNT=0 so 07-25 shows M=17, P=0, C=0 instead of blank P/C
+
+**Documentation:**
+- `docs/SUMMONS_M_CODE_NOTES.md` — Lessons learned (table schema, List.TransformMany, Show Errors crash, filler pattern, WG2 rules, BackfillMonths, subtitle measures, ___Traffic dynamic typing, DAX validation queries)
+- `docs/PROMPT_Claude_MCP_Summons_AllBureaus_Fix.md` — UNASSIGNED mapping prompt
+- `docs/PROMPT_Claude_MCP_Summons_DeptWide_Backfill_Fix.md` — 07-25 filler rows prompt
+
+---
+
 ## [1.18.0] - 2026-03-10
 
 ### Changed — Summons Pipeline Overhaul (ETL + Power BI M Code)

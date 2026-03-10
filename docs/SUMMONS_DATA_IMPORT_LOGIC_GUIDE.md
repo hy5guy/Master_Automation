@@ -106,6 +106,13 @@ The summons data pipeline imports monthly traffic summons (parking and moving vi
 
 **File Location:** `m_code\summons\summons_13month_trend.m`
 
+**Source:** `summons_slim_for_powerbi.csv` (CSV, not Excel)
+
+**Key Logic (v1.18.1):**
+- **No WG2 filter** — department-wide includes all officers (K. Peralta, UNASSIGNED, etc.)
+- **Filler rows** — full cross-join of 13 months × {M,P,C} for missing combos; append rows with TICKET_COUNT=0 so gap months (e.g. 07-25) show P=0, C=0 instead of blank
+- **BackfillMonths = {}** — empty; 07-25 uses straggler e-ticket records only
+
 **Key Logic:**
 ```powerquery
 // 1. Load source Excel file
@@ -160,7 +167,11 @@ Source = Excel.Workbook(
 
 **File Location:** `m_code\summons\summons_all_bureaus.m`
 
-**Output columns:** `Bureau/Division`, **Moving**, **Parking**, `Month_Year` (use Moving/Parking in visuals, not M/P — see Issue 8).
+**Output columns:** `Bureau`, **M**, **P**, **Total** (renamed from WG2; use M/P columns in visuals — see Issue 8).
+
+**Key Logic (v1.18.1):**
+- **WG2 mapping:** null, blank, "nan", "UNKNOWN" → "UNASSIGNED" so sum of bureaus = department-wide total
+- Consolidate HOUSING, OSO, PATROL BUREAU → PATROL DIVISION before grouping
 
 **Key Logic:**
 ```powerquery
@@ -264,9 +275,9 @@ RENAME_MAP = {
 - Internal data may say "OFFICE OF SPECIAL OPERATIONS" or "EMERGENCY SERVICE UNIT"
 - Visuals should display as "ESU" (handled at visual level, not in query)
 
-**Rule 3: Filter UNKNOWN**
-- Records with `WG2 = "UNKNOWN"` are excluded from bureau-level analysis
-- Historical aggregate records (no bureau info) are retained for trend analysis
+**Rule 3: Map UNKNOWN to UNASSIGNED (v1.18.1)**
+- Records with `WG2 = null`, blank, "nan", or "UNKNOWN" are mapped to **UNASSIGNED** in `summons_all_bureaus` so bureau totals match department-wide
+- `summons_13month_trend` has NO WG2 filter — dept-wide includes all officers (K. Peralta #0311 with WG2="nan" counts)
 
 ---
 
@@ -387,8 +398,9 @@ Total Summons = SUM(summons_13month_trend[TICKET_COUNT])
 **Priority Order:**
 1. **Direct Match:** Badge number in Assignment_Master_V2.csv → Use WG2 value
 2. **TITLE Override:** If TITLE (from Assignment Master) = **Parking Enforcement Officer** or **PEO** → `WG2 = "TRAFFIC BUREAU"` (and `TEAM = "TRAFFIC"`). Applied after the join so PEOs are always attributed to Traffic.
-3. **Fallback:** Badge not found → `WG2 = "UNKNOWN"` (filtered out in bureau analysis)
-4. **Historical:** Aggregate records → `WG2 = null` (kept for trend, excluded from bureau breakdown)
+3. **Ramirez SSOCC Override (v1.18.1):** Badge 2025 tickets in `RAMIREZ_SSOCC_TICKET_NUMBERS` OR (badge 2025 + violation contains "FIRE LANES") → `WG2 = "SSOCC"`. Runs last so it wins over PEO→Traffic.
+4. **Fallback:** Badge not found → `WG2 = "UNKNOWN"` (mapped to UNASSIGNED in all_bureaus so bureau sum = dept-wide)
+5. **Historical:** Aggregate records → `WG2 = null` (kept for trend, mapped to UNASSIGNED in bureau breakdown)
 
 **Consolidation Rules:**
 ```

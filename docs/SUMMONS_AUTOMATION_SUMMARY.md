@@ -7,6 +7,15 @@
 
 ---
 
+## ✅ v1.18.1 Fixes (2026-03-10)
+
+- **Ramirez SSOCC overrides:** `summons_etl_normalize.py` — 19 ticket IDs + FIRE LANES (badge 2025) → WG2=SSOCC
+- **UNASSIGNED mapping:** `summons_all_bureaus.m` — null/blank/nan/UNKNOWN WG2 → UNASSIGNED so bureau sum = dept-wide
+- **07-25 filler rows:** `summons_13month_trend.m` — full cross-join of months × {M,P,C}, append rows with TICKET_COUNT=0 for gap months
+- **SUMMONS_M_CODE_NOTES.md** — Lessons learned for future Claude MCP sessions
+
+---
+
 ## ✅ COMPLETED
 
 ### Problem Fixed

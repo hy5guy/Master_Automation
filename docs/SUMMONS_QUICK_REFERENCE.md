@@ -89,6 +89,8 @@ Table.SelectRows(Source, each [IS_AGGREGATE] = false or [ETL_VERSION] = "ETICKET
 3. **Filter to ACTIVE personnel only**
 4. **Pad badges to 4 digits: 256 → "0256"**
 5. **13-month window: Exclude current incomplete month**
+6. **All Bureaus:** null/blank/nan/UNKNOWN WG2 → UNASSIGNED (so bureau sum = dept-wide)
+7. **Gap months:** Filler rows added for missing (Month_Year, TYPE) so 07-25 shows P=0, C=0 not blank
 
 ---
 
@@ -126,4 +128,4 @@ Table.SelectRows(Source, each [IS_AGGREGATE] = false or [ETL_VERSION] = "ETICKET
 
 ---
 
-**Version:** 1.0 | **Updated:** 2026-02-16
+**Version:** 1.1 | **Updated:** 2026-03-10
