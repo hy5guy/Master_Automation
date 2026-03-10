@@ -6,16 +6,15 @@
 
 ## Where to inject (DEPLOYED)
 
-**Script:** `02_ETL_Scripts/Summons/summons_etl_enhanced.py` (active script per config)  
-**Path:** `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Summons\summons_etl_enhanced.py`
+**Entry point:** `run_summons_etl.py` (repo root)  
+**Core ETL:** `scripts/summons_etl_normalize.py` — `normalize_personnel_data()`  
+**Backfill merge:** `scripts/summons_backfill_merge.py` — `merge_missing_summons_months()`
 
-**Injection point:** After `create_unified_summons_dataset()` and before `save_to_staging()`:
+**Flow:** `run_summons_etl.py` calls `normalize_personnel_data()` then `merge_missing_summons_months()`,
+then writes the 3-tier output (RAW, CLEAN Excel, SLIM CSV for Power BI).
 
-1. Add `TICKET_COUNT=1` to main df (ticket-level rows)
-2. Call `merge_missing_summons_months(unified_data)` from `Master_Automation/scripts/summons_backfill_merge.py`
-3. The script adds `Master_Automation/scripts` to `sys.path` so the import resolves
-
-**Note:** `main_orchestrator.py` is not used; config uses `summons_etl_enhanced.py`.
+> **Note:** `summons_etl_enhanced.py` referenced in prior docs does NOT exist. The active
+> pipeline is `run_summons_etl.py` → `scripts/summons_etl_normalize.py`. Updated 2026-03-10.
 
 ---
 

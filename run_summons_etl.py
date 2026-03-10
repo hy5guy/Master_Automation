@@ -8,6 +8,7 @@ Loads all months in folder (prefers _FIXED.csv from DOpus) for full 13-month cov
 
 import argparse
 import sys
+from datetime import datetime, timedelta
 from pathlib import Path
 
 # Ensure scripts is on path (matches original run_summons_etl pattern)
@@ -57,24 +58,33 @@ def _discover_summons_files(month_dir: Path) -> list[Path]:
 def main():
     from summons_backfill_merge import merge_missing_summons_months
 
+    prev_month = (datetime.today().replace(day=1) - timedelta(days=1))
+    default_month = prev_month.strftime("%Y_%m")
+
     parser = argparse.ArgumentParser(description="Run Summons ETL with 3-tier output")
-    parser.add_argument("--month", default="2026_02", help="Latest month YYYY_MM (loads all months through this)")
+    parser.add_argument("--month", default=default_month, help="Latest month YYYY_MM (default: previous complete month)")
     parser.add_argument("--dry-run", action="store_true", help="List files and exit without running")
     args = parser.parse_args()
 
     base = get_onedrive_root()
-    year = args.month.split("_")[0] if "_" in args.month else "2026"
-    month_dir = base / "05_EXPORTS" / "_Summons" / "E_Ticket" / year / "month"
+    export_root = base / "05_EXPORTS" / "_Summons" / "E_Ticket"
     master_path = base / "09_Reference" / "Personnel" / "Assignment_Master_V2.csv"
     output_xlsx = base / "03_Staging" / "Summons" / "summons_powerbi_latest.xlsx"
 
-    if not month_dir.exists():
-        print(f"  Month directory not found: {month_dir}")
-        sys.exit(1)
+    end_year = int(args.month.split("_")[0])
+    years_to_scan = sorted({str(end_year - 1), str(end_year)})
 
-    paths = _discover_summons_files(month_dir)
+    paths = []
+    for yr in years_to_scan:
+        month_dir = export_root / yr / "month"
+        if month_dir.exists():
+            found = _discover_summons_files(month_dir)
+            paths.extend(found)
+            print(f"  Discovered {len(found)} file(s) in {yr}/month/")
+
     if not paths:
-        print(f"  No e-ticket exports found in {month_dir}")
+        print(f"  No e-ticket exports found in {export_root}")
+        print(f"  Searched: {', '.join(yr + '/month/' for yr in years_to_scan)}")
         print("  Expected: YYYY_MM_eticket_export.csv or YYYY_MM_eticket_export_FIXED.csv")
         sys.exit(1)
 

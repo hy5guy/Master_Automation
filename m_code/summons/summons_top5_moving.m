@@ -12,7 +12,7 @@ let
     WithTitle = if Table.HasColumns(PromotedHeaders, "TITLE") then PromotedHeaders else Table.AddColumn(PromotedHeaders, "TITLE", each null, type text),
     
     // Change YearMonthKey and TYPE; TITLE as text
-    ChangedType = Table.TransformColumnTypes(WithTitle, {{"YearMonthKey", Int64.Type}, {"TYPE", type text}, {"TITLE", type text}}),
+    ChangedType = Table.TransformColumnTypes(WithTitle, {{"YearMonthKey", Int64.Type}, {"TICKET_COUNT", Int64.Type}, {"TYPE", type text}, {"TITLE", type text}}),
     
     // Filter to Moving violations only
     FilteredMoving = Table.SelectRows(ChangedType, each ([TYPE] = "M")),
@@ -33,7 +33,7 @@ let
     GroupedRows = Table.Group(
         FilteredLatestMonth, 
         {"OFFICER_DISPLAY_NAME", "Month_Year"}, 
-        {{"Count", each Table.RowCount(_), type number}}
+        {{"Count", each List.Sum([TICKET_COUNT]), type number}}
     ),
     
     // Sort by count descending

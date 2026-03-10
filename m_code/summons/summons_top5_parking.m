@@ -9,7 +9,7 @@ let
     PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
     
     // Change YearMonthKey to number type
-    ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"YearMonthKey", Int64.Type}, {"TYPE", type text}}),
+    ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"YearMonthKey", Int64.Type}, {"TICKET_COUNT", Int64.Type}, {"TYPE", type text}}),
     
     // Filter to Parking violations only
     FilteredParking = Table.SelectRows(ChangedType, each ([TYPE] = "P")),
@@ -24,7 +24,7 @@ let
     GroupedRows = Table.Group(
         FilteredLatestMonth, 
         {"OFFICER_DISPLAY_NAME", "Month_Year"}, 
-        {{"Count", each Table.RowCount(_), type number}}
+        {{"Count", each List.Sum([TICKET_COUNT]), type number}}
     ),
     
     // Sort by count descending

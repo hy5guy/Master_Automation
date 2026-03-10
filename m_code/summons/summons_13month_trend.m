@@ -24,6 +24,7 @@ let
         {"ISSUE_DATE", type datetime},
         {"TYPE", type text},
         {"ETL_VERSION", type text},
+        {"IS_AGGREGATE", type text},
         {"Year", Int64.Type},
         {"Month", Int64.Type},
         {"YearMonthKey", Int64.Type},
@@ -38,11 +39,13 @@ let
     FilteredMonthYear = Table.SelectRows(FilteredClean, each
         [YearMonthKey] <> null and [YearMonthKey] >= StartYM and [YearMonthKey] <= EndYM
     ),
-    // Only for months where backfill was merged (01-25, 02-25), prefer WG2="Department-Wide" to avoid double-count.
-    // Gap months 03-25, 07-25, 10-25, 11-25 have e-ticket data only (no backfill); keep bureau rows so they display.
-    BackfillMonths = {"01-25", "02-25"},
+    // For gap months with no e-ticket data (only backfill aggregates), keep IS_AGGREGATE rows.
+    // As of 2026-03-10: only 07-25 is a true gap. All other 2025 months have individual e-ticket data.
+    BackfillMonths = {"07-25"},
     FilteredPreferBackfill = Table.SelectRows(FilteredMonthYear, each
-        if List.Contains(BackfillMonths, [Month_Year]) then [WG2] = "Department-Wide" else true
+        if List.Contains(BackfillMonths, [Month_Year])
+        then Text.Upper(Text.From([IS_AGGREGATE] ?? "false")) = "TRUE"
+        else true
     ),
     // TICKET_COUNT: use from source if present (ETL v2.1+ and backfill); else add 1 per row
     WithTicketCount = if Table.HasColumns(FilteredPreferBackfill, "TICKET_COUNT")

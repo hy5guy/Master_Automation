@@ -89,17 +89,14 @@ def _load_statute_lookups(base_dir: Path):
 
 
 def _classify_violation(row, title39_dict, ordinance_dict):
-    """Apply 4-tier statute classification: Title39 → Ordinance exact → Ordinance substring → raw fallback."""
-    statute = str(row.get("Statute", "")).strip().upper()
-    raw_type = str(row.get("Case Type Code", "M")).strip().upper()
-    if statute in title39_dict:
-        return title39_dict[statute].get("type", raw_type)
-    if statute in ordinance_dict:
-        return ordinance_dict[statute].get("case_type_code", raw_type)
-    for key in ordinance_dict:
-        if key in statute:
-            return ordinance_dict[key].get("case_type_code", raw_type)
-    return raw_type
+    """Use raw Case Type Code (M/P/C) from the e-ticket export directly.
+    Statute-based classification was producing expanded types (License/Registration,
+    Moving Violation, etc.) and ordinance substring matching was converting 2,576
+    Parking tickets to C. Per SUMMONS_REMEDIATION_2026_02_17: use Case Type Code only."""
+    raw_type = str(row.get("Case Type Code", "")).strip().upper()
+    if raw_type in ("M", "P", "C"):
+        return raw_type
+    return "M"
 
 
 def apply_hard_coded_overrides(df: pd.DataFrame) -> pd.DataFrame:
