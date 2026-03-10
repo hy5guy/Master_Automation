@@ -152,7 +152,7 @@ def _apply_pretty_csv_cleanup(df: pd.DataFrame) -> pd.DataFrame:
 
 def _read_summons_csv(path: Path) -> pd.DataFrame:
     """Load e-ticket CSV; auto-detect delimiter (comma vs semicolon). Applies pretty_csv cleanup."""
-    with open(path, "r", encoding="utf-8", errors="replace") as f:
+    with open(path, "r", encoding="utf-8-sig", errors="replace") as f:
         first_line = f.readline()
     sep = ";" if ";" in first_line and first_line.count(";") > first_line.count(",") else ","
     try:
@@ -163,10 +163,10 @@ def _read_summons_csv(path: Path) -> pd.DataFrame:
             quoting=csv.QUOTE_MINIMAL,
             on_bad_lines="skip",
             engine="python",
-            encoding="utf-8",
+            encoding="utf-8-sig",
             dtype=str,
         )
-    except UnicodeDecodeError:
+    except (UnicodeDecodeError, ValueError):
         df = pd.read_csv(
             path,
             sep=sep,

@@ -37,14 +37,16 @@ def _discover_summons_files(month_dir: Path) -> list[Path]:
             if base not in seen:
                 seen[base] = f
 
-    # Fallback: if _FIXED has 0 data rows, use raw
+    # Fallback: if _FIXED has 0 data rows or header is quote-wrapped (DOpus bug), use raw
     result = []
     for p in sorted(seen.values(), key=lambda x: x.name):
         if "_FIXED" in p.name:
             try:
-                with open(p, "r", encoding="utf-8", errors="replace") as f:
-                    lines = [ln for ln in f if ln.strip()][1:]  # skip header
-                if len(lines) == 0:
+                with open(p, "r", encoding="utf-8-sig", errors="replace") as f:
+                    header = f.readline().strip()
+                    lines = [ln for ln in f if ln.strip()]
+                is_corrupt = len(lines) == 0 or header.startswith('"') and header.endswith('"')
+                if is_corrupt:
                     raw = p.parent / p.name.replace("_FIXED", "")
                     if raw.exists():
                         result.append(raw)
