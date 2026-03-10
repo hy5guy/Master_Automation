@@ -2,13 +2,14 @@
 // # summons/summons_13month_trend.m
 // # Author: R. A. Carucci
 // # Purpose: Load summons data from staging workbook for 13-month trend analysis.
-// # Rolling 13-month window driven by pReportMonth: EndDate = pReportMonth (includes report month),
-// #   StartDate = 12 months before. E.g. pReportMonth=02/01/2026 → 02-25 through 02-26.
+// # Rolling 13-month window driven by pReportMonth: EndDate = pReportMonth - 1 (previous complete month),
+// #   StartDate = 12 months before EndDate. E.g. pReportMonth=03/01/2026 → 02-25 through 02-26.
 // # Filters out blank/malformed Month_Year (fixes "02-25 no header" and wrong values).
 
 let
-    // 13-month window: report month through 12 months back (e.g. pReportMonth=02/01/2026 → 02-25 through 02-26)
-    EndDate = DateTime.Date(pReportMonth),
+    // 13-month window ending at previous complete month (pReportMonth - 1), spanning 12 months back.
+    // e.g. pReportMonth=03/01/2026 → EndDate=Feb 2026, StartDate=Feb 2025 → 02-25 through 02-26
+    EndDate = Date.AddMonths(DateTime.Date(pReportMonth), -1),
     StartDate = Date.AddMonths(EndDate, -12),
     EndYM = Date.Year(EndDate) * 100 + Date.Month(EndDate),
     StartYM = Date.Year(StartDate) * 100 + Date.Month(StartDate),
@@ -34,14 +35,16 @@ let
     },
     FilteredTypes = List.Select(TypeMap, each List.Contains(ExistingCols, _{0})),
     ChangedType = Table.TransformColumnTypes(PromotedHeaders, FilteredTypes),
-    FilteredClean = Table.SelectRows(ChangedType, each [WG2] <> null and [WG2] <> "" and [WG2] <> "UNKNOWN"),
+    // No WG2 filter here — this is the department-wide trend; all officers count regardless of bureau assignment.
+    // Bureau-level filtering happens in summons_all_bureaus.m only.
     // Filter to 13-month window; exclude null YearMonthKey (fixes blank header / wrong values)
-    FilteredMonthYear = Table.SelectRows(FilteredClean, each
+    FilteredMonthYear = Table.SelectRows(ChangedType, each
         [YearMonthKey] <> null and [YearMonthKey] >= StartYM and [YearMonthKey] <= EndYM
     ),
-    // For gap months with no e-ticket data (only backfill aggregates), keep IS_AGGREGATE rows.
-    // As of 2026-03-10: only 07-25 is a true gap. All other 2025 months have individual e-ticket data.
-    BackfillMonths = {"07-25"},
+    // Backfill filtering: no gap months currently need special handling.
+    // 07-25 has 17 straggler e-ticket records (no backfill file exists). Show them as-is rather than hiding them.
+    // If a backfill CSV is added for July 2025 in the future, add "07-25" to BackfillMonths below.
+    BackfillMonths = {},
     FilteredPreferBackfill = Table.SelectRows(FilteredMonthYear, each
         if List.Contains(BackfillMonths, [Month_Year])
         then Text.Upper(Text.From([IS_AGGREGATE] ?? "false")) = "TRUE"
