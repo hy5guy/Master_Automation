@@ -12,7 +12,8 @@ cd “C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation”
 
 Write-Host “`n=== COMMUNITY ENGAGEMENT DIAGNOSTIC (PHASE 2) ===” -ForegroundColor Cyan
 
-$ce_dir = “C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date_DropExports”
+$configJson = Get-Content “C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\config\scripts.json” | ConvertFrom-Json
+$ce_dir = $configJson.settings.powerbi_drop_path
 
 # 1. Inventory Files
 

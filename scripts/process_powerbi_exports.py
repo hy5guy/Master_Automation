@@ -25,7 +25,7 @@ from pathlib import Path
 import pandas as pd
 
 try:
-    from path_config import get_onedrive_root
+    from path_config import get_onedrive_root, get_powerbi_paths
 except ImportError:
     import os
     def get_onedrive_root() -> Path:
@@ -33,6 +33,19 @@ except ImportError:
         if base:
             return Path(base)
         return Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack")
+
+    def get_powerbi_paths() -> tuple[Path, Path]:
+        import json
+        config_path = Path(__file__).resolve().parent.parent / "config" / "scripts.json"
+        try:
+            with open(config_path, encoding="utf-8") as f:
+                data = json.load(f)
+            drop = Path(data["settings"]["powerbi_drop_path"])
+            return drop, drop.parent / "Backfill"
+        except Exception:
+            root = get_onedrive_root()
+            drop = root / "PowerBI_Date" / "_DropExports"
+            return drop, root / "PowerBI_Date" / "Backfill"
 
 
 # Repo root (parent of scripts/)
@@ -316,11 +329,12 @@ def process_exports(
     """
     config_path = config_path or CONFIG_PATH
     config = load_config(config_path)
-    source_dir = source_dir or (AUTOMATION_ROOT / "_DropExports")
+    _drop, _backfill = get_powerbi_paths()
+    source_dir = source_dir or _drop
     if config.get("source_folder_override"):
         source_dir = Path(config["source_folder_override"])
     processed_root = processed_root or (get_onedrive_root() / "09_Reference" / "Standards" / "Processed_Exports")
-    backfill_root = backfill_root or (get_onedrive_root() / "PowerBI_Date" / "Backfill")
+    backfill_root = backfill_root or _backfill
 
     stats = ProcessingStats()
     if not source_dir.exists():
@@ -437,7 +451,7 @@ def verify_processing(
     stats: ProcessingStats | None = None,
 ) -> bool:
     """Verify: source folder empty, destination files exist and not empty."""
-    source_dir = source_dir or (AUTOMATION_ROOT / "_DropExports")
+    source_dir = source_dir or get_powerbi_paths()[0]
     processed_root = processed_root or (get_onedrive_root() / "09_Reference" / "Standards" / "Processed_Exports")
 
     print("--- Verification Report ---")
@@ -493,7 +507,7 @@ def main() -> int:
         config_path=args.config,
         dry_run=args.dry_run,
     )
-    verify_processing(source_dir=args.source or (AUTOMATION_ROOT / "_DropExports"), processed_root=args.processed, stats=stats)
+    verify_processing(source_dir=args.source or get_powerbi_paths()[0], processed_root=args.processed, stats=stats)
     return 0 if not stats.errors else 1
 
 
