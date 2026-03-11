@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.4] - 2026-03-11
+
+### Changed — Summons Backfill: Backfill as Source of Truth for All Backfill Months
+
+**Python ETL:**
+- `scripts/summons_backfill_merge.py`: Backfill-as-source-of-truth — for ALL months in the consolidated backfill file (02-25 through 11-25), remove e-ticket rows and use backfill values exclusively. Visual now matches backfill file exactly (e.g. 02-25 M=274 not 324, 07-25 M=402 not 17). Months not in backfill (12-25, 01-26, 02-26) still use e-ticket data.
+
+---
+
+## [1.18.3] - 2026-03-11
+
+### Changed — Summons Backfill: Type-Aware Merge for 07-25
+
+**Python ETL:**
+- `scripts/summons_backfill_merge.py`: Type-aware merge — for gap months (07-25), add backfill rows only for (Month_Year, TYPE) combinations not already in main df. Fixes 07-25 P and C missing: main had 17 M e-ticket rows; old logic skipped 07-25 entirely (>10 rows). Now adds backfill P (3413) and C without duplicating M. Superseded by v1.18.4 (backfill-as-source-of-truth).
+
+**Backfill path confirmed:** `00_dev/projects/PowerBI_Date/Backfill/2026_01/summons/` (preferred) and `PowerBI_Date/Backfill/2026_01/summons/`. File `2026_01_Department-Wide Summons  Moving and Parking.csv` is used.
+
+---
+
 ## [1.18.2] - 2026-03-11
 
 ### Changed — Summons 13-Month Trend: Remove Filler Rows (Fix Null Pollution)

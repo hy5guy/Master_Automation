@@ -2,7 +2,7 @@
 
 **Purpose:** Fill Department-Wide Summons data gaps for months where no e-ticket export exists, by merging aggregate totals from the organized backfill folder.
 
-**Last Updated:** 2026-03-10
+**Last Updated:** 2026-03-11
 
 ---
 
@@ -22,11 +22,11 @@ Power BI M code queries source `summons_slim_for_powerbi.csv` directly.
 
 ---
 
-## Gap Months (as of 2026-03-10)
+## Gap Months (as of 2026-03-11)
 
 | Month | Status | Source |
 |-------|--------|--------|
-| 07-25 | **True gap** | No e-ticket export exists. 17 straggler records from other months with July issue dates. No backfill CSV available. |
+| 07-25 | **True gap** | No e-ticket export exists. 17 straggler M records from other months with July issue dates. **Backfill P (3413) and C** from `Backfill/2026_01/summons/` — type-aware merge adds only missing TYPEs (avoids M double-count). |
 | All other 2025 months | E-ticket data available | Files in `05_EXPORTS\_Summons\E_Ticket\2025\month\` |
 
 Previously (pre-2026-03-10), months 03-25, 10-25, 11-25 were listed as gaps, and 01-25/02-25 were set to prefer backfill. File discovery confirmed all those months have e-ticket exports.
@@ -47,11 +47,15 @@ DEFAULT_BACKFILL_SUMMONS_LABEL = "2026_01"
 
 ## Backfill Folder Layout
 
-Candidate roots (checked in order):
-1. `{OneDrive}/00_dev/projects/PowerBI_Date/Backfill/{label}/summons/`
+**Confirmed paths (checked in order):**
+1. `{OneDrive}/00_dev/projects/PowerBI_Date/Backfill/{label}/summons/` — **preferred**
 2. `{OneDrive}/PowerBI_Date/Backfill/{label}/summons/`
 
+Example: `C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\projects\PowerBI_Date\Backfill\2026_01\summons\2026_01_Department-Wide Summons  Moving and Parking.csv`
+
 CSVs in these folders are expected in "Long" format with columns: `PeriodLabel` (or `Period`), `WG2`, `TICKET_COUNT` (or `Sum of Value`), `TYPE`. Column renaming is handled by `RENAME_MAP` in the merge script.
+
+**Backfill-as-source-of-truth (v1.18.4):** For ALL months in the consolidated backfill file, e-ticket rows are removed and backfill values are used exclusively. The Department-Wide Summons visual now matches the backfill file exactly (e.g. 02-25 M=274, 07-25 M=402). Months not in backfill (12-25, 01-26, 02-26) use e-ticket data.
 
 ---
 

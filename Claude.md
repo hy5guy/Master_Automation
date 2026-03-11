@@ -34,8 +34,8 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.17.31 |
-| **Status** | pReportMonth migration COMPLETE; all queries verified |
+| **Version** | 1.18.4 |
+| **Status** | Summons backfill as source of truth; pReportMonth migration COMPLETE |
 | **pReportMonth** | `#date(2026, 2, 1)` |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 46+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
@@ -180,4 +180,4 @@ M code references `C:\Users\carucci_r\...` (desktop). Laptop has `C:\Users\Rober
 
 ---
 
-*Last updated: 2026-03-09 | Format version: 4.0*
+*Last updated: 2026-03-11 | Format version: 4.0*

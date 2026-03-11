@@ -6,9 +6,9 @@ Repository access note: racmac57/Master_Automation is private and inaccessible v
 
 ## Status vs. v1.18.x (2026-03-11)
 
-**This document describes the pre-v1.18.0 architecture and issues.** Many items below have been resolved in the Summons Pipeline Overhaul (v1.18.0) and post-overhaul fixes (v1.18.1). Use this section to map findings to current state.
+**This document describes the pre-v1.18.0 architecture and issues.** Many items below have been resolved in the Summons Pipeline Overhaul (v1.18.0) and post-overhaul fixes (v1.18.1–1.18.4). Use this section to map findings to current state.
 
-### Current Pipeline (as of v1.18.1)
+### Current Pipeline (as of v1.18.4)
 
 | Component | Location |
 |-----------|----------|
@@ -36,9 +36,10 @@ Repository access note: racmac57/Master_Automation is private and inaccessible v
 | Multi-year discovery | Scans both 2025 and 2026 month directories |
 | BOM/quote-wrapped CSV | `utf-8-sig` encoding; FIXED fallback for DOpus |
 | Total null coalesce | `[C] ?? 0` in all_bureaus |
-| 07-25 filler rows | Reverted in v1.18.2 — caused null pollution; removed; use DAX COALESCE for 0 |
+| 07-25 filler rows | Reverted in v1.18.2 (null pollution). v1.18.4: backfill as source of truth for all backfill months |
 | UNASSIGNED mapping | WG2 unknown/blank/"nan" → "UNASSIGNED" in all_bureaus |
 | Ramirez SSOCC overrides | Badge 2025 overrides in ETL for SSOCC period |
+| Backfill vs e-ticket mismatch | v1.18.4: backfill as source of truth for all months in consolidated file (02-25 through 11-25) |
 
 ### Remaining Open / Unresolved
 
@@ -51,7 +52,7 @@ Repository access note: racmac57/Master_Automation is private and inaccessible v
 
 ### Reference
 
-- **CHANGELOG.md** — Sections [1.18.0] and [1.18.1] for full deployment detail
+- **CHANGELOG.md** — Sections [1.18.0] through [1.18.4] for full deployment detail
 - **README.md** — Current Summons pipeline summary
 - **docs/PROMPT_Claude_MCP_Summons_*.md** — M code fix prompts used during overhaul
 
