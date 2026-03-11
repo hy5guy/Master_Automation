@@ -6,7 +6,11 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
 
-**Latest Update (2026-03-02):** v1.17.22 — Assignment Master sync path-agnostic: `09_Reference/Personnel/` scripts now use `os.path.dirname(os.path.abspath(__file__))`; work on desktop (carucci_r) and laptop (RobertCarucci). See `CHANGELOG.md`.
+**Latest Update (2026-03-11): v1.18.4 — Summons backfill as source of truth.** For all months in the consolidated backfill file (02-25 through 11-25), e-ticket rows are removed and backfill values used exclusively. Department-Wide Summons visual now matches backfill file exactly. See `CHANGELOG.md`.
+
+**v1.18.0 (2026-03-10): Summons Pipeline Overhaul.** Full ETL rewrite: TYPE classification fixed (raw Case Type Code M/P/C instead of broken statute lookup), multi-year file discovery (2025+2026), BOM/quote-wrapped CSV handling, `summons_slim_for_powerbi.csv` as primary Power BI source. M code: 13-month trend window aligned to `pReportMonth - 1`, WG2 filter removed from dept-wide trend, `List.Sum([TICKET_COUNT])` replaces `Table.RowCount`, all_bureaus Total null coalesce. See `CHANGELOG.md`.
+
+**v1.17.28 (2026-03-05):** Community Engagement ETL — Patrol processor v2 deployed. Enhanced attendee parsing (rank stripping, expanded delimiters, non-name detection), new `attendee_names` column in output. scripts.json updated for `output\*.csv` file discovery. See `Claude.md` and Community_Engagment `CHANGELOG.md`.
 
 **v1.17.19 (2026-02-27):** Peer-review corrections: Suspicious Person, Suspicious Vehicle, Missing Person (Adult/Juvenile), NARCAN/Overdose Juvenile, Juvenile Complaint (Criminal), and ESU - Response moved from excluded to included (citizen-initiated dispatched calls). Normalization enhanced for unicode dash variants. All 25 monthly CSVs regenerated. See `CHANGELOG.md` for full detail. **Power BI refresh required.**
 
@@ -39,7 +43,8 @@ Master_Automation/
 │   ├── validate_exports.py                  # Pre-flight OT/TimeOff export validation
 │   ├── validate_outputs.py                   # FIXED CSV schema validation
 │   ├── test_pipeline.bat                     # Overtime/TimeOff test suite
-│   ├── summons_backfill_merge.py             # Summons gap-month merge (03-25, 07-25, 10-25, 11-25)
+│   ├── summons_backfill_merge.py             # Summons gap-month merge (07-25 only as of 2026-03-10)
+│   ├── summons_etl_normalize.py             # Core summons ETL: badge lookup, TYPE classification, 3-tier output
 │   ├── normalize_visual_export_for_backfill.py  # Normalize visual exports (13-month window, backfill)
 │   ├── process_powerbi_exports.py               # Process _DropExports with mapping (match_pattern, 13-month)
 │   ├── validate_13_month_window.py              # Validate 13-month rolling window in CSV(s)
@@ -77,7 +82,7 @@ Master_Automation/
 │   ├── parameters/            # RootExportPath, EtlRootPath, pReportMonth, SourceMode, RangeStart, RangeEnd
 │   ├── patrol/                # ___Patrol
 │   ├── remu/                  # ___REMU
-│   ├── response_time/         # ___ResponseTimeCalculator
+│   ├── response_time/         # ___ResponseTime_AllMetrics (primary), ___ResponseTimeCalculator, OutVsCall, DispVsCall (legacy)
 │   ├── shared/                # ___ComprehensiveDateTable, ___DimMonth, ___DimEventType, etc.
 │   ├── social_media/          # ___Social_Media
 │   ├── ssocc/                 # ___SSOCC_Data, TAS_Dispatcher_Incident
@@ -490,28 +495,23 @@ Run `.\verify_migration.ps1` to verify all paths and configurations are correct.
 - Validation helper:
   - `scripts/compare_policy_training_delivery.py` can compare a refreshed visual export (Delivery Cost by month) vs ETL output and vs backfill (history months).
 
-### Summons: Current Month From E-Ticket + Backfill Verified ✅
-- Power BI source workbook: `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx`
-- Current month is computed from: `...\05_EXPORTS\_Summons\E_Ticket\YY_MM_e_ticketexport.csv`
-- History is carried via backfill exports in `PowerBI_Date\Backfill\YYYY_MM\summons\...`
-- **Status (2025-12-12):** All issues resolved - system healthy and working correctly
-  - WG2 column: 134,144 rows populated (42.52%), 181,363 null (historical aggregates - expected)
-  - M Code queries: All 3 queries working correctly, handling missing columns properly
-  - DAX measure: Corrected to `___Total Tickets = COUNTROWS('___Summons')`
-  - Data validation: 315,507 total rows verified
-- Validation helpers:
-  - `scripts/compare_summons_deptwide.py` compares Dept-Wide visual export vs backfill history and vs ETL current month
-  - `scripts/compare_summons_all_bureaus.py` compares All Bureaus visual vs ETL output
-  - `scripts/diagnose_summons_blank_bureau.py` identifies blank `WG2` rows that show up as blank Bureau
-  - `scripts/diagnose_summons_assignment_mapping.py` diagnoses WG2 assignment mapping issues
-  - `scripts/diagnose_summons_missing_months.py` identifies missing months in staging workbook
-  - `scripts/diagnose_summons_top5_vs_deptwide.py` validates Top 5 queries vs Dept-Wide data
-  - `scripts/fix_summons_wg2_from_assignment.py` fixes WG2 column from WG2_ASSIGN
-  - `scripts/run_summons_with_overrides.py` can inject a badge override (e.g. badge 1711 → Traffic Bureau) and regenerate the workbook before refresh
-- Documentation:
-  - `claude_code_summons.md` - Comprehensive troubleshooting guide
-  - `SUMMONS_DIAGNOSTIC_REPORT_2025_12_12.md` - Complete diagnostic report
-  - `SUMMONS_DAX_MEASURES_CORRECTED.txt` - Corrected DAX measure instructions
+### Summons: Full Pipeline Rewrite (v1.18.0 — 2026-03-10) ✅
+- **Entry point:** `run_summons_etl.py` (repo root) — scans both 2025/month and 2026/month for e-ticket exports
+- **Core ETL:** `scripts/summons_etl_normalize.py` — badge lookup, TYPE classification (raw Case Type Code M/P/C), 3-tier output (RAW, CLEAN Excel, SLIM CSV)
+- **Backfill merge:** `scripts/summons_backfill_merge.py` — gap month = July 2025 only (all other 2025 months have e-ticket files)
+- **Power BI source:** `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv` (~47K rows, 23 columns)
+- **M code queries:** 4 queries in `m_code/summons/` — `summons_13month_trend`, `summons_all_bureaus`, `summons_top5_moving`, `summons_top5_parking`
+- **Key fixes applied (2026-03-10):**
+  - TYPE classification: raw `Case Type Code` (M/P/C) replaces broken statute-based lookup that was reclassifying Parking→Criminal
+  - 13-month trend: window uses `pReportMonth - 1` as end date; no WG2 filter (dept-wide); `List.Sum([TICKET_COUNT])` replaces `Table.RowCount`
+  - All bureaus: `[C] ?? 0` null coalesce for Total column; `"nan"` string filtered; SSOCC shows as own bureau row
+  - CSV parser: `utf-8-sig` encoding (BOM handling); fallback for DOpus quote-wrapped FIXED headers
+  - Multi-year discovery: scans both previous and current year directories for complete 13-month window
+- **Status (2026-03-10):** All 4 Power BI visuals validated — 13 months, correct TYPE splits, SSOCC present, Totals populated
+- Claude MCP prompts for Power BI Desktop updates:
+  - `docs/PROMPT_Claude_MCP_Summons_Bugfix.md` — Initial M code fixes
+  - `docs/PROMPT_Claude_MCP_Summons_Validation_Post_ETL.md` — Post-ETL refresh and validation
+  - `docs/PROMPT_Claude_MCP_Summons_Round3_Fix.md` — Window, WG2 filter, and Total fixes
 
 ---
 
@@ -529,9 +529,9 @@ The manifest provides a machine-readable reference for the entire Master Automat
 ---
 
 **Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`  
-**Last Updated:** 2026-02-26  
-**Version:** 1.17.6  
-**Status:** ✅ Template Updated — Staging Data Refresh Pending
+**Last Updated:** 2026-03-10  
+**Version:** 1.18.0  
+**Status:** ✅ Summons pipeline overhaul — TYPE classification, multi-year discovery, M code fixes
 
 
 ## 2026-02-23

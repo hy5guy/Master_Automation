@@ -1,0 +1,196 @@
+relationship 40e22c4c-c566-4c53-9655-490154aee192
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___Chief2.PeriodDate
+	toColumn: LocalDateTable_8f34d3fe-898e-4c92-a658-b9e90ec7f04f.Date
+
+relationship 2dd6431b-e811-45bc-bafb-95e87f5c037d
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___REMU.PeriodDate
+	toColumn: LocalDateTable_cb369f3c-5991-4105-a6ad-7cb20b262db0.Date
+
+relationship 1e7c1b8c-5fa7-4943-8e12-ab582b8d97c5
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___Arrest_Distro.'Arrest Date'
+	toColumn: LocalDateTable_4ddba0f8-d298-421a-af41-b1a146018760.Date
+
+relationship 36fdcfb6-a291-4bee-8c40-9d98b7bcfafb
+	joinOnDateBehavior: datePartOnly
+	fromColumn: summons_13month_trend.MonthStart
+	toColumn: LocalDateTable_9a3df765-d81f-45af-bb19-317739e17338.Date
+
+relationship 30c5cf71-0ea9-4d00-a563-fcc06ebc22a7
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___Det_case_dispositions_clearance.Date
+	toColumn: LocalDateTable_518f0485-8252-4d1c-b9c3-64da7988c2fd.Date
+
+relationship 3cc7b963-88f6-4de7-83b7-fc1588fc81ec
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___CSB_Monthly.Date
+	toColumn: LocalDateTable_31aeac36-d226-443f-86a5-e23c8b9cef1c.Date
+
+relationship f147f6f9-b4b4-46ac-99e5-0d05c69641a8
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___NIBRS_Monthly_Report.MonthDate
+	toColumn: LocalDateTable_3f5b4743-f7a2-4ee1-b037-8a95c3131b2c.Date
+
+relationship 108e9bf6-f5b5-4f41-b6dc-aa1fb33be3d1
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___Drone.PeriodDate
+	toColumn: LocalDateTable_ef141304-ebfd-4a28-a4c1-d5ed462272b0.Date
+
+relationship 566e347b-34f0-4cd6-a18b-8624976bbfc1
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___ComprehensiveDateTable.Date
+	toColumn: LocalDateTable_7e2f40f6-07e8-426a-ba35-c3f00106dd85.Date
+
+relationship 54c5f883-f723-21ff-70c3-75e78cfdbd15
+	fromColumn: ___SSOCC_Data.Date
+	toColumn: ___ComprehensiveDateTable.Date
+
+relationship 82e3c8b9-88f9-ab43-5c1c-5af60f28a79c
+	fromColumn: ___chief_projects.Date
+	toColumn: ___ComprehensiveDateTable.Date
+
+relationship 8ea96cff-4738-154b-b081-9e751371bba2
+	fromColumn: ___SSOCC_Data.Service_Category
+	toColumn: 'SSOCC Categories'.'Service Category'
+
+relationship b702edc6-7eca-4574-9729-ba7bf3b19dcc
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___Detectives.Date
+	toColumn: LocalDateTable_0108e871-d1c9-4be4-8891-79f9d327a2b4.Date
+
+relationship acfbf7f3-dd34-4a69-ba20-f13061edbab3
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___Detectives.DataRefreshTime
+	toColumn: LocalDateTable_da5de5de-1abf-4196-ad2f-8aac4fc46814.Date
+
+relationship 2960623f-aa48-4ee9-997a-d3776817095e
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___Arrest_Categories.'Arrest Date'
+	toColumn: LocalDateTable_5ea5db37-e43d-4390-ab7d-0147be105c31.Date
+
+relationship 3f57bc3d-de1b-4ada-91cc-3a03185263f6
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___Combined_Outreach_All.Date
+	toColumn: LocalDateTable_a92b67c9-2529-42b5-8346-6475d25fa653.Date
+
+relationship ab77c04d-d516-46ba-9b93-5cfa4eb15462
+	joinOnDateBehavior: datePartOnly
+	fromColumn: summons_13month_trend.ISSUE_DATE
+	toColumn: LocalDateTable_81a3fc4e-e270-445f-a0af-f0bcd61741c3.Date
+
+relationship AutoDetected_20dfd9f0-8232-477e-a9ca-f88a6f2ffcf8
+	fromColumn: ___Patrol.09-25
+	toColumn: ___Social_Media.09-25
+
+relationship 93883425-f190-4bdc-a550-8c95a34e5c04
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___In_Person_Training.'Start date'
+	toColumn: LocalDateTable_09748da8-7d8b-40bd-b61a-5c8272e80dac.Date
+
+relationship 0d888431-a5d2-46d2-9173-6d2a67fe5a62
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___In_Person_Training.'End date'
+	toColumn: LocalDateTable_5166365e-fb5e-4b5a-a6a2-17deed5cb8ff.Date
+
+relationship d5e64df9-a5e9-4d25-8e3d-ebb8d4ef3beb
+	joinOnDateBehavior: datePartOnly
+	fromColumn: BM_Calendar.Date
+	toColumn: LocalDateTable_ea539bab-1015-40d5-a92e-ce99d7aa8966.Date
+
+relationship edb8cebf-83ef-403c-9397-a8a461b1d860
+	joinOnDateBehavior: datePartOnly
+	fromColumn: BM_Calendar.MonthStart
+	toColumn: LocalDateTable_b8096e2a-739e-4bfe-b4e4-aff2216779f3.Date
+
+relationship 19b231a6-7961-4bb9-a384-236f4a70d2bf
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___DimMonth.MonthStart
+	toColumn: LocalDateTable_39197c5d-7895-4d46-ae59-eecfb8f374cd.Date
+
+relationship aef30a95-680e-4047-ac25-2f1c0fc4c513
+	joinOnDateBehavior: datePartOnly
+	fromColumn: UI.'UI Rolling13 EndDate'
+	toColumn: LocalDateTable_711842b5-db0a-4b82-9619-ba9028b0d66b.Date
+
+relationship b8566442-062b-4855-b78b-0026411742c4
+	joinOnDateBehavior: datePartOnly
+	fromColumn: UI.'UI Rolling13 StartDate'
+	toColumn: LocalDateTable_4d959cda-44b1-4c18-9407-f8dcd3edbd91.Date
+
+relationship AutoDetected_776b0788-607e-42e2-bd79-368471cf581b
+	fromColumn: TAS_Dispatcher_Incident.Month_Sort
+	toColumn: ___DimMonth.MonthSort
+
+relationship eda8946b-b05a-46e1-b6fc-aa2463762b04
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___Benchmark.'Incident Date'
+	toColumn: LocalDateTable_be5e04ce-9942-4a3d-aebc-7d73f3f7f6c2.Date
+
+relationship AutoDetected_41c0e427-92f3-44ac-b185-c06b4e93223a
+	fromColumn: ___Benchmark.EventType
+	toColumn: ___DimEventType.EventType
+
+relationship 578a50b4-eaab-255a-1b3f-f3a34675d6cc
+	fromColumn: ___Benchmark.MonthStart
+	toColumn: ___DimMonth.MonthStart
+
+relationship b5099451-cd58-421f-a15f-28a0985d27e4
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___Summons.ISSUE_DATE
+	toColumn: LocalDateTable_26faf302-b49f-4df3-8773-d755042f7077.Date
+
+relationship 6a42561e-4a46-42aa-9657-8aee88bfe733
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___ResponseTime_DispVsCall.Date_Sort_Key
+	toColumn: LocalDateTable_acd8c52c-52b5-4a8a-a84b-bdd93a8402fa.Date
+
+relationship 56faf5b9-0e20-40ea-80dc-9954453019db
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___ResponseTime_DispVsCall.Date
+	toColumn: LocalDateTable_7cec9b52-776c-43a7-b334-892bd19e5ea2.Date
+
+relationship e923c096-9dd0-460a-8b82-14da1ebb8afd
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___ResponseTime_OutVsCall.Date_Sort_Key
+	toColumn: LocalDateTable_ccc0909f-a17b-45d4-aaf1-273dcafca9be.Date
+
+relationship 17ee5e63-8dd6-4f11-bd60-cfeda93f1507
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___ResponseTime_OutVsCall.Date
+	toColumn: LocalDateTable_5f626764-2c7b-4089-8b40-e5558d751d35.Date
+
+relationship a53308e2-ab85-4da4-8b00-bb0ae727e10a
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___ResponseTimeCalculator.Date_Sort_Key
+	toColumn: LocalDateTable_696faa46-a750-40bb-ab95-1b8eb289c9fa.Date
+
+relationship b0146602-efce-4824-8726-fc31974a51f4
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___ResponseTimeCalculator.Date
+	toColumn: LocalDateTable_9e493e0f-2745-46a1-9b13-76111e0cc0dc.Date
+
+relationship db9b1736-4276-45a6-bb35-5371c2b10581
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___Summons.PROCESSING_TIMESTAMP
+	toColumn: LocalDateTable_f061fb15-0f21-457e-a8cd-3fc26bc38919.Date
+
+relationship ___ResponseTime_AllMetrics_Date_Sort_Key_LocalDateTable_696faa46-a750-40bb-ab95-1b8eb289c9fa_Date
+	fromColumn: ___ResponseTime_AllMetrics.Date_Sort_Key
+	toColumn: LocalDateTable_696faa46-a750-40bb-ab95-1b8eb289c9fa.Date
+
+relationship ___ResponseTime_AllMetrics_Date_LocalDateTable_9e493e0f-2745-46a1-9b13-76111e0cc0dc_Date
+	fromColumn: ___ResponseTime_AllMetrics.Date
+	toColumn: LocalDateTable_9e493e0f-2745-46a1-9b13-76111e0cc0dc.Date
+
+relationship fde61f15-94d8-46d1-9002-275aedc08394
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___Arrest_13Month.'Arrest Date'
+	toColumn: LocalDateTable_8a1b42e2-7d11-41b0-a149-31fc4da1c87e.Date
+
+relationship 1feb6a57-19b7-4e66-bdf6-e8fa4c6858a9
+	joinOnDateBehavior: datePartOnly
+	fromColumn: ___Arrest_13Month.ArrestMonth
+	toColumn: LocalDateTable_6f3fe6b0-c752-4769-b3cd-f23bd894c7bf.Date
+

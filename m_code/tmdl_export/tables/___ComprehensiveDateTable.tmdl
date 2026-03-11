@@ -1,0 +1,397 @@
+table ___ComprehensiveDateTable
+	lineageTag: c3766225-5914-4843-8e33-c968a79a47a9
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 9adfff9e-d4f8-44c5-bc21-1f1f3d264d14
+		summarizeBy: none
+		sourceColumn: Date
+
+		variation Variation
+			isDefault
+			relationship: 566e347b-34f0-4cd6-a18b-8624976bbfc1
+			defaultHierarchy: LocalDateTable_7e2f40f6-07e8-426a-ba35-c3f00106dd85.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: e339a89c-50a7-4762-85bf-8a21a2a586c9
+		summarizeBy: sum
+		sourceColumn: Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: int64
+		formatString: 0
+		lineageTag: bd49f7a0-7b3f-40dd-a485-629707001519
+		summarizeBy: sum
+		sourceColumn: Month
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthName
+		dataType: string
+		lineageTag: 2107ac64-b860-47b1-9e78-60c9d44470cf
+		summarizeBy: none
+		sourceColumn: MonthName
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quarter
+		dataType: int64
+		formatString: 0
+		lineageTag: 10e03c08-9776-4ee7-b904-397eecde4943
+		summarizeBy: sum
+		sourceColumn: Quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayOfMonth
+		dataType: int64
+		formatString: 0
+		lineageTag: ad5c0bd1-69d6-453e-a8d6-281388960608
+		summarizeBy: sum
+		sourceColumn: DayOfMonth
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayOfWeek
+		dataType: int64
+		formatString: 0
+		lineageTag: ea06f043-e378-44fd-ba1c-db985e5822e8
+		summarizeBy: sum
+		sourceColumn: DayOfWeek
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayName
+		dataType: string
+		lineageTag: 37fa7bb2-6893-40e5-9602-64fd3dcbe10d
+		summarizeBy: none
+		sourceColumn: DayName
+
+		annotation SummarizationSetBy = Automatic
+
+	column WeekOfYear
+		dataType: int64
+		formatString: 0
+		lineageTag: e0a8fc3c-27ab-4162-a900-25ec7200a5c9
+		summarizeBy: sum
+		sourceColumn: WeekOfYear
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalYear
+		dataType: int64
+		formatString: 0
+		lineageTag: d4a7bee8-29a4-40f5-8409-1c25a7f4ab8e
+		summarizeBy: sum
+		sourceColumn: FiscalYear
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalQuarter
+		dataType: int64
+		formatString: 0
+		lineageTag: 4967af0d-f2dd-40ad-9af2-45d43c566d73
+		summarizeBy: sum
+		sourceColumn: FiscalQuarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column YearMonth
+		dataType: int64
+		formatString: 0
+		lineageTag: 0e2005ff-1be1-4996-a598-6db79867ad9e
+		summarizeBy: sum
+		sourceColumn: YearMonth
+
+		annotation SummarizationSetBy = Automatic
+
+	column YearQuarter
+		dataType: int64
+		formatString: 0
+		lineageTag: 6a7c15e3-7d72-477e-8f41-df8b3af16a16
+		summarizeBy: sum
+		sourceColumn: YearQuarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column FiscalYearQuarter
+		dataType: int64
+		formatString: 0
+		lineageTag: a98e8088-0d0c-4e1c-aa98-7d08705553a4
+		summarizeBy: sum
+		sourceColumn: FiscalYearQuarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateKey
+		dataType: int64
+		formatString: 0
+		lineageTag: f99595ce-90fd-435c-a404-0b5f4abaddb8
+		summarizeBy: count
+		sourceColumn: DateKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ShortDate
+		dataType: string
+		lineageTag: 8a155ab2-7d59-4697-9c7f-690aed888725
+		summarizeBy: none
+		sourceColumn: ShortDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column mmm-yy
+		dataType: string
+		lineageTag: 3f48e943-4c3f-44d9-a0be-5213f2fdc81f
+		summarizeBy: none
+		sourceColumn: mmm-yy
+
+		annotation SummarizationSetBy = Automatic
+
+	column mmm-yyyy
+		dataType: string
+		lineageTag: 3e1b27ca-33df-4d15-b94f-4937a27593a2
+		summarizeBy: none
+		sourceColumn: mmm-yyyy
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'mmmm yyyy'
+		dataType: string
+		lineageTag: 2281f64d-643c-4ce6-9710-0b34f4c0203d
+		summarizeBy: none
+		sourceColumn: mmmm yyyy
+
+		annotation SummarizationSetBy = Automatic
+
+	column mmmm
+		dataType: string
+		lineageTag: 0bfa6490-319d-427b-8933-d1ab0990e26a
+		summarizeBy: none
+		sourceColumn: mmmm
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayType
+		dataType: string
+		lineageTag: 1dd29ebc-4bda-4dce-b088-fcd0815f5c63
+		summarizeBy: none
+		sourceColumn: DayType
+
+		annotation SummarizationSetBy = Automatic
+
+	column mm-yy
+		dataType: string
+		lineageTag: 4bad19da-fd3e-4ab7-9926-0d292e06c1dc
+		summarizeBy: none
+		sourceColumn: mm-yy
+
+		annotation SummarizationSetBy = Automatic
+
+	column mm-yy_Sort_Order
+		dataType: int64
+		formatString: 0
+		lineageTag: 891b156d-896a-476c-a27d-d4120aed3826
+		summarizeBy: sum
+		sourceColumn: mm-yy_Sort_Order
+
+		annotation SummarizationSetBy = Automatic
+
+	column mmm-yy_Sort_Order
+		dataType: int64
+		formatString: 0
+		lineageTag: a23c9a3d-7334-4a1c-9d69-7d2b441cf521
+		summarizeBy: sum
+		sourceColumn: mmm-yy_Sort_Order
+
+		annotation SummarizationSetBy = Automatic
+
+	column mmm-yyyy_Sort_Order
+		dataType: int64
+		formatString: 0
+		lineageTag: 6f8cba8c-b285-42c9-9e15-f625d5c11355
+		summarizeBy: sum
+		sourceColumn: mmm-yyyy_Sort_Order
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'mmmm yyyy_Sort_Order'
+		dataType: int64
+		formatString: 0
+		lineageTag: 5d168013-97cd-4148-bd25-f0c9ea41fe1a
+		summarizeBy: sum
+		sourceColumn: mmmm yyyy_Sort_Order
+
+		annotation SummarizationSetBy = Automatic
+
+	column mmmm_Sort_Order
+		dataType: int64
+		formatString: 0
+		lineageTag: 85edd48e-a6bc-49b4-a14f-45783b391dea
+		summarizeBy: sum
+		sourceColumn: mmmm_Sort_Order
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthName_Sort_Order
+		dataType: int64
+		formatString: 0
+		lineageTag: 87d8de50-e508-4b2f-9ddb-6f75c04ee905
+		summarizeBy: sum
+		sourceColumn: MonthName_Sort_Order
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayName_Sort_Order
+		dataType: int64
+		formatString: 0
+		lineageTag: ad46a7d9-3eca-4e9b-9638-466cacb19315
+		summarizeBy: sum
+		sourceColumn: DayName_Sort_Order
+
+		annotation SummarizationSetBy = Automatic
+
+	column mm/dd/yy
+		dataType: string
+		lineageTag: b6d8f56d-1c35-4995-a3bc-b33585dd4ff7
+		summarizeBy: none
+		sourceColumn: mm/dd/yy
+
+		annotation SummarizationSetBy = Automatic
+
+	column mm/dd/yy_Sort_Order
+		dataType: int64
+		formatString: 0
+		lineageTag: e8353771-1d70-470e-8356-fb6213cd9cd9
+		summarizeBy: sum
+		sourceColumn: mm/dd/yy_Sort_Order
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___ComprehensiveDateTable = m
+		mode: import
+		source = ```
+				// 🕒 2026-03-04-23-45-00
+				// # PowerBI_DateDimension/___ComprehensiveDateTable.m
+				// # Author: R. A. Carucci
+				// # Purpose: Create a comprehensive date dimension table with multiple date formats, fiscal year calculations, and sort order columns.
+				
+				let
+				    StartDate = #date(2020, 1, 1),
+				    EndDate = #date(2030, 12, 31),
+				    DateList = List.Dates(StartDate, Duration.Days(EndDate - StartDate) + 1, #duration(1, 0, 0, 0)),
+				    DateTable = Table.FromList(DateList, Splitter.SplitByNothing(), {"Date"}),
+				    SetDateType = Table.TransformColumnTypes(DateTable, {{"Date", type date}}),
+				    AddYear = Table.AddColumn(SetDateType, "Year", each Date.Year([Date]), Int64.Type),
+				    AddMonth = Table.AddColumn(AddYear, "Month", each Date.Month([Date]), Int64.Type),
+				    AddMonthName = Table.AddColumn(AddMonth, "MonthName", each Date.MonthName([Date]), type text),
+				    AddQuarter = Table.AddColumn(AddMonthName, "Quarter", each Date.QuarterOfYear([Date]), Int64.Type),
+				    AddDayOfMonth = Table.AddColumn(AddQuarter, "DayOfMonth", each Date.Day([Date]), Int64.Type),
+				    AddDayOfWeek = Table.AddColumn(AddDayOfMonth, "DayOfWeek", each 
+				        let
+				            DayNum = Date.DayOfWeek([Date], Day.Monday)
+				        in
+				            if DayNum = 0 then 7 else DayNum, Int64.Type),
+				    AddDayName = Table.AddColumn(AddDayOfWeek, "DayName", each Date.DayOfWeekName([Date]), type text),
+				    AddWeekOfYear = Table.AddColumn(AddDayName, "WeekOfYear", each Date.WeekOfYear([Date], Day.Monday), Int64.Type),
+				    AddFiscalYear = Table.AddColumn(AddWeekOfYear, "FiscalYear", each 
+				        if Date.Month([Date]) >= 7 then Date.Year([Date]) + 1 else Date.Year([Date]), Int64.Type),
+				    AddFiscalQuarter = Table.AddColumn(AddFiscalYear, "FiscalQuarter", each 
+				        if Date.Month([Date]) >= 7 then Date.QuarterOfYear(Date.AddMonths([Date], -6))
+				        else Date.QuarterOfYear(Date.AddMonths([Date], 6)), Int64.Type),
+				    AddYearMonth = Table.AddColumn(AddFiscalQuarter, "YearMonth", each 
+				        Date.Year([Date]) * 100 + Date.Month([Date]), Int64.Type),
+				    AddYearQuarter = Table.AddColumn(AddYearMonth, "YearQuarter", each 
+				        Date.Year([Date]) * 10 + Date.QuarterOfYear([Date]), Int64.Type),
+				    AddFiscalYearQuarter = Table.AddColumn(AddYearQuarter, "FiscalYearQuarter", each 
+				        [FiscalYear] * 10 + [FiscalQuarter], Int64.Type),
+				    AddDateKey = Table.AddColumn(AddFiscalYearQuarter, "DateKey", each 
+				        Number.From(Date.ToText([Date], "yyyyMMdd")), Int64.Type),
+				    AddShortDate = Table.AddColumn(AddDateKey, "ShortDate", each 
+				        Date.ToText([Date], "MM/dd/yy"), type text),
+				    AddMMDDYY = Table.AddColumn(AddShortDate, "mm/dd/yy", each 
+				        Date.ToText([Date], "MM/dd/yy"), type text),
+				    AddMMYY = Table.AddColumn(AddMMDDYY, "mm-yy", each 
+				        Text.PadStart(Text.From(Date.Month([Date])), 2, "0") & "-" & 
+				        Text.End(Text.From(Date.Year([Date])), 2), type text),
+				    AddMMMYY = Table.AddColumn(AddMMYY, "mmm-yy", each 
+				        Text.Start(Date.MonthName([Date]), 3) & "-" & 
+				        Text.End(Text.From(Date.Year([Date])), 2), type text),
+				    AddMMYYYY = Table.AddColumn(AddMMMYY, "mmm-yyyy", each 
+				        Text.Start(Date.MonthName([Date]), 3) & "-" & 
+				        Text.From(Date.Year([Date])), type text),
+				    AddMMMMYYYY = Table.AddColumn(AddMMYYYY, "mmmm yyyy", each 
+				        Date.MonthName([Date]) & " " & Text.From(Date.Year([Date])), type text),
+				    AddMMMM = Table.AddColumn(AddMMMMYYYY, "mmmm", each 
+				        Date.MonthName([Date]), type text),
+				    AddDayType = Table.AddColumn(AddMMMM, "DayType", each 
+				        if Date.DayOfWeek([Date], Day.Monday) >= 5 then "Weekend" else "Weekday", type text),
+				    AddSortOrders = Table.AddColumn(AddDayType, "mm-yy_Sort_Order", each 
+				        Date.Year([Date]) * 100 + Date.Month([Date]), Int64.Type),
+				    AddMMDDYYSort = Table.AddColumn(AddSortOrders, "mm/dd/yy_Sort_Order", each 
+				        Number.From(Date.ToText([Date], "yyyyMMdd")), Int64.Type),
+				    AddMMMYYSort = Table.AddColumn(AddMMDDYYSort, "mmm-yy_Sort_Order", each 
+				        Date.Year([Date]) * 100 + Date.Month([Date]), Int64.Type),
+				    AddMMYYYYSort = Table.AddColumn(AddMMMYYSort, "mmm-yyyy_Sort_Order", each 
+				        Date.Year([Date]) * 100 + Date.Month([Date]), Int64.Type),
+				    AddMMMMYYYYSort = Table.AddColumn(AddMMYYYYSort, "mmmm yyyy_Sort_Order", each 
+				        Date.Year([Date]) * 100 + Date.Month([Date]), Int64.Type),
+				    AddMMMMSort = Table.AddColumn(AddMMMMYYYYSort, "mmmm_Sort_Order", each 
+				        Date.Month([Date]), Int64.Type),
+				    AddMonthNameSort = Table.AddColumn(AddMMMMSort, "MonthName_Sort_Order", each 
+				        Date.Month([Date]), Int64.Type),
+				    AddDayNameSort = Table.AddColumn(AddMonthNameSort, "DayName_Sort_Order", each 
+				        let
+				            DayNum = Date.DayOfWeek([Date], Day.Monday)
+				        in
+				            if DayNum = 0 then 7 else DayNum, Int64.Type),
+				    SetDataTypes = Table.TransformColumnTypes(AddDayNameSort, {
+				        {"Date", type date},
+				        {"Year", Int64.Type},
+				        {"Month", Int64.Type},
+				        {"MonthName", type text},
+				        {"Quarter", Int64.Type},
+				        {"DayOfMonth", Int64.Type},
+				        {"DayOfWeek", Int64.Type},
+				        {"DayName", type text},
+				        {"WeekOfYear", Int64.Type},
+				        {"FiscalYear", Int64.Type},
+				        {"FiscalQuarter", Int64.Type},
+				        {"YearMonth", Int64.Type},
+				        {"YearQuarter", Int64.Type},
+				        {"FiscalYearQuarter", Int64.Type},
+				        {"DateKey", Int64.Type},
+				        {"ShortDate", type text},
+				        {"mm/dd/yy", type text},
+				        {"mm-yy", type text},
+				        {"mmm-yy", type text},
+				        {"mmm-yyyy", type text},
+				        {"mmmm yyyy", type text},
+				        {"mmmm", type text},
+				        {"DayType", type text},
+				        {"mm-yy_Sort_Order", Int64.Type},
+				        {"mm/dd/yy_Sort_Order", Int64.Type},
+				        {"mmm-yy_Sort_Order", Int64.Type},
+				        {"mmm-yyyy_Sort_Order", Int64.Type},
+				        {"mmmm yyyy_Sort_Order", Int64.Type},
+				        {"mmmm_Sort_Order", Int64.Type},
+				        {"MonthName_Sort_Order", Int64.Type},
+				        {"DayName_Sort_Order", Int64.Type}
+				    })
+				in
+				    SetDataTypes
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

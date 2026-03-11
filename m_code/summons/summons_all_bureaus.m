@@ -10,23 +10,19 @@ let
     PrevDate = Date.AddMonths(DateTime.Date(pReportMonth), -1),
     PreviousMonthKey = Date.Year(PrevDate) * 100 + Date.Month(PrevDate),
 
-    Source = Excel.Workbook(
-        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
-        null, true
-    ),
-    Summons_Data_Sheet = Source{[Item="Summons_Data", Kind="Sheet"]}[Data],
-    PromotedHeaders = Table.PromoteHeaders(Summons_Data_Sheet, [PromoteAllScalars=true]),
-    ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"YearMonthKey", Int64.Type}, {"TYPE", type text}, {"WG2", type text}}),
+    Source = Csv.Document(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"YearMonthKey", Int64.Type}, {"TICKET_COUNT", Int64.Type}, {"TYPE", type text}, {"WG2", type text}}),
 
-    // Filter out UNKNOWN / blank WG2, then filter to previous complete month
-    FilteredClean = Table.SelectRows(ChangedType, each [WG2] <> "UNKNOWN" and [WG2] <> null and [WG2] <> ""),
+    // Filter out UNKNOWN / blank / "nan" WG2, then filter to previous complete month
+    FilteredClean = Table.SelectRows(ChangedType, each [WG2] <> "UNKNOWN" and [WG2] <> "nan" and [WG2] <> null and [WG2] <> ""),
     FilteredLatestMonth = Table.SelectRows(FilteredClean, each [YearMonthKey] = PreviousMonthKey),
 
     // Group by Bureau (WG2) and Type
     GroupedRows = Table.Group(
         FilteredLatestMonth,
         {"WG2", "TYPE"},
-        {{"Count", each Table.RowCount(_), type number}}
+        {{"Count", each List.Sum([TICKET_COUNT]), type number}}
     ),
 
     // Consolidate HOUSING, OSO, and PATROL BUREAU into PATROL DIVISION
@@ -62,7 +58,7 @@ let
     AddedTotal = Table.AddColumn(
         ReplacedValue,
         "Total",
-        each [M] + [P] + (try [C] otherwise 0),
+        each [M] + [P] + (try ([C] ?? 0) otherwise 0),
         type number
     ),
 

@@ -1,0 +1,384 @@
+table ___ResponseTime_AllMetrics
+	lineageTag: a79d8311-9250-4112-90b8-6ea208b073bb
+
+	measure 'RT Average Title' = ```
+			
+			    "Average Response Time (Dispatch to On Scene)"
+			```
+		lineageTag: 6c0f372d-3818-4503-9222-775ee9bbd0a9
+
+	measure 'RT Average Subtitle' = ```
+			
+			    "Values in mm:ss. Time from dispatch to officer on scene. Rolling 13 months."
+			```
+		lineageTag: 827dfcad-f5ea-4cac-b0a0-253988abff90
+
+	measure 'RT OutVsCall Title' = ```
+			
+			    "Average Response Time (From Time Received to On Scene)"
+			```
+		lineageTag: 51296d17-e21b-4240-8aae-70f361ca1626
+
+	measure 'RT OutVsCall Subtitle' = ```
+			
+			    "Values in mm:ss. From time call is received until officer on scene. Rolling 13 months."
+			```
+		lineageTag: 41adf72c-a164-433d-94ee-5d6aef8bf095
+
+	measure 'RT DispVsCall Title' = ```
+			
+			    "Dispatch Processing Time (Call Received to Dispatch)"
+			```
+		lineageTag: daacab2e-ae7e-4c2c-922b-f568be9f2e14
+
+	measure 'RT DispVsCall Subtitle' = ```
+			
+			    "Values in mm:ss. From time call is received until unit is dispatched. Rolling 13 months."
+			```
+		lineageTag: 3ccbc3f3-df0a-444b-a302-6354ba38c770
+
+	/// Average total response time (Time of Call to On Scene) in minutes
+	measure 'RT Avg Total Response' =
+			CALCULATE(
+			    AVERAGE('___ResponseTime_AllMetrics'[Average_Response_Time]),
+			    '___ResponseTime_AllMetrics'[Metric_Label] = "Total Response"
+			)
+		formatString: 0.00
+		displayFolder: RT Measures
+		lineageTag: 6bcafdd2-8920-4e83-b524-5eab041bddd1
+
+	/// Average travel time (Dispatch to On Scene) in minutes
+	measure 'RT Avg Travel Time' =
+			CALCULATE(
+			    AVERAGE('___ResponseTime_AllMetrics'[Average_Response_Time]),
+			    '___ResponseTime_AllMetrics'[Metric_Label] = "Travel Time"
+			)
+		formatString: 0.00
+		displayFolder: RT Measures
+		lineageTag: 65979dbb-8612-402c-9083-d783fb86483f
+
+	/// Average dispatch queue time (Call Received to Dispatch) in minutes
+	measure 'RT Avg Dispatch Queue' =
+			CALCULATE(
+			    AVERAGE('___ResponseTime_AllMetrics'[Average_Response_Time]),
+			    '___ResponseTime_AllMetrics'[Metric_Label] = "Dispatch Queue"
+			)
+		formatString: 0.00
+		displayFolder: RT Measures
+		lineageTag: 91dc79dc-d0da-4d75-aa3d-aa4e6662571f
+
+	/// Total Response time for the most recent month in the 13-month window
+	measure 'RT KPI Current Month' =
+			VAR MaxDate = CALCULATE(
+			    MAX('___ResponseTime_AllMetrics'[Date_Sort_Key]),
+			    '___ResponseTime_AllMetrics'[Metric_Label] = "Total Response"
+			)
+			RETURN
+			CALCULATE(
+			    AVERAGE('___ResponseTime_AllMetrics'[Average_Response_Time]),
+			    '___ResponseTime_AllMetrics'[Metric_Label] = "Total Response",
+			    '___ResponseTime_AllMetrics'[Date_Sort_Key] = MaxDate
+			)
+		formatString: 0.00
+		displayFolder: RT Measures
+		lineageTag: f9b96e31-4349-4690-bd86-7be4b273917d
+
+	/// MoM delta for Total Response — positive = slower, negative = faster
+	measure 'RT KPI Prior Month Delta' =
+			VAR MaxDate =
+			    CALCULATE(
+			        MAX('___ResponseTime_AllMetrics'[Date_Sort_Key]),
+			        '___ResponseTime_AllMetrics'[Metric_Label] = "Total Response"
+			    )
+			VAR PriorDate =
+			    DATE( YEAR(MaxDate), MONTH(MaxDate) - 1, 1 )
+			VAR CurrVal =
+			    CALCULATE(
+			        AVERAGE('___ResponseTime_AllMetrics'[Average_Response_Time]),
+			        '___ResponseTime_AllMetrics'[Metric_Label] = "Total Response",
+			        '___ResponseTime_AllMetrics'[Date_Sort_Key] = MaxDate
+			    )
+			VAR PriorVal =
+			    CALCULATE(
+			        AVERAGE('___ResponseTime_AllMetrics'[Average_Response_Time]),
+			        '___ResponseTime_AllMetrics'[Metric_Label] = "Total Response",
+			        '___ResponseTime_AllMetrics'[Date_Sort_Key] = PriorDate
+			    )
+			RETURN
+			    IF( NOT ISBLANK(PriorVal), CurrVal - PriorVal, BLANK() )
+		formatString: +0.00;-0.00;0.00
+		displayFolder: RT Measures
+		lineageTag: 5eb1cded-b553-4f09-8c63-a13975f7e2e3
+
+	/// Total Response time for most recent month formatted as M:SS — use this as the card callout value
+	measure 'RT KPI Current Month MMSS' =
+			VAR MaxDate = MAX('___ResponseTime_AllMetrics'[Date_Sort_Key])
+			VAR TotalMin =
+			    CALCULATE(
+			        AVERAGE('___ResponseTime_AllMetrics'[Average_Response_Time]),
+			        '___ResponseTime_AllMetrics'[Metric_Label] = "Total Response",
+			        '___ResponseTime_AllMetrics'[Date_Sort_Key] = MaxDate
+			    )
+			VAR Mins = INT(TotalMin)
+			VAR Secs = INT((TotalMin - Mins) * 60)
+			RETURN
+			    IF(
+			        ISBLANK(TotalMin),
+			        BLANK(),
+			        Mins & ":" & FORMAT(Secs, "00")
+			    )
+		displayFolder: RT Measures
+		lineageTag: 7877daa6-b7b3-4a40-bde3-8eb3e9b7590b
+
+	/// Simple average of Total Response time in decimal minutes — used on Card (new) Trend axis for sparkline. Callout shows 13-mo avg; use RT KPI Current Month MMSS reference label for M:SS display.
+	measure 'RT Trend Total Response' =
+			CALCULATE(
+			    AVERAGE('___ResponseTime_AllMetrics'[Average_Response_Time]),
+			    '___ResponseTime_AllMetrics'[Metric_Label] = "Total Response"
+			)
+		formatString: 0.0
+		displayFolder: RT Measures
+		lineageTag: b040fbf0-c8ec-49eb-ab41-51a85926c45a
+
+	/// Hex background color for conditional format matrix. Self-calibrating per Response_Type vs 13-month avg. Green ≤3% better, Amber ±3%, Red ≥3% worse.
+	measure 'RT CF Background Color' =
+			VAR TypeAvg =
+			    CALCULATE(
+			        AVERAGE('___ResponseTime_AllMetrics'[Average_Response_Time]),
+			        REMOVEFILTERS('___ResponseTime_AllMetrics'[Date_Sort_Key]),
+			        '___ResponseTime_AllMetrics'[Metric_Label] = "Total Response"
+			    )
+			VAR Val =
+			    CALCULATE(
+			        AVERAGE('___ResponseTime_AllMetrics'[Average_Response_Time]),
+			        '___ResponseTime_AllMetrics'[Metric_Label] = "Total Response"
+			    )
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK(Val), BLANK(),
+			        Val <= TypeAvg * 0.97, "#27AE60",
+			        Val <= TypeAvg * 1.03, "#F39C12",
+			        "#E74C3C"
+			    )
+		displayFolder: RT Measures
+		lineageTag: 1b7bfa74-3cd8-4cc9-b828-d3766cbac282
+
+	/// Complementary white/dark font for RT CF Background Color. White on green/red, dark (#1A1A1A) on amber.
+	measure 'RT CF Font Color' =
+			VAR TypeAvg =
+			    CALCULATE(
+			        AVERAGE('___ResponseTime_AllMetrics'[Average_Response_Time]),
+			        REMOVEFILTERS('___ResponseTime_AllMetrics'[Date_Sort_Key]),
+			        '___ResponseTime_AllMetrics'[Metric_Label] = "Total Response"
+			    )
+			VAR Val =
+			    CALCULATE(
+			        AVERAGE('___ResponseTime_AllMetrics'[Average_Response_Time]),
+			        '___ResponseTime_AllMetrics'[Metric_Label] = "Total Response"
+			    )
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK(Val), BLANK(),
+			        Val <= TypeAvg * 0.97, "#FFFFFF",
+			        Val <= TypeAvg * 1.03, "#1A1A1A",
+			        "#FFFFFF"
+			    )
+		displayFolder: RT Measures
+		lineageTag: f0f9eb76-7bdb-4ce2-bf29-b56a7652be30
+
+	/// M:SS formatted string for matrix cell display — use as the matrix value field alongside CF background/font color rules.
+	measure 'RT CF Display Value' =
+			VAR Val =
+			    CALCULATE(
+			        AVERAGE('___ResponseTime_AllMetrics'[Average_Response_Time]),
+			        '___ResponseTime_AllMetrics'[Metric_Label] = "Total Response"
+			    )
+			VAR Mins = INT(Val)
+			VAR Secs = INT((Val - Mins) * 60)
+			RETURN
+			    IF(
+			        ISBLANK(Val),
+			        BLANK(),
+			        Mins & ":" & FORMAT(Secs, "00")
+			    )
+		displayFolder: RT Measures
+		lineageTag: 9af99b11-4749-41b8-932f-3a87c6e65bd3
+
+	column YearMonth
+		dataType: string
+		lineageTag: 22c1797a-05db-4a07-89eb-57b2d4e9e5ad
+		summarizeBy: none
+		sourceColumn: YearMonth
+
+	column Date_Sort_Key
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 0968f4e1-6cc4-40da-9839-72cb2ea39568
+		summarizeBy: none
+		sourceColumn: Date_Sort_Key
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: d53ae230-d15b-4726-821c-59cdb1886286
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Response_Type
+		dataType: string
+		lineageTag: c0fa43ad-95c7-4734-afdb-3a3f03b43974
+		summarizeBy: none
+		sourceColumn: Response_Type
+		sortByColumn: Response_Type_Sort
+
+	column Category
+		dataType: string
+		lineageTag: 30077116-cf37-4bab-9f1e-a1aa73d36faa
+		summarizeBy: none
+		sourceColumn: Category
+
+	column Summary_Type
+		dataType: string
+		lineageTag: e285ddc4-4dfd-44f5-9ff5-e06a6fc5a98b
+		summarizeBy: none
+		sourceColumn: Summary_Type
+
+	column Metric_Type
+		dataType: string
+		lineageTag: d1e90979-cb9a-404e-98a8-98b3c77c9a5a
+		summarizeBy: none
+		sourceColumn: Metric_Type
+
+	column Metric_Label
+		dataType: string
+		lineageTag: 20b4c4d1-42ee-47cb-87e2-0161bda718e8
+		summarizeBy: none
+		sourceColumn: Metric_Label
+
+	column Metric_Sort
+		dataType: int64
+		lineageTag: 93b75683-3b9d-4db2-88ae-5e24f0d2404b
+		summarizeBy: none
+		sourceColumn: Metric_Sort
+
+	column Average_Response_Time
+		dataType: double
+		lineageTag: 69afb865-4680-4d0c-ae18-32e878f1d231
+		summarizeBy: average
+		sourceColumn: Average_Response_Time
+
+	column Response_Time_MMSS
+		dataType: string
+		lineageTag: 749e584c-f22c-4e2d-844c-cce632297f25
+		summarizeBy: none
+		sourceColumn: Response_Time_MMSS
+
+	column MM-YY
+		dataType: string
+		lineageTag: 5cfe818e-e26c-4b04-bbc2-b952cfc71635
+		summarizeBy: none
+		sourceColumn: MM-YY
+		sortByColumn: Date_Sort_Key
+
+	column Record_Count
+		dataType: int64
+		formatString: 0
+		lineageTag: 4fe2a27f-d1d1-4bf7-9f3c-b81f09da825f
+		summarizeBy: sum
+		sourceColumn: Record_Count
+
+	column Count
+		dataType: int64
+		formatString: 0
+		lineageTag: d86e3be3-8911-41d0-9b18-ba295d51ce7b
+		summarizeBy: sum
+		sourceColumn: Count
+
+	column MonthName
+		dataType: string
+		lineageTag: 45e711d4-1b77-4ea7-9709-6c1c3ea57521
+		summarizeBy: none
+		sourceColumn: MonthName
+		sortByColumn: Date_Sort_Key
+
+	column Response_Type_Sort
+		dataType: int64
+		isHidden
+		lineageTag: 00e03c40-bc48-4560-9226-1325cb2f82e3
+		summarizeBy: none
+		sourceColumn: Response_Type_Sort
+
+	partition ___ResponseTime_AllMetrics = m
+		mode: import
+		source =
+				let
+				    EndOfWindow   = Date.EndOfMonth(pReportMonth),
+				    StartOfWindow = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12)),
+				    EndYM         = Date.Year(EndOfWindow)   * 100 + Date.Month(EndOfWindow),
+				    StartYM       = Date.Year(StartOfWindow) * 100 + Date.Month(StartOfWindow),
+				
+				    AllFiles = Folder.Files("C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\response_time_all_metrics"),
+				    CSVFiles = Table.SelectRows(AllFiles, each Text.EndsWith([Name], "_response_times.csv")),
+				    WithFullPath = Table.AddColumn(CSVFiles, "FullPath", each [Folder Path] & [Name], type text),
+				
+				    LoadCSV = (filePath as text) =>
+				        let
+				            raw      = Csv.Document(File.Contents(filePath), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.None]),
+				            promoted = Table.PromoteHeaders(raw, [PromoteAllScalars=true])
+				        in promoted,
+				
+				    AllData = Table.Combine(List.Transform(WithFullPath[FullPath], LoadCSV)),
+				
+				    FilteredMetric = Table.SelectRows(AllData, each
+				        List.Contains({"Time Out - Time of Call", "Time Out - Time Dispatched", "Time Dispatched - Time of Call"}, [Metric_Type])
+				    ),
+				
+				    Windowed = Table.SelectRows(FilteredMetric, each
+				        let parts = Text.Split(Text.Trim([#"MM-YY"]), "-"), mm = Number.FromText(parts{0}), yy = 2000 + Number.FromText(parts{1}), ym = yy * 100 + mm
+				        in ym >= StartYM and ym <= EndYM
+				    ),
+				
+				    Typed = Table.TransformColumnTypes(Windowed, {{"Response_Type", type text}, {"MM-YY", type text}, {"Metric_Type", type text}, {"First_Response_Time_MMSS", type text}, {"Avg_Minutes", type number}, {"Record_Count", Int64.Type}}),
+				
+				    WithYearMonth = Table.AddColumn(Typed, "YearMonth", each let parts = Text.Split(Text.Trim([#"MM-YY"]), "-"), mm = parts{0}, yy = "20" & parts{1} in yy & "-" & Text.PadStart(mm, 2, "0"), type text),
+				    WithDateKey = Table.AddColumn(WithYearMonth, "Date_Sort_Key", each try Date.FromText([YearMonth] & "-01") otherwise null, type date),
+				
+				    WithMetricLabel = Table.AddColumn(WithDateKey, "Metric_Label",
+				        each if [Metric_Type] = "Time Out - Time of Call" then "Total Response"
+				             else if [Metric_Type] = "Time Out - Time Dispatched" then "Travel Time"
+				             else if [Metric_Type] = "Time Dispatched - Time of Call" then "Dispatch Queue"
+				             else [Metric_Type], type text),
+				
+				    WithMetricSort = Table.AddColumn(WithMetricLabel, "Metric_Sort",
+				        each if [Metric_Type] = "Time Dispatched - Time of Call" then 1 else if [Metric_Type] = "Time Out - Time Dispatched" then 2 else 3, Int64.Type),
+				
+				    WithDate     = Table.AddColumn(WithMetricSort, "Date", each [Date_Sort_Key], type date),
+				    WithAvgRT    = Table.AddColumn(WithDate, "Average_Response_Time", each [Avg_Minutes], type number),
+				    WithCategory = Table.AddColumn(WithAvgRT, "Category", each [Response_Type], type text),
+				    WithSummary  = Table.AddColumn(WithCategory, "Summary_Type", each "Response_Type", type text),
+				    RenamedMMSS = Table.RenameColumns(WithSummary, {{"First_Response_Time_MMSS", "Response_Time_MMSS"}}),
+				    WithCount = Table.AddColumn(RenamedMMSS, "Count", each 1, Int64.Type),
+				
+				    WithMonthName = Table.AddColumn(WithCount, "MonthName", each
+				        let parts = Text.Split([YearMonth], "-"), monthNum = if List.Count(parts) >= 2 then Number.From(parts{1}) else 1,
+				            monthNames = {"January","February","March","April","May","June","July","August","September","October","November","December"},
+				            name = if monthNum >= 1 and monthNum <= 12 then monthNames{monthNum - 1} & " " & parts{0} else [YearMonth]
+				        in name, type text),
+				
+				    WithRTSort = Table.AddColumn(WithMonthName, "Response_Type_Sort",
+				        each if [Response_Type] = "Emergency" then 1 else if [Response_Type] = "Urgent" then 2 else if [Response_Type] = "Routine" then 3 else 99, Int64.Type),
+				
+				    Result = Table.SelectColumns(WithRTSort, {"YearMonth", "Date_Sort_Key", "Date", "Response_Type", "Response_Type_Sort", "Category", "Summary_Type", "Metric_Type", "Metric_Label", "Metric_Sort", "Average_Response_Time", "Response_Time_MMSS", "MM-YY", "Record_Count", "Count", "MonthName"})
+				in
+				    Result
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

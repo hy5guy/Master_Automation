@@ -4,27 +4,31 @@
 
 Use **one query** — `m_code/esu/ESU_13Month.m` — with no helper queries.
 
-1. In Power BI: **Get data → Blank Query**.
-2. Open **Advanced Editor** and paste the full contents of `ESU_13Month.m`.
-3. Name the query (e.g. `ESU_13Month`).
-4. **Refresh.**
+1. Ensure the **pReportMonth** parameter exists (e.g. `#date(2026, 2, 1)` for February 2026).
+2. In Power BI: **Get data → Blank Query**.
+3. Open **Advanced Editor** and paste the full contents of `ESU_13Month.m`.
+4. Name the query (e.g. `ESU_13Month`).
+5. **Refresh.**
 
 **Output columns:** MonthKey, TrackedItem, Total, **Status**, **ItemKey**, **Month_Year** (MM-yy).
 
-**Source:** `C:\Users\RobertCarucci\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\ESU\ESU.xlsx`
+**Source:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\ESU\ESU.xlsx`
 
 **Behavior:**
-- Loads only **structured Excel Tables** (`[Kind] = "Table"`) whose names start with `_` and are not `_mom_hacsoc` (e.g. `_26_JAN`, `_25_FEB`). Sheet-based data is not used so that column expansion works correctly.
+- Loads only **structured Excel Tables** (`[Kind] = "Table"`) whose names start with `_`, are not `_mom_hacsoc`, and do **not** contain `_Log` (e.g. `_26_JAN`, `_25_FEB`). Daily Log tables (`_26_JAN_Log`, etc.) are excluded. Sheet-based data is not used so that column expansion works correctly.
 - Parses table name `_YY_MMM` to **MonthKey** (first of month).
 - Looks up **Status** and **ItemKey** from the **\_mom_hacsoc** table (case-insensitive column match: e.g. "status", "Status").
+- Normalizes **"1 Man ESU"** and **"1 man ESU"** to **"ESU Single Operator"** for consistent joins across monthly sheets.
 - Adds **Month_Year** as MM-yy (e.g. 01-26).
-- Applies a **rolling 13-month** window (last 13 complete months). If that filter returns no rows (e.g. workbook has only older months), the query returns all loaded months so you still get a preview.
+- Applies a **rolling 13-month** window driven by **pReportMonth** (includes the report month). Example: `pReportMonth = 02/01/2026` → window = 02-25 through 02-26. If that filter returns no rows (e.g. workbook has only older months), the query returns all loaded months so you still get a preview.
+- Uses **type number** (not Int64) for Total to preserve decimals (e.g. 5.5 for ESU OOS half-days).
 
 **Workbook requirements:**
 - Monthly data in **Excel Tables** (Insert → Table / Ctrl+T), not just ranges.
 - Table names like **\_26_JAN**, **\_25_FEB** (leading underscore, YY, underscore, MMM).
 - Each table: column that trims to **Tracked Items**, and a **Total** column.
 - **\_mom_hacsoc** table/sheet with columns that trim to **Tracked Items**, **Status**, and **ItemKey** (status column is required; ItemKey is optional for the lookup).
+- **pReportMonth** parameter (Date) — set to the first day of the report month; drives the 13-month window.
 
 ---
 

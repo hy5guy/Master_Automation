@@ -33,10 +33,12 @@ except ImportError:
 if TYPE_CHECKING:
     import pandas as pd
 
-# Gap months (missing in e-ticket exports)
-SUMMONS_GAP_MONTHS = ("03-25", "07-25", "10-25", "11-25")
+# Gap months (no e-ticket export exists; need backfill aggregate totals)
+# As of 2026-03-10: only July 2025 is missing. All other 2025 months have e-ticket files in 2025/month/.
+SUMMONS_GAP_MONTHS = ("07-25",)
 # Months to prefer backfill when e-ticket exists (backfill has validated totals from prior report)
-SUMMONS_BACKFILL_PREFER_MONTHS = ("01-25", "02-25")
+# Empty: all months with e-ticket data should use individual records for officer-level drill-down.
+SUMMONS_BACKFILL_PREFER_MONTHS = ()
 # All 2025 months in consolidated backfill (for full 13-month coverage when e-ticket discovery fails)
 SUMMONS_BACKFILL_ALL_2025 = tuple(f"{m:02d}-25" for m in range(1, 13))
 # Prefer most recent backfill (last month's report); fallback to 2025_12

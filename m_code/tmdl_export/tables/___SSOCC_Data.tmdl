@@ -1,0 +1,1069 @@
+table ___SSOCC_Data
+	lineageTag: a33057e4-0bcc-4c63-96ec-1a54edc8934c
+
+	measure 'Analysis for Detectives Total' = ```
+			
+			CALCULATE(
+			    SUM(___SSOCC_Data[Value]),
+			    ___SSOCC_Data[Service/Product] = "Analysis for Detectives"
+			)
+			
+			```
+		formatString: 0
+		lineageTag: b31b00a4-589f-4401-94eb-c20689c5b687
+
+	measure 'Analysis for Detectives YTD' =
+			
+			CALCULATE(
+			    [Analysis for Detectives Total],
+			    DATESYTD(___SSOCC_Data[Date])
+			)
+		lineageTag: 96f9a8f9-0b4c-4cbc-b6ca-b8cd04d89b92
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Analysis for Detectives Performance' =
+			
+			IF(
+			    [Analysis for Detectives Total] >= 60,
+			    "🟢 Excellent",
+			    IF(
+			        [Analysis for Detectives Total] >= 50,
+			        "🟡 Good",
+			        "🔴 Needs Attention"
+			    )
+			)
+		lineageTag: f780b503-3f9a-4743-94af-feaaf8001c89
+
+	measure 'Analysis for Patrol Total' =
+			
+			CALCULATE(
+			    SUM(___SSOCC_Data[Value]),
+			    ___SSOCC_Data[Service/Product] = "Analysis for Patrol"
+			)
+		lineageTag: d757c771-c556-4228-b506-6ee6311a6d63
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Analysis for Patrol YTD' =
+			
+			CALCULATE(
+			    [Analysis for Patrol Total],
+			    DATESYTD(___SSOCC_Data[Date])
+			)
+		lineageTag: c7f63f1a-56ce-4355-9204-b2e220ef5059
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Avigilon Flag Review Total' = ```
+			
+			CALCULATE(
+			    SUM(___SSOCC_Data[Value]),
+			    ___SSOCC_Data[Service/Product] = "Avigilon Flag Review"
+			)
+			
+			```
+		lineageTag: 8cfac499-dc4d-4cf3-bad0-6e885f67d8be
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Avigilon Flag Review Performance' =
+			
+			IF(
+			    [Avigilon Flag Review Total] >= 120,
+			    "🟢 Excellent",
+			    IF(
+			        [Avigilon Flag Review Total] >= 100,
+			        "🟡 Good",
+			        "🔴 Needs Attention"
+			    )
+			)
+		lineageTag: 82feb701-8a35-4785-92d2-66d998dbbb7f
+
+	measure 'CCTV Site Analysis Total' = ```
+			
+			CALCULATE(
+			    SUM(___SSOCC_Data[Value]),
+			    ___SSOCC_Data[Service/Product] = "CCTV Site Analysis"
+			)
+			
+			```
+		lineageTag: 54006d6d-ffdd-4009-9ed8-61640ce3c381
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CCTV Site Analysis YTD' =
+			
+			CALCULATE(
+			    [CCTV Site Analysis Total],
+			    DATESYTD(___SSOCC_Data[Date])
+			)
+		lineageTag: 962872f9-cddf-4d9b-b42f-b497db00a455
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Cleary Request Total' =
+			
+			CALCULATE(
+			    SUM(___SSOCC_Data[Value]),
+			    ___SSOCC_Data[Service/Product] = "Cleary Request"
+			)
+		lineageTag: 0799457c-a752-429d-88dc-1d8df96c6f5e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CompStat Data Preparation Total' =
+			
+			CALCULATE(
+			    SUM(___SSOCC_Data[Value]),
+			    ___SSOCC_Data[Service/Product] = "CompStat Data Preparation"
+			)
+		lineageTag: 1923e4f8-873f-4e1d-b5b6-9ecb882637f8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CompStat Data Preparation YTD' =
+			
+			CALCULATE(
+			    [CompStat Data Preparation Total],
+			    DATESYTD(___SSOCC_Data[Date])
+			)
+		lineageTag: bf15b0a7-c83e-4d52-b065-c816ca32fa14
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CompStat Data Preparation Performance' =
+			
+			IF(
+			    [CompStat Data Preparation Total] >= 25,
+			    "🟢 On Track",
+			    IF(
+			        [CompStat Data Preparation Total] >= 20,
+			        "🟡 Adequate",
+			        "🔴 Behind Schedule"
+			    )
+			)
+		lineageTag: c87087ea-7d09-41e1-bae2-5986ddb3bbf8
+
+	measure 'Detective CompStat Total' =
+			
+			CALCULATE(
+			    SUM(___SSOCC_Data[Value]),
+			    ___SSOCC_Data[Service/Product] = "CompStat Detective Meeting"
+			)
+		lineageTag: b95bf0e0-c9b8-45d2-b2a9-e2f61008b3b3
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Traffic CompStat Total' = ```
+			
+			CALCULATE(
+			    SUM(___SSOCC_Data[Value]),
+			    ___SSOCC_Data[Service/Product] IN {"CompStat Traffic Meeting", "Traffic CompStat"}
+			)
+			
+			```
+		lineageTag: 0714e45c-bd57-418f-ae10-8b8d1fc77dbc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Traffic CompStat YTD' =
+			
+			CALCULATE(
+			    [Traffic CompStat Total],
+			    DATESYTD(___SSOCC_Data[Date])
+			)
+		lineageTag: 4ea8551a-62c1-4c76-8c47-a836bdac005e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Crime Analysis Total' = ```
+			
+			CALCULATE(
+			    SUM(___SSOCC_Data[Value]),
+			    ___SSOCC_Data[Service/Product] = "Crime Analysis"
+			)
+			
+			```
+		lineageTag: b947cd2c-0229-4ed1-9bac-8a7dac095e16
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Crime Analysis YTD' = ```
+			
+			CALCULATE(
+			    [Crime Analysis Total],
+			    DATESYTD(___SSOCC_Data[Date])
+			)
+			
+			```
+		lineageTag: 96e52826-8628-42e4-a27f-240bfb99d239
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Crime Analysis Performance' =
+			
+			IF(
+			    [Crime Analysis Total] >= 240,
+			    "🟢 Outstanding",
+			    IF(
+			        [Crime Analysis Total] >= 200,
+			        "🟡 Good",
+			        "🔴 Needs Attention"
+			    )
+			)
+		lineageTag: bec37dc8-12be-41db-8f3b-4d46daeb2308
+
+	measure 'DFR Deployment Total' = ```
+			
+			CALCULATE(
+			    SUM(___SSOCC_Data[Value]),
+			    ___SSOCC_Data[Service/Product] = "DFR Deployment"
+			)
+			
+			
+			```
+		lineageTag: 209b241a-1b39-4d49-be10-0fb0ffb403db
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'DFR Deployment YTD' = ```
+			
+			CALCULATE(
+			    [DFR Deployment Total],
+			    DATESYTD(___SSOCC_Data[Date])
+			)
+			
+			```
+		lineageTag: e4360811-f3da-42e1-a877-d0a44472cd13
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Analysis for Detectives Card Title' = ```
+			
+			VAR CurrentTotal = [Analysis for Detectives Total]
+			VAR MinDate = MIN(___SSOCC_Data[Date])
+			VAR MaxDate = MAX(___SSOCC_Data[Date])
+			VAR StartPeriod = FORMAT(MinDate, "MMM YYYY")
+			VAR EndPeriod = FORMAT(MaxDate, "MMM YYYY")
+			VAR MonthCount = DATEDIFF(MinDate, MaxDate, MONTH) + 1
+			VAR PerformanceLevel = 
+			    IF(CurrentTotal >= 12, "🟢 High",
+			    IF(CurrentTotal >= 8, "🟡 Good", "🔴 Low"))
+			RETURN
+			"Analysis for Detectives" & UNICHAR(10) &
+			StartPeriod & " - " & EndPeriod & " | " & PerformanceLevel & " Activity" & UNICHAR(10) &
+			FORMAT(CurrentTotal, "#,0") & " Total Requests"
+			```
+		lineageTag: aff5f849-29d9-460c-a03c-617257516cf5
+
+	measure 'Analysis for Patrol Card Title' = ```
+			
+			VAR CurrentTotal = [Analysis for Patrol Total]
+			VAR MinDate = MIN(___SSOCC_Data[Date])
+			VAR MaxDate = MAX(___SSOCC_Data[Date])
+			VAR StartPeriod = FORMAT(MinDate, "MMM YYYY")
+			VAR EndPeriod = FORMAT(MaxDate, "MMM YYYY")
+			VAR MonthCount = DATEDIFF(MinDate, MaxDate, MONTH) + 1
+			VAR PerformanceLevel = 
+			    IF(CurrentTotal >= 15, "🟢 High",
+			    IF(CurrentTotal >= 10, "🟡 Good", "🔴 Low"))
+			RETURN
+			"Analysis for Patrol" & UNICHAR(10) &
+			StartPeriod & " - " & EndPeriod & " | " & PerformanceLevel & " Activity" & UNICHAR(10) &
+			FORMAT(CurrentTotal, "#,0") & " Total Requests"
+			```
+		lineageTag: c5c4aed3-6448-4077-a044-62a152a8c5ed
+
+	measure 'Avigilon Flag Review Card Title' = ```
+			
+			VAR CurrentTotal = [Avigilon Flag Review Total]
+			VAR MinDate = MIN(___SSOCC_Data[Date])
+			VAR MaxDate = MAX(___SSOCC_Data[Date])
+			VAR StartPeriod = FORMAT(MinDate, "MMM YYYY")
+			VAR EndPeriod = FORMAT(MaxDate, "MMM YYYY")
+			VAR MonthCount = DATEDIFF(MinDate, MaxDate, MONTH) + 1
+			VAR PerformanceLevel = 
+			    IF(CurrentTotal >= 40, "🟢 High",
+			    IF(CurrentTotal >= 25, "🟡 Good", "🔴 Low"))
+			VAR AvgPerMonth = DIVIDE(CurrentTotal, MonthCount, 0)
+			RETURN
+			"Avigilon Flag Review" & UNICHAR(10) &
+			StartPeriod & " - " & EndPeriod & " | " & PerformanceLevel & " Activity" & UNICHAR(10) &
+			FORMAT(CurrentTotal, "#,0") & " Reviews | " & FORMAT(AvgPerMonth, "0.0") & "/month"
+			```
+		lineageTag: 122b9f8f-3363-4087-902d-d1ab7ddf0ddf
+
+	measure 'CCTV Site Analysis Card Title' = ```
+			
+			VAR CurrentTotal = [CCTV Site Analysis Total]
+			VAR MinDate = MIN(___SSOCC_Data[Date])
+			VAR MaxDate = MAX(___SSOCC_Data[Date])
+			VAR StartPeriod = FORMAT(MinDate, "MMM YYYY")
+			VAR EndPeriod = FORMAT(MaxDate, "MMM YYYY")
+			VAR MonthCount = DATEDIFF(MinDate, MaxDate, MONTH) + 1
+			VAR PerformanceLevel = 
+			    IF(CurrentTotal >= 50, "🟢 High",
+			    IF(CurrentTotal >= 30, "🟡 Good", "🔴 Low"))
+			VAR AvgPerMonth = DIVIDE(CurrentTotal, MonthCount, 0)
+			RETURN
+			"CCTV Site Analysis" & UNICHAR(10) &
+			StartPeriod & " - " & EndPeriod & " | " & PerformanceLevel & " Activity" & UNICHAR(10) &
+			FORMAT(CurrentTotal, "#,0") & " Analyses | " & FORMAT(AvgPerMonth, "0.0") & "/month"
+			```
+		lineageTag: e882f963-ecbb-4f87-b86a-85b4024a83b9
+
+	measure 'Service Categories Total' = ```
+			
+			[CompStat Operations] + 
+			[Crime Analysis] + 
+			[Detective Operations] + 
+			[Patrol Operations] + 
+			[Special Operations] + 
+			[Technology and Surveillance]
+			```
+		lineageTag: ed2fe2a5-ed0a-4e3f-ac57-cb4334b85bd6
+
+	measure 'Patrol Operations Percentage' =
+			
+			DIVIDE([Patrol Operations], [Service Categories Total], 0) * 100
+		lineageTag: 29d040e7-ee96-413b-bc6a-116b9a360d9a
+
+	measure 'CompStat Operations' =
+			
+			CALCULATE(
+			    SUM('___SSOCC_Data'[Value]),
+			    CONTAINSSTRING('___SSOCC_Data'[Service/Product], "COMPSTAT") ||
+			    CONTAINSSTRING('___SSOCC_Data'[Service/Product], "DATA PREPARATION")
+			)
+		formatString: 0
+		lineageTag: cb0b1586-8aad-4de6-afbe-26665d51c8dc
+
+	measure 'Crime Analysis' = ```
+			
+			CALCULATE(
+			    SUM('___SSOCC_Data'[Value]),
+			    CONTAINSSTRING('___SSOCC_Data'[Service/Product], "CRIME ANALYSIS") ||
+			    CONTAINSSTRING('___SSOCC_Data'[Service/Product], "ANALYSIS FOR")
+			)
+			
+			```
+		formatString: 0
+		lineageTag: 4e617adb-e169-4f03-90a6-0323d254cf6b
+
+	measure 'Patrol Operations' =
+			
+			CALCULATE(
+			    SUM('___SSOCC_Data'[Value]),
+			    CONTAINSSTRING('___SSOCC_Data'[Service/Product], "PATROL") ||
+			    CONTAINSSTRING('___SSOCC_Data'[Service/Product], "ANALYSIS FOR PATROL")
+			)
+		formatString: 0
+		lineageTag: 9c940bd6-20d9-48e1-a20a-f2729d433e78
+
+	measure 'Technology and Surveillance' =
+			
+			CALCULATE(
+			    SUM('___SSOCC_Data'[Value]),
+			    CONTAINSSTRING('___SSOCC_Data'[Service/Product], "CCTV") ||
+			    CONTAINSSTRING('___SSOCC_Data'[Service/Product], "AVIGILON") ||
+			    CONTAINSSTRING('___SSOCC_Data'[Service/Product], "SURVEILLANCE") ||
+			    CONTAINSSTRING('___SSOCC_Data'[Service/Product], "MONITORING")
+			)
+		formatString: 0
+		lineageTag: ebfeeadd-8f09-490e-af97-6efc253d5058
+
+	measure 'pecial Operations' =
+			
+			CALCULATE(
+			    SUM('___SSOCC_Data'[Value]),
+			    CONTAINSSTRING('___SSOCC_Data'[Service/Product], "SPECIAL EVENT") ||
+			    CONTAINSSTRING('___SSOCC_Data'[Service/Product], "DFR DEPLOYMENT")
+			)
+		formatString: 0
+		lineageTag: 01fe40d4-3f2b-4c3c-8663-bd2d8f27cbfe
+
+	measure 'Service Category Value' = ```
+			
+			SWITCH(
+			    SELECTEDVALUE(ServiceCategory[Category]),
+			    "CompStat Operations", [CompStat Operations],
+			    "Crime Analysis", [Crime Analysis], 
+			    "Detective Operations", [Detective Operations],
+			    "Patrol Operations", [Patrol Operations],
+			    "Special Operations", [Special Operations],
+			    "Technology and Surveillance", [Technology and Surveillance],
+			    BLANK()
+			)
+			```
+		lineageTag: 2c06b295-fbe8-4a2d-aa72-276f5afb9172
+
+	measure 'Detective CompStat YTD' =
+			
+			CALCULATE(
+			    SUM(___SSOCC_Data[Value]),
+			    CONTAINSSTRING(UPPER(___SSOCC_Data[Service/Product]), "DETECTIVE"),
+			    ___SSOCC_Data[Date] <= TODAY()
+			)
+		formatString: 0
+		lineageTag: cc0e50ff-c1bc-45fc-8cc5-9c45a3ab6ef9
+
+	measure 'Priority Services Total' =
+			
+			CALCULATE(
+			    SUM('___SSOCC_Data'[Value]),
+			    '___SSOCC_Data'[Is_Priority_Service] = TRUE
+			)
+		formatString: 0
+		lineageTag: 48248d90-16c5-424d-989a-fa12a0df7196
+
+	measure 'Special Operations' =
+			
+			CALCULATE(
+			    SUM('___SSOCC_Data'[Value]),
+			    CONTAINSSTRING(UPPER('___SSOCC_Data'[Service/Product]), "SPECIAL EVENT") ||
+			    CONTAINSSTRING(UPPER('___SSOCC_Data'[Service/Product]), "DFR DEPLOYMENT")
+			)
+		formatString: 0
+		lineageTag: c9e990bd-5744-4f84-a4a0-8e038e31fad4
+
+	measure 'Detective Operations' =
+			
+			CALCULATE(
+			    SUM('___SSOCC_Data'[Value]),
+			    CONTAINSSTRING(UPPER('___SSOCC_Data'[Service/Product]), "DETECTIVE") ||
+			    CONTAINSSTRING(UPPER('___SSOCC_Data'[Service/Product]), "INVESTIGATIVE ASSISTANCE")
+			)
+		formatString: 0
+		lineageTag: 6d24269a-4e3e-42f8-a150-e1ed0cae4d84
+
+	measure 'Service Category Totals' = ```
+			
+			VAR SelectedCat = SELECTEDVALUE(ServiceCategory[Category])
+			RETURN
+			SWITCH(
+			    SelectedCat,
+			    "CompStat Operations", [CompStat Operations],
+			    "Crime Analysis", [Crime Analysis],
+			    "Detective Operations", [Detective Operations], 
+			    "Patrol Operations", [Patrol Operations],
+			    "Special Operations", [Special Operations],
+			    "Technology and Surveillance", [Technology and Surveillance],
+			    [Service Categories Total]  // Shows total when nothing selected
+			)
+			```
+		formatString: 0
+		lineageTag: 1205a6f3-5a03-4b60-8510-3aa2a31c00a8
+
+	measure 'ompStat Operations' =
+			
+			CALCULATE(
+			    SUM(___SSOCC_Data[Value]),
+			    CONTAINSSTRING(UPPER(___SSOCC_Data[Service/Product]), "COMPSTAT") ||
+			    CONTAINSSTRING(UPPER(___SSOCC_Data[Service/Product]), "DATA PREPARATION")
+			)
+		formatString: 0
+		lineageTag: ab0ff875-002e-4a18-ba07-6ca90b1734d1
+
+	measure 'Technology and Surveillance Percentage' = ```
+			
+			VAR TechTotal = 
+			    CALCULATE(
+			        SUM(___SSOCC_Data[Value]),
+			        CONTAINSSTRING(UPPER(___SSOCC_Data[Service/Product]), "CCTV") ||
+			        CONTAINSSTRING(UPPER(___SSOCC_Data[Service/Product]), "AVIGILON") ||
+			        CONTAINSSTRING(UPPER(___SSOCC_Data[Service/Product]), "MONITORING") ||
+			        CONTAINSSTRING(UPPER(___SSOCC_Data[Service/Product]), "TAS ALERT")
+			    )
+			VAR GrandTotal = 
+			    SUM(___SSOCC_Data[Value])
+			RETURN
+			    DIVIDE(TechTotal, GrandTotal, 0) * 100
+			```
+		lineageTag: 430531b5-2970-44ec-904a-1dcac9fdff7f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Analysis for Patrol Performance' =
+			
+			IF(
+			    CALCULATE(SUM(___SSOCC_Data[Value]), CONTAINSSTRING(UPPER(___SSOCC_Data[Service/Product]), "ANALYSIS FOR PATROL") || CONTAINSSTRING(UPPER(___SSOCC_Data[Service/Product]), "PATROL SUPPORT")) >= 90,
+			    "🟢 Excellent",
+			    IF(
+			        CALCULATE(SUM(___SSOCC_Data[Value]), CONTAINSSTRING(UPPER(___SSOCC_Data[Service/Product]), "ANALYSIS FOR PATROL") || CONTAINSSTRING(UPPER(___SSOCC_Data[Service/Product]), "PATROL SUPPORT")) >= 75,
+			        "🟡 Good",
+			        "🔴 Needs Attention"
+			    )
+			)
+		lineageTag: f38a34ee-cd07-40bf-a13d-9db135381ad3
+
+	measure SSOCC_Categories =
+			
+			DATATABLE(
+			    "Service Category", STRING,
+			    {
+			        {"Emergency Service"},
+			        {"Operational Service"},
+			        {"Priority Services"},
+			        {"Support Services"},
+			        {"Technical Service"},
+			        {"Training & Education"}
+			    }
+			)
+		lineageTag: 3851b694-9085-4290-882a-b6cbaaabd841
+
+	measure '__Category TREATAS Filter Data' = ```
+			
+			IF (
+			    ISFILTERED ( 'SSOCC Categories'[Service Category] ),
+			    TREATAS (
+			        VALUES ( 'SSOCC Categories'[Service Category] ),
+			        ___SSOCC_Data[Service_Category]
+			    )
+			)
+			
+			```
+		lineageTag: 7b71bd0a-3c77-4556-a45d-744f955e9bb9
+
+	measure 'Analysis for CSB Total' = ```
+			
+			VAR EndDate   = EOMONTH( TODAY(), -1 )
+			VAR StartDate = DATE( 2024, 10, 1 )
+			RETURN
+			CALCULATE(
+			    SUM ( ___SSOCC_Data[Value] ),
+			    FILTER (
+			        ___SSOCC_Data,
+			        VAR s = UPPER( TRIM( ___SSOCC_Data[Service/Product] ) )
+			        RETURN
+			            s IN {
+			                "ANALYSIS FOR CSB",
+			                "ANALYSIS FOR CRIME SUPPRESSION BUREAU",
+			                "CSB ANALYSIS"
+			            }
+			    ),
+			    ___SSOCC_Data[Date] >= StartDate,
+			    ___SSOCC_Data[Date] <= EndDate
+			)
+			
+			```
+		formatString: 0
+		lineageTag: 73a6ce1d-0114-4bd2-af25-8d458cc6e8fc
+
+	measure 'CSB Card Title' = ```
+			
+			VAR E = EOMONTH( TODAY(), -1 )
+			RETURN "Analysis for CSB " & "Oct 2024 – " & FORMAT(E,"MMM yyyy")
+			
+			```
+		lineageTag: 230f95ef-863e-48b5-a5b2-08ce5d189fed
+
+	measure 'CSB Months' =
+			
+			VAR EndDate   = EOMONTH( TODAY(), -1 )
+			VAR StartDate = DATE( 2024, 10, 1 )
+			RETURN DATEDIFF( StartDate, EndDate, MONTH ) + 1
+		formatString: 0
+		lineageTag: 2b4ccffe-da95-4a48-8e85-636e449a8744
+
+	measure 'CSB Avg / Month' =
+			
+			DIVIDE( [Analysis for CSB Total], [CSB Months] )
+		lineageTag: a4318bb6-6413-4da4-8f6f-b4a4afcfe398
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CSB Rows in Window' = ```
+			
+			VAR EndDate   = EOMONTH( TODAY(), -1 )
+			VAR StartDate = DATE( 2024, 10, 1 )
+			RETURN
+			CALCULATE (
+			    COUNTROWS ( ___SSOCC_Data ),
+			    FILTER (
+			        ___SSOCC_Data,
+			        CONTAINSSTRING ( UPPER( ___SSOCC_Data[Service/Product] ), "CSB" )
+			    ),
+			    ___SSOCC_Data[Date] >= StartDate,
+			    ___SSOCC_Data[Date] <= EndDate
+			)
+			
+			```
+		formatString: 0
+		lineageTag: 47084509-1e65-4733-a85a-7acbd4741240
+
+	measure 'SSOCC Subtitle' = ```
+			
+			VAR LaunchMonth   = DATE(2024,10,1)                   -- << set launch month here
+			VAR EndDate       = EOMONTH(TODAY(), -1)              -- prior month end
+			VAR EndMonthStart = EOMONTH(EndDate, -1) + 1          -- prior month start
+			VAR MonthsIncl    = DATEDIFF(LaunchMonth, EndMonthStart, MONTH) + 1
+			VAR WindowMonths  = MIN(MonthsIncl, 13)               -- cap at 13
+			VAR StartDate     = EDATE(EndDate, -(WindowMonths-1)) -- dynamic start
+			RETURN
+			FORMAT(WindowMonths, "0") & "-Month Overview (" &
+			    FORMAT(StartDate, "MMMM yyyy") & " - " &
+			    FORMAT(EndDate,   "MMMM yyyy") & ")"
+			
+			```
+		lineageTag: 005e351a-dc0b-4cfb-8f3e-22b3bd2ede69
+
+	measure 'SSOCC Title' = ```
+			
+			"Safe Streets Operations Control Center - Service Breakdown"
+			
+			```
+		lineageTag: 60e20370-a777-4813-8d4d-ac7a1a36deed
+
+	column Is_Priority_Service
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 761c5447-48d6-486f-8a2a-b673d3ef66b9
+		summarizeBy: none
+		sourceColumn: Is_Priority_Service
+
+		annotation SummarizationSetBy = Automatic
+
+	column Service_Category
+		dataType: string
+		lineageTag: abed39ee-edde-4393-b76f-56bb592b21f1
+		summarizeBy: none
+		sourceColumn: Service_Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Period
+		dataType: string
+		lineageTag: 37e43f03-7b25-4ad3-a5ea-3fa966ec3a1e
+		summarizeBy: none
+		sourceColumn: Period
+		sortByColumn: Month_Sort_Order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Value
+		dataType: int64
+		lineageTag: 28c183ea-55db-47c4-8cea-8a6a43beb343
+		summarizeBy: sum
+		sourceColumn: Value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a7cc28b4-08ef-4ef2-95bd-427d3696a9a5
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Month_Sort_Order
+		dataType: int64
+		formatString: 0
+		lineageTag: 38e85a39-2426-4fd7-8855-d7dbea58226c
+		summarizeBy: sum
+		sourceColumn: Month_Sort_Order
+
+		annotation SummarizationSetBy = Automatic
+
+	column Formatted_Date
+		dataType: string
+		lineageTag: 68110459-6df1-490c-b4f8-1b335a439b60
+		summarizeBy: none
+		sourceColumn: Formatted_Date
+		sortByColumn: Month_Sort_Order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Category
+		dataType: string
+		lineageTag: 8b957f7a-1591-43cd-8d64-ffb5ed749f4b
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Department
+		dataType: string
+		lineageTag: 10ba49d1-a490-4493-8014-cbdb5cece0e1
+		summarizeBy: none
+		sourceColumn: Department
+
+		annotation SummarizationSetBy = Automatic
+
+	column Unit
+		dataType: string
+		lineageTag: fb06e034-1a0e-4ef8-867e-f476717c84e8
+		summarizeBy: none
+		sourceColumn: Unit
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Cleary Request YTD' =
+			
+			CALCULATE(
+			    [Cleary Request Total],
+			    DATESYTD(___SSOCC_Data[Date])
+			)
+		lineageTag: 25a1010b-d423-4bbb-8fc1-a024629a3d94
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Period MM-YY' = ```
+			
+			VAR YearPart = LEFT(___SSOCC_Data[Period], 2)
+			VAR MonthPart = RIGHT(___SSOCC_Data[Period], 3)
+			VAR MonthNumber = SWITCH(
+			    MonthPart,
+			    "Jan", "01",
+			    "Feb", "02", 
+			    "Mar", "03",
+			    "Apr", "04",
+			    "May", "05",
+			    "Jun", "06",
+			    "Jul", "07",
+			    "Aug", "08",
+			    "Sep", "09",
+			    "Oct", "10",
+			    "Nov", "11",
+			    "Dec", "12",
+			    "00"
+			)
+			RETURN MonthNumber & "-" & YearPart
+			```
+		lineageTag: a0baf73e-e6f8-42c6-bf23-7e3ee464998b
+		summarizeBy: none
+		sortByColumn: Month_Sort_Order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Service/Product
+		dataType: string
+		lineageTag: f041aa2b-f208-403b-bbb1-6cba1befc192
+		summarizeBy: none
+		sourceColumn: Service/Product
+
+		annotation SummarizationSetBy = Automatic
+
+	column Source_Table
+		dataType: string
+		lineageTag: f23e5996-0645-4dc4-a89c-36f80eadae41
+		summarizeBy: none
+		sourceColumn: Source_Table
+
+		annotation SummarizationSetBy = Automatic
+
+	column Service_Normalized
+		dataType: string
+		lineageTag: 78354689-689b-49e8-827a-9973b06b823e
+		summarizeBy: none
+		sourceColumn: Service_Normalized
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___SSOCC_Data = m
+		mode: import
+		source =
+				// 🕒 2025-08-18-01-19-11
+				// SSOCC/Service_Analysis_MoM_Tables_Fixed_v2
+				// Author: R. A. Carucci
+				// Purpose: Robust MoM table ingest, safe typing, correct month parsing (YY-MMM and MM-YY)
+				
+				let
+				    // =================================================================
+				    // STEP 1: SOURCE
+				    // =================================================================
+				    Source = Excel.Workbook(
+				        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\SSOCC\Archive\_SSOCC - Service Log.xlsx"),
+				        null,
+				        true
+				    ),
+				
+				    // =================================================================
+				    // STEP 2: HELPERS
+				    // =================================================================
+				    MonthMap = [
+				        Jan = 1, Feb = 2, Mar = 3, Apr = 4, May = 5, Jun = 6,
+				        Jul = 7, Aug = 8, Sep = 9, Oct = 10, Nov = 11, Dec = 12
+				    ],
+				
+				    IsMonthColumn = (c as text) as logical =>
+				        let
+				            t = Text.Trim(c),
+				            parts = Text.Split(t, "-"),
+				            ok =
+				                List.Count(parts) = 2 and
+				                (try Number.FromText(Text.Trim(parts{0})) otherwise null) <> null and
+				                (
+				                    (try Record.Field(MonthMap, Text.Proper(Text.Start(Text.Trim(parts{1}), 3))) otherwise null) <> null
+				                    or
+				                    (try Number.FromText(Text.Trim(parts{1})) otherwise null) <> null
+				                )
+				        in
+				            ok,
+				
+				    ParsePeriodToDate = (p as nullable text) as nullable date =>
+				        let
+				            raw = if p = null then null else Text.Trim(p),
+				            parts = if raw = null then {} else Text.Split(raw, "-"),
+				            d =
+				                if List.Count(parts) <> 2 then
+				                    null
+				                else
+				                    let
+				                        aTxt = Text.Trim(parts{0}),
+				                        bTxt = Text.Trim(parts{1}),
+				                        aNum = try Number.FromText(aTxt) otherwise null,
+				                        bNum = try Number.FromText(bTxt) otherwise null,
+				
+				                        d1 =
+				                            if aNum <> null and aNum <= 12 and bNum <> null then
+				                                #date(2000 + bNum, aNum, 1)
+				                            else
+				                                null,
+				
+				                        d2 =
+				                            if d1 = null and aNum <> null then
+				                                let
+				                                    monKey = Text.Proper(Text.Start(bTxt, 3)),
+				                                    monNum = try Record.Field(MonthMap, monKey) otherwise null
+				                                in
+				                                    if monNum <> null then #date(2000 + aNum, monNum, 1) else null
+				                            else
+				                                null
+				                    in
+				                        if d1 <> null then d1 else d2
+				        in
+				            d,
+				
+				    EnsureText = (x as any) as text =>
+				        Text.Trim(Text.From(x)),
+				
+				    EnsureInt64 = (x as any) as number =>
+				        let
+				            n = try Number.From(x) otherwise null
+				        in
+				            if n = null then 0 else Int64.From(n),
+				
+				    StandardizeMoMTable = (tableName as text, sourceLabel as text) as table =>
+				        let
+				            Raw = try Source{[Item = tableName, Kind = "Table"]}[Data] otherwise null,
+				            Output =
+				                if Raw = null or Table.ColumnCount(Raw) = 0 then
+				                    #table(
+				                        {"Service/Product", "Service_Normalized", "Source_Table"},
+				                        {}
+				                    )
+				                else
+				                    let
+				                        Cols = Table.ColumnNames(Raw),
+				
+				                        ServiceCol = Cols{0},
+				
+				                        HasNorm = List.Contains(Cols, "ServiceName_Normalized"),
+				                        NormCol =
+				                            if HasNorm then
+				                                "ServiceName_Normalized"
+				                            else if List.Count(Cols) >= 2 then
+				                                Cols{1}
+				                            else
+				                                null,
+				
+				                        MonthCols = List.Select(Cols, each IsMonthColumn(_)),
+				
+				                        KeepCols =
+				                            if NormCol <> null then
+				                                List.Combine({{ServiceCol, NormCol}, MonthCols})
+				                            else
+				                                List.Combine({{ServiceCol}, MonthCols}),
+				
+				                        Kept = Table.SelectColumns(Raw, KeepCols, MissingField.UseNull),
+				
+				                        Renamed1 = Table.RenameColumns(Kept, {{ServiceCol, "Service/Product"}}, MissingField.Ignore),
+				                        Renamed2 =
+				                            if NormCol <> null then
+				                                Table.RenameColumns(Renamed1, {{NormCol, "Service_Normalized"}}, MissingField.Ignore)
+				                            else
+				                                Table.AddColumn(Renamed1, "Service_Normalized", each null, type text),
+				
+				                        CleanTextCols = Table.TransformColumns(
+				                            Renamed2,
+				                            {
+				                                {"Service/Product", each EnsureText(_), type text},
+				                                {"Service_Normalized", each if _ = null then null else EnsureText(_), type text}
+				                            },
+				                            null,
+				                            MissingField.UseNull
+				                        ),
+				
+				                        MonthTyped = Table.TransformColumns(
+				                            CleanTextCols,
+				                            List.Transform(MonthCols, each {_, each EnsureInt64(_), Int64.Type}),
+				                            null,
+				                            MissingField.UseNull
+				                        ),
+				
+				                        Tagged = Table.AddColumn(MonthTyped, "Source_Table", each sourceLabel, type text)
+				                    in
+				                        Tagged
+				        in
+				            Output,
+				
+				    // =================================================================
+				    // STEP 3: LOAD + STANDARDIZE TABLES
+				    // =================================================================
+				    T_ANALYSIS = StandardizeMoMTable("_ANALYSIS", "Priority Services"),
+				    T_TRAIN    = StandardizeMoMTable("_TRAIN",    "Training & Education"),
+				    T_SUR      = StandardizeMoMTable("_SUR",      "Technical Services"),
+				    T_MAIN     = StandardizeMoMTable("_MAIN",     "Support Services"),
+				    T_MEET     = StandardizeMoMTable("_MEET",     "Operational Services"),
+				    T_ADMIN    = StandardizeMoMTable("_ADMIN",    "Administrative Services"),
+				
+				    CombinedTables = Table.Combine({T_ANALYSIS, T_TRAIN, T_SUR, T_MAIN, T_MEET, T_ADMIN}),
+				
+				    // =================================================================
+				    // STEP 4: PRIORITY FLAG + CATEGORY
+				    // =================================================================
+				    PrioritySet = {
+				        "ANALYSIS FOR DETECTIVES",
+				        "ANALYSIS - DETECTIVES",
+				        "ANALYSIS FOR PATROL",
+				        "ANALYSIS - PATROL",
+				        "AVIGILON FLAG REVIEW",
+				        "CCTV SITE ANALYSIS",
+				        "ANALYSIS FOR CSB",
+				        "ANALYSIS - CSB"
+				    },
+				
+				    AddedPriorityFlag = Table.AddColumn(
+				        CombinedTables,
+				        "Is_Priority_Service",
+				        each
+				            let
+				                svc  = Text.Upper(EnsureText([#"Service/Product"])),
+				                norm = if [Service_Normalized] = null then "" else Text.Upper(EnsureText([Service_Normalized]))
+				            in
+				                List.Contains(PrioritySet, svc) or List.Contains(PrioritySet, norm),
+				        type logical
+				    ),
+				
+				    AddedServiceCategoryFinal = Table.AddColumn(
+				        AddedPriorityFlag,
+				        "Service_Category_Final",
+				        each if [Is_Priority_Service] then "Priority Services" else [Source_Table],
+				        type text
+				    ),
+				
+				    AddedEmergencyServices = Table.AddColumn(
+				        AddedServiceCategoryFinal,
+				        "Service_Category",
+				        each
+				            let
+				                s = Text.Upper(EnsureText([#"Service/Product"]))
+				            in
+				                if Text.Contains(s, "EMERGENCY") or Text.Contains(s, "911") then "Emergency Services"
+				                else [Service_Category_Final],
+				        type text
+				    ),
+				
+				    CleanedColumns = Table.RemoveColumns(AddedEmergencyServices, {"Service_Category_Final"}),
+				
+				    // =================================================================
+				    // STEP 5: UNPIVOT
+				    // =================================================================
+				    UnpivotedData = Table.UnpivotOtherColumns(
+				        CleanedColumns,
+				        {"Service/Product", "Service_Normalized", "Source_Table", "Is_Priority_Service", "Service_Category"},
+				        "Period",
+				        "Value"
+				    ),
+				
+				    // =================================================================
+				    // STEP 6: DATE + SORT KEYS
+				    // =================================================================
+				    AddedDate = Table.AddColumn(
+				        UnpivotedData,
+				        "Date",
+				        each ParsePeriodToDate([Period]),
+				        type date
+				    ),
+				
+				    AddedMonthSort = Table.AddColumn(
+				        AddedDate,
+				        "Month_Sort_Order",
+				        each if [Date] = null then null else (Date.Year([Date]) * 100 + Date.Month([Date])),
+				        Int64.Type
+				    ),
+				
+				    AddedFormattedDate = Table.AddColumn(
+				        AddedMonthSort,
+				        "Formatted_Date",
+				        each if [Date] = null then null else Date.ToText([Date], "MM-yy"),
+				        type text
+				    ),
+				
+				    ValueFixed = Table.TransformColumns(
+				        AddedFormattedDate,
+				        {{"Value", each EnsureInt64(_), Int64.Type}},
+				        null,
+				        MissingField.UseNull
+				    ),
+				
+				    // =================================================================
+				    // STEP 7: FINAL METADATA + TYPES
+				    // =================================================================
+				    AddedCategory   = Table.AddColumn(ValueFixed, "Category", each "SSOCC Services", type text),
+				    AddedDepartment = Table.AddColumn(AddedCategory, "Department", each "Police Department", type text),
+				    AddedUnit       = Table.AddColumn(AddedDepartment, "Unit", each "SSOCC", type text),
+				
+				    SortedData = Table.Sort(
+				        AddedUnit,
+				        {
+				            {"Is_Priority_Service", Order.Descending},
+				            {"Service_Category", Order.Ascending},
+				            {"Month_Sort_Order", Order.Ascending},
+				            {"Service/Product", Order.Ascending}
+				        }
+				    ),
+				
+				    FinalDataTypes = Table.TransformColumnTypes(
+				        SortedData,
+				        {
+				            {"Service/Product", type text},
+				            {"Service_Normalized", type text},
+				            {"Source_Table", type text},
+				            {"Is_Priority_Service", type logical},
+				            {"Service_Category", type text},
+				            {"Period", type text},
+				            {"Value", Int64.Type},
+				            {"Date", type date},
+				            {"Month_Sort_Order", Int64.Type},
+				            {"Formatted_Date", type text},
+				            {"Category", type text},
+				            {"Department", type text},
+				            {"Unit", type text}
+				        }
+				    ),
+				    #"Sorted Rows" = Table.Sort(FinalDataTypes,{{"Period", Order.Ascending}}),
+				    #"Filtered Rows" = Table.SelectRows(#"Sorted Rows", each true)
+				in
+				    #"Filtered Rows"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

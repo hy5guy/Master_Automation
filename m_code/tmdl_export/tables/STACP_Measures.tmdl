@@ -1,0 +1,52 @@
+table STACP_Measures
+	lineageTag: 2c5f46d7-6c2b-46f6-a4df-f1b18b9586ec
+
+	measure 'STACP Overall Title' = "STACP Activity Summary - Rolling 12 Months"
+		lineageTag: 4cd99a7e-7109-43d2-a926-7c01fdd5acf8
+
+	measure 'STACP Overall Subtitle' = ```
+			
+			VAR _HighTotal = [High Activity Total]
+			VAR _LowTotal = [Low Activity Total]
+			VAR _GrandTotal = _HighTotal + _LowTotal
+			VAR _HighCategories = [High Activity Count]
+			VAR _LowCategories = DISTINCTCOUNT(STACP_Low_Activity[Tracked Items ])
+			VAR _TotalCategories = _HighCategories + _LowCategories
+			RETURN
+			"Jun 2024 - Jun 2025 | " & 
+			_GrandTotal & " Total Incidents Across " & _TotalCategories & " Categories | " &
+			"High Priority: " & _HighTotal & " (" & _HighCategories & " categories) | " &
+			"Administrative: " & _LowTotal & " (" & _LowCategories & " categories)"
+			```
+		lineageTag: 166850bf-2d9a-4511-b6d6-239578cfd2cd
+
+	measure 'Current Period' = "Rolling 12-Month Period: Jun 2024 - Jun 2025"
+		lineageTag: 3c6f92bf-9ebf-495e-9870-91ad1a62e24b
+
+	measure 'Report Generated' =
+			
+			"Report Generated: " & FORMAT(TODAY(), "MMM DD, YYYY") & " at " & FORMAT(NOW(), "HH:MM")
+		lineageTag: 9ad4ea20-82ed-4522-8093-8933cfe4c2ba
+
+	measure 'Print Footer' =
+			
+			"Hackensack PD - STACP Report | Confidential | Page 1 of 2"
+		lineageTag: 9f23672e-da17-47c8-8bb5-4784e887bf7b
+
+	column Column
+		formatString: 0
+		lineageTag: 54e8ad37-1046-432f-b02a-8829c0a78a97
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Column]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition STACP_Measures = calculated
+		mode: import
+		source = Row("Column", BLANK())
+
+	annotation PBI_Id = 3da260daa53d4504aec24ff27db52c94
+
+	annotation 436ba87b-9c83-4389-a31b-ebd06a36be98 = {"Expression":""}
+

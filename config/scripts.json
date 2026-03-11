@@ -80,14 +80,14 @@
       "order": 2,
       "timeout_minutes": 15,
       "output_patterns": [
-        "*.csv"
+        "output\\*.csv"
       ],
       "keywords": [
         "community",
         "outreach",
         "engagement"
       ],
-      "notes": "main.py not found; using src\\main_processor.py"
+      "notes": "Patrol v2 (2026-03-05): attendee_names column, enhanced parsing. Output: output\\community_engagement_data_*.csv"
     },
     {
       "name": "NIBRS",

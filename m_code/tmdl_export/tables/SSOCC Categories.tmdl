@@ -1,0 +1,43 @@
+table 'SSOCC Categories'
+	lineageTag: 93a9dea8-4e90-44e5-93cd-ca9f47cc3ded
+
+	measure '__Category TREATAS Filter' = ```
+			
+			IF (
+			    ISFILTERED ( 'SSOCC Categories'[Service Category] ),
+			    TREATAS (
+			        VALUES ( 'SSOCC Categories'[Service Category] ),
+			        ___SSOCC_Data[Service_Category]
+			    )
+			)
+			
+			```
+		lineageTag: 9294f22a-318d-48ae-ad5e-5468823de686
+
+	column 'Service Category'
+		lineageTag: 6bda2c06-d2ee-495e-98bc-1e7c103431cc
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Service Category]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'SSOCC Categories' = calculated
+		mode: import
+		source = ```
+				
+				DATATABLE(
+				    "Service Category", STRING,
+				    {
+				        {"Emergency Service"},
+				        {"Operational Service"}, 
+				        {"Priority Services"},
+				        {"Support Services"},
+				        {"Technical Service"},
+				        {"Training & Education"}
+				    }
+				)
+				```
+
+	annotation PBI_Id = baae08845d1648a8a9387f126a2e92f6
+

@@ -1,0 +1,415 @@
+why is the power visual that gets data imported from this file have an error and not showing the correct value for ESU OOS. the queries m code is below
+// 🕒 2026-02-17-14-30-00
+// # Master_Automation/m_code/esu/ESU_13Month.m
+// # Author: R. A. Carucci
+// # Purpose: Single query — load ESU.xlsx monthly Tables only; rolling 13 months (no helper queries). let
+    ESUPath = "C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\ESU\ESU.xlsx",
+
+    Source = Excel.Workbook(File.Contents(ESUPath), null, true),
+
+    // Lookup Status and ItemKey from _mom_hacsoc (dimension table)
+    MoMRow = try Source{[Name="_mom_hacsoc", Kind="Table"]} otherwise try Source{[Item="_mom_hacsoc", Kind="Table"]} otherwise Source{[Name="_mom_hacsoc", Kind="Sheet"]},
+    MoM = MoMRow[Data],
+    MoMCols = Table.ColumnNames(MoM),
+    MoMTrackedCol = List.First(List.Select(MoMCols, each Text.Trim(Text.Replace(_, Character.FromNumber(160), " ")) = "Tracked Items"), "Tracked Items"),
+    Norm = each Text.Lower(Text.Trim(Text.Replace(_, Character.FromNumber(160), " "))),
+    StatusCol = List.First(List.Select(MoMCols, each Norm(_) = "status"), "Status"),
+    ItemKeyCol = List.First(List.Select(MoMCols, each Norm(_) = "itemkey"), "ItemKey"),
+    MoMWithItem = Table.AddColumn(MoM, "TrackedItem", each Text.Trim(Text.Replace(Text.From(Record.Field(_, MoMTrackedCol)), Character.FromNumber(160), " ")), type text),
+    LookupStatusItemKey = Table.RenameColumns(
+        Table.SelectColumns(MoMWithItem, {"TrackedItem", StatusCol, ItemKeyCol}),
+        {{StatusCol, "Status"}, {ItemKeyCol, "ItemKey"}}
+    ),
+
+    // Use structured Tables only — Sheet [Data] does not expand correctly with named columns
+    TablesOnly = Table.SelectRows(Source, each
+        [Kind] = "Table"
+        and Text.StartsWith([Name], "_")
+        and [Name] <> "_mom_hacsoc"
+    ),
+
+    MonthMap = [JAN=1, FEB=2, MAR=3, APR=4, MAY=5, JUN=6, JUNE=6, JUL=7, JULY=7, AUG=8, SEP=9, OCT=10, NOV=11, DEC=12],
+
+    // Parse table name _YY_MMM → MonthKey (Text.Middle / AfterDelimiter are safer than position-based)
+    AddMonthKey = Table.AddColumn(TablesOnly, "MonthKey", each
+        let
+            n = Text.Upper([Name]),
+            yy = try Number.FromText(Text.Middle(n, 1, 2)) otherwise null,
+            afterFirst = Text.AfterDelimiter(n, "_", 0),
+            mmm = Text.AfterDelimiter(afterFirst, "_", 0),
+            m = try Record.Field(MonthMap, mmm) otherwise null
+        in
+            if yy = null or m = null then null else #date(2000 + yy, m, 1),
+        type nullable date
+    ),
+
+    ValidMonths = Table.SelectRows(AddMonthKey, each [MonthKey] <> null),
+
+    // Resolve "Tracked Items" column (handles trailing or non-breaking space)
+    FirstDataTable = if Table.RowCount(AddMonthKey) = 0 then #table({"Tracked Items"}, {}) else AddMonthKey[Data]{0},
+    TrackedCol = List.First(
+        List.Select(Table.ColumnNames(FirstDataTable), each Text.Trim(Text.Replace(_, Character.FromNumber(160), " ")) = "Tracked Items"),
+        "Tracked Items"
+    ),
+
+    Expanded = Table.ExpandTableColumn(ValidMonths, "Data", {TrackedCol, "Total"}, {"TrackedItem", "Total"}),
+
+    CleanItem = Table.TransformColumns(Expanded, {{
+        "TrackedItem",
+        each Text.Trim(Text.Replace(Text.From(_), Character.FromNumber(160), " ")),
+        type text
+    }}),
+
+    // Force null/blank to 0 so matrix shows 0 instead of blank (Number.From(null) returns null, not error)
+    TotalNum = Table.TransformColumns(CleanItem, {{"Total", each if _ = null or _ = "" then 0 else try Number.From(_) otherwise 0, Int64.Type}}),
+
+    Keep = Table.SelectColumns(TotalNum, {"MonthKey", "TrackedItem", "Total"}),
+
+    MergedLookup = Table.NestedJoin(Keep, {"TrackedItem"}, LookupStatusItemKey, {"TrackedItem"}, "Lookup", JoinKind.LeftOuter),
+    ExpandLookup = Table.ExpandTableColumn(MergedLookup, "Lookup", {"Status", "ItemKey"}, {"Status", "ItemKey"}),
+
+    AddMonthYear = Table.AddColumn(ExpandLookup, "Month_Year", each Date.ToText([MonthKey], "MM-yy"), type text),
+    AddSortKey = Table.AddColumn(AddMonthYear, "SortKey", each Date.ToText([MonthKey], "yyyy-MM-dd"), type text),
+
+    // Rolling 13 complete months
+    EndMonth = Date.StartOfMonth(Date.AddMonths(DateTime.Date(DateTime.LocalNow()), -1)),
+    StartMonth = Date.AddMonths(EndMonth, -12),
+    Filter13 = Table.SelectRows(AddSortKey, each [MonthKey] >= StartMonth and [MonthKey] <= EndMonth),
+
+    // Fill missing (TrackedItem, Month) combinations with 0 so matrix shows 0, not blank
+    AllMonths = List.Sort(List.Distinct(Filter13[MonthKey])),
+    AllItems = List.Distinct(Filter13[TrackedItem]),
+    CrossList = List.Combine(List.Transform(AllMonths, (m) => List.Transform(AllItems, (it) => [MonthKey = m, TrackedItem = it]))),
+    Skeleton = Table.FromRecords(CrossList),
+    MergedFull = Table.NestedJoin(Skeleton, {"MonthKey", "TrackedItem"}, Filter13, {"MonthKey", "TrackedItem"}, "Data", JoinKind.LeftOuter),
+    ExpandFull = Table.ExpandTableColumn(MergedFull, "Data", {"Total", "Status", "ItemKey", "Month_Year", "SortKey"}, {"Total", "Status", "ItemKey", "Month_Year", "SortKey"}),
+    FillZeros = Table.TransformColumns(ExpandFull, {{"Total", each if _ = null then 0 else _, Int64.Type}}),
+    MonthYearF = Table.AddColumn(FillZeros, "Month_YearF", each if [Month_Year] = null then Date.ToText([MonthKey], "MM-yy") else [Month_Year], type text),
+    SortKeyF = Table.AddColumn(MonthYearF, "SortKeyF", each if [SortKey] = null then Date.ToText([MonthKey], "yyyy-MM-dd") else [SortKey], type text),
+    RenameMySk = Table.RenameColumns(Table.RemoveColumns(SortKeyF, {"Month_Year", "SortKey"}), {{"Month_YearF", "Month_Year"}, {"SortKeyF", "SortKey"}}),
+    // Restore Status/ItemKey from lookup for rows that were missing (null after expand)
+    MergedLookup2 = Table.NestedJoin(RenameMySk, {"TrackedItem"}, LookupStatusItemKey, {"TrackedItem"}, "Lookup2", JoinKind.LeftOuter),
+    ExpandLookup2 = Table.ExpandTableColumn(MergedLookup2, "Lookup2", {"Status", "ItemKey"}, {"StatusNew", "ItemKeyNew"}),
+    StatusFinal = Table.AddColumn(ExpandLookup2, "StatusF", each if [Status] = null then [StatusNew] else [Status], type text),
+    ItemKeyFinal = Table.AddColumn(StatusFinal, "ItemKeyF", each if [ItemKey] = null then [ItemKeyNew] else [ItemKey], type text),
+    DropTemp = Table.RemoveColumns(ItemKeyFinal, {"Status", "StatusNew", "ItemKey", "ItemKeyNew"}),
+    RenameFinal = Table.RenameColumns(DropTemp, {{"StatusF", "Status"}, {"ItemKeyF", "ItemKey"}}),
+
+    Result = if Table.RowCount(Filter13) > 0 then RenameFinal else AddSortKey
+in
+    Result
+I'll investigate the "ESU OOS" issue by examining the source data in the relevant monthly sheets and the MoM sheet. Let me look at the data to understand what's happening. Read MoM sheet for ESU OOS data
+
+Find all ESU OOS entries across sheets
+Now I can see the MoM sheet has "ESU OOS" with a value of 5.5 in the 02-26 column. Let me check the actual source data in the monthly sheets (26_JAN and 26_FEB) to see what values exist there, and also look at the table names that Power Query would pick up. Check 26_JAN sheet for ESU OOS row
+
+Check 26_FEB sheet for ESU OOS row
+
+Check 26_MAR sheet for ESU OOS row
+Now let me check the table definitions to see what named tables Power Query would find, since the M code filters for tables starting with _:
+
+
+List all named tables starting with _
+Now let me check the 26_FEB table more closely to understand the "ESU OOS" issue. Let me also check what's in the 26_FEB columns E (04) for ESU OOS since the screenshot shows 0 but the actual data has text entries:
+
+
+Check column E (04) in 26_FEB for text
+
+Check ESU OOS row in 26_JAN table
+Now I have a clear picture. Let me also check what the 26_FEB "ESU OOS" Total formula actually evaluates to vs. what the M code would read:
+
+
+Check full ESU OOS row in 26_FEB
+Now I have the full picture. Let me now check what the Power BI visual is showing — it shows 0 for ESU OOS. The issue is clear. Let me now check the 26_JAN sheet's ESU OOS row more carefully — it exists there but is row 9, whereas in 26_FEB it's row 23. The M code reads the Total column. Let me verify the 26_JAN total:
+
+
+Check 26_JAN ESU OOS total value
+Now I have all the evidence I need. Let me log this and provide the analysis. Check existing Claude Log entries
+Now let me log this new turn and provide the answer:
+
+
+Log Turn 16 - ESU OOS Power BI issue
+Here's what I found after investigating the source data and the M code:
+
+Root Cause Analysis: ESU OOS Showing Incorrect Value
+The Power BI visual shows 0 for ESU OOS, but the actual data in the 
+26_FEB
+ sheet shows 5.5 in 
+26_FEB
+AD23
+. Here's what's going wrong:
+
+🔴 Primary Issue: Text Corruption in Column E of 26_FEB
+The _26_FEB table's column E (day "04") contains text letters instead of numbers. Looking at 
+26_FEB
+E2:E17
+:
+
+Row	Cell Value
+E2	N
+E3	O
+E5	E
+E6	S
+E7	U
+E9	S
+E10	E
+E11	E
+E13	N
+E14	O
+E15	T
+E16	E
+E17	S
+Someone typed "NOTES" (or similar) vertically down column E inside the table boundary. These cells are highlighted red (#FF0000 background). Several other columns (I, J, L, X) also have red-highlighted columns that appear to be "off-duty" day markers. This doesn't directly break the Total formula (which correctly sums to 5.5), but it could cause Power Query issues during table expansion. 🔴 The Real Culprit: TrackedCol Resolution in M Code
+Here's the critical chain of events in your M code:
+
+FirstDataTable is resolved from AddMonthKey[Data]{0} — this grabs the first table alphabetically from ValidMonths, which is likely NOT _26_FEB. TrackedCol is resolved ONCE from that first table's column headers:
+
+TrackedCol = List.First( List.Select(Table.ColumnNames(FirstDataTable), each Text.Trim(Text.Replace(_, Character.FromNumber(160), " ")) = "Tracked Items"), "Tracked Items" )
+The Expanded step then uses that single TrackedCol name for ALL tables:
+
+Expanded = Table.ExpandTableColumn(ValidMonths, "Data", {TrackedCol, "Total"}, {"TrackedItem", "Total"})
+The problem: If the "Tracked Items" column header in _26_FEB has a slightly different spelling (e.g., a trailing space, non-breaking space, or different casing) than the TrackedCol resolved from the first table, the ExpandTableColumn will produce null for TrackedItem in the _26_FEB rows. When TrackedItem is null, the subsequent cross-join/skeleton fill logic won't match those rows, and the FillZeros step will replace them with 0. 🔴 How to Verify and Fix
+Verification: In Power Query Editor, click on the Expanded step and filter to rows where MonthKey = #date(2026, 2, 1). Check if TrackedItem is null for ESU OOS rows. Fix options:
+
+Check the header: In 
+26_FEB
+A1
+, verify the exact text of "Tracked Items" — look for trailing spaces or non-breaking characters. Make it match exactly with all other monthly tables. Make the M code more robust — instead of resolving TrackedCol once from the first table, resolve it per-table during expansion:
+
+// Replace the single Expanded step with a per-table expansion
+ExpandedPerTable = Table.AddColumn(ValidMonths, "ExpandedData", each
+    let
+        dt = [Data],
+        cols = Table.ColumnNames(dt),
+        tc = List.First(
+            List.Select(cols, each Text.Trim(Text.Replace(_, Character.FromNumber(160), " ")) = "Tracked Items"),
+            "Tracked Items"
+        ),
+        renamed = Table.RenameColumns(Table.SelectColumns(dt, {tc, "Total"}), {{tc, "TrackedItem"}, {"Total", "Total"}})
+    in renamed
+),
+Expanded = Table.ExpandTableColumn(ExpandedPerTable, "ExpandedData", {"TrackedItem", "Total"}, {"TrackedItem", "Total"}),
+This ensures each monthly table's "Tracked Items" column is found independently, handling any per-sheet header inconsistencies. Clean up the text in column E of 26_FEB — remove those vertical "NOTES" letters and move any annotations outside the table boundary. Summary
+Finding	Detail
+ESU OOS Total in 26_FEB	5.5 (correct in Excel)
+Power BI shows	0 (incorrect)
+Root cause	TrackedCol resolved once from first table; likely doesn't match 26_FEB header exactly
+Contributing issue	Column E has text letters inside table; red "off-duty" columns with text
+Fix	Use per-table column resolution in M code (code above)
+Updated 
+Claude Log
+ (Turn 16)
+
+can you check header for me and I will update the m code
+Let me check the exact header text in the "Tracked Items" column across the key monthly tables to find any inconsistencies:
+
+I thought the logic in the total cols for each month accounted for can we have the logic carry over to the _mom_hacsoc table also it appears that the data entry personnel uses/needs a dedicated arear on each sheet for notes see 26_JAN sheet cells A:25:A29 and on 26_FEB sheet cells A26:A49. It arrears that the personnel would need a col for date lets format it to mm/dd/yyyy, next col would be Personnel, then at least one one col for Notes/Summary
+Let me examine the current notes areas on both sheets and understand the full picture before making changes. Check 26_JAN notes area below table
+
+Check 26_FEB notes area below table
+Now let me check a few more monthly sheets to see if this pattern exists elsewhere, and also check the existing table boundaries to understand exactly where the tables end:
+
+
+Check 26_MAR notes area
+
+Check 25_Jan notes area
+
+Check 25_Feb notes area
+Now let me look at the MoM table to understand the current Total formula situation — specifically, the M code reads the "Total" column from each monthly table, and I need to understand the issue with ESU OOS. Let me also check what the _26_FEB table's Total column formula evaluates to for ESU OOS:
+
+
+Verify 26_FEB Total formulas for new items
+
+Check MoM 02-26 column formulas
+Interesting! The MoM formulas are using $A references (not TRIM/SUBSTITUTE). Let me check what $A29 contains and what the _26_FEB[Tracked Items] lookup array contains:
+
+
+Check MoM A29 ESU OOS exact value
+So the MoM formulas ARE working correctly — 
+MoM
+AD29
+ shows 5.5 for ESU OOS in 02-26. The issue is specifically in the Power Query M code that feeds Power BI. Now I fully understand both issues. Let me also check a couple of the 2025 monthly sheets that were flagged for needing the improved Total formula (those 7 that failed), and look at the _26_FEB Total formula:
+
+The _26_FEB table uses =SUM(_26_FEB[@[01]:[28]]) — this is a simple SUM, not the improved MAP/LAMBDA formula that handles text. Since the daily cells contain decimal values like 0.5 and integer values, the SUM works here. But let me verify the M code issue more carefully. Now let me address both requests. Let me first understand the full scope:
+
+ESU OOS Power Query issue — The M code's TotalNum step converts the Total column with Number.From(), but 5.5 IS a valid number. The real issue is likely in the TrackedCol expansion or the text in column E corrupting things. Notes area standardization — Create structured Date / Personnel / Notes columns below each monthly table. Carry the improved Total formula logic to _mom_hacsoc — The user wants the robust digit-extraction formula in the MoM table too. Let me check which MoM formulas need updating — they currently use simple XLOOKUP. The user wants the same robustness:
+
+
+Check MoM 01-26 and 03-26 formulas
+
+Verify 03-26 header
+Wait — the 03-26 formula references _26_APR instead of _26_MAR! That's a bug. Let me check all 2026 columns:
+
+
+Check all 2026 MoM column headers+formulas
+I found multiple formula bugs in the MoM 2026 columns. Let me check 12-26 too:
+
+
+Check 12-26 formula
+Now I have the full picture. Let me present my findings and plan to the user before executing:
+
+
+Ask User Question
+Great — let me tackle all the issues. Here's what I found and what I'll fix:
+
+Issues Found
+1. MoM Formula Bugs (wrong table references):
+
+03-26 (AE) → references _26_APR instead of _26_MAR ❌
+04-26 (AF) → references _26_APR ✅ (correct)
+11-26 (AM) → references _26_DEC instead of _26_NOV ❌
+12-26 (AN) → references _26_DEC ✅ (correct, but column AN doesn't exist in original header range)
+Also: 01-26 and 02-26 formulas lack TRIM/SUBSTITUTE for space handling. 2. Notes area — needs structured Date/Personnel/Notes columns on all 2026 sheets. 3. Power Query M code — needs per-table TrackedCol resolution. Let me start fixing:
+
+Step 1: Fix MoM formula bugs
+
+Fix 01-26 formula to use TRIM/SUBSTITUTE
+
+Fix 02-26 formula to use TRIM/SUBSTITUTE
+
+Fix 03-26: was _26_APR, now _26_MAR
+
+Fix 11-26: was _26_DEC, now _26_NOV
+Good, formulas deployed. Now let me verify the key cell — ESU OOS 02-26 should now show 5.5:
+
+
+Verify fixed formulas for ESU OOS
+MoM formulas verified. Now let me tackle the Notes area structure. Let me check which 2026 sheets need notes areas and what exists on each. First, let me get the table end rows for all 2026 sheets:
+
+
+Get table boundaries for all 2026 sheets
+The tables aren't accessible by those names via Office.js. Let me try a different approach:
+
+
+Find exact table names for 2026
+
+Get 2026 table boundaries via iteration
+Now I know exactly where each table ends. The notes area starts 2 rows below the last table row. Let me now build the structured notes area. I need to:
+
+Preserve existing notes on 26_JAN (rows 25-29), 26_FEB (rows 26-49), and 26_MAR (rows 26-30)
+Create structured headers: Date (mm/dd/yyyy) | Personnel | Notes/Summary
+Place them below each table with a gap row
+Let me start with the three sheets that already have notes, then set up the template sheets:
+
+Now let me parse the existing notes and set up the new structure. I'll need to insert rows for headers on the sheets with existing notes, then restructure the data. Let me start with the sheets that have existing notes:
+
+26_JAN — Set up notes structure
+
+Add Daily Log header row on 26_JAN
+Now parse and write the existing 26_JAN notes into the structured format:
+
+
+Write parsed 26_JAN notes to structured cols
+Now resize column C on 26_JAN to accommodate Notes:
+
+
+Widen Personnel column on 26_JAN
+26_FEB — Set up notes structure with parsed data
+
+Add Daily Log header row on 26_FEB
+Now parse all 24 existing 26_FEB notes. The pattern is "M/D BadgeNumber Description":
+
+
+Write parsed 26_FEB notes to structured cols
+26_MAR — Set up notes structure
+
+Add Daily Log header row on 26_MAR
+
+Write parsed 26_MAR notes to structured cols
+26_APR through 26_DEC — Set up empty notes structure
+
+Get sheet IDs for remaining 2026 months
+Now I'll set up the empty Daily Log structure on all remaining 2026 sheets. These all have tables ending at row 21, so notes go at row 23:
+
+
+Add Daily Log headers on 26_APR
+
+Add Daily Log headers on 26_MAY
+
+Add Daily Log headers on 26_JUN
+
+Add Daily Log headers on 26_JUL
+
+Add Daily Log headers on 26_AUG
+
+Add Daily Log headers on 26_SEP
+
+Add Daily Log headers on 26_OCT
+
+Add Daily Log headers on 26_NOV
+
+Add Daily Log headers on 26_DEC
+Now let me format the date column cells to mm/dd/yyyy on the first data row of each remaining sheet (so when personnel start typing, the format is already set):
+
+
+Pre-format first data row on 26_APR
+
+Pre-format first data row on 26_MAY
+
+Pre-format first data row on 26_JUN
+
+Pre-format first data row on 26_JUL
+
+Pre-format first data row on 26_AUG
+
+Pre-format first data row on 26_SEP
+
+Pre-format first data row on 26_OCT
+
+Pre-format first data row on 26_NOV
+
+Pre-format first data row on 26_DEC
+Now let me widen column C on the sheets with existing notes data so "Notes / Summary" is readable:
+
+
+Widen Notes column on 26_FEB
+
+Widen Notes column on 26_MAR
+
+Widen Notes column on 26_JAN
+Now let me address the Power Query M code fix. The key issue is the per-table TrackedCol resolution. Let me also verify the 26_FEB sheet to make sure the text in column E isn't inside NOTES that spell something — and provide the updated M code:
+
+
+Check all red columns in 26_FEB for text
+Column E is the problem column. The text spells out (vertically): N-O-[blank]-E-S-U-[blank]-S-E-E-[blank]-N-O-T-E-S = "NO ESU" and "NOTES" interleaved. This is clearly someone using the red-shaded "off day" column to write a vertical annotation. The issue is that this text lives inside the _26_FEB table. When Power Query reads the table, these text values appear in the "04" column. While the Total formula (=SUM(...)) correctly ignores text and only sums numbers, the M code's Expanded step tries to pull {TrackedCol, "Total"} — and if the TrackedCol column name doesn't perfectly match due to spaces, the TrackedItem will be null. Let me now do a final verification and then write the updated M code:
+
+
+Check exact header text for all 2026 tables
+There it is! The _mom_hacsoc table header is "Tracked Items " (14 chars, ending with char 160 = non-breaking space), while ALL the 2026 monthly tables have "Tracked Items" (13 chars, no trailing space). Now let me also check the 2025 tables:
+
+
+Check 2025 table headers for space issues
+All monthly tables use "Tracked Items" (13 chars, clean). Only _mom_hacsoc has the trailing non-breaking space (char 160). The M code resolves TrackedCol from the first table which would be "Tracked Items" — and this DOES match the monthly tables. So the issue is more subtle...
+
+Let me re-examine the M code logic more carefully. The TrackedCol is used for ExpandTableColumn — which should work since all monthly tables have "Tracked Items". But wait — the M code's Norm function and MoMTrackedCol are resolving from _mom_hacsoc which has the trailing NBSP. Let me trace through more carefully:
+
+The LookupStatusItemKey table has TrackedItem derived from _mom_hacsoc[Tracked Items ] (with NBSP). But the monthly tables have "Tracked Items" (no NBSP) → expansion produces clean TrackedItem values. The join between them on TrackedItem should still work because the M code applies Text.Trim(Text.Replace(..., CHAR(160), " ")) to the MoM values in MoMWithItem. Let me look at the actual item values in _26_FEB for ESU OOS:
+
+
+Check exact ESU OOS text in 26_FEB A23
+Clean — no special characters. Now let me check the MoM _mom_hacsoc table's ESU OOS value:
+
+
+Check ESU OOS exact text in MoM A29
+Both match perfectly. So the text matching isn't the issue. Let me now trace the M code logic more carefully to find the actual Power BI problem. The key question is: Does the Power Query M code read the correct value of 5.5 from _26_FEB[Total] for ESU OOS? The _26_FEB Total formula is =SUM(_26_FEB[@[01]:[28]]) which returns 5.5. But wait — this is one of the 7 tables that failed to get the improved MAP/LAMBDA Total formula in Turn 15/16. The current formula is just =SUM(...), which works correctly for numbers and ignores text. Let me re-read the M code more carefully for the actual bug:
+
+Expanded = Table.ExpandTableColumn(ValidMonths, "Data", {TrackedCol, "Total"}, {"TrackedItem", "Total"}),
+TrackedCol resolves to "Tracked Items" from the first table. _26_FEB also has column "Tracked Items". This should work fine. TotalNum = Table.TransformColumns(CleanItem, {{"Total", each if _ = null or _ = "" then 0 else try Number.From(_) otherwise 0, Int64.Type}})
+Number.From(5.5) = 5.5 but then it's cast to Int64.Type which would truncate to 5 (or possibly 6 if rounded). But the visual shows 0, not 5 or 6. So the issue might be elsewhere. Wait — let me re-read: Int64.Type is the type assertion, but Number.From(5.5) produces a decimal. With Int64.Type, Power Query may convert 5.5 → 5 (truncation) or error. But the visual shows 0...
+
+Actually, looking at the Power BI screenshot again more carefully — ESU OOS shows 0 in every single month column AND 0 in Total. But the MoM sheet shows 5.5 for 02-26. This means Power Query is not picking up the value at all. Let me check if "ESU OOS" might not exist as a row in the _26_FEB table when viewed by Power Query. The table _26_FEB has rows 2-24. Row 23 is ESU OOS. But ESU OOS was a new item — it was added to the table. Let me check if it's actually part of the named table or below it:
+
+
+Verify ESU OOS is inside _26_FEB table
+ESU OOS IS in the table at row index 21 (row 23 on sheet) with Total = 5.5. So Power Query should be able to find it. Now I need to understand why the Power BI visual shows 0. Let me trace through the M code one more time:
+
+TablesOnly filters for Kind="Table", Text.StartsWith([Name], "_"), and [Name] <> "_mom_hacsoc" — ✅ _26_FEB qualifies
+AddMonthKey parses _26_FEB → n = "_26_FEB", yy = 26, mmm = "FEB" → MonthMap[FEB] = 2 → MonthKey = #date(2026, 2, 1) ✅
+ValidMonths includes it ✅
+Expanded extracts {TrackedCol, "Total"} → TrackedItem = "ESU OOS", Total = 5.5 ✅
+TotalNum → Number.From(5.5) = 5.5 but cast to Int64.Type → This truncates 5.5 to 6 or errors! Wait — Int64.Type is a 64-bit integer. 5.5 cast to Int64 would become 6 (rounded) in Power Query, NOT 0. Let me check if this is the actual issue. Actually, looking at the visual again — ESU OOS shows 0 in the Total column, and 0 across all months. But the MoM has data in 02-26. Let me check if the _mom_hacsoc table filters are excluding it:
+
+The M code's LookupStatusItemKey comes from _mom_hacsoc. It has Status = "Active" and ItemKey = "ESU OOS" for ESU OOS. There's no explicit Status filter in the M code. The visual might have a filter... But wait — looking at the visual screenshot heading: "Rolling 13-Month Overview (February 2025 – February 2026)". This means StartMonth = Feb 2025, EndMonth = Feb 2026. The M code computes:
+
+EndMonth = Date.StartOfMonth(Date.AddMonths(DateTime.Date(DateTime.LocalNow()), -1))
+Today is March 5, 2026, so EndMonth = Feb 1, 2026 and StartMonth = Feb 1, 2025. The Filter13 step filters MonthKey >= StartMonth and MonthKey <= EndMonth. Feb 2026 IS included (Feb 1, 2025 ≤ Feb 1, 2026 ≤ Feb 1, 2026).

@@ -1,7 +1,8 @@
-// 🕒 2026-02-21-01-00-00 (EST)
-// # esu/ESU_13Month.m
+// 🕒 2026-03-05
+// # Master_Automation/m_code/esu/ESU_13Month.m
 // # Author: R. A. Carucci
-// # Purpose: Load ESU monthly activity with tracked item lookup and rolling 13-month window.
+// # Purpose: Single query — load ESU.xlsx monthly Tables only; rolling 13 months.
+// # Fixes: Per-table TrackedCol, type number, exclude _Log tables, normalize 1 Man ESU→ESU Single Operator.
 
 let
     ReportMonth = pReportMonth,
@@ -23,11 +24,12 @@ let
         {{StatusCol, "Status"}, {ItemKeyCol, "ItemKey"}}
     ),
 
-    // Use structured Tables only — Sheet [Data] does not expand correctly with named columns
+    // Use structured Tables only — exclude _mom_hacsoc and _Log (Daily Log) tables
     TablesOnly = Table.SelectRows(Source, each
         [Kind] = "Table"
         and Text.StartsWith([Name], "_")
         and [Name] <> "_mom_hacsoc"
+        and not Text.Contains([Name], "_Log")
     ),
 
     MonthMap = [JAN=1, FEB=2, MAR=3, APR=4, MAY=5, JUN=6, JUNE=6, JUL=7, JULY=7, AUG=8, SEP=9, OCT=10, NOV=11, DEC=12],
@@ -47,23 +49,33 @@ let
 
     ValidMonths = Table.SelectRows(AddMonthKey, each [MonthKey] <> null),
 
-    // Resolve "Tracked Items" column (handles trailing or non-breaking space)
-    FirstDataTable = if Table.RowCount(AddMonthKey) = 0 then #table({"Tracked Items"}, {}) else AddMonthKey[Data]{0},
-    TrackedCol = List.First(
-        List.Select(Table.ColumnNames(FirstDataTable), each Text.Trim(Text.Replace(_, Character.FromNumber(160), " ")) = "Tracked Items"),
-        "Tracked Items"
+    // FIX 1: Per-table TrackedCol resolution (not single global)
+    ExpandedPerTable = Table.AddColumn(ValidMonths, "ExpandedData", each
+        let
+            dt = [Data],
+            cols = Table.ColumnNames(dt),
+            tc = List.First(
+                List.Select(cols, each Text.Trim(Text.Replace(_, Character.FromNumber(160), " ")) = "Tracked Items"),
+                "Tracked Items"
+            ),
+            selected = Table.SelectColumns(dt, {tc, "Total"}),
+            renamed = Table.RenameColumns(selected, {{tc, "TrackedItem"}, {"Total", "Total"}})
+        in renamed
     ),
-
-    Expanded = Table.ExpandTableColumn(ValidMonths, "Data", {TrackedCol, "Total"}, {"TrackedItem", "Total"}),
+    Expanded = Table.ExpandTableColumn(ExpandedPerTable, "ExpandedData", {"TrackedItem", "Total"}, {"TrackedItem", "Total"}),
 
     CleanItem = Table.TransformColumns(Expanded, {{
         "TrackedItem",
-        each Text.Trim(Text.Replace(Text.From(_), Character.FromNumber(160), " ")),
+        each
+            let
+                cleaned = Text.Trim(Text.Replace(Text.From(_), Character.FromNumber(160), " ")),
+                normalized = if cleaned = "1 Man ESU" or cleaned = "1 man ESU" then "ESU Single Operator" else cleaned
+            in normalized,
         type text
     }}),
 
-    // Force null/blank to 0 so matrix shows 0 instead of blank (Number.From(null) returns null, not error)
-    TotalNum = Table.TransformColumns(CleanItem, {{"Total", each if _ = null or _ = "" then 0 else try Number.From(_) otherwise 0, Int64.Type}}),
+    // FIX 2: Use type number instead of Int64.Type to preserve decimals (e.g., 5.5 for ESU OOS half-days)
+    TotalNum = Table.TransformColumns(CleanItem, {{"Total", each if _ = null or _ = "" then 0 else try Number.From(_) otherwise 0, type number}}),
 
     Keep = Table.SelectColumns(TotalNum, {"MonthKey", "TrackedItem", "Total"}),
 
@@ -73,19 +85,20 @@ let
     AddMonthYear = Table.AddColumn(ExpandLookup, "Month_Year", each Date.ToText([MonthKey], "MM-yy"), type text),
     AddSortKey = Table.AddColumn(AddMonthYear, "SortKey", each Date.ToText([MonthKey], "yyyy-MM-dd"), type text),
 
-    // Rolling 13 complete months
-    EndMonth = Date.StartOfMonth(Date.AddMonths(ReportMonth, -1)),
+    // Rolling 13 months — include report month (e.g. pReportMonth=02/01/2026 → 02-25 through 02-26)
+    EndMonth = Date.StartOfMonth(ReportMonth),
     StartMonth = Date.AddMonths(EndMonth, -12),
     Filter13 = Table.SelectRows(AddSortKey, each [MonthKey] >= StartMonth and [MonthKey] <= EndMonth),
 
-    // Fill missing (TrackedItem, Month) combinations with 0 so matrix shows 0, not blank
+    // FIX 3: AllItems = _mom_hacsoc items + any in Filter13 (ensures full dimension coverage)
     AllMonths = List.Sort(List.Distinct(Filter13[MonthKey])),
-    AllItems = List.Distinct(Filter13[TrackedItem]),
+    MoMItems = List.Distinct(LookupStatusItemKey[TrackedItem]),
+    AllItems = List.Distinct(List.Combine({MoMItems, List.Distinct(Filter13[TrackedItem])})),
     CrossList = List.Combine(List.Transform(AllMonths, (m) => List.Transform(AllItems, (it) => [MonthKey = m, TrackedItem = it]))),
     Skeleton = Table.FromRecords(CrossList),
     MergedFull = Table.NestedJoin(Skeleton, {"MonthKey", "TrackedItem"}, Filter13, {"MonthKey", "TrackedItem"}, "Data", JoinKind.LeftOuter),
     ExpandFull = Table.ExpandTableColumn(MergedFull, "Data", {"Total", "Status", "ItemKey", "Month_Year", "SortKey"}, {"Total", "Status", "ItemKey", "Month_Year", "SortKey"}),
-    FillZeros = Table.TransformColumns(ExpandFull, {{"Total", each if _ = null then 0 else _, Int64.Type}}),
+    FillZeros = Table.TransformColumns(ExpandFull, {{"Total", each if _ = null then 0 else _, type number}}),
     MonthYearF = Table.AddColumn(FillZeros, "Month_YearF", each if [Month_Year] = null then Date.ToText([MonthKey], "MM-yy") else [Month_Year], type text),
     SortKeyF = Table.AddColumn(MonthYearF, "SortKeyF", each if [SortKey] = null then Date.ToText([MonthKey], "yyyy-MM-dd") else [SortKey], type text),
     RenameMySk = Table.RenameColumns(Table.RemoveColumns(SortKeyF, {"Month_Year", "SortKey"}), {{"Month_YearF", "Month_Year"}, {"SortKeyF", "SortKey"}}),

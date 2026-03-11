@@ -1,0 +1,116 @@
+{
+  "source_file": "Project_Documentation_Update_And_Commit_chief_updated,_summons.md",
+  "source_path": "C:\\_chunker\\02_data\\Project_Documentation_Update_And_Commit_chief_updated,_summons.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Project_Documentation_Update_And_Commit_chief_updated,_summo\\2026_03_04_00_18_42_Project_Documentation_Update_And_Commit_chief_updated,_summo.origin.json",
+  "created_at": "2026_03_04_00_18_42",
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "powershell",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "csv",
+      "summons",
+      "docs",
+      "files",
+      "etl",
+      "claude"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Deployment of Claude's v2.3.0 package\n_Exported on 3/4/2026 at 00:17:55 EST from Cursor (2.6.11)_\n\n---\n\n**User**\n\nThis is refrence to correcting the read the issues we had lastnight. Major iprovments were made and now have to be implom...",
+    "first_line": "# Deployment of Claude's v2.3.0 package"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-03-04T00:18:42+00:00_Project_Documentation_Update_And_Commit_chief_updated,_summo_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "claude",
+        "code",
+        "conversation",
+        "data",
+        "docs",
+        "excel",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "month",
+        "police",
+        "powershell",
+        "python",
+        "scripts",
+        "sql",
+        "summons"
+      ],
+      "key_terms": [
+        "csv",
+        "summons",
+        "etl",
+        "scripts",
+        "claude",
+        "month"
+      ],
+      "summary": "# Deployment of Claude's v2.3.0 package\n_Exported on 3/4/2026 at 00:17:55 EST from Cursor (2.6.11)_\n\n---\n\n**User**\n\nThis is refrence to correcting the read the issues we had lastnight.",
+      "char_length": 25160,
+      "byte_length": 25837
+    },
+    {
+      "chunk_id": "2026-03-04T00:18:42+00:00_Project_Documentation_Update_And_Commit_chief_updated,_summo_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "ai",
+        "code",
+        "commands",
+        "conversation",
+        "cursor",
+        "data",
+        "docs",
+        "excel",
+        "files",
+        "it-ops",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "powershell",
+        "python",
+        "sql",
+        "updated"
+      ],
+      "key_terms": [
+        "docs",
+        "git",
+        "cursor",
+        "files",
+        "commands",
+        "updated"
+      ],
+      "summary": "`2026-02` → `2026_02_timereport.xlsx` in `05_EXPORTS\\_CAD\\timereport\\monthly\\`.",
+      "char_length": 11595,
+      "byte_length": 11939
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

@@ -5,12 +5,8 @@
 // # TICKET_COUNT: use from source if present (ETL v2.1+); else add 1 per row.
 
 let
-    Source = Excel.Workbook(
-        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx"),
-        null, true
-    ),
-    ATS_Court_Data_Sheet = Source{[Item = "Summons_Data", Kind = "Sheet"]}[Data],
-    #"Promoted Headers" = Table.PromoteHeaders(ATS_Court_Data_Sheet, [PromoteAllScalars = true]),
+    Source = Csv.Document(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
 
     ColumnTypes = {
         {"PADDED_BADGE_NUMBER", type text},

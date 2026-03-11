@@ -1,0 +1,454 @@
+table ___Patrol
+	lineageTag: 38ce4665-dced-42cd-ade3-e5cc78dedf4c
+
+	measure 'Patrol Title' = ```
+			
+			"Patrol Division"
+			
+			```
+		lineageTag: a4ec51c7-60ce-4280-9164-5eb885965e8c
+
+	measure 'Patrol Subtitle' = ```
+			
+			"13-Month Overview (" & 'UI'[UI MonthRange 13m] & ")"
+			
+			```
+		lineageTag: 04d58c23-85ae-42f8-8af2-38d14008d369
+
+	column 'Tracked Items'
+		dataType: string
+		lineageTag: 11408722-9416-4f8d-bed6-fda37901ddf7
+		summarizeBy: none
+		sourceColumn: Tracked Items
+
+		annotation SummarizationSetBy = Automatic
+
+	column 06-23
+		dataType: int64
+		formatString: 0
+		lineageTag: 3f94da47-2d6b-4c31-9044-2fd20b90506e
+		summarizeBy: sum
+		sourceColumn: 06-23
+
+		annotation SummarizationSetBy = Automatic
+
+	column 07-23
+		dataType: int64
+		formatString: 0
+		lineageTag: ef6f8184-9d5d-4cdf-b0fa-ec408d011bc0
+		summarizeBy: sum
+		sourceColumn: 07-23
+
+		annotation SummarizationSetBy = Automatic
+
+	column 08-23
+		dataType: int64
+		formatString: 0
+		lineageTag: 9cdb53f9-307c-48aa-a6bf-528d109bbae0
+		summarizeBy: sum
+		sourceColumn: 08-23
+
+		annotation SummarizationSetBy = Automatic
+
+	column 09-23
+		dataType: int64
+		formatString: 0
+		lineageTag: ca0489c6-ff9d-4743-b232-a84b86ce83d5
+		summarizeBy: sum
+		sourceColumn: 09-23
+
+		annotation SummarizationSetBy = Automatic
+
+	column 10-23
+		dataType: int64
+		formatString: 0
+		lineageTag: fda9c7b5-a3a3-4f6e-bc81-4f169eb2644d
+		summarizeBy: sum
+		sourceColumn: 10-23
+
+		annotation SummarizationSetBy = Automatic
+
+	column 11-23
+		dataType: int64
+		formatString: 0
+		lineageTag: fefb8d0c-e509-40b6-9814-5670c07458d3
+		summarizeBy: sum
+		sourceColumn: 11-23
+
+		annotation SummarizationSetBy = Automatic
+
+	column 12-23
+		dataType: int64
+		formatString: 0
+		lineageTag: 02a2735b-d0cb-4ab3-bd2c-45b0ca4bbbf1
+		summarizeBy: sum
+		sourceColumn: 12-23
+
+		annotation SummarizationSetBy = Automatic
+
+	column 01-24
+		dataType: int64
+		formatString: 0
+		lineageTag: 34a2af03-9ff9-4c09-96b4-7d961e4b2735
+		summarizeBy: sum
+		sourceColumn: 01-24
+
+		annotation SummarizationSetBy = Automatic
+
+	column 02-24
+		dataType: int64
+		formatString: 0
+		lineageTag: 3f3c6a86-cda1-4fce-9505-ac17b781022d
+		summarizeBy: sum
+		sourceColumn: 02-24
+
+		annotation SummarizationSetBy = Automatic
+
+	column 03-24
+		dataType: int64
+		formatString: 0
+		lineageTag: ded1e980-d7de-4bdd-94a1-1dd858e3a65f
+		summarizeBy: sum
+		sourceColumn: 03-24
+
+		annotation SummarizationSetBy = Automatic
+
+	column 04-24
+		dataType: int64
+		formatString: 0
+		lineageTag: 4b8eb660-810b-46e7-b097-7af2c8ae9f19
+		summarizeBy: sum
+		sourceColumn: 04-24
+
+		annotation SummarizationSetBy = Automatic
+
+	column 05-24
+		dataType: int64
+		formatString: 0
+		lineageTag: 3d19a8ef-1394-42e6-b70b-11562797a721
+		summarizeBy: sum
+		sourceColumn: 05-24
+
+		annotation SummarizationSetBy = Automatic
+
+	column 06-24
+		dataType: int64
+		formatString: 0
+		lineageTag: acd82666-9396-4dda-933e-ca90b99f9082
+		summarizeBy: sum
+		sourceColumn: 06-24
+
+		annotation SummarizationSetBy = Automatic
+
+	column 07-24
+		dataType: int64
+		formatString: 0
+		lineageTag: 4e9b7cb4-8d57-4e77-924b-ba39d259ad61
+		summarizeBy: sum
+		sourceColumn: 07-24
+
+		annotation SummarizationSetBy = Automatic
+
+	column 08-24
+		dataType: int64
+		formatString: 0
+		lineageTag: 9f168672-84b4-4329-8325-c047fcbd321a
+		summarizeBy: sum
+		sourceColumn: 08-24
+
+		annotation SummarizationSetBy = Automatic
+
+	column 09-24
+		dataType: int64
+		formatString: 0
+		lineageTag: c35d88a3-34e6-4bad-9604-c66a5f423409
+		summarizeBy: sum
+		sourceColumn: 09-24
+
+		annotation SummarizationSetBy = Automatic
+
+	column 10-24
+		dataType: int64
+		formatString: 0
+		lineageTag: 89a0043f-21aa-40bb-99d6-c30c63f6cb30
+		summarizeBy: sum
+		sourceColumn: 10-24
+
+		annotation SummarizationSetBy = Automatic
+
+	column 11-24
+		dataType: int64
+		formatString: 0
+		lineageTag: b295fb32-ae98-4bf5-af04-5e959e88f9ec
+		summarizeBy: sum
+		sourceColumn: 11-24
+
+		annotation SummarizationSetBy = Automatic
+
+	column 12-24
+		dataType: int64
+		formatString: 0
+		lineageTag: e1e2359b-4727-4f6f-811a-e8a4faef9972
+		summarizeBy: sum
+		sourceColumn: 12-24
+
+		annotation SummarizationSetBy = Automatic
+
+	column 01-25
+		dataType: int64
+		formatString: 0
+		lineageTag: 0d8e4a12-b4f7-465f-a2cc-5529448744de
+		summarizeBy: sum
+		sourceColumn: 01-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 02-25
+		dataType: int64
+		formatString: 0
+		lineageTag: 50068a70-18b1-4eec-93e3-70336196ddd5
+		summarizeBy: sum
+		sourceColumn: 02-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 03-25
+		dataType: int64
+		formatString: 0
+		lineageTag: 3e3dc159-e5fc-4d65-96af-834176cd156f
+		summarizeBy: sum
+		sourceColumn: 03-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 04-25
+		dataType: int64
+		formatString: 0
+		lineageTag: 38928e98-1a09-43be-87f8-9adb88ac14e2
+		summarizeBy: sum
+		sourceColumn: 04-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 05-25
+		dataType: int64
+		formatString: 0
+		lineageTag: 9b737a1e-c586-430e-b854-2d8347108023
+		summarizeBy: sum
+		sourceColumn: 05-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 06-25
+		dataType: int64
+		formatString: 0
+		lineageTag: b69083a0-6bd0-495f-bca3-52941e5deb92
+		summarizeBy: sum
+		sourceColumn: 06-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 07-25
+		dataType: int64
+		formatString: 0
+		lineageTag: 354711e8-ff8a-4a33-8b5a-760bad0cb312
+		summarizeBy: sum
+		sourceColumn: 07-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 08-25
+		dataType: int64
+		formatString: 0
+		lineageTag: c485d126-b790-4323-a3e5-3f647832baa3
+		summarizeBy: sum
+		sourceColumn: 08-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 09-25
+		dataType: int64
+		formatString: 0
+		lineageTag: 50830b18-4389-4087-a793-fe26b995be64
+		summarizeBy: none
+		sourceColumn: 09-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 10-25
+		dataType: int64
+		formatString: 0
+		lineageTag: 1ce4af6c-2094-4867-a08f-33c9acbeefa5
+		summarizeBy: sum
+		sourceColumn: 10-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 11-25
+		dataType: int64
+		formatString: 0
+		lineageTag: 21fb26cd-aa44-49ff-b715-696da6b0ccc3
+		summarizeBy: sum
+		sourceColumn: 11-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 12-25
+		dataType: int64
+		formatString: 0
+		lineageTag: 00def8dd-ecf2-4426-88d2-fcc5c3f3a3f0
+		summarizeBy: sum
+		sourceColumn: 12-25
+
+		annotation SummarizationSetBy = Automatic
+
+	column 01-26
+		dataType: string
+		lineageTag: cf3b415f-2607-453a-a768-62feb8c3fa1c
+		summarizeBy: none
+		sourceColumn: 01-26
+
+		annotation SummarizationSetBy = Automatic
+
+	column 02-26
+		dataType: string
+		lineageTag: 96bffa72-5815-40f1-ab21-b23fe970992f
+		summarizeBy: none
+		sourceColumn: 02-26
+
+		annotation SummarizationSetBy = Automatic
+
+	column 03-26
+		dataType: string
+		lineageTag: fcfdac89-ebbf-4738-961f-bb60e7f4b495
+		summarizeBy: none
+		sourceColumn: 03-26
+
+		annotation SummarizationSetBy = Automatic
+
+	column 04-26
+		dataType: string
+		lineageTag: 57f07220-0cf3-4733-91a7-ae4eb66d4007
+		summarizeBy: none
+		sourceColumn: 04-26
+
+		annotation SummarizationSetBy = Automatic
+
+	column 05-26
+		dataType: string
+		lineageTag: a89f5f2a-90a3-4dbf-97cc-bd8897669e93
+		summarizeBy: none
+		sourceColumn: 05-26
+
+		annotation SummarizationSetBy = Automatic
+
+	column 06-26
+		dataType: string
+		lineageTag: cecf31b9-31b7-466d-9082-860cec3343ce
+		summarizeBy: none
+		sourceColumn: 06-26
+
+		annotation SummarizationSetBy = Automatic
+
+	column 07-26
+		dataType: string
+		lineageTag: 35bbd5e4-c2dd-41b4-b1aa-c07bc7d28120
+		summarizeBy: none
+		sourceColumn: 07-26
+
+		annotation SummarizationSetBy = Automatic
+
+	column 08-26
+		dataType: string
+		lineageTag: 18cdecfe-8742-4c91-a239-a2a6680901ad
+		summarizeBy: none
+		sourceColumn: 08-26
+
+		annotation SummarizationSetBy = Automatic
+
+	column 09-26
+		dataType: string
+		lineageTag: 30f7b283-0ce2-4ef9-941d-b01d56e64db9
+		summarizeBy: none
+		sourceColumn: 09-26
+
+		annotation SummarizationSetBy = Automatic
+
+	column 10-26
+		dataType: string
+		lineageTag: 00294ea1-21f7-4cb5-b21a-f5c6c5ec8d38
+		summarizeBy: none
+		sourceColumn: 10-26
+
+		annotation SummarizationSetBy = Automatic
+
+	column 11-26
+		dataType: string
+		lineageTag: a66e3fbc-7eb6-4af9-b8bf-3547075390fc
+		summarizeBy: none
+		sourceColumn: 11-26
+
+		annotation SummarizationSetBy = Automatic
+
+	column 12-26
+		dataType: string
+		lineageTag: 2b92c1eb-020f-4e36-ac66-e92b8643b491
+		summarizeBy: none
+		sourceColumn: 12-26
+
+		annotation SummarizationSetBy = Automatic
+
+	column 01-27
+		dataType: string
+		lineageTag: c93fb518-4097-4b14-869e-72b36a6c37e4
+		summarizeBy: none
+		sourceColumn: 01-27
+
+		annotation SummarizationSetBy = Automatic
+
+	column 02-27
+		dataType: string
+		lineageTag: d7f63b77-5a7a-45c8-8abb-0b7b82e3ccee
+		summarizeBy: none
+		sourceColumn: 02-27
+
+		annotation SummarizationSetBy = Automatic
+
+	column 03-27
+		dataType: string
+		lineageTag: 06b734d9-8cd0-4a94-ba82-90780e14d813
+		summarizeBy: none
+		sourceColumn: 03-27
+
+		annotation SummarizationSetBy = Automatic
+
+	column 04-27
+		dataType: string
+		lineageTag: 1d3c91d5-900b-4b68-8e39-f8133a900a37
+		summarizeBy: none
+		sourceColumn: 04-27
+
+		annotation SummarizationSetBy = Automatic
+
+	column 05-27
+		dataType: string
+		lineageTag: 2eeaa8e6-b08b-490e-8a33-fb99cbb11dbe
+		summarizeBy: none
+		sourceColumn: 05-27
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___Patrol = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Patrol\patrol_monthly.xlsm"), null, true),
+				    _mom_patrol_Table = Source{[Item="_mom_patrol",Kind="Table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(_mom_patrol_Table,{{"Tracked Items", type text}, {"06-23", Int64.Type}, {"07-23", Int64.Type}, {"08-23", Int64.Type}, {"09-23", Int64.Type}, {"10-23", Int64.Type}, {"11-23", Int64.Type}, {"12-23", Int64.Type}, {"01-24", Int64.Type}, {"02-24", Int64.Type}, {"03-24", Int64.Type}, {"04-24", Int64.Type}, {"05-24", Int64.Type}, {"06-24", Int64.Type}, {"07-24", Int64.Type}, {"08-24", Int64.Type}, {"09-24", Int64.Type}, {"10-24", Int64.Type}, {"11-24", Int64.Type}, {"12-24", Int64.Type}, {"01-25", Int64.Type}, {"02-25", Int64.Type}, {"03-25", Int64.Type}, {"04-25", Int64.Type}, {"05-25", Int64.Type}, {"06-25", Int64.Type}, {"07-25", Int64.Type}, {"08-25", Int64.Type}, {"09-25", Int64.Type}, {"10-25", Int64.Type}, {"11-25", Int64.Type}, {"12-25", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,104 @@
+{
+  "source_file": "Response_Time_AllMetrics_Migration_And_Documentation.md",
+  "source_path": "C:\\_chunker\\02_data\\Response_Time_AllMetrics_Migration_And_Documentation.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Response_Time_AllMetrics_Migration_And_Documentation\\2026_03_06_14_24_42_Response_Time_AllMetrics_Migration_And_Documentation.origin.json",
+  "created_at": "2026_03_06_14_24_42",
+  "tags": [
+    "ai",
+    "conversation",
+    "data",
+    "docs",
+    "it-ops",
+    "json",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "power",
+      "___responsetime_allmetrics",
+      "claude",
+      "you",
+      "mcp",
+      "tables"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "# Claude MCP power BI connection issue\n_Exported on 3/6/2026 at 14:24:04 EST from Cursor (2.6.12)_\n\n---\n\n**User**\n\nreview C:\\Users\\carucci_r\\AppData\\Roaming\\Claude\\logs\\mcp-server-powerbi-modeling-mcp.log\naSituational Awareness with conn...",
+    "first_line": "# Claude MCP power BI connection issue"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-03-06T14:24:42+00:00_Response_Time_AllMetrics_Migration_And_Documentation_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "claude",
+        "conversation",
+        "cursor",
+        "data",
+        "docs",
+        "it-ops",
+        "json",
+        "markdown",
+        "police",
+        "power",
+        "python",
+        "sql",
+        "what"
+      ],
+      "key_terms": [
+        "power",
+        "claude",
+        "mcp",
+        "cursor",
+        "can",
+        "what"
+      ],
+      "summary": "# Claude MCP power BI connection issue\n_Exported on 3/6/2026 at 14:24:04 EST from Cursor (2.6.12)_\n\n---\n\n**User**\n\nreview C:\\Users\\carucci_r\\AppData\\Roaming\\Claude\\logs\\mcp-server-powerbi-modeling-mcp.log\naSituational Awareness with conn...",
+      "char_length": 19409,
+      "byte_length": 20035
+    },
+    {
+      "chunk_id": "2026-03-06T14:24:42+00:00_Response_Time_AllMetrics_Migration_And_Documentation_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "___responsetime_allmetrics",
+        "ai",
+        "conversation",
+        "data",
+        "docs",
+        "it-ops",
+        "json",
+        "markdown",
+        "model",
+        "police",
+        "python",
+        "sql",
+        "tables",
+        "time"
+      ],
+      "key_terms": [
+        "___responsetime_allmetrics",
+        "tables",
+        "you",
+        "old",
+        "model",
+        "time"
+      ],
+      "summary": "Power BI Desktop open with your report\n2.",
+      "char_length": 17644,
+      "byte_length": 18224
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

@@ -1,0 +1,84 @@
+table summons_top5_parking
+	lineageTag: 5dcd9ba4-e857-4dc4-8201-75fac2589c79
+
+	measure Top5_Parking_Subtitle =
+			
+			"Department-wide parking violations (" & FORMAT(EOMONTH(TODAY(), -1), "MMMM yyyy") & ")"
+		lineageTag: 8227b167-b903-4cdb-b22b-6ee7ce5daba0
+
+	column Count
+		dataType: double
+		lineageTag: 2b7c43cc-5094-4a61-ae45-1c7191da2077
+		summarizeBy: sum
+		sourceColumn: Count
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Month_Year
+		dataType: string
+		lineageTag: 3d2757e9-6876-4a81-88e9-0c1368734eec
+		summarizeBy: none
+		sourceColumn: Month_Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column Officer
+		dataType: string
+		lineageTag: 4d5a897d-c8b9-4e9b-97b0-afca0d082d57
+		summarizeBy: none
+		sourceColumn: Officer
+
+		annotation SummarizationSetBy = Automatic
+
+	partition summons_top5_parking = m
+		mode: import
+		source = ```
+				// 🕒 2026-02-21-01-00-00 (EST)
+				// # summons/summons_top5_parking.m
+				// # Author: R. A. Carucci
+				// # Purpose: Compute top 5 parking violation officers for the latest month.
+				
+				let
+				    // Load from SLIM CSV (~60% faster refresh)
+				    Source = Csv.Document(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    
+				    // Change YearMonthKey to number type
+				    ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"YearMonthKey", Int64.Type}, {"TYPE", type text}}),
+				    
+				    // Filter to Parking violations only
+				    FilteredParking = Table.SelectRows(ChangedType, each ([TYPE] = "P")),
+				    
+				    // Find LATEST month using YearMonthKey (integer sorting, not text!)
+				    LatestKey = List.Max(FilteredParking[YearMonthKey]),
+				    
+				    // Filter to latest month only
+				    FilteredLatestMonth = Table.SelectRows(FilteredParking, each [YearMonthKey] = LatestKey),
+				    
+				    // Group by OFFICER and count summons
+				    GroupedRows = Table.Group(
+				        FilteredLatestMonth, 
+				        {"OFFICER_DISPLAY_NAME", "Month_Year"}, 
+				        {{"Count", each Table.RowCount(_), type number}}
+				    ),
+				    
+				    // Sort by count descending
+				    SortedRows = Table.Sort(GroupedRows, {{"Count", Order.Descending}}),
+				    
+				    // Keep top 5
+				    Top5 = Table.FirstN(SortedRows, 5),
+				    
+				    // RENAME COLUMNS TO MATCH VISUAL EXPECTATIONS
+				    RenamedColumns = Table.RenameColumns(Top5, {
+				        {"OFFICER_DISPLAY_NAME", "Officer"}
+				    })
+				in
+				    RenamedColumns
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

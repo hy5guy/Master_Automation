@@ -1,0 +1,525 @@
+table ___Arrest_Categories
+	lineageTag: a1c0b838-e818-472b-b5ad-eda121e7b402
+
+	measure Test_Table_Exists =
+			
+			COUNTROWS('Arrest_Top')
+		formatString: 0
+		lineageTag: 72d5dbc7-e237-401a-a793-f45e6509348d
+
+	measure Subtitle_Arrest_Categories =
+			
+			VAR EndDate =
+			EOMONTH ( TODAY(), -1 )
+			RETURN
+			FORMAT ( EndDate, "MMMM yyyy" ) & " - All Lawsoft Arrests"
+		lineageTag: 26c6f269-0052-461d-8cee-315310426587
+
+	column Address
+		dataType: string
+		lineageTag: 67146f1c-6831-45ba-b9a7-61c59d05be93
+		summarizeBy: none
+		sourceColumn: Address
+
+		annotation SummarizationSetBy = Automatic
+
+	column Age
+		dataType: double
+		lineageTag: 0e3c413a-3854-48f3-9209-3d9bbeab6edb
+		summarizeBy: sum
+		sourceColumn: Age
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Arrest Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 58a4de7d-9691-4af2-8158-eb8f7a8ffde1
+		summarizeBy: none
+		sourceColumn: Arrest Date
+
+		variation Variation
+			isDefault
+			relationship: 2960623f-aa48-4ee9-997a-d3776817095e
+			defaultHierarchy: LocalDateTable_5ea5db37-e43d-4390-ab7d-0147be105c31.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Case Number'
+		dataType: string
+		lineageTag: cec6c645-80c3-4d8d-a390-7f5040cd457a
+		summarizeBy: none
+		sourceColumn: Case Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column DOB
+		dataType: string
+		lineageTag: 811cb9c6-cfdb-4169-a8fe-88594a8f8f1e
+		summarizeBy: none
+		sourceColumn: DOB
+
+		annotation SummarizationSetBy = Automatic
+
+	column Name
+		dataType: string
+		lineageTag: c052a514-20d0-43f0-b82c-5f6bd372467b
+		summarizeBy: none
+		sourceColumn: Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Officer of Record'
+		dataType: string
+		lineageTag: 30a92a2a-37d9-4cc6-bdef-aee207bce554
+		summarizeBy: none
+		sourceColumn: Officer of Record
+
+		annotation SummarizationSetBy = Automatic
+
+	column Race
+		dataType: string
+		lineageTag: c6da8121-5236-4380-936c-ec72ec7fbb87
+		summarizeBy: none
+		sourceColumn: Race
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sex
+		dataType: string
+		lineageTag: 6ce3f51f-14f5-4db1-8f16-bd03b19a64f0
+		summarizeBy: none
+		sourceColumn: Sex
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'UCR #'
+		dataType: string
+		lineageTag: fc33255a-4434-4078-92c1-0c6681ef5642
+		summarizeBy: none
+		sourceColumn: UCR #
+
+		annotation SummarizationSetBy = Automatic
+
+	column UCR_Code
+		dataType: string
+		lineageTag: e32f81e3-0d6c-4af3-9e40-dc35791ad92b
+		summarizeBy: none
+		sourceColumn: UCR_Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column ZIP
+		dataType: string
+		lineageTag: aa9ae30e-73f3-4091-a25d-3327902b7be7
+		summarizeBy: none
+		sourceColumn: ZIP
+
+		annotation SummarizationSetBy = Automatic
+
+	column state_id
+		dataType: string
+		lineageTag: acd97802-4e24-468b-b80d-c63b1607309a
+		summarizeBy: none
+		sourceColumn: state_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column county_name
+		dataType: string
+		lineageTag: 910e5160-58ba-4223-826c-5bb3b48f093d
+		summarizeBy: none
+		sourceColumn: county_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column UCR_Desc
+		dataType: string
+		lineageTag: 262c1bdb-c886-45bf-930f-0829c6ab39b4
+		summarizeBy: none
+		sourceColumn: UCR_Desc
+
+		annotation SummarizationSetBy = Automatic
+
+	column Home_Category
+		dataType: string
+		lineageTag: d6dd3270-d51b-43b6-ad75-15bd048b0019
+		summarizeBy: none
+		sourceColumn: Home_Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Charge
+		dataType: string
+		lineageTag: 2f117762-1278-47f4-a842-cd32405ff17b
+		summarizeBy: none
+		sourceColumn: Charge
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChargeCategory
+		dataType: string
+		lineageTag: 36f69c77-ace0-4ada-a673-c1ce251230c8
+		summarizeBy: none
+		sourceColumn: ChargeCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataQualityScore
+		dataType: double
+		lineageTag: 46d9c727-1956-459b-a115-e437ab38d6db
+		summarizeBy: sum
+		sourceColumn: DataQualityScore
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Home_Category_Final
+		dataType: string
+		lineageTag: 7cbbd865-7a45-4f84-bf64-af03cc23dc43
+		summarizeBy: none
+		sourceColumn: Home_Category_Final
+
+		annotation SummarizationSetBy = Automatic
+
+	column SourceFile
+		dataType: string
+		lineageTag: 23a73c90-d4f5-4252-8c99-13fd755c68cb
+		summarizeBy: none
+		sourceColumn: SourceFile
+
+		annotation SummarizationSetBy = Automatic
+
+	column blank
+		dataType: string
+		lineageTag: 865a64b5-ac1e-431f-a2c1-fadf436d99c7
+		summarizeBy: none
+		sourceColumn: blank
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Place of Arrest StNumber'
+		dataType: string
+		lineageTag: 01260618-5864-4e1d-b368-9fe55c05b7b3
+		summarizeBy: none
+		sourceColumn: Place of Arrest StNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Place of Arrest Street'
+		dataType: string
+		lineageTag: 41f0e338-7a8a-4dd1-b140-522e96092770
+		summarizeBy: none
+		sourceColumn: Place of Arrest Street
+
+		annotation SummarizationSetBy = Automatic
+
+	column city_of_residence
+		dataType: string
+		lineageTag: 682f863b-298d-48e4-adcc-9c4c567c79e3
+		summarizeBy: none
+		sourceColumn: city_of_residence
+
+		annotation SummarizationSetBy = Automatic
+
+	column Address_Defaulted
+		dataType: string
+		lineageTag: 35a70667-eeaa-4b19-a325-732ed6d51454
+		summarizeBy: none
+		sourceColumn: Address_Defaulted
+
+		annotation SummarizationSetBy = Automatic
+
+	column charge_category
+		dataType: string
+		lineageTag: 15293dc3-bbc6-42b7-ac76-1c9c5953e08e
+		summarizeBy: none
+		sourceColumn: charge_category
+
+		annotation SummarizationSetBy = Automatic
+
+	column statute
+		dataType: string
+		lineageTag: 0df284ab-9cd9-498a-8ad5-65b86f3d4aa7
+		summarizeBy: none
+		sourceColumn: statute
+
+		annotation SummarizationSetBy = Automatic
+
+	column charge_description
+		dataType: string
+		lineageTag: 767ca3eb-d176-453c-86d1-6d2a2a325cbd
+		summarizeBy: none
+		sourceColumn: charge_description
+
+		annotation SummarizationSetBy = Automatic
+
+	column JuvenileFlag
+		dataType: string
+		lineageTag: afa9021f-a209-4363-b286-a8a5d8eb58ae
+		summarizeBy: none
+		sourceColumn: JuvenileFlag
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReportCalcSummary
+		dataType: string
+		lineageTag: 76116d92-3035-45a5-bd19-1f4b20a315bd
+		summarizeBy: none
+		sourceColumn: ReportCalcSummary
+
+		annotation SummarizationSetBy = Automatic
+
+	column Reviewed
+		dataType: string
+		lineageTag: edea993c-29c0-4cae-9b33-b491d62c185a
+		summarizeBy: none
+		sourceColumn: Reviewed
+
+		annotation SummarizationSetBy = Automatic
+
+	column SS#Calc
+		dataType: string
+		lineageTag: 1b22a64b-27c7-4ca5-b467-8d4ba48811f6
+		summarizeBy: none
+		sourceColumn: SS#Calc
+
+		annotation SummarizationSetBy = Automatic
+
+	column source_file
+		dataType: string
+		lineageTag: 151ec8d1-5adf-4b33-a730-eb28087a65ce
+		summarizeBy: none
+		sourceColumn: source_file
+
+		annotation SummarizationSetBy = Automatic
+
+	column source_sheet
+		dataType: string
+		lineageTag: dc99c6b3-991a-4b61-99ba-3b04802fb860
+		summarizeBy: none
+		sourceColumn: source_sheet
+
+		annotation SummarizationSetBy = Automatic
+
+	column ExtractedZIP
+		dataType: string
+		lineageTag: 13147bc9-13b4-49a3-ad6f-976e15f5f4a6
+		summarizeBy: none
+		sourceColumn: ExtractedZIP
+
+		annotation SummarizationSetBy = Automatic
+
+	column OriginalZipColumn
+		dataType: string
+		lineageTag: 82791cf9-1e06-4acc-a5a8-e42cef000a64
+		summarizeBy: none
+		sourceColumn: OriginalZipColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column zip_code
+		dataType: string
+		lineageTag: 27e4bc36-1590-43d0-aefb-efa529839d9f
+		summarizeBy: none
+		sourceColumn: zip_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column ValidZIP
+		dataType: string
+		lineageTag: 69077da3-7aea-4671-a02f-7d8eaa8ea1a1
+		summarizeBy: none
+		sourceColumn: ValidZIP
+
+		annotation SummarizationSetBy = Automatic
+
+	column county_state
+		dataType: string
+		lineageTag: a7d7e294-4302-4831-9ca0-52691b1f6f76
+		summarizeBy: none
+		sourceColumn: county_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column state
+		dataType: string
+		lineageTag: 7d29ea3b-4991-4d12-a797-1af40ae8c1d5
+		summarizeBy: none
+		sourceColumn: state
+
+		annotation SummarizationSetBy = Automatic
+
+	column residence_category
+		dataType: string
+		lineageTag: 7767def4-1864-4c3f-a9e8-9dbccaab5f7b
+		summarizeBy: none
+		sourceColumn: residence_category
+
+		annotation SummarizationSetBy = Automatic
+
+	column FullAddress2
+		dataType: string
+		lineageTag: d4174927-8f7c-4b98-9652-4c486062ead8
+		summarizeBy: none
+		sourceColumn: FullAddress2
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthProcessed
+		dataType: string
+		lineageTag: 9902dd48-c986-46dc-8451-b3e80413eebc
+		summarizeBy: none
+		sourceColumn: MonthProcessed
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateFilterRange
+		dataType: string
+		lineageTag: f589d356-6ddf-4461-9b2d-2a43d9b14f75
+		summarizeBy: none
+		sourceColumn: DateFilterRange
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProcessingTimestamp
+		dataType: string
+		lineageTag: db61792e-52ce-47ce-8b7c-ff3248e6e0ea
+		summarizeBy: none
+		sourceColumn: ProcessingTimestamp
+
+		annotation SummarizationSetBy = Automatic
+
+	column RecordIndex
+		dataType: string
+		lineageTag: 75e492c7-e041-404b-acf4-ce58ee687128
+		summarizeBy: none
+		sourceColumn: RecordIndex
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthKey
+		dataType: string
+		lineageTag: 46b3bffa-f304-4c90-8522-45e14d535972
+		summarizeBy: none
+		sourceColumn: MonthKey
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___Arrest_Categories = m
+		mode: import
+		source = ```
+				// 🕒 2025-09-03-17-30-00
+				// Project: Arrest_Analysis/Arrest_Categories
+				// Author: R. A. Carucci
+				// Purpose: Simplified M Code that relies on Python preprocessing for geographic
+				// data
+				// Updated: pReportMonth-driven (no DateTime.LocalNow)
+				
+				let
+				    // ═══ A) Load latest Power BI ready file ═══════════════════════════
+				    FolderFiles = Folder.Files(
+				        "C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI"
+				    ),
+				    PowerBIFiles = Table.SelectRows(
+				        FolderFiles,
+				        each [Extension] = ".xlsx" and 
+				             Text.Contains([Name], "PowerBI_Ready")
+				    ),
+				    Sorted = Table.Sort(PowerBIFiles, {{"Date modified", Order.Descending}}),
+				    
+				    Source = if Table.RowCount(Sorted) > 0 then
+				        Excel.Workbook(Sorted{0}[Content], null, true){0}[Data]
+				    else
+				        error "No Power BI ready files found",
+				
+				    // ═══ B) Basic data cleaning ═══════════════════════════════════════
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    
+				    ToDate = (x) => try Date.From(x) otherwise null,
+				    ReportDate = pReportMonth,
+				    PrevY = Date.Year(ReportDate),
+				    PrevM = Date.Month(ReportDate),
+				    
+				    DateFiltered = Table.SelectRows(
+				        Headers,
+				        each let d = ToDate([#"Arrest Date"]) in
+				            d <> null and Date.Year(d) = PrevY and Date.Month(d) = PrevM
+				    ),
+				
+				    // ═══ C) Use Python-processed geographic data directly ═══════════
+				    WithHomeCategory = Table.AddColumn(
+				        DateFiltered,
+				        "Home_Category_Final",
+				        each 
+				            if Table.HasColumns(DateFiltered, "Home_Category") then 
+				                [Home_Category]
+				            else if Text.Contains(Text.Upper([Address] ?? ""), "HACKENSACK") then 
+				                "Local"
+				            else 
+				                "Check Data",
+				        type text
+				    ),
+				
+				    // ═══ D) Simple charge categorization ═════════════════════════════
+				    AddChargeCategory = Table.AddColumn(
+				        WithHomeCategory,
+				        "ChargeCategory",
+				        each 
+				            let charge = Text.Upper([Charge] ?? "") in
+				            if Text.Contains(charge, "ASSAULT") then "Assault"
+				            else if Text.Contains(charge, "SHOPLIFTING") then "Theft"
+				            else if Text.Contains(charge, "BURGLARY") then "Burglary"
+				            else if Text.Contains(charge, "ROBBERY") then "Robbery" 
+				            else if Text.Contains(charge, "WARRANT") then "Warrant"
+				            else if Text.Contains(charge, "DWI") then "DWI"
+				            else if Text.Contains(charge, "DRUG") then "Drug Related"
+				            else if Text.Contains(charge, "WEAPON") then "Weapons"
+				            else "Other",
+				        type text
+				    ),
+				
+				    // ═══ E) Data quality indicators ═════════════════════════════════
+				    AddDataQuality = Table.AddColumn(
+				        AddChargeCategory,
+				        "DataQualityScore", 
+				        each 
+				            (if [Name] <> null and [Name] <> "" then 1 else 0) +
+				            (if [Age] <> null and Number.From([Age] ?? 0) > 0 then 1 else 0) +
+				            (if [Address] <> null and [Address] <> "" then 1 else 0) +
+				            (if [Charge] <> null and [Charge] <> "" then 1 else 0) +
+				            (if Table.HasColumns(AddChargeCategory, "ZIP") and [ZIP] <> null then 1 else 0),
+				        type number
+				    ),
+				
+				    // ═══ F) Final type enforcement ═══════════════════════════════════
+				    TypedData = Table.TransformColumnTypes(
+				        AddDataQuality,
+				        {
+				            {"Age", type number},
+				            {"DataQualityScore", type number},
+				            {"Arrest Date", type date}
+				        }
+				    ),
+				
+				    // ═══ G) Add source tracking ═══════════════════════════════════════
+				    WithSourceInfo = Table.AddColumn(
+				        TypedData,
+				        "SourceFile",
+				        each if Table.RowCount(Sorted) > 0 then Sorted{0}[Name] else "Unknown",
+				        type text
+				    )
+				
+				in
+				    WithSourceInfo
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

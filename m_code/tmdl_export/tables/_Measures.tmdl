@@ -1,0 +1,40 @@
+table _Measures
+	lineageTag: e34fd405-ccc8-465a-bf4d-55ae3366e5dc
+
+	measure 'Total Summons' =
+			
+			COUNTROWS(summons_13month_trend)
+		formatString: 0
+		lineageTag: 292e5642-cae0-42a8-a5c3-1be871e153a8
+
+	measure 'Summons This Month' =
+			
+			CALCULATE(
+			    [Total Summons],
+			    DATESMTD(Date[Date])
+			)
+		lineageTag: 5ed97b57-6063-4613-a578-30c329fa62f1
+
+	measure 'Summons YoY' =
+			
+			CALCULATE(
+			    [Total Summons],
+			    SAMEPERIODLASTYEAR(Date[Date])
+			)
+		lineageTag: 68649c34-3842-454f-8c1f-9712faf4debd
+
+	column Value
+		formatString: 0
+		lineageTag: 21bd7f09-3cbf-4023-b09f-861dfe74eddf
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Value]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Measures = calculated
+		mode: import
+		source = { BLANK() }
+
+	annotation PBI_Id = ece1acd15eff4411bd2d8515c0eb3dd3
+

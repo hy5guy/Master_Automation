@@ -1,56 +1,75 @@
 # Summons Backfill – Code Injection Point
 
-**Purpose:** Fill Department-Wide Summons data gaps for months **03-25, 07-25, 10-25, 11-25** by merging from the organized backfill folder.
+**Purpose:** Fill Department-Wide Summons data gaps for months where no e-ticket export exists, by merging aggregate totals from the organized backfill folder.
+
+**Last Updated:** 2026-03-11
 
 ---
 
-## Where to inject (DEPLOYED)
+## Active Pipeline (DEPLOYED)
 
-**Script:** `02_ETL_Scripts/Summons/summons_etl_enhanced.py` (active script per config)  
-**Path:** `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Summons\summons_etl_enhanced.py`
+**Entry point:** `run_summons_etl.py` (repo root)  
+**Core ETL:** `scripts/summons_etl_normalize.py` — `normalize_personnel_data()`  
+**Backfill merge:** `scripts/summons_backfill_merge.py` — `merge_missing_summons_months()`
 
-**Injection point:** After `create_unified_summons_dataset()` and before `save_to_staging()`:
+**Flow:**
+1. `run_summons_etl.py` discovers e-ticket files from both `2025/month/` and `2026/month/`
+2. Calls `normalize_personnel_data()` to load, clean, classify (raw Case Type Code M/P/C), and join to Assignment Master
+3. Calls `merge_missing_summons_months()` to inject backfill for gap months
+4. Writes 3-tier output: RAW CSV, CLEAN Excel (`summons_powerbi_latest.xlsx`), SLIM CSV (`summons_slim_for_powerbi.csv`)
 
-1. Add `TICKET_COUNT=1` to main df (ticket-level rows)
-2. Call `merge_missing_summons_months(unified_data)` from `Master_Automation/scripts/summons_backfill_merge.py`
-3. The script adds `Master_Automation/scripts` to `sys.path` so the import resolves
-
-**Note:** `main_orchestrator.py` is not used; config uses `summons_etl_enhanced.py`.
-
----
-
-## Skeleton location
-
-- **File:** `Master_Automation/scripts/summons_backfill_merge.py`
-- **Function:** `merge_missing_summons_months(df, backfill_root=None, backfill_month_label="2025_12")`
-- **Behavior:** Currently a no-op (returns `df` unchanged). TODO: load from `Backfill\2025_12\summons\` (or `backfill_month_label`) for the four gap months; normalize schema to match main df; ensure WG2 (Bureau) is set for backfilled rows; concatenate and return.
+Power BI M code queries source `summons_slim_for_powerbi.csv` directly.
 
 ---
 
-## Backfill folder layout
+## Gap Months (as of 2026-03-11)
 
-After `organize_backfill_exports.ps1` and any normalization:
+| Month | Status | Source |
+|-------|--------|--------|
+| 07-25 | **True gap** | No e-ticket export exists. 17 straggler M records from other months with July issue dates. **Backfill P (3413) and C** from `Backfill/2026_01/summons/` — type-aware merge adds only missing TYPEs (avoids M double-count). |
+| All other 2025 months | E-ticket data available | Files in `05_EXPORTS\_Summons\E_Ticket\2025\month\` |
 
-- `PowerBI_Date\Backfill\2025_12\summons\` (or similar) should contain CSVs that can be merged for 03-25, 07-25, 10-25, 11-25.
-
-Use the same logging style as the rest of the Summons ETL (e.g. `logging.getLogger(__name__)` or existing logger). Paths should use `ONEDRIVE_BASE` or `ONEDRIVE_HACKENSACK` env when available; see `summons_backfill_merge._get_backfill_root()`.
-
----
-
----
-
-## Dependencies and caveats
-
-- **Python environment:** The orchestrator uses the executable from `config/scripts.json` (`python_executable`). That environment must have `pandas` and `openpyxl` installed, or `validate_exports.py` and `summons_backfill_merge.py` will fail. Install from the repo root: `pip install -r requirements.txt`.
-- **OneDrive sync:** If OneDrive is syncing `.xlsx` files while a script reads them, you may see `PermissionError`. `validate_exports.py` retries up to 3 times with a 2s delay; for other scripts, run when sync is idle or add a similar retry in production.
-- **Schema drift:** If the Power BI visual export changes column names (e.g. "Sum of Value" → "Total"), update `RENAME_MAP` in `scripts/summons_backfill_merge.py`.
-- **Visual export date format:** The backfill merge expects `MM-YY` (e.g. `03-25`) in gap months and in `PeriodLabel`. If Power BI is set to a different format (e.g. "March 2025"), the script logs a warning and skips the file; check logs if backfill data appears missing.
-- **Memory:** Backfill CSVs are read with `low_memory=False` to reduce DtypeWarnings; for very large files, memory use may increase. Monthly exports are typically small.
-
-*Created 2026-02-12; updated with Gemini review (centralized paths, full merge implementation).*
+Previously (pre-2026-03-10), months 03-25, 10-25, 11-25 were listed as gaps, and 01-25/02-25 were set to prefer backfill. File discovery confirmed all those months have e-ticket exports.
 
 ---
 
-## ⚠️ Verification Note (2026-03-03)
+## Backfill Configuration
 
-**Review required:** Re-export all summons e-ticket data to verify counts. See `docs/SUMMONS_VERIFICATION_NOTE_2026_03.md`.
+In `scripts/summons_backfill_merge.py`:
+
+```python
+SUMMONS_GAP_MONTHS = ("07-25",)          # Only July 2025 is a true gap
+SUMMONS_BACKFILL_PREFER_MONTHS = ()      # Empty: all months with e-ticket data use individual records
+DEFAULT_BACKFILL_SUMMONS_LABEL = "2026_01"
+```
+
+---
+
+## Backfill Folder Layout
+
+**Confirmed paths (checked in order):**
+1. `{OneDrive}/00_dev/projects/PowerBI_Date/Backfill/{label}/summons/` — **preferred**
+2. `{OneDrive}/PowerBI_Date/Backfill/{label}/summons/`
+
+Example: `C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\projects\PowerBI_Date\Backfill\2026_01\summons\2026_01_Department-Wide Summons  Moving and Parking.csv`
+
+CSVs in these folders are expected in "Long" format with columns: `PeriodLabel` (or `Period`), `WG2`, `TICKET_COUNT` (or `Sum of Value`), `TYPE`. Column renaming is handled by `RENAME_MAP` in the merge script.
+
+**Backfill-as-source-of-truth (v1.18.4):** For ALL months in the consolidated backfill file, e-ticket rows are removed and backfill values are used exclusively. The Department-Wide Summons visual now matches the backfill file exactly (e.g. 02-25 M=274, 07-25 M=402). Months not in backfill (12-25, 01-26, 02-26) use e-ticket data.
+
+---
+
+## Dependencies and Caveats
+
+- **Python environment:** Requires `pandas` and `openpyxl`. Install: `pip install -r requirements.txt`
+- **OneDrive sync:** May cause `PermissionError` on .xlsx files during sync. Run when sync is idle.
+- **Schema drift:** If Power BI visual export changes column names, update `RENAME_MAP` in `summons_backfill_merge.py`.
+- **BOM encoding:** The ETL uses `utf-8-sig` to handle Byte Order Mark in CSV files (DOpus FIXED exports).
+
+---
+
+## Related Documentation
+
+- `docs/PROMPT_Claude_MCP_Summons_Bugfix.md` — M code fixes applied via Claude Desktop MCP
+- `docs/PROMPT_Claude_MCP_Summons_Round3_Fix.md` — Window, WG2 filter, and Total null fixes
+- `docs/Debug summons automation backfill and Power BI issues.md` — Original audit workup

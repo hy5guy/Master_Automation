@@ -1,0 +1,202 @@
+table ___Chief2
+	lineageTag: 5207b22e-63b3-4bbc-a62f-d783526c2c39
+
+	column 'Tracked Items'
+		dataType: string
+		lineageTag: a7b93415-4b46-4bf3-b03c-731565b171c5
+		summarizeBy: none
+		sourceColumn: Tracked Items
+
+		annotation SummarizationSetBy = Automatic
+
+	column Category
+		dataType: string
+		lineageTag: 056ba538-0ec8-49b0-9c56-38fd5998d2b0
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Division/Bureau
+		dataType: string
+		lineageTag: 7c874e7a-80b6-4849-b29b-938addd0ff9c
+		summarizeBy: none
+		sourceColumn: Division/Bureau
+
+		annotation SummarizationSetBy = Automatic
+
+	column Activity_Level
+		dataType: string
+		lineageTag: 16026cb2-e7f8-42aa-b8aa-eebd2ffc022e
+		summarizeBy: none
+		sourceColumn: Activity_Level
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Recent 3 Month Avg'
+		dataType: double
+		lineageTag: 83f3d07d-79d4-4d00-9e3f-c6b0c9a153f1
+		summarizeBy: sum
+		sourceColumn: Recent 3 Month Avg
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'YoY Change %'
+		dataType: double
+		lineageTag: faa5b096-7443-4102-b93f-9f5fdc74ef16
+		summarizeBy: sum
+		sourceColumn: YoY Change %
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Month
+		dataType: string
+		lineageTag: 8bec71aa-33d9-44f3-81ce-78ce4176a88b
+		summarizeBy: none
+		sourceColumn: Month
+		sortByColumn: MonthIndex
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column PeriodDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 0aa3c022-c2c5-4574-9d5b-44c88a877b1f
+		summarizeBy: none
+		sourceColumn: PeriodDate
+
+		variation Variation
+			isDefault
+			relationship: 40e22c4c-c566-4c53-9655-490154aee192
+			defaultHierarchy: LocalDateTable_8f34d3fe-898e-4c92-a658-b9e90ec7f04f.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Total
+		dataType: int64
+		formatString: 0
+		lineageTag: 04c340fa-e907-4bd4-986f-37b40d7462a5
+		summarizeBy: sum
+		sourceColumn: Total
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthIndex
+		dataType: int64
+		formatString: 0
+		lineageTag: 61ffc040-cd38-4bd6-b83a-8cb1bbb66fd5
+		summarizeBy: sum
+		sourceColumn: MonthIndex
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___Chief2 = m
+		mode: import
+		source = ```
+				let
+				    // === Load Chief Excel File ===
+				    Source = Excel.Workbook(
+				        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Chief\chief_monthly.xlsx"), 
+				        null, true
+				    ),
+				    ChiefTable = Source{[Item="MoM_Chief", Kind="Table"]}[Data],
+				
+				    // === Set Column Types Dynamically ===
+				    ColumnNames = Table.ColumnNames(ChiefTable),
+				    MonthColumns = List.Select(ColumnNames, each Text.Contains(_, "-") and Text.Length(_) >= 4),
+				    TrackedItemsType = {{"Tracked Items", type text}},
+				    MonthTypes       = List.Transform(MonthColumns, each {_, Int64.Type}),
+				    AllTypes         = List.Combine({TrackedItemsType, MonthTypes}),
+				    ChangedTypes     = Table.TransformColumnTypes(ChiefTable, AllTypes),
+				
+				    // === Clean Text Data ===
+				    CleanedText  = Table.TransformColumns(ChangedTypes, {{"Tracked Items", Text.Clean, type text}}),
+				    TrimmedText  = Table.TransformColumns(CleanedText, {{"Tracked Items", Text.Trim, type text}}),
+				    FilteredRows = Table.SelectRows(TrimmedText, each [Tracked Items] <> ""),
+				
+				    // === Classifications ===
+				    AddedCategory = Table.AddColumn(FilteredRows, "Category", each
+				        let item = Text.Upper([Tracked Items]) in
+				        if Text.Contains(item,"MEETING") then "Meetings & Conferences"
+				        else if Text.Contains(item,"TRAINING") then "Training & Development"
+				        else "Executive Administration"
+				    , type text),
+				
+				    AddedDivision = Table.AddColumn(AddedCategory, "Division/Bureau", each "Chief of Police - Executive Office", type text),
+				
+				    AddedActivityLevel = Table.AddColumn(AddedDivision, "Activity_Level", each
+				        let
+				          cols = MonthColumns,
+				          recent = List.LastN(cols,3),
+				          vals = List.Transform(recent, each try Record.Field(_,_) otherwise 0),
+				          avg3 = if List.Count(vals)>0 then List.Average(vals) else 0
+				        in
+				          if avg3>=10 then "High Activity"
+				          else if avg3>=5 then "Moderate Activity"
+				          else if avg3>0 then "Low Activity"
+				          else "No Recent Activity"
+				    , type text),
+				
+				    AddedRecentTotal = Table.AddColumn(AddedActivityLevel, "Recent 3 Month Avg", each
+				        let
+				          cols = MonthColumns,
+				          recent = List.LastN(cols,3),
+				          vals = List.Transform(recent, each try Record.Field(_,_) otherwise 0),
+				          clean = List.Select(vals, each _<>null),
+				          a = if List.Count(clean)>0 then List.Average(clean) else 0
+				        in Number.Round(a,1)
+				    , type number),
+				
+				    AddedYoYComparison = Table.AddColumn(AddedRecentTotal, "YoY Change %", each
+				        let
+				          cols = MonthColumns,
+				          sorted = List.Sort(cols),
+				          curr  = List.Last(sorted),
+				          parts = Text.Split(curr,"-"),
+				          mm    = parts{0},
+				          yy    = Number.From(parts{1}),
+				          prev  = mm & "-" & Text.From(yy-1),
+				          cVal  = Record.Field(_,curr),
+				          pVal  = try Record.Field(_,prev) otherwise 0,
+				          pct   = if pVal>0 then (cVal - pVal)/pVal*100 else 0
+				        in Number.Round(pct,1)
+				    , type number),
+				
+				    // === NEW: Unpivot + Date + Type + Index ===
+				    Unpivoted     = Table.Unpivot(AddedYoYComparison, MonthColumns, "Month", "Total"),
+				    AddDate       = Table.AddColumn(Unpivoted, "PeriodDate", each Date.FromText("01-" & [Month]), type date),
+				    ChangeType2   = Table.TransformColumnTypes(AddDate, {{"Total", Int64.Type}}),
+				    AddMonthIndex = Table.AddColumn(ChangeType2, "MonthIndex", each Date.Year([PeriodDate])*100 + Date.Month([PeriodDate]), Int64.Type),
+				
+				    // === Final columns ===
+				    Final = Table.SelectColumns(
+				      AddMonthIndex,
+				      {
+				        "Tracked Items",
+				        "Category",
+				        "Division/Bureau",
+				        "Activity_Level",
+				        "Recent 3 Month Avg",
+				        "YoY Change %",
+				        "Month",
+				        "PeriodDate",
+				        "Total",
+				        "MonthIndex"
+				      }
+				    )
+				in
+				    Final
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

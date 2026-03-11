@@ -1,0 +1,38 @@
+{
+  "tags": [
+    "ai",
+    "conversation",
+    "data",
+    "docs",
+    "it-ops",
+    "json",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "power",
+        "___responsetime_allmetrics",
+        "claude",
+        "you",
+        "mcp",
+        "tables"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Claude MCP power BI connection issue\n_Exported on 3/6/2026 at 14:24:04 EST from Cursor (2.6.12)_\n\n---\n\n**User**\n\nreview C:\\Users\\carucci_r\\AppData\\Roaming\\Claude\\logs\\mcp-server-powerbi-modeling-mcp.log\naSituational Awareness with conn...",
+      "first_line": "# Claude MCP power BI connection issue"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-03-06T14:24:42.254944",
+  "department": "admin"
+}

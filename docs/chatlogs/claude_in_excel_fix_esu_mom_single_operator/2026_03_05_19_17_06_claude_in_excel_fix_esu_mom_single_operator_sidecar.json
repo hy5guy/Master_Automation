@@ -1,0 +1,98 @@
+{
+  "source_file": "claude_in_excel_fix_esu_mom_single_operator.md",
+  "source_path": "C:\\_chunker\\02_data\\claude_in_excel_fix_esu_mom_single_operator.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\claude_in_excel_fix_esu_mom_single_operator\\2026_03_05_19_17_06_claude_in_excel_fix_esu_mom_single_operator.origin.json",
+  "created_at": "2026_03_05_19_17_06",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "markdown",
+    "police",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "esu",
+      "row",
+      "table",
+      "single",
+      "operator",
+      "mom"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "the attached esu excel workbook was updated but the power bi query is not showing the values in the visual, namely the values for ESU OOS and 1 Man ESU for 01-26 and 02-26, see sheets 26_JAN and 26_FEB review the main table on the sheet...",
+    "first_line": "the attached esu excel workbook was updated but the power bi query is not showing the values in the visual, namely the values for ESU OOS and 1 Man ESU for 01-26 and 02-26, see sheets 26_JAN and 26_FEB review the main table on the sheet (No"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-03-05T19:17:06+00:00_claude_in_excel_fix_esu_mom_single_operator_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "docs",
+        "excel",
+        "json",
+        "markdown",
+        "operator",
+        "police",
+        "single",
+        "sql",
+        "table"
+      ],
+      "key_terms": [
+        "esu",
+        "table",
+        "row",
+        "single",
+        "operator",
+        "mom"
+      ],
+      "summary": "the attached esu excel workbook was updated but the power bi query is not showing the values in the visual, namely the values for ESU OOS and 1 Man ESU for 01-26 and 02-26, see sheets 26_JAN and 26_FEB review the main table on the sheet...",
+      "char_length": 30068,
+      "byte_length": 31103
+    },
+    {
+      "chunk_id": "2026-03-05T19:17:06+00:00_claude_in_excel_fix_esu_mom_single_operator_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "docs",
+        "excel",
+        "json",
+        "markdown",
+        "operator",
+        "police",
+        "single",
+        "sql"
+      ],
+      "key_terms": [
+        "esu",
+        "row",
+        "single",
+        "operator",
+        "mom",
+        "man"
+      ],
+      "summary": "Goals (do these in order):\nVerify rows are inside the tables\nGo to sheet 26_JAN.",
+      "char_length": 16771,
+      "byte_length": 17252
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

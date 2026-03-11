@@ -1,0 +1,40 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "it-ops",
+    "json",
+    "markdown",
+    "police",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "table",
+        "esu",
+        "log",
+        "column",
+        "oos",
+        "let"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "why is the power visual that gets data imported from this file have an error and not showing the correct value for ESU OOS. the queries m code is below\n// 🕒 2026-02-17-14-30-00\n// # Master_Automation/m_code/esu/ESU_13Month.m\n// # Author: R.",
+      "first_line": "why is the power visual that gets data imported from this file have an error and not showing the correct value for ESU OOS.  the queries m code is below"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-03-05T14:52:44.257872",
+  "department": "admin"
+}

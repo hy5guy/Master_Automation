@@ -1,0 +1,378 @@
+table ___In_Person_Training
+	lineageTag: ad67753c-c66f-44d7-a8a4-a1aa064bebd7
+
+	measure 'Metrics Qual Title' =
+			
+			"Training Metrics, Qualifications & Performance Analytics"
+		lineageTag: 6c115411-496a-4080-b3ee-1129d0b32c76
+
+	measure 'Metrics Qual Subtitle' = ```
+			
+			VAR _MinDate = MIN('Policy_Training_Metrics_Qual'[Date])
+			VAR _MaxDate = MAX('Policy_Training_Metrics_Qual'[Date])
+			VAR _StartMonth = FORMAT(_MinDate, "MMM YYYY")
+			VAR _EndMonth = FORMAT(_MaxDate, "MMM YYYY")
+			VAR _MonthCount = DATEDIFF(_MinDate, _MaxDate, MONTH) + 1
+			VAR _TotalActivity = SUM('Policy_Training_Metrics_Qual'[Value])
+			VAR _MetricCount = DISTINCTCOUNT('Policy_Training_Metrics_Qual'[Tracked Items])
+			VAR _LastUpdated = FORMAT(TODAY(), "MMM DD, YYYY")
+			VAR _QualAttendees = 
+			    CALCULATE(
+			        SUM('Policy_Training_Metrics_Qual'[Value]),
+			        'Policy_Training_Metrics_Qual'[Tracked Items] IN {
+			            "Handgun Qual Attendees",
+			            "Rifle Qual Attendees", 
+			            "Sub-Gun Qual Attendees",
+			            "Taser Qual"
+			        }
+			    )
+			VAR _InPersonTotal = 
+			    CALCULATE(
+			        SUM('Policy_Training_Metrics_Qual'[Value]),
+			        'Policy_Training_Metrics_Qual'[Tracked Items] = "Total Attendees In-Person Training"
+			    )
+			RETURN
+			"Rolling " & _MonthCount & "-Month Analysis | " & 
+			_StartMonth & " - " & _EndMonth & " | " &
+			FORMAT(_QualAttendees, "#,0") & " Qualification Attendees | " &
+			FORMAT(_InPersonTotal, "#,0") & " In-Person Total | " &
+			_MetricCount & " Metrics Tracked | " &
+			"Updated " & _LastUpdated
+			```
+		lineageTag: 28404bee-2f70-43a7-8862-10a6b7e71625
+
+	measure 'Metrics Total' =
+			
+			SUM('Policy_Training_Metrics_Qual'[Value])
+		lineageTag: f74416cc-ab64-41f8-96d2-faf89a3a812e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'In-Person Training Total' = ```
+			
+			CALCULATE(
+			    SUM('Policy_Training_Metrics_Qual'[Value]),
+			    'Policy_Training_Metrics_Qual'[Tracked Items] = "Total Attendees In-Person Training"
+			)
+			
+			```
+		lineageTag: 299c8b57-6211-4dcf-ab1d-0cd4b68e128e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Online Training Total' =
+			
+			CALCULATE(
+			    SUM('Policy_Training_Metrics_Qual'[Value]),
+			    'Policy_Training_Metrics_Qual'[Tracked Items] = "Total Attendees On-Line Training"
+			)
+		lineageTag: 749c79ed-46bd-4779-ab90-62505d0c299e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Course Count' =
+			
+			DISTINCTCOUNT('___In_Person_Training'[Course Name])
+		formatString: 0
+		lineageTag: c0e700cf-7956-4295-b685-daf213845977
+
+	measure 'Course Primary Category' = ```
+			
+			CALCULATE(
+			    SELECTEDVALUE('Policy_Training_Metrics_Qual'[Training_Category]),
+			    ALLEXCEPT('Policy_Training_Metrics_Qual', 'Policy_Training_Metrics_Qual'[Course Name])
+			)
+			
+			```
+		lineageTag: fd9f4e72-8ddb-48c6-8065-8ffdfecf0143
+
+	measure 'Is High Impact Course' = ```
+			
+			CALCULATE(
+			    IF(
+			        COUNTROWS(
+			            FILTER('Policy_Training_Metrics_Qual', 
+			                   'Policy_Training_Metrics_Qual'[High_Impact] = TRUE)
+			        ) > 0,
+			        "🔥 High Impact",
+			        "Standard"
+			    ),
+			    ALLEXCEPT('Policy_Training_Metrics_Qual', 'Policy_Training_Metrics_Qual'[Course Name])
+			)
+			
+			```
+		lineageTag: ea1144d1-a74e-48a9-b364-1e64a2cfffdc
+
+	measure 'In-Person Instances' =
+			
+			CALCULATE(
+			    COUNTROWS('Policy_Training_Metrics_Qual'),
+			    'Policy_Training_Metrics_Qual'[Delivery_Type] = "In-Person",
+			    ALLEXCEPT('Policy_Training_Metrics_Qual', 'Policy_Training_Metrics_Qual'[Course Name])
+			)
+		formatString: 0
+		lineageTag: a5aa6259-6aee-4bd5-be50-85d22468fe5b
+
+	measure 'Online Instances' =
+			
+			CALCULATE(
+			    COUNTROWS('Policy_Training_Metrics_Qual'),
+			    'Policy_Training_Metrics_Qual'[Delivery_Type] = "Online",
+			    ALLEXCEPT('Policy_Training_Metrics_Qual', 'Policy_Training_Metrics_Qual'[Course Name])
+			)
+		formatString: 0
+		lineageTag: 1e6e0a75-5aa8-418f-8645-428795533555
+
+	measure 'Course Delivery Mix' = ```
+			
+			VAR InPersonCount = [In-Person Instances]
+			VAR OnlineCount = [Online Instances]
+			VAR Total = InPersonCount + OnlineCount
+			RETURN
+			IF(
+			    Total > 0,
+			    "In-Person: " & InPersonCount & " | Online: " & OnlineCount & 
+			    " (" & FORMAT(DIVIDE(InPersonCount, Total), "0%") & " In-Person)",
+			    "No Data"
+			)
+			```
+		lineageTag: a1763c0a-e4d4-4ee9-bc16-627b5225415f
+
+	measure 'Course Training Level' =
+			
+			CALCULATE(
+			    SELECTEDVALUE('Policy_Training_Metrics_Qual'[Training_Level]),
+			    ALLEXCEPT('Policy_Training_Metrics_Qual', 'Policy_Training_Metrics_Qual'[Course Name])
+			)
+		lineageTag: 3394a7c0-09ad-4aa2-af98-235a4d8289ef
+
+	measure 'Cost per Attendee by Course' =
+			
+			VAR TotalCost = [Total Cost by Course]
+			VAR TotalAttendees = [Total Attendees by Course]
+			RETURN
+			IF(TotalAttendees > 0, DIVIDE(TotalCost, TotalAttendees), 0)
+		lineageTag: 244abb36-89c0-44ab-9dee-8fba1c2c8459
+
+	measure 'Course Utilization Score' =
+			
+			VAR Frequency = [Course Frequency]
+			VAR AvgAttendees = [Avg Attendees per Course]
+			VAR ActiveMonths = [Course Active Months]
+			RETURN
+			Frequency * AvgAttendees * ActiveMonths
+		lineageTag: 22ae0bfa-d463-41b1-9c03-271c2e70975e
+
+	measure 'Total Training Attendees' =
+			
+			SUM('Policy_Training_Metrics_Qual'[Count of Attendees])
+		lineageTag: 448d7acb-2617-4b54-8619-7120f5a9aac5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Courses' =
+			
+			DISTINCTCOUNT('___In_Person_Training'[Course Name])
+		formatString: 0
+		lineageTag: 57e1cdcd-555f-4a11-b6b7-26359057c87c
+
+	measure 'Category Row Total' =
+			
+			CALCULATE(
+			    [Total Training Attendees],
+			    ALLEXCEPT('Policy_Training_Metrics_Qual', 'Policy_Training_Metrics_Qual'[Training_Category])
+			)
+		lineageTag: 4f3f4c74-c36b-49d3-97b8-0ccc9462171f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Period Column Total' = ```
+			
+			CALCULATE(
+			    [Total Training Attendees],
+			    ALLEXCEPT('Policy_Training_Metrics_Qual', 'Policy_Training_Metrics_Qual'[Period])
+			)
+			
+			```
+		lineageTag: feddb909-e690-4265-a567-94fe43a8526e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Grand Total Attendees' =
+			
+			CALCULATE(
+			    [Total Training Attendees],
+			    ALL('Policy_Training_Metrics_Qual'[Training_Category]),
+			    ALL('Policy_Training_Metrics_Qual'[Period])
+			)
+		lineageTag: 19b4ab9c-d7c9-41fb-a365-c27cfdaa0e79
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Subtitle – In-Person Training' = ```
+			
+			VAR dPrev = EOMONTH ( TODAY (), -1 )
+			VAR m = MONTH ( dPrev )
+			VAR y = YEAR ( dPrev )
+			VAR mAbbrev =
+			    SWITCH ( m,
+			        1, "January", 2, "February", 3, "March", 4, "April", 5, "May", 6, "June",
+			        7, "July", 8, "August", 9, "September", 10, "October", 11, "November", 12, "December"
+			    )
+			RETURN
+			"Attended Training for " & mAbbrev & " " & y
+			
+			```
+		lineageTag: 15f0015b-f814-4167-8eec-f0ad70b6c5b3
+
+	column 'Course Duration'
+		dataType: int64
+		formatString: 0
+		lineageTag: c5e13664-c989-4be6-9626-3aa289790892
+		summarizeBy: sum
+		sourceColumn: Course Duration
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Course Name'
+		dataType: string
+		lineageTag: 3231e8cc-d758-434a-a0e8-85bfa0bcc619
+		summarizeBy: none
+		sourceColumn: Course Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Total Cost'
+		dataType: double
+		lineageTag: b26547ce-14e5-49e8-8a22-8d58a6e60bcf
+		summarizeBy: sum
+		sourceColumn: Total Cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Attendees Count'
+		dataType: int64
+		formatString: 0
+		lineageTag: ddab4923-2ed5-475b-94a7-277d86005844
+		summarizeBy: sum
+		sourceColumn: Attendees Count
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Start date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 160b9352-d3c8-40e1-bdff-9d5cd0497943
+		summarizeBy: none
+		sourceColumn: Start date
+
+		variation Variation
+			isDefault
+			relationship: 93883425-f190-4bdc-a550-8c95a34e5c04
+			defaultHierarchy: LocalDateTable_09748da8-7d8b-40bd-b61a-5c8272e80dac.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'End date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: e2e78988-a0dc-4a9d-a7cc-f3555b6064b8
+		summarizeBy: none
+		sourceColumn: End date
+
+		variation Variation
+			isDefault
+			relationship: 0d888431-a5d2-46d2-9173-6d2a67fe5a62
+			defaultHierarchy: LocalDateTable_5166365e-fb5e-4b5a-a6a2-17deed5cb8ff.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Event Id'
+		dataType: string
+		lineageTag: 900e7456-37fc-4124-99b7-2590aae5be87
+		summarizeBy: none
+		sourceColumn: Event Id
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___In_Person_Training = m
+		mode: import
+		source =
+				// 🕒 2025-11-10-17-30-00
+				// Project: Policy_Training / In_Person_Training
+				// Author: R. A. Carucci
+				// Purpose: Load In-Person training list from ETL output, preserving individual
+				// event records with dates
+				
+				let
+				    // Load ETL workbook/sheet
+				    Source = Excel.Workbook(
+				        File.Contents("C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Policy_Training_Monthly\\output\\policy_training_outputs.xlsx"),
+				        null, true),
+				    Tbl = Source{[Item = "InPerson_Prior_Month_List", Kind = "Sheet"]}[Data],
+				    Promoted = Table.PromoteHeaders(Tbl, [PromoteAllScalars = true]),
+				
+				    // Handle either naming convention (with/without spaces)
+				    Aliases = {{"CourseDuration", "Course Duration"},
+				               {"TotalCost", "Total Cost"},
+				               {"AttendeesCount", "Attendees Count"}},
+				    Standardized = List.Accumulate(
+				        Aliases, Promoted,
+				        (state, pair) => // <--- ERROR WAS HERE
+				            if Table.HasColumns(state, {pair{0}}) and
+				            not Table.HasColumns(state, {pair{1}})
+				                    then Table.RenameColumns(state, {pair}) else state),
+				
+				    // Keep expected columns (now includes dates to preserve individual events)
+				    Kept = Table.SelectColumns(Standardized,
+				                               {"Start date", "End date", "Course Name",
+				                                "Course Duration", "Total Cost",
+				                                "Attendees Count"},
+				                               MissingField.Ignore),
+				
+				    // Strong typing + safe numeric coercion (ensures totals will sum)
+				    Coerced = Table.TransformColumns(
+				        Kept,
+				        {{"Start date", each try DateTime.From(_) otherwise null,
+				          type nullable datetime},
+				         {"End date", each try DateTime.From(_) otherwise null,
+				          type nullable datetime},
+				         {"Course Name", each if _ = null then "" else Text.From(_), type text},
+				         {"Course Duration",
+				          each try Number.RoundDown(Number.From(_)) otherwise 0, Int64.Type},
+				         {"Total Cost", each try Number.From(_) otherwise 0, type number},
+				         {"Attendees Count",
+				          each try Number.RoundDown(Number.From(_)) otherwise 0, Int64.Type}}),
+				
+				    // Sort by Start date to match visual expectations
+				    Sorted = Table.Sort(Coerced, {{"Start date", Order.Ascending}}),
+				
+				    // Create deterministic event identifier to keep duplicate course names
+				    // distinct in visuals
+				    WithEventId = Table.AddColumn(
+				        Sorted, "Event Id",
+				        each Text.Combine(
+				            {
+				              if
+				                [Start date]<> null then DateTime.ToText(
+				                    [Start date], "yyyy-MM-ddTHH:mm:ss") else "",
+				                    Text.Trim([Course Name]), Text.From([Course Duration]),
+				                    Text.From([Attendees Count]),
+				                    Text.From(Number.From([Total Cost]))
+				            },
+				            "|"),
+				        type text),
+				    #"Changed Type" = Table.TransformColumnTypes(WithEventId,{{"End date", type date}, {"Start date", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

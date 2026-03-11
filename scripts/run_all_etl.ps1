@@ -299,18 +299,52 @@ function Test-RequiredInputs {
         }
         
         "Overtime TimeOff" {
-            # Check for VCS time report exports (if known location)
-            $vcsBase = Join-Path $OneDriveBase "05_EXPORTS"
-            $vcsPath = Join-Path $vcsBase "_VCS_Time_Report"
-            
-            if (Test-Path $vcsPath) {
-                Write-Success "  VCS Time Report export directory found: $vcsPath"
-                $validationResults += [pscustomobject]@{ File = "VCS Time Report Directory"; Path = $vcsPath; Status = "Found" }
+            # Script uses: 05_EXPORTS\_Overtime, 05_EXPORTS\_Time_Off (raw exports) + PowerBI_Date\Backfill\YYYY_MM\vcs_time_report (visual backfill)
+            $otBase = Join-Path $OneDriveBase "05_EXPORTS\_Overtime\export\month"
+            $toBase = Join-Path $OneDriveBase "05_EXPORTS\_Time_Off\export\month"
+            $backfillBase = Join-Path $OneDriveBase "PowerBI_Date\Backfill"
+            $yyyymm = "$year`_$month"
+            $otPath = Join-Path $otBase "$year\$yyyymm`_otactivity.xlsx"
+            $toPath = Join-Path $toBase "$year\$yyyymm`_timeoffactivity.xlsx"
+            $otPathXls = Join-Path $otBase "$year\$yyyymm`_otactivity.xls"
+            $toPathXls = Join-Path $toBase "$year\$yyyymm`_timeoffactivity.xls"
+            $vcsFolder = Join-Path $backfillBase "$year`_$month\vcs_time_report"
+
+            $otFound = (Test-Path $otPath) -or (Test-Path $otPathXls)
+            $toFound = (Test-Path $toPath) -or (Test-Path $toPathXls)
+            $vcsFound = (Test-Path $vcsFolder) -and ((Get-ChildItem $vcsFolder -Filter "*onthly*ccrual*.csv" -ErrorAction SilentlyContinue).Count -gt 0)
+
+            if ($otFound) {
+                Write-Success "  Overtime export found: $yyyymm`_otactivity.xlsx/.xls"
+                $validationResults += [pscustomobject]@{ File = "Overtime Export"; Path = $otPath; Status = "Found" }
+            } else {
+                Write-Warn "  Overtime export not found: $otPath (or .xls)"
+                $validationResults += [pscustomobject]@{ File = "Overtime Export"; Path = $otPath; Status = "Missing" }
             }
-            else {
-                Write-Warn "  VCS Time Report export directory not found: $vcsPath (may use different location)"
-                $validationResults += [pscustomobject]@{ File = "VCS Time Report Directory"; Path = $vcsPath; Status = "Unknown" }
+            if ($toFound) {
+                Write-Success "  Time Off export found: $yyyymm`_timeoffactivity.xlsx/.xls"
+                $validationResults += [pscustomobject]@{ File = "Time Off Export"; Path = $toPath; Status = "Found" }
+            } else {
+                Write-Warn "  Time Off export not found: $toPath (or .xls)"
+                $validationResults += [pscustomobject]@{ File = "Time Off Export"; Path = $toPath; Status = "Missing" }
             }
+            if ($vcsFound) {
+                Write-Success "  VCS backfill found: PowerBI_Date\Backfill\$year`_$month\vcs_time_report"
+                $validationResults += [pscustomobject]@{ File = "VCS Backfill"; Path = $vcsFolder; Status = "Found" }
+            } else {
+                $prevPrev = $prevMonth.AddMonths(-1)
+                $ppYear = $prevPrev.Year
+                $ppMonth = $prevPrev.Month.ToString("00")
+                $vcsFallback = Join-Path $backfillBase "$ppYear`_$ppMonth\vcs_time_report"
+                if ((Test-Path $vcsFallback) -and ((Get-ChildItem $vcsFallback -Filter "*onthly*ccrual*.csv" -ErrorAction SilentlyContinue).Count -gt 0)) {
+                    Write-Success "  VCS backfill found (prior month): PowerBI_Date\Backfill\$ppYear`_$ppMonth\vcs_time_report"
+                    $validationResults += [pscustomobject]@{ File = "VCS Backfill"; Path = $vcsFallback; Status = "Found" }
+                } else {
+                    Write-Warn "  VCS backfill not found: $vcsFolder (script uses PowerBI_Date\Backfill for historical months)"
+                    $validationResults += [pscustomobject]@{ File = "VCS Backfill"; Path = $vcsFolder; Status = "Unknown" }
+                }
+            }
+            if (-not $otFound -or -not $toFound) { $allValid = $false }
         }
         
         "Arrests" {

@@ -1,0 +1,188 @@
+table TAS_Dispatcher_Incident
+	lineageTag: cf25bd5f-3b1b-4e86-b06b-e2304b4e4b08
+
+	measure 'TAS Subtitle' = ```
+			
+			VAR LaunchMonth   = DATE(2024,10,1)                   -- << set launch month here
+			VAR EndDate       = EOMONTH(TODAY(), -1)              -- prior month end
+			VAR EndMonthStart = EOMONTH(EndDate, -1) + 1          -- prior month start
+			VAR MonthsIncl    = DATEDIFF(LaunchMonth, EndMonthStart, MONTH) + 1
+			VAR WindowMonths  = MIN(MonthsIncl, 13)               -- cap at 13
+			VAR StartDate     = EDATE(EndDate, -(WindowMonths-1)) -- dynamic start
+			RETURN
+			FORMAT(WindowMonths, "0") & "-Month Overview (" &
+			    FORMAT(StartDate, "MMMM yyyy") & " - " &
+			    FORMAT(EndDate,   "MMMM yyyy") & ")"
+			
+			```
+		lineageTag: a04ff2ff-1d3c-465f-81f7-d821261e692e
+
+	measure 'Visual Title' = "SSOCC Virtual Patrol: TAS Alert and Incident Activity"
+		lineageTag: a37dac6e-7edd-4b61-acc8-4fb2998ae074
+
+	column DispatcherNew
+		dataType: string
+		lineageTag: cd050c89-69ae-4827-8530-8f95cd9c59d1
+		summarizeBy: none
+		sourceColumn: DispatcherNew
+
+		annotation SummarizationSetBy = Automatic
+
+	column Incident
+		dataType: string
+		lineageTag: 4843d250-b216-4fbb-a5d9-1f318fa2a5bc
+		summarizeBy: none
+		sourceColumn: Incident
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: string
+		lineageTag: 8feef7f1-a5e5-4d39-a371-b41cacc95a46
+		summarizeBy: none
+		sourceColumn: Month
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month_Sort
+		dataType: int64
+		formatString: 0
+		lineageTag: 6c9ebb52-274b-4235-aecf-35f44ff4d023
+		summarizeBy: none
+		sourceColumn: Month_Sort
+
+		annotation SummarizationSetBy = Automatic
+
+	column Count
+		dataType: double
+		lineageTag: 78abcc0e-b280-4d49-8070-5e562ad3943b
+		summarizeBy: sum
+		sourceColumn: Count
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition TAS_Dispatcher_Incident = m
+		mode: import
+		source = ```
+				// 🕒 2026-02-14-15-30-00
+				// # TAS/Virtual_Patrol/TAS_Dispatcher_Incident_Summary_Fixed.m
+				// # Author: R. A. Carucci
+				// # Purpose: Import TAS/Virtual Patrol data, normalize incidents and dispatchers, count by dispatcher/incident/month for rolling 13-month window
+				// Updated: pReportMonth-driven (no DateTime.LocalNow)
+				
+				let
+				    // =========================
+				    // Configuration
+				    // =========================
+				    FilePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\tas\yearly\2025\2025_01_to_2026_02_13_Hackensack_CAD_Data.xlsx",
+				    SheetName = "Sheet1",
+				    ValidDispatchers = {"carucci_r", "marino_b", "rios_a", "iannacone_a", "polson_r"},
+				    ValidIncidents = {
+				        "TAS Alert - Missing Person",
+				        "TAS Alert - Stolen License Plate", 
+				        "TAS Alert - Stolen Vehicle",
+				        "TAS Alert - Wanted Person",
+				        "Virtual - Patrol"
+				    },
+				
+				    Source = Excel.Workbook(File.Contents(FilePath), null, true),
+				    SheetData = Source{[Item=SheetName,Kind="Sheet"]}[Data],
+				    Promoted = Table.PromoteHeaders(SheetData, [PromoteAllScalars=true]),
+				    
+				    ColumnNames = Table.ColumnNames(Promoted),
+				    
+				    DispatcherCol = 
+				        if List.Contains(ColumnNames, "DispatcherNew") then "DispatcherNew"
+				        else if List.Contains(ColumnNames, "Dispatcher") then "Dispatcher"
+				        else if List.Contains(ColumnNames, "DispatcherName") then "DispatcherName"
+				        else null,
+				    
+				    IncidentCol = 
+				        if List.Contains(ColumnNames, "Incident") then "Incident"
+				        else if List.Contains(ColumnNames, "Incident Type") then "Incident Type"
+				        else if List.Contains(ColumnNames, "IncidentType") then "IncidentType"
+				        else null,
+				    
+				    TimeCol = 
+				        if List.Contains(ColumnNames, "Time of Call") then "Time of Call"
+				        else if List.Contains(ColumnNames, "TimeOfCall") then "TimeOfCall"
+				        else if List.Contains(ColumnNames, "CallTime") then "CallTime"
+				        else if List.Contains(ColumnNames, "Time") then "Time"
+				        else null,
+				    
+				    CheckColumns = 
+				        if DispatcherCol = null then error "Required column not found: Dispatcher"
+				        else if IncidentCol = null then error "Required column not found: Incident"
+				        else if TimeCol = null then error "Required column not found: Time"
+				        else true,
+				    
+				    Renamed = Table.RenameColumns(Promoted, {{DispatcherCol, "DispatcherNew"}, {IncidentCol, "Incident"}, {TimeCol, "Time of Call"}}),
+				
+				    LowercaseDispatcher = Table.TransformColumns(Renamed, {{"DispatcherNew", each if _ = null then null else Text.Lower(Text.Trim(_)), type text}}),
+				    FilteredDispatchers = Table.SelectRows(LowercaseDispatcher, each [DispatcherNew] <> null and List.Contains(ValidDispatchers, [DispatcherNew])),
+				
+				    NormalizedIncident = Table.AddColumn(FilteredDispatchers, "Incident_Normalized", each 
+				        let incident = if [Incident] = null then "" else Text.Trim([Incident]),
+				            normalized = Text.Lower(Text.Replace(Text.Replace(incident, "  ", " "), " - ", " - ")),
+				            matched = List.First(List.Select(ValidIncidents, each Text.Lower(Text.Replace(Text.Replace(_, "  ", " "), " - ", " - ")) = normalized), null)
+				        in if matched <> null then matched else "Other", type text),
+				    FilteredIncidents = NormalizedIncident,
+				
+				    WithDate = Table.AddColumn(FilteredIncidents, "CallDate", each 
+				        let timeOfCall = [#"Time of Call"],
+				            dateTimeValue = try DateTime.FromText(Text.From(timeOfCall)) otherwise null,
+				            dateValue = if dateTimeValue <> null then Date.From(dateTimeValue) else null
+				        in dateValue, type date),
+				
+				    // Rolling 13-month window (pReportMonth-driven)
+				    EndDate = Date.StartOfMonth(pReportMonth),
+				    StartDate = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12)),
+				    
+				    MonthList = List.Generate(() => StartDate, each _ <= EndDate, each Date.AddMonths(_, 1)),
+				    PeriodLabelsMMYY = List.Transform(MonthList, each Text.PadStart(Text.From(Date.Month(_)), 2, "0") & "-" & Text.End(Text.From(Date.Year(_)), 2)),
+				
+				    WithPeriod = Table.AddColumn(WithDate, "Period", each 
+				        if [CallDate] <> null then
+				            let y = Date.Year([CallDate]), m = Date.Month([CallDate])
+				            in Text.PadStart(Text.From(m), 2, "0") & "-" & Text.End(Text.From(y), 2)
+				        else null, type text),
+				
+				    FilteredPeriod = Table.SelectRows(WithPeriod, each [Period] <> null and List.Contains(PeriodLabelsMMYY, [Period])),
+				
+				    Grouped = Table.Group(FilteredPeriod, {"DispatcherNew", "Incident_Normalized", "Period"}, {{"Count", each Table.RowCount(_), type number}}),
+				
+				    AllDispatchers = Table.FromList(ValidDispatchers, Splitter.SplitByNothing(), {"DispatcherNew"}),
+				    AllIncidents = Table.FromList(List.Combine({ValidIncidents, {"Other"}}), Splitter.SplitByNothing(), {"Incident"}),
+				    AllPeriods = Table.FromList(PeriodLabelsMMYY, Splitter.SplitByNothing(), {"Period"}),
+				
+				    AllCombinations_Step1 = Table.AddColumn(AllDispatchers, "IncidentTable", each AllIncidents),
+				    AllCombinations_Step2 = Table.ExpandTableColumn(AllCombinations_Step1, "IncidentTable", {"Incident"}, {"Incident"}),
+				    AllCombinations_Step3 = Table.AddColumn(AllCombinations_Step2, "PeriodTable", each AllPeriods),
+				    AllCombinations = Table.ExpandTableColumn(AllCombinations_Step3, "PeriodTable", {"Period"}, {"Period"}),
+				
+				    AllCombinationsWithSort = Table.AddColumn(AllCombinations, "Month_Sort", each 
+				        let mm = Number.FromText(Text.Start([Period], 2)), yy = Number.FromText(Text.End([Period], 2)),
+				            yyyy = if yy < 70 then 2000 + yy else 1900 + yy
+				        in yyyy * 100 + mm, Int64.Type),
+				
+				    AllCombinationsRenamed = Table.RenameColumns(AllCombinationsWithSort, {{"Period", "Month"}}),
+				
+				    GroupedRenamed = Table.RenameColumns(Grouped, {{"Incident_Normalized", "Incident"}, {"Period", "Month"}}),
+				
+				    Joined = Table.NestedJoin(AllCombinationsRenamed, {"DispatcherNew", "Incident", "Month"}, GroupedRenamed, {"DispatcherNew", "Incident", "Month"}, "GroupedData", JoinKind.LeftOuter),
+				    Expanded = Table.ExpandTableColumn(Joined, "GroupedData", {"Count"}, {"Count"}),
+				    WithZeros = Table.ReplaceValue(Expanded, null, 0, Replacer.ReplaceValue, {"Count"}),
+				
+				    Reordered = Table.ReorderColumns(WithZeros, {"DispatcherNew", "Incident", "Month", "Month_Sort", "Count"}),
+				    Typed = Table.TransformColumnTypes(Reordered, {{"DispatcherNew", type text}, {"Incident", type text}, {"Month", type text}, {"Month_Sort", Int64.Type}, {"Count", type number}})
+				
+				in
+				    Typed
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

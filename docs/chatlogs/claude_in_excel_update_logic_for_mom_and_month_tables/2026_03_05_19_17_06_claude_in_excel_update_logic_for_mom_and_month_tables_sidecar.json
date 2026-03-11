@@ -1,0 +1,99 @@
+{
+  "source_file": "claude_in_excel_update_logic_for_mom_and month_tables.m",
+  "source_path": "C:\\_chunker\\02_data\\claude_in_excel_update_logic_for_mom_and month_tables.m",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\claude_in_excel_update_logic_for_mom_and_month_tables\\2026_03_05_19_17_06_claude_in_excel_update_logic_for_mom_and_month_tables.origin.json",
+  "created_at": "2026_03_05_19_17_06",
+  "tags": [
+    "ai",
+    "data",
+    "docs",
+    "it-ops",
+    "legal",
+    "markdown",
+    "police",
+    "sql",
+    "training"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "other",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "esu",
+      "mom",
+      "let",
+      "items",
+      "man",
+      "xlookup"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "fix the xlookup for the MoM table\nLet me start by examining the MoM sheet to understand the structure and the XLOOKUP formulas that need fixing. Read MoM sheet structure and column R\nI can see the issue.",
+    "first_line": "fix the xlookup for the MoM table"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-03-05T19:17:06+00:00_claude_in_excel_update_logic_for_mom_and_month_tables_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "data",
+        "docs",
+        "it-ops",
+        "items",
+        "legal",
+        "markdown",
+        "police",
+        "sql",
+        "training",
+        "xlookup"
+      ],
+      "key_terms": [
+        "esu",
+        "mom",
+        "man",
+        "items",
+        "let",
+        "xlookup"
+      ],
+      "summary": "fix the xlookup for the MoM table\nLet me start by examining the MoM sheet to understand the structure and the XLOOKUP formulas that need fixing.",
+      "char_length": 16791,
+      "byte_length": 17311
+    },
+    {
+      "chunk_id": "2026-03-05T19:17:06+00:00_claude_in_excel_update_logic_for_mom_and_month_tables_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "01-26",
+        "ai",
+        "column",
+        "data",
+        "docs",
+        "it-ops",
+        "legal",
+        "markdown",
+        "police",
+        "source",
+        "sql",
+        "training",
+        "values"
+      ],
+      "key_terms": [
+        "you",
+        "mom",
+        "column",
+        "values",
+        "source",
+        "01-26"
+      ],
+      "summary": "Can you tell me specifically which cells or values look wrong to you?",
+      "char_length": 2883,
+      "byte_length": 2980
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

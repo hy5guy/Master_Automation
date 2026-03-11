@@ -1,9 +1,9 @@
 # Summons Automation System - Documentation Index
 
 **Complete documentation suite for the Hackensack PD Summons ETL pipeline**  
-**Version:** 1.0  
-**Last Updated:** 2026-02-17  
-**Status:** ✅ Production Ready
+**Version:** 2.0  
+**Last Updated:** 2026-03-10  
+**Status:** ✅ Production Ready (v1.18.0 — full pipeline overhaul)
 
 ---
 
@@ -112,7 +112,35 @@ final_data = normalize_personnel_data(
 
 **[scripts/summons_backfill_merge.py](../scripts/summons_backfill_merge.py)**  
 **Purpose:** Merge historical backfill data for gap months  
-**Use when:** Gap months (03-25, 07-25, 10-25, 11-25) need historical data
+**Use when:** Gap months need historical data (currently only 07-25)
+
+**[run_summons_etl.py](../run_summons_etl.py)**  
+**Purpose:** Entry point — discovers e-ticket files from 2025+2026, orchestrates ETL + backfill + 3-tier output  
+**Usage:** `python run_summons_etl.py --month 2026_02`
+
+---
+
+### 🤖 Claude MCP Prompts (for Power BI Desktop updates)
+
+**[PROMPT_Claude_MCP_Summons_Bugfix.md](PROMPT_Claude_MCP_Summons_Bugfix.md)**  
+**Purpose:** Initial M code fixes (List.Sum, IS_AGGREGATE, BackfillMonths)
+
+**[PROMPT_Claude_MCP_Summons_Validation_Post_ETL.md](PROMPT_Claude_MCP_Summons_Validation_Post_ETL.md)**  
+**Purpose:** Post-ETL refresh validation with DAX checks
+
+**[PROMPT_Claude_MCP_Summons_Round3_Fix.md](PROMPT_Claude_MCP_Summons_Round3_Fix.md)**  
+**Purpose:** Window alignment, WG2 filter removal, Total null coalesce
+
+**[PROMPT_Claude_MCP_Summons_AllBureaus_Fix.md](PROMPT_Claude_MCP_Summons_AllBureaus_Fix.md)**  
+**Purpose:** UNASSIGNED mapping so bureau totals match department-wide
+
+**[PROMPT_Claude_MCP_Summons_DeptWide_Backfill_Fix.md](PROMPT_Claude_MCP_Summons_DeptWide_Backfill_Fix.md)**  
+**Purpose:** 07-25 filler rows for gap months (M=17, P=0, C=0 instead of blank)
+
+### 📋 Lessons Learned (for AI assistants)
+
+**[SUMMONS_M_CODE_NOTES.md](SUMMONS_M_CODE_NOTES.md)**  
+**Purpose:** Reference for future Claude MCP sessions — table schema constraint, List.TransformMany syntax, Show Errors crash workaround, filler row pattern, WG2 filter rules, BackfillMonths, subtitle measures, ___Traffic dynamic typing, DAX validation queries
 
 ---
 
@@ -216,7 +244,8 @@ Master_Automation/
 │   ├── 📘 SUMMONS_DATA_IMPORT_LOGIC_GUIDE.md    ← Master reference
 │   ├── 📗 SUMMONS_PRODUCTION_CHECKLIST.md       ← Deployment guide
 │   ├── 📙 SUMMONS_AUTOMATION_SUMMARY.md         ← Project summary
-│   └── 📕 SUMMONS_QUICK_REFERENCE.md            ← Quick ref card
+│   ├── 📕 SUMMONS_QUICK_REFERENCE.md            ← Quick ref card
+│   └── 📋 SUMMONS_M_CODE_NOTES.md               ← Lessons learned (AI assistant ref)
 │
 ├── scripts/
 │   ├── 🐍 summons_etl_normalize.py              ← Main ETL script
@@ -249,11 +278,13 @@ Master_Automation/
 1. **Always read first:** `SUMMONS_DATA_IMPORT_LOGIC_GUIDE.md` (has all context)
 2. **Reference implementation:** `scripts/summons_etl_normalize.py` (production-tested)
 3. **Critical rules to follow:**
-   - Always use `SUM(TICKET_COUNT)` not `COUNTROWS()`
-   - Bureau consolidation: OSO → PATROL DIVISION
+   - Always use `List.Sum([TICKET_COUNT])` in M code, not `Table.RowCount()`
+   - TYPE classification: use raw Case Type Code (M/P/C) — do NOT use statute lookup
+   - 13-month trend: NO WG2 filter (dept-wide includes all officers); window = `pReportMonth - 1` as end date
+   - Bureau consolidation: HOUSING, OSO, PATROL BUREAU → PATROL DIVISION
    - Badge padding: 256 → "0256"
    - Filter to ACTIVE personnel only
-   - 13-month window excludes current incomplete month
+   - **Read `SUMMONS_M_CODE_NOTES.md`** before modifying M code — table schema, List.TransformMany, filler pattern, Show Errors workaround
 
 4. **When troubleshooting:**
    - Check Section 8 of the guide first (Common Issues)
@@ -287,6 +318,8 @@ Master_Automation/
 
 | Version | Date | Changes | Author |
 |---------|------|---------|--------|
+| 2.1 | 2026-03-10 | v1.18.1: Ramirez SSOCC overrides, UNASSIGNED mapping, 07-25 filler rows, SUMMONS_M_CODE_NOTES, AllBureaus/DeptWide prompts | R. A. Carucci + Claude |
+| 2.0 | 2026-03-10 | v1.18.0 overhaul: updated for run_summons_etl.py entry point, raw Case Type Code classification, Claude MCP prompts, corrected gap months | R. A. Carucci + Claude |
 | 1.0 | 2026-02-16 | Initial documentation suite created | R. A. Carucci + Claude + Gemini |
 | | | - Master guide (699 lines) | |
 | | | - Production checklist | |
@@ -331,6 +364,6 @@ Master_Automation/
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** 2026-02-17  
-**Status:** ✅ Complete and Production-Ready
+**Document Version:** 2.1  
+**Last Updated:** 2026-03-10  
+**Status:** ✅ Complete and Production-Ready (v1.18.1)

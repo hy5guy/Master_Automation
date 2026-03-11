@@ -1,0 +1,30 @@
+table ServiceCategory
+	lineageTag: 843480d2-80a5-4e2f-b6b9-e53067fd4d4c
+
+	column Category
+		lineageTag: 350d49de-9f67-46f4-8fee-8b29a9328dea
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Category]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ServiceCategory = calculated
+		mode: import
+		source = ```
+				
+				DATATABLE(
+				    "Category", STRING,
+				    {
+				        {"CompStat Operations"},
+				        {"Crime Analysis"},
+				        {"Detective Operations"}, 
+				        {"Patrol Operations"},
+				        {"Special Operations"},
+				        {"Technology and Surveillance"}
+				    }
+				)
+				```
+
+	annotation PBI_Id = 04875047148c48f58fad02b3282d5616
+

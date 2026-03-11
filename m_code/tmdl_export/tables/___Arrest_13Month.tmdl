@@ -1,0 +1,315 @@
+table ___Arrest_13Month
+	lineageTag: ec269f6d-97e8-4ff7-97e7-7bdea631af12
+
+	column Name
+		dataType: string
+		lineageTag: b9c50b56-9ddd-4a2d-8271-5411aa4b5a1e
+		summarizeBy: none
+		sourceColumn: Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Age
+		dataType: string
+		lineageTag: 1e798eed-319f-4c07-bb61-b0470cb5e270
+		summarizeBy: none
+		sourceColumn: Age
+
+		annotation SummarizationSetBy = Automatic
+
+	column Address
+		dataType: string
+		lineageTag: 753b036e-e176-4db9-9681-a3cea64e57af
+		summarizeBy: none
+		sourceColumn: Address
+
+		annotation SummarizationSetBy = Automatic
+
+	column Charge
+		dataType: string
+		lineageTag: fc54c1c7-00b0-488b-bcc8-d5518aa068d4
+		summarizeBy: none
+		sourceColumn: Charge
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Arrest Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: f277b88b-c012-4977-860b-40df932d3cf9
+		summarizeBy: none
+		sourceColumn: Arrest Date
+
+		variation Variation
+			isDefault
+			relationship: fde61f15-94d8-46d1-9002-275aedc08394
+			defaultHierarchy: LocalDateTable_8a1b42e2-7d11-41b0-a149-31fc4da1c87e.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Officer of Record'
+		dataType: string
+		lineageTag: 2f6ead2f-cc98-4c5e-8b98-e85b891c0f53
+		summarizeBy: none
+		sourceColumn: Officer of Record
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChargeCategory
+		dataType: string
+		lineageTag: 406caff0-7450-4deb-aceb-4cc26115387b
+		summarizeBy: none
+		sourceColumn: ChargeCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column Home_Category
+		dataType: string
+		lineageTag: 4e152233-9576-4d7d-bf33-2dda3b5d6b10
+		summarizeBy: none
+		sourceColumn: Home_Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column MM_YY
+		dataType: string
+		lineageTag: 9561f4bd-a6f7-4da2-8923-72bfe21ac3bf
+		summarizeBy: none
+		sourceColumn: MM_YY
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthSort
+		dataType: int64
+		formatString: 0
+		lineageTag: e820020b-b7a4-4db6-add0-5c8520a07332
+		summarizeBy: sum
+		sourceColumn: MonthSort
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthLabel
+		dataType: string
+		lineageTag: 43542e05-8b4f-49df-a01d-4720f02fcba8
+		summarizeBy: none
+		sourceColumn: MonthLabel
+
+		annotation SummarizationSetBy = Automatic
+
+	column ArrestMonth
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 8858f5ae-45ce-43e5-b749-edb65c80d7d3
+		summarizeBy: none
+		sourceColumn: ArrestMonth
+
+		variation Variation
+			isDefault
+			relationship: 1feb6a57-19b7-4e66-bdf6-e8fa4c6858a9
+			defaultHierarchy: LocalDateTable_6f3fe6b0-c752-4769-b3cd-f23bd894c7bf.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column SourceFile
+		dataType: string
+		lineageTag: 6dcabaec-f251-4f4a-ac3d-c5eb2b14e6fb
+		summarizeBy: none
+		sourceColumn: SourceFile
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___Arrest_13Month = m
+		mode: import
+		source =
+				// 🕒 2026-03-09-20-00-00
+				// # arrests/___Arrest_13Month.m
+				// # Author: R. A. Carucci
+				// # Purpose: Rolling 13-month arrest data from raw Lawsoft monthly exports.
+				// #          Dynamic file discovery, pReportMonth-driven window, charge and home enrichment.
+				// # Source:  05_EXPORTS\_Arrest\monthly\YYYY\*.xlsx
+				
+				let
+				    // ═══ 1) Rolling 13-month window boundaries (pReportMonth-driven) ═══════
+				    EndOfWindow   = Date.EndOfMonth(pReportMonth),
+				    StartOfWindow = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12)),
+				
+				    // ═══ 2) Dynamic file discovery ═════════════════════════════════════════
+				    BasePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Arrest\monthly",
+				    AllFiles = Folder.Files(BasePath),
+				
+				    // Case-insensitive filter: .xlsx files containing "lawsoft" and "arrest"
+				    ArrestFiles = Table.SelectRows(
+				        AllFiles,
+				        each [Extension] = ".xlsx"
+				             and Text.Contains(Text.Lower([Name]), "lawsoft")
+				             and Text.Contains(Text.Lower([Name]), "arrest")
+				    ),
+				
+				    // ═══ 3) Load each file, promote headers, tag with source ═══════════════
+				    WithData = Table.AddColumn(
+				        ArrestFiles,
+				        "TableData",
+				        each
+				            let
+				                wb = Excel.Workbook([Content], null, true),
+				                firstSheet = wb{0}[Data],
+				                promoted = Table.PromoteHeaders(firstSheet, [PromoteAllScalars = true])
+				            in
+				                promoted
+				    ),
+				
+				    WithFileName = Table.SelectColumns(WithData, {"Name", "TableData"}),
+				
+				    // Tag each row with its source file before combining
+				    Tagged = Table.AddColumn(
+				        WithFileName,
+				        "TaggedTable",
+				        each
+				            let
+				                src = [Name],
+				                tbl = [TableData]
+				            in
+				                Table.AddColumn(tbl, "SourceFile", each src, type text)
+				    ),
+				
+				    Combined = Table.Combine(Tagged[TaggedTable]),
+				
+				    // ═══ 4) Normalize column names ═════════════════════════════════════════
+				    // Handle variations: "Arrest Date" vs "Arrest_Date", "Officer of Record" vs "Officer_of_Record"
+				    ColNames = Table.ColumnNames(Combined),
+				
+				    NormalizedDate =
+				        if List.Contains(ColNames, "Arrest Date") then Combined
+				        else if List.Contains(ColNames, "Arrest_Date") then
+				            Table.RenameColumns(Combined, {{"Arrest_Date", "Arrest Date"}})
+				        else Combined,
+				
+				    NormalizedOfficer =
+				        if List.Contains(Table.ColumnNames(NormalizedDate), "Officer of Record") then NormalizedDate
+				        else if List.Contains(Table.ColumnNames(NormalizedDate), "Officer_of_Record") then
+				            Table.RenameColumns(NormalizedDate, {{"Officer_of_Record", "Officer of Record"}})
+				        else NormalizedDate,
+				
+				    // ═══ 5) Parse Arrest Date and filter to window ═════════════════════════
+				    ToDate = (x) => try Date.From(x) otherwise null,
+				
+				    WithParsedDate = Table.TransformColumns(
+				        NormalizedOfficer,
+				        {{"Arrest Date", ToDate, type nullable date}}
+				    ),
+				
+				    ValidDates = Table.SelectRows(
+				        WithParsedDate,
+				        each [#"Arrest Date"] <> null
+				    ),
+				
+				    Windowed = Table.SelectRows(
+				        ValidDates,
+				        each [#"Arrest Date"] >= StartOfWindow and [#"Arrest Date"] <= EndOfWindow
+				    ),
+				
+				    // ═══ 6) Charge categorization (mirrors ___Arrest_Categories logic) ═════
+				    WithChargeCategory = Table.AddColumn(
+				        Windowed,
+				        "ChargeCategory",
+				        each
+				            let
+				                charge = Text.Upper([Charge] ?? "")
+				            in
+				                if Text.Contains(charge, "ASSAULT") then "Assault"
+				                else if Text.Contains(charge, "SHOPLIFTING") or Text.Contains(charge, "THEFT") then "Theft"
+				                else if Text.Contains(charge, "BURGLARY") then "Burglary"
+				                else if Text.Contains(charge, "ROBBERY") then "Robbery"
+				                else if Text.Contains(charge, "WARRANT") then "Warrant"
+				                else if Text.Contains(charge, "DWI") or Text.Contains(charge, "DUI") then "DWI"
+				                else if Text.Contains(charge, "DRUG") or Text.Contains(charge, "CDS") or Text.Contains(charge, "NARCOTIC") then "Drug Related"
+				                else if Text.Contains(charge, "WEAPON") or Text.Contains(charge, "FIREARM") or Text.Contains(charge, "GUN") then "Weapons"
+				                else "Other",
+				        type text
+				    ),
+				
+				    // ═══ 7) Simplified home categorization (address-based) ═════════════════
+				    WithHomeCategory = Table.AddColumn(
+				        WithChargeCategory,
+				        "Home_Category",
+				        each
+				            let
+				                addr = Text.Upper(Text.Trim([Address] ?? ""))
+				            in
+				                if addr = "" or addr = "HOMELESS" or addr = "NONE" or addr = "UNKNOWN"
+				                    or Text.Contains(addr, "HACKENSACK")
+				                    or Text.StartsWith(addr, "07601")
+				                    or Text.StartsWith(addr, "07602")
+				                then "Local"
+				                else "Out-of-Town",
+				        type text
+				    ),
+				
+				    // ═══ 8) Period columns for visuals ═════════════════════════════════════
+				    WithArrestMonth = Table.AddColumn(
+				        WithHomeCategory,
+				        "ArrestMonth",
+				        each Date.StartOfMonth([#"Arrest Date"]),
+				        type date
+				    ),
+				
+				    WithMMYY = Table.AddColumn(
+				        WithArrestMonth,
+				        "MM_YY",
+				        each Text.PadStart(Text.From(Date.Month([#"Arrest Date"])), 2, "0")
+				             & "-"
+				             & Text.End(Text.From(Date.Year([#"Arrest Date"])), 2),
+				        type text
+				    ),
+				
+				    WithMonthSort = Table.AddColumn(
+				        WithMMYY,
+				        "MonthSort",
+				        each Date.Year([#"Arrest Date"]) * 100 + Date.Month([#"Arrest Date"]),
+				        Int64.Type
+				    ),
+				
+				    WithMonthLabel = Table.AddColumn(
+				        WithMonthSort,
+				        "MonthLabel",
+				        each Date.MonthName([#"Arrest Date"]) & " " & Text.From(Date.Year([#"Arrest Date"])),
+				        type text
+				    ),
+				
+				    // ═══ 9) Select and type final columns ══════════════════════════════════
+				    KeepCols = {"Name", "Age", "Address", "Charge", "Arrest Date",
+				                "Officer of Record", "ChargeCategory", "Home_Category",
+				                "MM_YY", "MonthSort", "MonthLabel", "ArrestMonth", "SourceFile"},
+				
+				    AvailableCols = List.Intersect({KeepCols, Table.ColumnNames(WithMonthLabel)}),
+				
+				    Selected = Table.SelectColumns(WithMonthLabel, AvailableCols, MissingField.Ignore),
+				
+				    Typed = Table.TransformColumnTypes(
+				        Selected,
+				        {
+				            {"Arrest Date", type date},
+				            {"ArrestMonth", type date},
+				            {"ChargeCategory", type text},
+				            {"Home_Category", type text},
+				            {"MM_YY", type text},
+				            {"MonthSort", Int64.Type},
+				            {"MonthLabel", type text},
+				            {"SourceFile", type text}
+				        }
+				    ),
+				
+				    // ═══ 10) Sort by date for clean output ═════════════════════════════════
+				    Sorted = Table.Sort(Typed, {{"Arrest Date", Order.Ascending}})
+				
+				in
+				    Sorted
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

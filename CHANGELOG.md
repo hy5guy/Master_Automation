@@ -7,6 +7,251 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.4] - 2026-03-11
+
+### Changed — Summons Backfill: Backfill as Source of Truth for All Backfill Months
+
+**Python ETL:**
+- `scripts/summons_backfill_merge.py`: Backfill-as-source-of-truth — for ALL months in the consolidated backfill file (02-25 through 11-25), remove e-ticket rows and use backfill values exclusively. Visual now matches backfill file exactly (e.g. 02-25 M=274 not 324, 07-25 M=402 not 17). Months not in backfill (12-25, 01-26, 02-26) still use e-ticket data.
+
+---
+
+## [1.18.3] - 2026-03-11
+
+### Changed — Summons Backfill: Type-Aware Merge for 07-25
+
+**Python ETL:**
+- `scripts/summons_backfill_merge.py`: Type-aware merge — for gap months (07-25), add backfill rows only for (Month_Year, TYPE) combinations not already in main df. Fixes 07-25 P and C missing: main had 17 M e-ticket rows; old logic skipped 07-25 entirely (>10 rows). Now adds backfill P (3413) and C without duplicating M. Superseded by v1.18.4 (backfill-as-source-of-truth).
+
+**Backfill path confirmed:** `00_dev/projects/PowerBI_Date/Backfill/2026_01/summons/` (preferred) and `PowerBI_Date/Backfill/2026_01/summons/`. File `2026_01_Department-Wide Summons  Moving and Parking.csv` is used.
+
+---
+
+## [1.18.2] - 2026-03-11
+
+### Changed — Summons 13-Month Trend: Remove Filler Rows (Fix Null Pollution)
+
+**Power BI M code:**
+- `m_code/summons/summons_13month_trend.m`: Removed filler-row logic that caused schema mismatch — `Table.Combine` of main table (24 cols) with filler rows (5 cols) produced null pollution (rows 43418–43419 with all-null columns). Query now returns only actual data rows. TICKET_COUNT nulls filled with 0 before return. Filter adds `[YearMonthKey] > 0` to drop malformed rows.
+
+**Trade-off:** 07-25 P and C show blank (not 0) in trend visual. Use Power BI "Show items with no data" or DAX `COALESCE(SUM(...), 0)` if zeros needed.
+
+**Documentation:**
+- `docs/fix_summons_13month_trend_query_m_code.md` — Fix plan and verification steps
+
+---
+
+## [1.18.1] - 2026-03-10
+
+### Changed — Summons Post-v1.18.0 Fixes (Ramirez, UNASSIGNED, Filler Rows)
+
+**Python ETL:**
+- `scripts/summons_etl_normalize.py`: Ramirez (badge 2025) SSOCC overrides — 19 ticket IDs from Ramirez's SSOCC period → WG2=SSOCC; FIRE LANES violations (badge 2025 + violation contains "FIRE LANES") → WG2=SSOCC. Overrides run last so they win over PEO→Traffic.
+
+**Power BI M code:**
+- `m_code/summons/summons_all_bureaus.m`: Map UNKNOWN, blank, "nan", null WG2 → "UNASSIGNED" so All Bureaus total matches department-wide (421 M, 2,354 P for Feb 2026)
+- `m_code/summons/summons_13month_trend.m`: ~~Filler rows for missing (Month_Year, TYPE)~~ — reverted in v1.18.2 (caused null pollution)
+
+**Documentation:**
+- `docs/SUMMONS_M_CODE_NOTES.md` — Lessons learned (table schema, List.TransformMany, Show Errors crash, filler pattern, WG2 rules, BackfillMonths, subtitle measures, ___Traffic dynamic typing, DAX validation queries)
+- `docs/PROMPT_Claude_MCP_Summons_AllBureaus_Fix.md` — UNASSIGNED mapping prompt
+- `docs/PROMPT_Claude_MCP_Summons_DeptWide_Backfill_Fix.md` — 07-25 filler rows prompt
+
+---
+
+## [1.18.0] - 2026-03-10
+
+### Changed — Summons Pipeline Overhaul (ETL + Power BI M Code)
+
+**Python ETL fixes:**
+- `scripts/summons_etl_normalize.py`: TYPE classification rewritten — uses raw `Case Type Code` (M/P/C) from e-ticket export instead of broken statute-based lookup that was reclassifying ~2,576 Parking tickets as Criminal and splitting Moving into expanded subcategories
+- `run_summons_etl.py`: Multi-year file discovery — scans both 2025/month and 2026/month directories for complete 13-month window; dynamic default `--month` argument
+- `run_summons_etl.py`: FIXED CSV fallback — detects DOpus quote-wrapped headers and falls back to raw .csv (fixed Feb 2025 reading 9 rows → 2,743)
+- `scripts/summons_etl_normalize.py`: `utf-8-sig` encoding for BOM handling in CSV parser; catches `ValueError` alongside `UnicodeDecodeError`
+- `scripts/summons_etl_normalize.py`: WG1/WG2 `fillna("")` + `replace("nan", "")` prevents pandas NaN exporting as literal string "nan" in slim CSV
+- `scripts/summons_backfill_merge.py`: Gap months narrowed to `("07-25",)` only (all other 2025 months have e-ticket files); `SUMMONS_BACKFILL_PREFER_MONTHS` emptied
+
+**Power BI M code fixes (applied via Claude Desktop MCP):**
+- `m_code/summons/summons_13month_trend.m`: Window `EndDate` changed from `pReportMonth` to `Date.AddMonths(pReportMonth, -1)` — aligns with all_bureaus, fixes Feb 2025 missing from trend when pReportMonth=March
+- `m_code/summons/summons_13month_trend.m`: WG2 filter removed — dept-wide trend now includes all officers regardless of bureau assignment (K. Peralta's 30 tickets no longer silently dropped)
+- `m_code/summons/summons_13month_trend.m`: `BackfillMonths` cleared to `{}` — July 2025 17 straggler records now show instead of being hidden
+- `m_code/summons/summons_13month_trend.m`: `IS_AGGREGATE` column added to TypeMap
+- `m_code/summons/summons_all_bureaus.m`: `Table.RowCount(_)` → `List.Sum([TICKET_COUNT])`; TICKET_COUNT added to ChangedType
+- `m_code/summons/summons_all_bureaus.m`: Total formula `try ([C] ?? 0) otherwise 0` — null coalesce fixes blank Total for bureaus without C tickets
+- `m_code/summons/summons_all_bureaus.m`: `[WG2] <> "nan"` added to FilteredClean
+- `m_code/summons/summons_top5_moving.m`, `summons_top5_parking.m`: Same `List.Sum([TICKET_COUNT])` and TICKET_COUNT type fixes
+
+**Repository cleanup:**
+- `scripts/run_summons_pipeline.py` deleted (redundant runner)
+- 15 one-off diagnostic scripts archived to `02_ETL_Scripts/Summons/archive/`
+- `docs/SUMMONS_BACKFILL_INJECTION_POINT.md` corrected to reference actual active scripts
+
+**New documentation:**
+- `docs/PROMPT_Claude_MCP_Summons_Bugfix.md` — Initial M code bugfix prompt for Claude Desktop
+- `docs/PROMPT_Claude_MCP_Summons_Validation_Post_ETL.md` — Post-ETL refresh validation prompt
+- `docs/PROMPT_Claude_MCP_Summons_Round3_Fix.md` — Window, WG2 filter, and Total null fixes
+
+**Validation results (all passed):**
+- 13 months present (02-25 through 02-26 including July stragglers)
+- Feb 2026: M=421, P=2,354, C=74 (total=2,849)
+- SSOCC bureau appears with P=4 (R. Polson #0738)
+- All C values < 100 per month (range 36–92)
+- No "nan" phantom bureau row
+- All bureau Total columns populated
+
+---
+
+## [1.17.31] - 2026-03-09
+
+### Changed — pReportMonth Migration EXECUTED via Claude Desktop MCP
+
+**All 16 queries migrated and verified on `2026_02_Monthly_Report_laptop`:**
+
+Migration executed via Claude Desktop with Power BI MCP tools in 4 waves (save between each):
+- Wave 1: ___DimMonth, ___Arrest_Categories, ___CSB_Monthly, ___Detectives
+- Wave 2: ___Det_case_dispositions_clearance, ___Drone, ___Overtime_Timeoff_v3, ___Social_Media
+- Wave 3: ___STACP_pt_1_2, STACP_DIAGNOSTIC, TAS_Dispatcher_Incident, ___Cost_of_Training
+- Wave 4: ___ResponseTime_AllMetrics, ___ResponseTimeCalculator, ___ResponseTime_DispVsCall, ___ResponseTime_OutVsCall
+
+**Post-migration DAX verification (all passed):**
+- ___DimMonth: 13 rows, Feb 2025 to Feb 2026
+- ___Detectives: Feb 2025 to Feb 2026, 509 rows
+- ___Arrest_13Month: Feb 2025 to Feb 2026, 629 rows, 13 distinct months
+- ___CSB_Monthly: Feb 2025 to Feb 2026
+- ___ResponseTime_AllMetrics: 117 rows (Feb 2026 CSV pending generation)
+- Zero `DateTime.LocalNow()` references remaining in migrated queries
+
+**TMDL export:** Full model exported to `m_code/tmdl_export/` (85 files) for version control and re-import capability.
+
+**Chatlog:** `docs/chatlogs/Claude-Attached_prompt_execution/`
+
+---
+
+## [1.17.30] - 2026-03-09
+
+### Added — ___Arrest_13Month Rolling Query
+
+**New query: `m_code/arrests/___Arrest_13Month.m`**
+- Rolling 13-month arrest data from raw Lawsoft monthly exports (`05_EXPORTS\_Arrest\monthly\YYYY\*.xlsx`)
+- Dynamic file discovery: case-insensitive match on "lawsoft" + "arrest", scans all year subdirectories
+- pReportMonth-driven window: `EndOfWindow = Date.EndOfMonth(pReportMonth)`, `StartOfWindow = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12))`
+- Charge categorization: Assault, Theft, Burglary, Robbery, Warrant, DWI, Drug Related, Weapons, Other
+- Simplified home categorization: Local (Hackensack/07601/07602) vs Out-of-Town
+- Period columns: MM_YY, MonthSort, MonthLabel, ArrestMonth for trend visuals
+- Added to migration prompt checklist as item 17
+
+---
+
+## [1.17.29] - 2026-03-09
+
+### Changed — pReportMonth Migration Prompt & Claude.md Streamline
+
+**pReportMonth Migration Prompt (`docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`):**
+- Complete MCP execution prompt for updating 16 M code queries to use `pReportMonth` instead of `DateTime.LocalNow()`
+- Group A (12 queries): Replace `DateTime.LocalNow()` with `pReportMonth`-derived window logic
+- Group B (2 queries): Standardize existing `pReportMonth` calculations to `Date.EndOfMonth`/`Date.StartOfMonth`
+- Group C (2 queries): Add 13-month window filter to unfiltered response time queries
+- Standard pattern: `EndOfWindow = Date.EndOfMonth(pReportMonth)`, `StartOfWindow = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12))`
+- Includes full replacement M expressions, MCP tool call format, DAX verification queries, and rollback instructions
+
+**Claude.md streamlined:**
+- Reduced from 40.8k chars (641 lines) to 9.3k chars (175 lines) — 77% reduction
+- Moved all detailed version history to CHANGELOG.md (where it belongs)
+- Added current status table, pReportMonth migration summary, architecture notes
+- Performance warning eliminated for Claude Code
+
+**SUMMARY.md and CHANGELOG.md updated** to reflect v1.17.29
+
+---
+
+## [1.17.28] - 2026-03-05
+
+### Changed — ESU_13Month.m and Documentation
+
+**ESU_13Month.m:**
+- **Rolling window:** `EndMonth = ReportMonth` (includes report month). Example: `pReportMonth = 02/01/2026` → window 02-25 through 02-26 (was 02-25 through 01-26).
+- **Exclude _Log tables:** Daily Log tables (`_26_JAN_Log`, etc.) excluded from TablesOnly to avoid processing non-metric data.
+- **TrackedItem normalization:** "1 Man ESU" and "1 man ESU" normalized to "ESU Single Operator" for consistent joins across monthly sheets.
+- **Type number:** Total column uses `type number` (not Int64) to preserve decimals (e.g. 5.5 for ESU OOS half-days).
+- **Per-table TrackedCol:** Resolves "Tracked Items" column per monthly table (handles varying column names).
+
+**Documentation updated:**
+- `docs/ESU_POWER_BI_LOAD_AND_PUBLISH.md` — pReportMonth requirement, _Log exclusion, normalization, rolling window behavior
+- `m_code/esu/README.md` — Rolling window and fixes summary
+
+---
+
+## [1.17.27] - 2026-03-04
+
+### Changed — M Code and Docs
+
+**___chief_projects.m:** Table reference updated from `Table8` to `Raw_Input` to match Excel workbook (Claude In Excel session). Table name must be exactly `Raw_Input` in Table Design.
+
+**___Social_Media.m:** Lambda syntax fix `(c) = >` → `(c) =>`. Missing_References error resolved by verifying table name `_stacp_mom_sm` in STACP.xlsm.
+
+**___Arrest_Distro:** Load error and unknown residence issues resolved. User corrected arrest data and manually added missing records; visual now loads from `2026_02_Arrests_PowerBI_Ready.xlsx` successfully.
+
+**New docs:**
+- `docs/SOCIAL_MEDIA_MISSING_REFERENCES_FIX.md` — Table name verification, M code requirements
+- `docs/MONTHLY_ACCRUAL_COMPARISON_2026_03_03.md` — Pre vs post refresh, backfill comparison
+- `docs/UNIFIED_EXPORT_AND_BACKFILL_LOCATIONS.md` — Proposal for unified _DropExports and Backfill structure
+- `docs/ARREST_DISTRO_LOAD_AND_UNKNOWN.md` — Load error vs unknown residence; resolution noted
+
+---
+
+## [1.17.26] - 2026-03-03
+
+### Changed — ETL Orchestrator & Script Fixes
+
+**Overtime TimeOff validation (run_all_etl.ps1):**
+- Fixed validation to check actual script inputs instead of non-existent `05_EXPORTS\_VCS_Time_Report`
+- Now validates: `05_EXPORTS\_Overtime\export\month\{year}\*_otactivity.xlsx`, `05_EXPORTS\_Time_Off\export\month\{year}\*_timeoffactivity.xlsx`, `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\`
+
+**Summons Derived Outputs (summons_derived_outputs.py):**
+- Added fallback paths for Department-Wide and related exports: Compstat `01_january`, `archive`, `Backfill\2026_01\summons` (00_dev and PowerBI_Date)
+- Output to `PowerBI_Date\_DropExports`
+- Uses `path_config.get_onedrive_root()` for portability
+
+**Response Times (process_cad_data_13month_rolling.py):**
+- Fallback to `CallType_Categories.csv` when `CAD_CALL_TYPE.xlsx` missing (column mapping: Incident→Call Type, Response_Type→Response)
+- Input path derived from report month: `05_EXPORTS\_CAD\timereport\monthly\{YYYY_MM}_timereport.xlsx`
+
+**Summons ETL v2.3.0 enhancements (run_summons_etl.py, summons_etl_normalize.py):**
+- Multi-month loading: discovers all `*_eticket_export*.csv` in folder, prefers `*_FIXED.csv` (DOpus)
+- Fallback to raw when _FIXED has 0 data rows
+- `--dry-run` option
+- pretty_csv fallback: ETL applies DOpus-style cleanup (trailing commas, Unnamed columns) when DOpus not run
+
+**References:** `docs/SUMMONS_ETL_v2.3.0_DEPLOYMENT.md`
+
+---
+
+## [1.17.25] - 2026-03-04
+
+### Added — Summons ETL v2.3.0 (Claude Complete Package)
+
+**Deployment:** Claude's v2.3.0 package resolves all 12 audit items from 7 rounds of cross-AI review (Grok + Claude In Excel).
+
+**Files deployed:**
+- `scripts/summons_etl_normalize.py` — v2.3.0: int badge key, column renames (UPPER_SNAKE_CASE), true 23-col SLIM, WG1/WG2/TEAM correct, statute classification, RANK, robust DATA_QUALITY_SCORE (enrichment-based), graceful degradation
+- `run_summons_etl.py` — Path-agnostic wrapper: auto-detects desktop (carucci_r) vs laptop (RobertCarucci), `--month` argument, backfill merge integration
+
+**Three-tier output:**
+1. **RAW** — Exact copy of original e-ticket export
+2. **CLEAN** — Full Excel (`summons_powerbi_latest.xlsx`) with enriched columns
+3. **SLIM** — 23-column CSV (`summons_slim_for_powerbi.csv`) for Power BI (~60% faster refresh)
+
+**M-code updates:** All 6 summons queries now source `summons_slim_for_powerbi.csv` instead of Excel:
+- `summons_13month_trend.m`, `summons_all_bureaus.m`, `summons_top5_moving.m`, `summons_top5_parking.m`, `___Summons.m`, `___Summons_Diagnostic.m`
+
+**Usage:** `python run_summons_etl.py --month 2026_01`
+
+**Path config:** `scripts/path_config.py` — `get_onedrive_root()` now tries `Path.home() / "OneDrive - City of Hackensack"` for laptop compatibility.
+
+**References:** `docs/Claude_In_Excel_Officer_Mapping_Analysis.csv` (rows 181–230), `KB_Shared/04_output/Grok-Fixed_Large_CSV_Cleaning_Script_(1)`, `KB_Shared/04_output/Summons_Verification_Note_And_Docs_Update`
+
+---
+
 ## [1.17.24] - 2026-03-03
 
 ### Added — Summons Verification Note (Re-export Required)

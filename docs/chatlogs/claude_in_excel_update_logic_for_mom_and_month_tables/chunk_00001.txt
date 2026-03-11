@@ -1,0 +1,50 @@
+Can you tell me specifically which cells or values look wrong to you? Perhaps you're comparing against something I'm not seeing, or the issue might be with a different column. Could you give me an example of a specific cell that should have a value but shows 0? Log turn 27 to Claude Log
+I did a thorough check comparing every XLOOKUP result in the MoM against the actual source data in the monthly sheets. Here's what I found:
+
+All values match perfectly — zero mismatches detected across:
+
+Column R (02-25) → _25_FEB ✅
+Column AC (01-26) → _26_JAN ✅
+Column AD (02-26) → _26_FEB ✅
+Column AE (03-26) → _26_MAR ✅
+For example, 
+MoM
+AD24
+ (Targeted Area Patrols, Feb-26) = 49, which exactly matches the 26_FEB source. MoM
+AD31
+ (1 Man ESU, Feb-26) = 15.5, also an exact match. Could you point me to a specific cell where the value looks wrong? For example, which tracked item and which month should have a number but is showing 0? That will help me pinpoint the exact issue. Updated 
+Claude Log
+A28:F28
+ (Turn 27)
+
+when complete verify 01-26 and 02-26
+Let me re-read the MoM data more carefully. You're selecting R2
+which is the 02-25 column. Let me check if the issue is that some items that exist in the 25_Feb source sheet are returning 0 when they shouldn't be. Let me also look at what the 25_Feb table's "Tracked Items" column actually contains character-by-character to catch hidden character mismatches:
+
+
+Deep character comparison MoM vs 25_FEB
+OK so the unmatched items (BWC Review vs BWC Review(s), Assist Other Bureau, ESU OOS, ESU Single Operator, 1 Man ESU, Supplemental ESU Officer assigned) all have 0 totals in the 25_Feb source anyway, or simply don't exist in that sheet — so returning 0 is correct. Wait — I think I understand now. You may be saying the MoM XLOOKUPs aren't working properly because you're seeing values that don't match what you expect. Let me re-read your message: "the xlookup for the MoM table is not bringing the values over look at 02-26" and "when complete verify 01-26 and 02-26". Maybe you want me to look at specific values you know should be there. Let me get the FULL data from both 26_JAN and 26_FEB and do a cell-by-cell comparison with MoM:
+
+
+Full cell-by-cell comparison for 01-26 and 02-26
+Both columns verify as allMatch: true. Every single cell matches. Let me now log this verification and present the results:
+
+
+Log turn 28 verification results
+✅ Verification Complete — 01-26 and 02-26
+I did a cell-by-cell comparison of every row in the MoM against the actual source table data. All values match perfectly. Column 
+MoM
+AC2:AC32
+ (01-26) — 31/31 rows correct:
+
+Item	MoM	Source (_26_JAN)
+Assist Outside Agency	1	1 ✅
+BWC Review(s)	4	4 ✅
+Moving Summonses	3	3 ✅
+MV Lock Outs	8	8 ✅
+MV Stops	5	5 ✅
+Parking Summonses	7	7 ✅
+Targeted Area Patrols	41	41 ✅
+Threat Assessments Received	2	2 ✅
+Warrants Executed	2	2 ✅
+ESU Single Operator	2	2 ✅

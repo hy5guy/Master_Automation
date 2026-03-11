@@ -1,0 +1,348 @@
+table ___NIBRS_Monthly_Report
+	lineageTag: 945508a0-483c-410d-8573-e5aa4b01e2e9
+
+	measure 'Clearance Rate %' =
+			
+			VAR Rate = [Clearance Rate Numeric]
+			RETURN
+			FORMAT( Rate, "0.00%" )
+		lineageTag: 0d6dcfd5-2b04-4a0d-9ca6-510b94f24986
+
+	measure 'Clearance Rate Numeric' = ```
+			
+			CALCULATE(
+			    SUM( '___NIBRS_Monthly_Report'[MetricValue] ),
+			    '___NIBRS_Monthly_Report'[Clearance and Crime Reporting Metrics] = "NIBRS Clearance Rate"
+			)
+			
+			```
+		lineageTag: 88e0cd19-b7ea-46ec-92c7-939e4f2a324c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure DisplayValueMeasure =
+			
+			SELECTEDVALUE(
+			    '___NIBRS_Monthly_Report'[DisplayValue],
+			    ""
+			)
+		lineageTag: 73dbf1fc-ea4f-4429-9d25-11c201acaec7
+
+	measure 'Clearance Rate for Chart' =
+			
+			CALCULATE(
+			    [Clearance Rate Numeric]
+			)
+		lineageTag: 17c51b57-e185-45e7-829c-a69fbe87bc46
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Current Month Clearance Rate' =
+			
+			CALCULATE(
+			    [Clearance Rate Numeric],
+			    '___NIBRS_Monthly_Report'[MonthYear_Display] = FORMAT( TODAY(), "MM-yy" )
+			)
+		lineageTag: 94736ce8-69ab-4fc0-a403-054ae978bf3c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'June 2025 Clearance Rate' =
+			
+			CALCULATE(
+			    [Clearance Rate Numeric],
+			    '___NIBRS_Monthly_Report'[MonthYear_Display] = "06-25"
+			)
+		lineageTag: d2b4f628-93cc-48ed-9c02-6c219e1e3366
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'NIBRS Chart Title' = ```
+			
+			VAR EndDate   = EOMONTH( TODAY(), -1 )
+			VAR StartDate = EDATE( EndDate, -12 )
+			RETURN
+			"13-Month NIBRS Clearance Rate Trend: "
+			  & FORMAT( StartDate, "MMMM yyyy" )
+			  & " - "
+			  & FORMAT( EndDate,   "MMMM yyyy" )
+			
+			```
+		lineageTag: 0200210d-4e30-4a4d-b25a-14cbb2ef3814
+
+	measure 'NIBRS Subtitle' = ```
+			
+			VAR EndDate   = EOMONTH( TODAY(), -1 )
+			VAR StartDate = EDATE( EndDate, -12 )
+			RETURN
+			    FORMAT( StartDate, "MMMM yyyy" ) & " - " & FORMAT( EndDate, "MMMM yyyy" )
+			
+			```
+		lineageTag: c1f9059b-c028-4d14-b3d6-86d3c2d53ebb
+
+	measure LineChartTitle = ```
+			
+			"13-Month NIBRS Clearance Rate Trend"
+			
+			```
+		lineageTag: 0b11afe5-4ded-4442-884c-3791c3c5e297
+
+	measure LineChartSubtitle = ```
+			
+			VAR EndDate   = EOMONTH( TODAY(), -1 )    // last day of prior month
+			VAR StartDate = EDATE( EndDate, -12 )      // 12 months before that
+			RETURN
+			FORMAT( StartDate, "MMMM yyyy" )
+			    & " - "
+			    & FORMAT( EndDate,   "MMMM yyyy" )
+			
+			```
+		lineageTag: 99a95f2c-538b-464e-8db1-950195d6edbb
+
+	column IsInRange = ```
+			
+			VAR MaxAvailableDate = MAX('___NIBRS_Monthly_Report'[MonthDate])
+			VAR StartDate13Months = EDATE(MaxAvailableDate, -12)  // 13 months = current + 12 previous
+			VAR CurrentRowDate = MAX('___NIBRS_Monthly_Report'[MonthDate])
+			
+			RETURN
+			IF(
+			    CurrentRowDate >= StartDate13Months && 
+			    CurrentRowDate <= MaxAvailableDate,
+			    1, 
+			    0
+			)
+			```
+		formatString: 0
+		lineageTag: 638d3543-6ec1-4e16-b57d-d8432fe560ec
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Clearance and Crime Reporting Metrics'
+		dataType: string
+		lineageTag: 5d58a230-3bfe-40e4-83bc-7d68687a2bdc
+		summarizeBy: none
+		sourceColumn: Clearance and Crime Reporting Metrics
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: string
+		lineageTag: a576e93c-de6f-4fd3-83f4-98d8f7666bc0
+		summarizeBy: none
+		sourceColumn: Month
+		sortByColumn: SortKey
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column MetricValue
+		dataType: double
+		lineageTag: 776f363a-44ea-46ca-b903-25b54332c424
+		summarizeBy: sum
+		sourceColumn: MetricValue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column MonthDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: fb86204d-2c23-4084-ace1-3b8b2760990b
+		summarizeBy: none
+		sourceColumn: MonthDate
+
+		variation Variation
+			isDefault
+			relationship: f147f6f9-b4b4-46ac-99e5-0d05c69641a8
+			defaultHierarchy: LocalDateTable_3f5b4743-f7a2-4ee1-b037-8a95c3131b2c.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DisplayValue
+		dataType: string
+		lineageTag: a74b2ea3-d55a-4845-a357-6b90c7f32209
+		summarizeBy: none
+		sourceColumn: DisplayValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthYear_Display
+		dataType: string
+		lineageTag: f665aa8b-4826-4634-9033-b48945015a03
+		summarizeBy: none
+		sourceColumn: MonthYear_Display
+		sortByColumn: MonthDate
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column SortKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 556331aa-ce46-49bc-8c6f-5577d696d036
+		summarizeBy: count
+		sourceColumn: SortKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateRange
+		dataType: string
+		lineageTag: b3bd3d13-c731-4b07-8462-1a200b73230d
+		summarizeBy: none
+		sourceColumn: DateRange
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Clearance Rate'
+		dataType: string
+		lineageTag: 46c9ca94-5196-428b-a5f8-366566a0d210
+		summarizeBy: none
+		sourceColumn: Clearance Rate
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___NIBRS_Monthly_Report = m
+		mode: import
+		source = ```
+				// 🕒 2025-09-03-16-15-00
+				// Project: NIBRS_Analysis/13_Month_Rolling_Clean
+				// Author: R. A. Carucci
+				// Purpose: Clean 13-month rolling NIBRS analysis without variable conflicts
+				
+				let
+				    // Load Excel data
+				    Source = Excel.Workbook(
+				        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\NIBRS\NIBRS_Monthly_Report.xlsx"
+				            
+				        ),
+				        null,
+				        true
+				    ),
+				    
+				    NIBRS_Table = Source{[Item="NIBRS_Monthly_Report", Kind="Table"]}[Data],
+				    
+				    // Get available month columns dynamically
+				    AvailableColumns = Table.ColumnNames(NIBRS_Table),
+				    MonthColumns = List.Select(AvailableColumns, each _ <> "Clearance and Crime Reporting Metrics"),
+				    
+				    // Transform all month columns to numbers
+				    ColumnTransformations = List.Transform(MonthColumns, each {_, type number}),
+				    
+				    ChangedType = Table.TransformColumnTypes(
+				        NIBRS_Table,
+				        List.Combine({
+				            {{"Clearance and Crime Reporting Metrics", type text}},
+				            ColumnTransformations
+				        })
+				    ),
+				    
+				    // Unpivot all month columns
+				    Unpivoted = Table.UnpivotOtherColumns(
+				        ChangedType,
+				        {"Clearance and Crime Reporting Metrics"},
+				        "Month",
+				        "MetricValue"
+				    ),
+				    
+				    // Parse dates
+				    WithParsedDates = Table.AddColumn(
+				        Unpivoted,
+				        "MonthDate",
+				        each 
+				            let
+				                monthNum = Number.FromText(Text.BeforeDelimiter([Month], "-")),
+				                yearSuffix = Text.AfterDelimiter([Month], "-"),
+				                fullYear = if Text.Length(yearSuffix) = 2 then 
+				                    2000 + Number.FromText(yearSuffix) 
+				                else 
+				                    Number.FromText(yearSuffix)
+				            in
+				                #date(fullYear, monthNum, 1),
+				        type date
+				    ),
+				    
+				    // Get exactly 13 most recent months
+				    AllDates = List.Sort(List.Distinct(WithParsedDates[MonthDate])),
+				    Last13Dates = List.LastN(AllDates, 13),
+				    
+				    // Filter to exactly 13 most recent months
+				    Rolling13Months = Table.SelectRows(
+				        WithParsedDates,
+				        each List.Contains(Last13Dates, [MonthDate])
+				    ),
+				    
+				    // Add display formatting
+				    WithDisplayFormatting = Table.AddColumn(
+				        Rolling13Months,
+				        "DisplayValue",
+				        each
+				            if [#"Clearance and Crime Reporting Metrics"] = "NIBRS Clearance Rate"
+				            then Number.ToText([MetricValue] * 100, "0.0") & "%"
+				            else Number.ToText([MetricValue], "0"),
+				        type text
+				    ),
+				    
+				    // Add MonthYear_Display for chart labels
+				    WithDisplayLabels = Table.AddColumn(
+				        WithDisplayFormatting,
+				        "MonthYear_Display",
+				        each Date.ToText([MonthDate], "MM-yy"),
+				        type text
+				    ),
+				    
+				    // Add sort key for proper chronological ordering
+				    WithSortKey = Table.AddColumn(
+				        WithDisplayLabels,
+				        "SortKey",
+				        each
+				            Date.Year([MonthDate]) * 10000
+				            + Date.Month([MonthDate]) * 100
+				            + Date.Day([MonthDate]),
+				        Int64.Type
+				    ),
+				    
+				    // Sort chronologically
+				    SortedData = Table.Sort(WithSortKey, {{"SortKey", Order.Ascending}}),
+				    
+				    // Add metadata for debugging
+				    WithMetadata = Table.AddColumn(
+				        SortedData,
+				        "DateRange",
+				        each 
+				            let
+				                FirstDate = List.Min(Last13Dates),
+				                LastDate = List.Max(Last13Dates)
+				            in
+				                Date.ToText(FirstDate, "MM-yy") & " to " & Date.ToText(LastDate, "MM-yy"),
+				        type text
+				    ),
+				    
+				    // Add clearance rate category
+				    FinalResult = Table.AddColumn(
+				        WithMetadata,
+				        "Clearance Rate",
+				        each
+				            if [#"Clearance and Crime Reporting Metrics"] = "NIBRS Clearance Rate" then
+				                if [MetricValue] >= 0.35 then "High (35%+)"
+				                else if [MetricValue] >= 0.25 then "Medium (25-34%)"
+				                else if [MetricValue] >= 0.15 then "Low (15-24%)"
+				                else "Very Low (<15%)"
+				            else "N/A",
+				        type text
+				    )
+				
+				in
+				    FinalResult
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

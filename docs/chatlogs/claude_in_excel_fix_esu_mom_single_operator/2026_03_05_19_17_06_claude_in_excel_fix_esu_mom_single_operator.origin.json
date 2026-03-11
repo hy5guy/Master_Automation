@@ -1,0 +1,37 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "markdown",
+    "police",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "esu",
+        "row",
+        "table",
+        "single",
+        "operator",
+        "mom"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "the attached esu excel workbook was updated but the power bi query is not showing the values in the visual, namely the values for ESU OOS and 1 Man ESU for 01-26 and 02-26, see sheets 26_JAN and 26_FEB review the main table on the sheet...",
+      "first_line": "the attached esu excel workbook was updated but the power bi query is not showing the values in the visual, namely the values for ESU OOS and 1 Man ESU for 01-26 and 02-26, see sheets 26_JAN and 26_FEB review the main table on the sheet (No"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-03-05T19:17:06.420050",
+  "department": "admin"
+}

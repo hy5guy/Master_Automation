@@ -1,0 +1,155 @@
+table ___ResponseTime_DispVsCall
+	isPrivate
+	lineageTag: e3f1c1d6-2578-44ce-9b2f-b8c29ac46b91
+
+	column YearMonth
+		dataType: string
+		lineageTag: dd071bee-bdee-4a84-b1e5-b6959299d82f
+		summarizeBy: none
+		sourceColumn: YearMonth
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date_Sort_Key
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 381d4e2e-1d08-49e4-9976-5bc78420d876
+		summarizeBy: none
+		sourceColumn: Date_Sort_Key
+
+		variation Variation
+			isDefault
+			relationship: 6a42561e-4a46-42aa-9657-8aee88bfe733
+			defaultHierarchy: LocalDateTable_acd8c52c-52b5-4a8a-a84b-bdd93a8402fa.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: df2fa1ce-5bea-4f36-b8b4-3240e07e0023
+		summarizeBy: none
+		sourceColumn: Date
+
+		variation Variation
+			isDefault
+			relationship: 56faf5b9-0e20-40ea-80dc-9954453019db
+			defaultHierarchy: LocalDateTable_7cec9b52-776c-43a7-b334-892bd19e5ea2.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Response_Type
+		dataType: string
+		lineageTag: d47e99b6-de4e-46c6-90e3-1ac03a098fc8
+		summarizeBy: none
+		sourceColumn: Response_Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column Category
+		dataType: string
+		lineageTag: 449dad28-3e74-44ea-a025-99fcb1ee0e16
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Average_Response_Time
+		dataType: double
+		lineageTag: eae61e04-8d61-4abf-b751-aa65129886e3
+		summarizeBy: sum
+		sourceColumn: Average_Response_Time
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Response_Time_MMSS
+		dataType: string
+		lineageTag: 7ef66edb-bf54-4752-8756-3dd06ec2b04e
+		summarizeBy: none
+		sourceColumn: Response_Time_MMSS
+
+		annotation SummarizationSetBy = Automatic
+
+	column MM-YY
+		dataType: string
+		lineageTag: af7139f8-f34f-4816-aff8-fca86d3e7de1
+		summarizeBy: none
+		sourceColumn: MM-YY
+		sortByColumn: Date_Sort_Key
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Record_Count
+		dataType: int64
+		formatString: 0
+		lineageTag: dd08472a-9ddb-459a-96a5-d719e36944bc
+		summarizeBy: sum
+		sourceColumn: Record_Count
+
+		annotation SummarizationSetBy = Automatic
+
+	column Metric_Type
+		dataType: string
+		lineageTag: cf7b0a9b-e506-4ec3-a47f-f06be27687bf
+		summarizeBy: none
+		sourceColumn: Metric_Type
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___ResponseTime_DispVsCall = m
+		mode: import
+		source =
+				// 🕒 2026-02-26-20-00-00
+				// # response_time/___ResponseTime_DispVsCall.m
+				// # Author: R. A. Carucci
+				// # Metric: Time Dispatched − Time of Call
+				// Updated: pReportMonth-driven 13-month window
+				
+				let
+				    EndOfWindow   = Date.EndOfMonth(pReportMonth),
+				    StartOfWindow = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12)),
+				    EndYM         = Date.Year(EndOfWindow)   * 100 + Date.Month(EndOfWindow),
+				    StartYM       = Date.Year(StartOfWindow) * 100 + Date.Month(StartOfWindow),
+				
+				    AllFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\response_time_all_metrics"),
+				    CSVFiles = Table.SelectRows(AllFiles, each Text.EndsWith([Name], "_response_times.csv")),
+				    WithFullPath = Table.AddColumn(CSVFiles, "FullPath", each [Folder Path] & [Name], type text),
+				
+				    LoadCSV = (filePath as text) =>
+				        let raw = Csv.Document(File.Contents(filePath), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.None]),
+				            promoted = Table.PromoteHeaders(raw, [PromoteAllScalars=true])
+				        in promoted,
+				
+				    AllData = Table.Combine(List.Transform(WithFullPath[FullPath], LoadCSV)),
+				    Filtered = Table.SelectRows(AllData, each [Metric_Type] = "Time Dispatched - Time of Call"),
+				
+				    Windowed = Table.SelectRows(Filtered, each
+				        let parts = Text.Split(Text.Trim([#"MM-YY"]), "-"), mm = Number.FromText(parts{0}), yy = 2000 + Number.FromText(parts{1}), ym = yy * 100 + mm
+				        in ym >= StartYM and ym <= EndYM),
+				
+				    Typed = Table.TransformColumnTypes(Windowed, {{"Response_Type", type text}, {"MM-YY", type text}, {"Metric_Type", type text}, {"First_Response_Time_MMSS", type text}, {"Avg_Minutes", type number}, {"Record_Count", Int64.Type}}),
+				
+				    WithYearMonth = Table.AddColumn(Typed, "YearMonth", each let parts = Text.Split(Text.Trim([#"MM-YY"]), "-"), mm = parts{0}, yy = "20" & parts{1} in yy & "-" & Text.PadStart(mm, 2, "0"), type text),
+				    WithDateKey = Table.AddColumn(WithYearMonth, "Date_Sort_Key", each try Date.FromText([YearMonth] & "-01") otherwise null, type date),
+				
+				    WithDate    = Table.AddColumn(WithDateKey, "Date", each [Date_Sort_Key], type date),
+				    WithAvgRT   = Table.AddColumn(WithDate, "Average_Response_Time", each [Avg_Minutes], type number),
+				    WithCategory = Table.AddColumn(WithAvgRT, "Category", each [Response_Type], type text),
+				    RenamedMMSS = Table.RenameColumns(WithCategory, {{"First_Response_Time_MMSS", "Response_Time_MMSS"}}),
+				
+				    Result = Table.SelectColumns(RenamedMMSS, {"YearMonth", "Date_Sort_Key", "Date", "Response_Type", "Category", "Average_Response_Time", "Response_Time_MMSS", "MM-YY", "Record_Count", "Metric_Type"})
+				in
+				    Result
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

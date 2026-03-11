@@ -1,0 +1,123 @@
+table ___Cost_of_Training
+	lineageTag: cafb1bb0-2434-4e03-afc2-3aa7041ca503
+
+	measure 'Subtitle – Training Cost by Delivery Method' = ```
+			
+			VAR MinSort   = MIN ( '___Cost_of_Training'[Period_Sort] )
+			VAR MaxSort   = MAX ( '___Cost_of_Training'[Period_Sort] )
+			VAR MinYear   = INT ( MinSort / 100 )
+			VAR MinMonth  = MinSort - MinYear * 100
+			VAR MaxYear   = INT ( MaxSort / 100 )
+			VAR MaxMonth  = MaxSort - MaxYear * 100
+			VAR MinDate   = DATE ( MinYear, MinMonth, 1 )
+			VAR MaxDate   = DATE ( MaxYear, MaxMonth, 1 )
+			VAR MonthCount = CALCULATE ( DISTINCTCOUNT ( 'Training_Log'[Period] ) )
+			VAR StartMonth = FORMAT ( MinDate, "[$-en-US]MMM YYYY" )
+			VAR EndMonth   = FORMAT ( MaxDate, "[$-en-US]MMM YYYY" )
+			RETURN
+			"Rolling " & MonthCount & "-Month Training Cost by Delivery Method | "
+			& StartMonth & " through " & EndMonth
+			
+			```
+		lineageTag: ad8076b1-df1e-45eb-948c-38ae074add50
+
+	column Delivery_Type
+		dataType: string
+		lineageTag: 6b4aff26-3e55-4edb-870b-21f738db8df5
+		summarizeBy: none
+		sourceColumn: Delivery_Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column Total
+		dataType: double
+		lineageTag: f9d50105-7c51-4828-9025-8bcbb35390c8
+		summarizeBy: sum
+		sourceColumn: Total
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Period
+		dataType: string
+		lineageTag: d31ce6f8-4207-4b0e-92df-38919a89c32a
+		summarizeBy: none
+		sourceColumn: Period
+		sortByColumn: Period_Sort
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Cost
+		dataType: double
+		lineageTag: 2241a676-4a77-4f46-8404-002d4d147432
+		summarizeBy: sum
+		sourceColumn: Cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Period_Sort
+		dataType: int64
+		formatString: 0
+		lineageTag: f6db6181-ee84-4d65-81d7-c0430e4229a2
+		summarizeBy: sum
+		sourceColumn: Period_Sort
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ___Cost_of_Training = m
+		mode: import
+		source =
+				// POLICY_TRAINING_ANALYTICS / Training_Log_Vertical
+				// Purpose: Unpivot Delivery_Cost_By_Month so months run DOWN the page (vertical).
+				// Filters to rolling 13-month window (pReportMonth-driven).
+				// Updated: pReportMonth-driven (no DateTime.LocalNow)
+				
+				let Source = Excel.Workbook(
+				        File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Policy_Training_Monthly\output\policy_training_outputs.xlsx"),
+				        null, true),
+				    Tbl = Source{[Item = "Delivery_Cost_By_Month", Kind = "Sheet"]}[Data],
+				    Promoted = Table.PromoteHeaders(Tbl, [PromoteAllScalars = true]),
+				
+				    TypedWide =
+				        if Table.HasColumns(Promoted, {"Delivery_Type", "Total"})
+				            then Table.TransformColumnTypes(
+				                Promoted,
+				                List.Combine(
+				                    {{{"Delivery_Type", type text}, {"Total", type number}},
+				                     List.Transform(
+				                         List.RemoveItems(Table.ColumnNames(Promoted),
+				                                          {"Delivery_Type", "Total"}),
+				                         each{_, type number})})) else Promoted,
+				
+				    // Rolling 13-month window (pReportMonth-driven)
+				    Report_Start_Date = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12)),
+				    Report_End_Date = Date.StartOfMonth(pReportMonth),
+				    MonthList = List.Generate(() => Report_Start_Date, each _ <= Report_End_Date, each Date.AddMonths(_, 1)),
+				    PeriodLabelsMMYY = List.Transform(MonthList, each Text.PadStart(Text.From(Date.Month(_)), 2, "0") & "-" & Text.End(Text.From(Date.Year(_)), 2)),
+				
+				    MonthCols = List.Difference(Table.ColumnNames(TypedWide), {"Delivery_Type", "Total"}),
+				    Unpivoted = Table.Unpivot(TypedWide, MonthCols, "Period", "Cost"),
+				    Filtered = Table.SelectRows(Unpivoted, each List.Contains(PeriodLabelsMMYY, [Period])),
+				
+				    WithSort = Table.AddColumn(
+				        Filtered, "Period_Sort",
+				        each let mm = Number.FromText(Text.Start([Period], 2)),
+				        yy = Number.FromText(Text.End([Period], 2)),
+				        yyyy = if yy < 70 then 2000 + yy else 1900 + yy in yyyy * 100 + mm,
+				        Int64.Type),
+				
+				    Final = Table.TransformColumnTypes(WithSort, {{"Delivery_Type", type text},
+				                                                  {"Period", type text},
+				                                                  {"Cost", type number},
+				                                                  {"Period_Sort", Int64.Type}})
+				                in Final
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

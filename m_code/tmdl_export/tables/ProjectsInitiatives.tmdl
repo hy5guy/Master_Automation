@@ -1,0 +1,66 @@
+table ProjectsInitiatives
+	lineageTag: fcc09a7a-f501-4671-8716-78b6eeb81f60
+
+	column Category
+		lineageTag: 0f82a251-1d95-4676-9047-4725ef15cfff
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Category]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Event
+		lineageTag: c0c60f04-7987-4547-96e8-3a9ae2fb438c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Event]
+
+		annotation SummarizationSetBy = Automatic
+
+	column SortOrder
+		formatString: 0
+		lineageTag: e6e657c1-7b13-43f0-a0d2-e9cecffa0e7b
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [SortOrder]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Column
+		type: calculated
+		lineageTag: ca8710cd-087d-4088-bf7d-26df2e2d0c1c
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation 43dbc3e8-3a1c-4b6f-9923-b49ff7d6691c = True
+
+	partition ProjectsInitiatives = calculated
+		mode: import
+		source =
+				
+				SELECTCOLUMNS(
+				{
+				( "INTERAGENCY MEETINGS", "NJ State Chiefs Briefing",         1 ),
+				( "CEREMONIAL EVENTS",    "Torch Run",                        2 ),
+				( "INTERAGENCY MEETINGS", "BC Chiefs Meeting",                3 ),
+				( "INTERNAL MEETINGS",    "Dept Head Meeting",                4 ),
+				( "COMMUNITY ENGAGEMENT", "S. Newman Block Party Meeting",    5 ),
+				( "STRATEGIC MEETINGS",   "Detective Compstat",               6 ),
+				( "CEREMONIAL EVENTS",    "Chief for a Day",                  7 ),
+				( "CEREMONIAL EVENTS",    "BC Police Academy Graduation",     8 ),
+				( "INTERAGENCY MEETINGS", "BC Active Chiefs Meeting",         9 ),
+				( "INTERAGENCY MEETINGS", "FBI National Academy Interview",  10 ),
+				( "CEREMONIAL EVENTS",    "Juneteenth Celebration",          11 ),
+				( "CEREMONIAL EVENTS",    "HHS Graduation",                 12 ),
+				( "COMMUNITY ENGAGEMENT", "Community Listening Session",     13 ),
+				( "INTERNAL MEETINGS",    "July 4 Prep Meeting",            14 ),
+				( "INTERAGENCY MEETINGS", "Motorola Aware Kick Off Meeting", 15 )
+				},
+				"Category", [Value1],
+				"Event",    [Value2],
+				"SortOrder",[Value3]
+				)
+
+	annotation PBI_Id = c108ae61118c4714b6912c380294e2bc
+

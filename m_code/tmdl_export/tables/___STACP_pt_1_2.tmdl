@@ -1,0 +1,415 @@
+table ___STACP_pt_1_2
+	lineageTag: 6eb55bbd-dd32-4ad4-9bf2-0df509dc7e4a
+
+	measure 'High Activity Title' = ```
+			"STACP High Priority Incidents (>10 Cases)"
+			
+			```
+		lineageTag: 8057dcd2-2d78-4bee-bd6a-63866b5710ac
+
+	measure 'High Activity Subtitle' = ```
+			
+			VAR PreviousMonthStart = EOMONTH(TODAY(), -2) + 1
+			VAR PreviousMonthEnd = EOMONTH(TODAY(), -1)
+			VAR PreviousMonthSortOrder = FORMAT(PreviousMonthStart, "yyyyMM")
+			VAR StartMonth = FORMAT(PreviousMonthStart, "MMM yyyy")
+			VAR EndMonth = FORMAT(PreviousMonthEnd, "MMM yyyy")
+			VAR TotalIncidents = 
+			    CALCULATE(
+			        [High Activity Total],
+			        'STACP_High_Activity'[Month_Sort_Order] = PreviousMonthSortOrder
+			    )
+			VAR CategoryCount = 
+			    CALCULATE(
+			        DISTINCTCOUNT('STACP_High_Activity'[Tracked Items ]),
+			        'STACP_High_Activity'[Month_Sort_Order] = PreviousMonthSortOrder
+			    )
+			VAR HighestCategory = 
+			    CALCULATE(
+			        VALUES('STACP_High_Activity'[Tracked Items ]),
+			        TOPN(1, 
+			            SUMMARIZE(
+			                FILTER(
+			                    'STACP_High_Activity',
+			                    'STACP_High_Activity'[Month_Sort_Order] = PreviousMonthSortOrder
+			                ), 
+			                'STACP_High_Activity'[Tracked Items ], 
+			                "Total", 
+			                CALCULATE(
+			                    [High Activity Total],
+			                    'STACP_High_Activity'[Month_Sort_Order] = PreviousMonthSortOrder
+			                )
+			            ),
+			            [Total], DESC
+			        )
+			    )
+			VAR HighestTotal = 
+			    CALCULATE(
+			        [High Activity Total],
+			        'STACP_High_Activity'[Tracked Items ] = HighestCategory,
+			        'STACP_High_Activity'[Month_Sort_Order] = PreviousMonthSortOrder
+			    )
+			RETURN
+			StartMonth & " - " & EndMonth & " | " & 
+			FORMAT(TotalIncidents, "#,0") & " Total Incidents | " &
+			CategoryCount & " Categories | " &
+			"Highest: " & HighestCategory & " (" & FORMAT(HighestTotal, "#,0") & ")"
+			```
+		formatString: 0
+		lineageTag: 21fa9724-d431-45ee-b0fa-2db3e9f11800
+
+	measure 'High Activity Count' =
+			
+			DISTINCTCOUNT(___STACP_pt_1_2[Tracked Items ])
+		formatString: 0
+		lineageTag: c92cdcdc-7969-466b-9529-01f3c027e187
+
+	measure 'High Activity Total' =
+			
+			SUM('___STACP_pt_1_2'[Value])
+		formatString: 0
+		lineageTag: 40bc85a7-74b0-4a9e-9ee4-a111c7fc9f40
+
+	measure 'Detective Transfer Summary' =
+			
+			VAR DetectiveTotal = [Detective Transfer Total]
+			VAR STACPTotal = [STACP Core Total]
+			VAR GrandTotal = DetectiveTotal + STACPTotal
+			RETURN
+			"Detective Transfers: " & FORMAT(DetectiveTotal, "#,0") & " | " &
+			"STACP Core: " & FORMAT(STACPTotal, "#,0") & " | " &
+			"Total: " & FORMAT(GrandTotal, "#,0")
+		lineageTag: 867dd3fc-88a4-43ad-9676-705c23b2bd4f
+
+	measure 'Monthly Activity Trend' = ```
+			
+			VAR _CurrentMonth = SELECTEDVALUE('STACP_High_Activity'[Month_MM_YY])
+			VAR _CurrentValue = SUM('STACP_High_Activity'[Value])
+			VAR _PrevMonthValue = 
+			    CALCULATE(
+			        SUM('STACP_High_Activity'[Value]),
+			        'STACP_High_Activity'[Month_Sort_Order] = SELECTEDVALUE('STACP_High_Activity'[Month_Sort_Order]) - 1
+			    )
+			VAR _Change = _CurrentValue - _PrevMonthValue
+			VAR _ChangePercent = DIVIDE(_Change, _PrevMonthValue, 0) * 100
+			RETURN
+			IF(
+			    ISBLANK(_PrevMonthValue),
+			    FORMAT(_CurrentValue, "#,0"),
+			    FORMAT(_CurrentValue, "#,0") & " (" & 
+			    IF(_Change >= 0, "+", "") & FORMAT(_Change, "#,0") & ", " &
+			    IF(_ChangePercent >= 0, "+", "") & FORMAT(_ChangePercent, "0") & "%)"
+			)
+			```
+		lineageTag: 74b8bcab-739a-471d-ad6a-15cdd389c4f9
+
+	measure 'Current Month Performance' = ```
+			
+			VAR _LatestMonth = MAX('STACP_High_Activity'[Month_MM_YY])
+			VAR _HighActivity = 
+			    CALCULATE(
+			        SUM('STACP_High_Activity'[Value]),
+			        'STACP_High_Activity'[Month_MM_YY] = _LatestMonth
+			    )
+			VAR _LowActivity = 
+			    CALCULATE(
+			        SUM('STACP_Low_Activity'[Value]),
+			        'STACP_Low_Activity'[Month_MM_YY] = _LatestMonth
+			    )
+			VAR _DetectiveTransfers = 
+			    CALCULATE(
+			        SUM('STACP_High_Activity'[Value]),
+			        'STACP_High_Activity'[Month_MM_YY] = _LatestMonth,
+			        'STACP_High_Activity'[Source_Category] = "Detective Transfer"
+			    )
+			RETURN
+			_LatestMonth & " Summary:" & UNICHAR(10) &
+			"High Activity: " & FORMAT(_HighActivity, "#,0") & UNICHAR(10) &
+			"Low Activity: " & FORMAT(_LowActivity, "#,0") & UNICHAR(10) &
+			"Detective Transfers: " & FORMAT(_DetectiveTransfers, "#,0")
+			```
+		lineageTag: 5b52cff9-a51e-4464-b370-b4ee1657380a
+
+	measure 'Activity Color' = ```
+			
+			VAR CurrentValue = SELECTEDVALUE('___STACP_pt_1_2'[Value])
+			VAR SourceCategory = SELECTEDVALUE('___STACP_pt_1_2'[Source_Category])
+			RETURN
+			SWITCH(
+			    SourceCategory,
+			    "Detective Transfer", 
+			        SWITCH(
+			            TRUE(),
+			            CurrentValue >= 10, "#1B5E20", // Dark green
+			            CurrentValue >= 5, "#4CAF50",  // Green
+			            CurrentValue >= 2, "#FF9800",  // Orange
+			            CurrentValue > 0, "#FFC107",   // Yellow
+			            "#E0E0E0"                      // Gray
+			        ),
+			    "STACP Core",
+			        SWITCH(
+			            TRUE(),
+			            CurrentValue >= 20, "#0D47A1", // Dark blue
+			            CurrentValue >= 10, "#1976D2", // Blue
+			            CurrentValue >= 5, "#42A5F5",  // Light blue
+			            CurrentValue > 0, "#90CAF9",   // Very light blue
+			            "#F5F5F5"                      // Light gray
+			        ),
+			    "#757575" // Default gray
+			)
+			```
+		lineageTag: 98f3eceb-cf19-4599-bf0c-ab0e41b24127
+
+	measure 'Performance Display' =
+			
+			VAR CurrentValue = SELECTEDVALUE('___STACP_pt_1_2'[Value])
+			VAR SourceCategory = SELECTEDVALUE('___STACP_pt_1_2'[Source_Category])
+			RETURN
+			IF(
+			    SourceCategory = "Detective Transfer",
+			    SWITCH(
+			        TRUE(),
+			        CurrentValue >= 10, "🔥 " & CurrentValue,
+			        CurrentValue >= 5, "📈 " & CurrentValue,
+			        CurrentValue >= 2, "➡️ " & CurrentValue,
+			        CurrentValue > 0, FORMAT(CurrentValue, "0"),
+			        "—"
+			    ),
+			    FORMAT(CurrentValue, "0")
+			)
+		lineageTag: 083c1ebc-610b-4fab-8214-bc4383a9f393
+
+	measure 'STACP P1 Title' = ```
+			
+			"School Threat Assessment & Crime Prevention | Part 1"
+			
+			```
+		lineageTag: d588704a-404e-4d75-9fde-495704ea5a82
+
+	measure 'STACP P1 Subtitle' =
+			
+			"13-Month Overview (" & 'UI'[UI MonthRange 13m] & ")"
+		lineageTag: 68d84bef-e8b6-4969-8c26-568eb3539f27
+
+	measure 'STACP P2 Title' =
+			
+			"School Threat Assessment & Crime Prevention | Part 2"
+		lineageTag: 34b965c8-5929-440f-9eb7-4b8b9f1cca71
+
+	measure 'STACP P2 Subtitle' =
+			
+			"13-Month Overview (" & 'UI'[UI MonthRange 13m] & ")"
+		lineageTag: e42fe632-2043-4280-ac56-af5718bfd3b4
+
+	column 'Tracked Items '
+		dataType: string
+		lineageTag: 6844f830-efec-4713-b172-67c33034d6a8
+		summarizeBy: none
+		sourceColumn: "Tracked Items "
+
+		annotation SummarizationSetBy = Automatic
+
+	column Source_Category
+		dataType: string
+		lineageTag: 30ae8420-180c-4641-a5b5-f926a86d13d0
+		summarizeBy: none
+		sourceColumn: Source_Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Activity_Level
+		dataType: string
+		lineageTag: a0107699-ba35-4a30-bfe1-5266d2f6cd96
+		summarizeBy: none
+		sourceColumn: Activity_Level
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: string
+		lineageTag: ebe5a4c2-71c3-40f4-b030-eb88b5c356b6
+		summarizeBy: none
+		sourceColumn: Month
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Value
+		dataType: double
+		lineageTag: f68d8c1c-d791-4e4c-a1d4-dad82db2d74e
+		summarizeBy: sum
+		sourceColumn: Value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Month_MM_YY
+		dataType: string
+		lineageTag: 866f8892-9cc8-4ec9-9e5e-0c7a397e0539
+		summarizeBy: none
+		sourceColumn: Month_MM_YY
+		sortByColumn: Date_Sort_Key
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date_Sort_Key
+		dataType: string
+		lineageTag: 0baf5c19-d040-4227-8953-f2889cceeeb3
+		summarizeBy: none
+		sourceColumn: Date_Sort_Key
+
+		annotation SummarizationSetBy = Automatic
+
+	column Report_Start_Date
+		dataType: string
+		lineageTag: 582c3e42-00eb-434a-918d-2e1f7cf279ab
+		summarizeBy: none
+		sourceColumn: Report_Start_Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column Report_End_Date
+		dataType: string
+		lineageTag: 83eb4440-ea6a-4610-beba-6e062ad96178
+		summarizeBy: none
+		sourceColumn: Report_End_Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column Is_Within_Window
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 5078d584-39e7-40d2-94c1-1f3a9ae0fedc
+		summarizeBy: none
+		sourceColumn: Is_Within_Window
+
+		annotation SummarizationSetBy = Automatic
+
+	column Total_Activity
+		dataType: double
+		lineageTag: 08866d0b-892c-4b36-9f95-9569e896ee44
+		summarizeBy: sum
+		sourceColumn: Total_Activity
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition ___STACP_pt_1_2 = m
+		mode: import
+		source = ```
+				// 🕒 2026-02-13-16-30-00
+				// # Master_Automation/STACP/STACP_pt_1_2_FIXED.m
+				// # Author: R. A. Carucci
+				// # Purpose: Future-proof STACP high activity query with dynamic year detection for 13-month rolling window (works 2024-2099+).
+				// Updated: pReportMonth-driven (no DateTime.LocalNow)
+				
+				/* =================================================================
+				   STACP HIGH ACTIVITY - FUTURE-PROOF VERSION
+				   Updated: 2026-03-09
+				   Changes: Replaced DateTime.LocalNow with pReportMonth parameter
+				   ================================================================= */
+				
+				let
+				    // =================================================================
+				    // ROLLING 13-MONTH WINDOW CALCULATION (pReportMonth-driven)
+				    // =================================================================
+				    Report_Start_Date = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12)),
+				    Report_End_Date = Date.StartOfMonth(pReportMonth),
+				    
+				    // =================================================================
+				    // DATA SOURCE LOADING
+				    // =================================================================
+				    Source = Excel.Workbook(File.Contents("C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\STACP\STACP.xlsm")),
+				    MoMTotals_Sheet = Source{[Item="MoMTotals",Kind="Sheet"]}[Data],
+				    
+				    PromotedHeaders = Table.PromoteHeaders(MoMTotals_Sheet, [PromoteAllScalars=true]),
+				    ColumnNames = Table.ColumnNames(PromotedHeaders),
+				    FirstColumnName = if List.IsEmpty(ColumnNames) then "Tracked Items " else ColumnNames{0},
+				    
+				    // =================================================================
+				    // DYNAMIC MONTH COLUMN DETECTION (HANDLES BOTH "3-25" AND "03-25")
+				    // =================================================================
+				    AllMonthColumns = List.Select(ColumnNames, each 
+				        let
+				            ColumnName = _,
+				            Parts = Text.Split(ColumnName, "-"),
+				            IsDatePattern = List.Count(Parts) = 2,
+				            MonthPart = if IsDatePattern then Parts{0} else "",
+				            IsMonthValid = Text.Length(MonthPart) >= 1 and Text.Length(MonthPart) <= 2 and 
+				                           (try Number.From(MonthPart) >= 1 and Number.From(MonthPart) <= 12 otherwise false),
+				            YearPart = if IsDatePattern then Parts{1} else "",
+				            IsYearValid = Text.Length(YearPart) = 2 and (try Number.From(YearPart) otherwise -1) >= 0,
+				            IsNotFirstColumn = ColumnName <> FirstColumnName
+				        in
+				            IsDatePattern and IsMonthValid and IsYearValid and IsNotFirstColumn
+				    ),
+				    
+				    FilteredMonthColumns = List.Select(AllMonthColumns, each
+				        let
+				            ColumnName = _,
+				            Parts = Text.Split(ColumnName, "-"),
+				            MonthNum = Number.From(Parts{0}),
+				            YearNum = Number.From("20" & Parts{1}),
+				            ColumnDate = #date(YearNum, MonthNum, 1),
+				            IsWithinWindow = ColumnDate >= Report_Start_Date and ColumnDate <= Report_End_Date
+				        in
+				            IsWithinWindow
+				    ),
+				    
+				    FinalMonthColumns = if List.IsEmpty(FilteredMonthColumns) then AllMonthColumns else FilteredMonthColumns,
+				    ColumnsToSelect = List.Combine({{FirstColumnName}, FinalMonthColumns}),
+				    SelectedColumns = try Table.SelectColumns(PromotedHeaders, ColumnsToSelect) otherwise PromotedHeaders,
+				    
+				    UnpivotedData = Table.UnpivotOtherColumns(SelectedColumns, {FirstColumnName}, "Month", "Value"),
+				    
+				    ConvertedValues = Table.TransformColumns(UnpivotedData, {
+				        {"Value", each if _ = null then 0 else try Number.From(_) otherwise 0, type number}
+				    }),
+				    
+				    AddedColumns = Table.AddColumn(ConvertedValues, "Source_Category", each "STACP Core", type text),
+				    AddedActivityLevel = Table.AddColumn(AddedColumns, "Activity_Level", each "High Activity", type text),
+				    
+				    AddedNormalizedMonth = Table.AddColumn(AddedActivityLevel, "Month_MM_YY", each
+				        let
+				            Parts = Text.Split([Month], "-"),
+				            MonthPart = if List.Count(Parts) >= 1 then Parts{0} else "01",
+				            YearPart = if List.Count(Parts) >= 2 then Parts{1} else "25",
+				            Result = Text.PadStart(MonthPart, 2, "0") & "-" & YearPart
+				        in
+				            Result, type text
+				    ),
+				    
+				    AddedDateSortKey = Table.AddColumn(AddedNormalizedMonth, "Date_Sort_Key", each
+				        let
+				            Parts = Text.Split([Month_MM_YY], "-"),
+				            SortKey = "20" & Parts{1} & Parts{0} & "01"
+				        in
+				            SortKey, type text
+				    ),
+				    
+				    AddedReportDates = Table.AddColumn(AddedDateSortKey, "Report_Start_Date", each Date.ToText(Report_Start_Date, "yyyy-MM-dd"), type text),
+				    AddedReportEndDate = Table.AddColumn(AddedReportDates, "Report_End_Date", each Date.ToText(Report_End_Date, "yyyy-MM-dd"), type text),
+				    AddedWindowFilter = Table.AddColumn(AddedReportEndDate, "Is_Within_Window", each true, type logical),
+				    
+				    AddedTotalActivity = Table.Group(AddedWindowFilter, {FirstColumnName}, {{"Total_Activity", each List.Sum([Value]), type number}}),
+				    JoinedBack = Table.Join(AddedWindowFilter, {FirstColumnName}, AddedTotalActivity, {FirstColumnName}),
+				    
+				    SortedFinal = Table.Sort(JoinedBack, {
+				        {"Total_Activity", Order.Descending},
+				        {FirstColumnName, Order.Ascending},
+				        {"Date_Sort_Key", Order.Ascending}
+				    })
+				
+				in
+				    SortedFinal
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,127 @@
+"""
+summons_etl_normalize.py
+Core normalization module with badge-based officer cleanup + statute lookup
+Version 2.2.0 (integrated Claude + Grok enhancements)
+"""
+
+import pandas as pd
+from pathlib import Path
+import json
+import logging
+from datetime import datetime
+import shutil
+
+logger = logging.getLogger(__name__)
+
+def _build_personnel_lookup(master_path: str) -> dict:
+    master_df = pd.read_csv(master_path, dtype=str)
+    lookup = {}
+    for _, row in master_df.iterrows():
+        badge = str(row.get('BADGE_NUMBER', '')).strip()
+        if badge and badge.lower() != 'nan':
+            lookup[badge] = {
+                'FIRST_NAME': str(row.get('FIRST_NAME', '')).strip(),
+                'LAST_NAME': str(row.get('LAST_NAME', '')).strip(),
+                'TITLE': str(row.get('TITLE', '')).strip(),
+                'TEAM': str(row.get('TEAM', '')).strip(),
+                'WG2': str(row.get('WG2', '')).strip() or 'UNKNOWN',
+                'PADDED_BADGE_NUMBER': badge.zfill(4),
+                'STANDARD_NAME': str(row.get('STANDARD_NAME', f"{row.get('TITLE','')} {row.get('FIRST_NAME','')} {row.get('LAST_NAME','')}")).strip()
+            }
+    return lookup
+
+def _load_statute_lookups():
+    title39_path = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\LegalCodes\Title39\Title39_Lookup_Dict.json")
+    ordinance_path = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\LegalCodes\CityOrdinances\CityOrdinances_Lookup_Dict.json")
+    
+    with open(title39_path, encoding='utf-8') as f:
+        title39_dict = json.load(f)["lookup"]
+    with open(ordinance_path, encoding='utf-8') as f:
+        ordinance_dict = json.load(f)["lookup"]
+    return title39_dict, ordinance_dict
+
+def _classify_violation(row, title39_dict, ordinance_dict):
+    statute = str(row.get("Statute", "")).strip().upper()
+    raw_type = str(row.get("Case Type Code", "M")).strip().upper()
+    
+    if statute in title39_dict:
+        return title39_dict[statute].get("type", raw_type)
+    if statute in ordinance_dict:
+        return ordinance_dict[statute].get("case_type_code", raw_type)
+    # substring fallback for ordinances
+    for key in ordinance_dict:
+        if key in statute:
+            return ordinance_dict[key].get("case_type_code", raw_type)
+    return raw_type
+
+def normalize_personnel_data(summons_path: str, master_path: str) -> pd.DataFrame:
+    df = pd.read_csv(summons_path, dtype=str, low_memory=False)
+    
+    # Preserve raw officer fields for audit
+    for col in ['Officer First Name', 'Officer Middle Initial', 'Officer Last Name']:
+        if col in df.columns:
+            df = df.rename(columns={col: f"RAW_{col.replace(' ', '_').upper()}"})
+    
+    lookup = _build_personnel_lookup(master_path)
+    title39_dict, ordinance_dict = _load_statute_lookups()
+    
+    unmatched = []
+    for idx, row in df.iterrows():
+        badge = str(row.get('Officer Id', '')).strip()
+        if badge in lookup:
+            info = lookup[badge]
+            df.at[idx, 'Officer First Name'] = info['FIRST_NAME']
+            df.at[idx, 'Officer Last Name'] = info['LAST_NAME']
+            df.at[idx, 'Officer Middle Initial'] = ''  # clean
+            df.at[idx, 'OFFICER_DISPLAY_NAME'] = info['STANDARD_NAME']
+            df.at[idx, 'TITLE'] = info['TITLE']
+            df.at[idx, 'TEAM'] = info['TEAM']
+            df.at[idx, 'WG2'] = info['WG2']
+            df.at[idx, 'PADDED_BADGE_NUMBER'] = info['PADDED_BADGE_NUMBER']
+        else:
+            unmatched.append(badge)
+            df.at[idx, 'OFFICER_DISPLAY_NAME'] = f"{row.get('RAW_OFFICER_FIRST_NAME', '')} {row.get('RAW_OFFICER_LAST_NAME', '')}".strip()
+            df.at[idx, 'PADDED_BADGE_NUMBER'] = badge.zfill(4) if badge else ''
+    
+    if unmatched:
+        logger.warning(f"Unmatched badges (kept raw values): {unmatched} (e.g., Badge 9110 ANNUNZIATA)")
+    
+    # Authoritative TYPE classification
+    df['TYPE'] = df.apply(lambda r: _classify_violation(r, title39_dict, ordinance_dict), axis=1)
+    
+    # Derive Power BI columns
+    df['Issue_Date_dt'] = pd.to_datetime(df['Issue Date'], errors='coerce')
+    df['YearMonthKey'] = df['Issue_Date_dt'].dt.strftime('%Y%m').fillna('0').astype(int)
+    df['Month_Year'] = df['Issue_Date_dt'].dt.strftime('%m-%y')
+    df['TICKET_COUNT'] = 1
+    df['IS_AGGREGATE'] = False
+    df['ETL_VERSION'] = 'ETICKET_CURRENT'
+    
+    return df
+
+def write_three_tier_output(df: pd.DataFrame, output_xlsx: str, original_summons_path: str):
+    output_dir = Path(output_xlsx).parent
+    base_name = datetime.now().strftime("%Y_%m") + "_eticket_export"
+    
+    # Tier 1: RAW (exact original)
+    raw_path = output_dir / f"{base_name}_RAW.csv"
+    shutil.copy2(original_summons_path, raw_path)
+    logger.info(f"RAW saved: {raw_path.name}")
+    
+    # Tier 2: CLEAN full Excel
+    df.to_excel(output_xlsx, sheet_name='Summons_Data', index=False)
+    logger.info(f"CLEAN full saved: {Path(output_xlsx).name} ({len(df):,} rows)")
+    
+    # Tier 3: SLIM (28 columns for M code)
+    slim_cols = [
+        "Ticket Number", "Case Status Code", "Case Type Code", "Entered Date", "Issue Date",
+        "Charge Date", "Charge Time", "Officer Id", "Officer First Name", "Officer Middle Initial",
+        "Officer Last Name", "RAW_OFFICER_FIRST_NAME", "RAW_OFFICER_MI", "RAW_OFFICER_LAST_NAME",
+        "Statute", "Violation Description", "Municipality Of Offense Code", "Offense Street Name",
+        "Penalty", "PADDED_BADGE_NUMBER", "OFFICER_DISPLAY_NAME", "TYPE", "WG2",
+        "YearMonthKey", "Month_Year", "TICKET_COUNT", "IS_AGGREGATE", "ETL_VERSION", "TITLE", "TEAM"
+    ]
+    slim_df = df[[c for c in slim_cols if c in df.columns]].copy()
+    slim_path = output_dir / "summons_slim_for_powerbi.csv"
+    slim_df.to_csv(slim_path, index=False, encoding='utf-8-sig')
+    logger.info(f"SLIM Power BI version saved: {slim_path.name} ({len(slim_df):,} rows)")

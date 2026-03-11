@@ -1,0 +1,63 @@
+table BM_Calendar
+	lineageTag: 367ce234-c352-43c6-aa18-5eb01ee15c3f
+
+	measure BM_Calendar_Rolling13_Flag =
+			
+			VAR EndOfLastMonth = EOMONTH(TODAY(), -1)
+			VAR StartOfWindow = EOMONTH(EndOfLastMonth, -12) + 1
+			VAR CurrentMonthStart = MAX(BM_Calendar[MonthStart])
+			RETURN
+			IF(CurrentMonthStart >= StartOfWindow && CurrentMonthStart <= EndOfLastMonth, 1, 0)
+		formatString: 0
+		lineageTag: ade4fbe8-be37-4c42-b8bf-97d2b6aaf40b
+
+	column Date
+		formatString: General Date
+		lineageTag: 94a109eb-00d9-4393-9449-67a2fc5c62c5
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+		variation Variation
+			isDefault
+			relationship: d5e64df9-a5e9-4d25-8e3d-ebb8d4ef3beb
+			defaultHierarchy: LocalDateTable_ea539bab-1015-40d5-a92e-ce99d7aa8966.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthStart = DATE(YEAR(BM_Calendar[Date]), MONTH(BM_Calendar[Date]), 1)
+		formatString: General Date
+		lineageTag: 3160993d-1f43-4edb-8487-1cc93df1fb5a
+		summarizeBy: none
+
+		variation Variation
+			isDefault
+			relationship: edb8cebf-83ef-403c-9397-a8a461b1d860
+			defaultHierarchy: LocalDateTable_b8096e2a-739e-4bfe-b4e4-aff2216779f3.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthLabel = FORMAT(BM_Calendar[MonthStart], "MM-yy")
+		lineageTag: 5b577752-f176-4d31-816e-c729f7f318a3
+		summarizeBy: none
+		sortByColumn: MonthStart
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthSort = FORMAT(BM_Calendar[MonthStart], "YYYYMM")
+		lineageTag: 38e2cc83-2543-4779-80aa-66f95afa8d45
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition BM_Calendar = calculated
+		mode: import
+		source =
+				
+				CALENDAR(
+				DATE(2019,1,1),
+				DATE(2030,12,31)
+				)
+
+	annotation PBI_Id = 12c96fb61f684f6b836e501a49d449f7
+

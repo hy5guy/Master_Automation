@@ -1,0 +1,90 @@
+table UI
+	lineageTag: 163158b1-d6a3-4e4f-85aa-681723d39baa
+
+	measure 'IncidentCount Rolling13' = ```
+			
+			VAR StartDate = [Det1 Rolling13 StartDate]
+			VAR EndDate   = [Det1 Rolling13 EndDate]
+			RETURN
+			    CALCULATE (
+			        DISTINCTCOUNT ( '___Benchmark'[Report Key] ),
+			        DATESBETWEEN ( 'Date'[Date], StartDate, EndDate )
+			    )
+			
+			```
+		lineageTag: 94889e6c-e8f8-4482-a22f-2af1d4c7a737
+
+	column 'UI Key'
+		formatString: 0
+		lineageTag: 18f0aed7-743f-42b2-adab-fb4b6900d919
+		summarizeBy: count
+		isNameInferred
+		sourceColumn: [UI Key]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'UI Rolling13 EndDate' =
+			
+			EOMONTH ( TODAY(), -1 )
+		formatString: General Date
+		lineageTag: 93b49ac7-7e7b-4b3e-9d88-736d43ade729
+		summarizeBy: none
+
+		variation Variation
+			isDefault
+			relationship: aef30a95-680e-4047-ac25-2f1c0fc4c513
+			defaultHierarchy: LocalDateTable_711842b5-db0a-4b82-9619-ba9028b0d66b.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'UI Rolling13 StartDate' =
+			
+			VAR EndDate = 'UI'[UI Rolling13 EndDate]
+			RETURN
+			EOMONTH ( EndDate, -13 ) + 1
+		formatString: General Date
+		lineageTag: 65d05bcb-eda9-4fff-a5b1-ab25835466e4
+		summarizeBy: none
+
+		variation Variation
+			isDefault
+			relationship: b8566442-062b-4855-b78b-0026411742c4
+			defaultHierarchy: LocalDateTable_4d959cda-44b1-4c18-9407-f8dcd3edbd91.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'UI MonthRange 13m' = ```
+			
+			FORMAT ( 'UI'[UI Rolling13 StartDate], "MMMM yyyy" )
+			    & " - "
+			    & FORMAT ( 'UI'[UI Rolling13 EndDate], "MMMM yyyy" )
+			
+			```
+		lineageTag: d75a2bff-a342-48a2-a02d-645be60a2128
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Detectives P1 Subtitle' = ```
+			
+			"Rolling 13-Month Overview (" &
+			SELECTEDVALUE ( 'UI'[UI MonthRange 13m] ) &
+			")"
+			
+			```
+		lineageTag: d99c37a4-e20c-422d-86e4-741667cd4dd2
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition UI = calculated
+		mode: import
+		source =
+				
+				DATATABLE (
+				"UI Key", INTEGER,
+				{ { 1 } }
+				)
+
+	annotation PBI_Id = a2bd0931f9f14de38e779db156958927
+

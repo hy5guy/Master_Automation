@@ -1,0 +1,37 @@
+table Parameters_Check
+	lineageTag: 865f7858-38bc-4f29-a978-ab47c76b31b9
+
+	column Parameter
+		dataType: string
+		lineageTag: 48383cff-fa9d-4e80-82b7-7cccfbd842a2
+		summarizeBy: none
+		sourceColumn: Parameter
+
+		annotation SummarizationSetBy = Automatic
+
+	column Value
+		dataType: string
+		lineageTag: d46ad55f-44fa-4cdf-801a-8cb8f4f0e911
+		summarizeBy: none
+		sourceColumn: Value
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Parameters_Check = m
+		mode: import
+		source =
+				#table(
+				    {"Parameter","Value"},
+				    {
+				        {"RootExportPath", RootExportPath},
+				        {"EtlRootPath",    EtlRootPath},
+				        {"SourceMode",     SourceMode},
+				        {"RangeStart",     DateTime.ToText(RangeStart)},
+				        {"RangeEnd",       DateTime.ToText(RangeEnd)}
+				    }
+				)
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
