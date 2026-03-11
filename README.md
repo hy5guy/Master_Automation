@@ -6,7 +6,9 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
 
-**Latest Update (2026-03-10): v1.18.0 — Summons Pipeline Overhaul.** Full ETL rewrite: TYPE classification fixed (raw Case Type Code M/P/C instead of broken statute lookup), multi-year file discovery (2025+2026), BOM/quote-wrapped CSV handling, `summons_slim_for_powerbi.csv` as primary Power BI source. M code: 13-month trend window aligned to `pReportMonth - 1`, WG2 filter removed from dept-wide trend, `List.Sum([TICKET_COUNT])` replaces `Table.RowCount`, all_bureaus Total null coalesce. See `CHANGELOG.md`.
+**Latest Update (2026-03-11): v1.18.2 — Summons 13-month trend fix.** Removed filler-row logic that caused null pollution (rows with all-null columns). Query returns only actual data; TICKET_COUNT nulls filled with 0. See `CHANGELOG.md`.
+
+**v1.18.0 (2026-03-10): Summons Pipeline Overhaul.** Full ETL rewrite: TYPE classification fixed (raw Case Type Code M/P/C instead of broken statute lookup), multi-year file discovery (2025+2026), BOM/quote-wrapped CSV handling, `summons_slim_for_powerbi.csv` as primary Power BI source. M code: 13-month trend window aligned to `pReportMonth - 1`, WG2 filter removed from dept-wide trend, `List.Sum([TICKET_COUNT])` replaces `Table.RowCount`, all_bureaus Total null coalesce. See `CHANGELOG.md`.
 
 **v1.17.28 (2026-03-05):** Community Engagement ETL — Patrol processor v2 deployed. Enhanced attendee parsing (rank stripping, expanded delimiters, non-name detection), new `attendee_names` column in output. scripts.json updated for `output\*.csv` file discovery. See `Claude.md` and Community_Engagment `CHANGELOG.md`.
 

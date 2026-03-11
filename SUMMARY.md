@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-03-10
-**Status:** ✅ v1.18.1 — Summons pipeline fixes (Ramirez SSOCC, UNASSIGNED, filler rows)
-**Version:** 1.18.1
+**Last Updated:** 2026-03-11
+**Status:** ✅ v1.18.2 — Summons 13-month trend: filler rows removed (fix null pollution)
+**Version:** 1.18.2
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.18.1 — Summons pipeline fixes (Ramirez, UNASSIGNED, filler rows) |
-| **Version** | 1.18.1 |
+| **Status** | ✅ v1.18.2 — Summons 13-month trend: filler rows removed (fix null pollution) |
+| **Version** | 1.18.2 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 

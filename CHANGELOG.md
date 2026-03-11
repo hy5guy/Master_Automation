@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.2] - 2026-03-11
+
+### Changed — Summons 13-Month Trend: Remove Filler Rows (Fix Null Pollution)
+
+**Power BI M code:**
+- `m_code/summons/summons_13month_trend.m`: Removed filler-row logic that caused schema mismatch — `Table.Combine` of main table (24 cols) with filler rows (5 cols) produced null pollution (rows 43418–43419 with all-null columns). Query now returns only actual data rows. TICKET_COUNT nulls filled with 0 before return. Filter adds `[YearMonthKey] > 0` to drop malformed rows.
+
+**Trade-off:** 07-25 P and C show blank (not 0) in trend visual. Use Power BI "Show items with no data" or DAX `COALESCE(SUM(...), 0)` if zeros needed.
+
+**Documentation:**
+- `docs/fix_summons_13month_trend_query_m_code.md` — Fix plan and verification steps
+
+---
+
 ## [1.18.1] - 2026-03-10
 
 ### Changed — Summons Post-v1.18.0 Fixes (Ramirez, UNASSIGNED, Filler Rows)
@@ -16,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Power BI M code:**
 - `m_code/summons/summons_all_bureaus.m`: Map UNKNOWN, blank, "nan", null WG2 → "UNASSIGNED" so All Bureaus total matches department-wide (421 M, 2,354 P for Feb 2026)
-- `m_code/summons/summons_13month_trend.m`: Filler rows for missing (Month_Year, TYPE) — full cross-join of 13 months × {M,P,C}, left join to grouped data, append rows with TICKET_COUNT=0 so 07-25 shows M=17, P=0, C=0 instead of blank P/C
+- `m_code/summons/summons_13month_trend.m`: ~~Filler rows for missing (Month_Year, TYPE)~~ — reverted in v1.18.2 (caused null pollution)
 
 **Documentation:**
 - `docs/SUMMONS_M_CODE_NOTES.md` — Lessons learned (table schema, List.TransformMany, Show Errors crash, filler pattern, WG2 rules, BackfillMonths, subtitle measures, ___Traffic dynamic typing, DAX validation queries)
