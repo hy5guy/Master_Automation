@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.5] - 2026-03-11
+
+### Changed — Community Engagement: STACP Sheet, Config Paths, Individual Events
+
+**Community Engagement ETL (02_ETL_Scripts/Community_Engagment):**
+- Config: STACP sheet updated from `_25_outreach` (does not exist) to `School_Outreach`. Fixes missing Feb 2026 STA&CP incidents.
+- Config: All paths use base `C:\Users\carucci_r\OneDrive - City of Hackensack` (desktop); laptop uses `RobertCarucci`.
+
+**Power BI M code:**
+- `m_code/community/___Combined_Outreach_All.m`: Added Event ID and Row_ID columns so each event displays as an individual row. Prevents "Engagement Initiatives by Bureau" visual from aggregating multiple events (e.g. 9 LEAD events) into 2 rows. Add Row_ID to visual's Rows well.
+
+**Documentation:**
+- `02_ETL_Scripts/Community_Engagment/`: SUMMARY.md, README.md, CHANGELOG.md updated.
+- `docs/PROMPT_Fix_Social_Media_MMYY_Columns.md`: ___Combined_Outreach_All section updated with STACP sheet, config path, Event ID/Row_ID.
+- `SUMMARY.md`: Community Engagement script corrected to `src\main_processor.py`.
+
+---
+
 ## [1.18.4] - 2026-03-11
 
 ### Changed — Summons Backfill: Backfill as Source of Truth for All Backfill Months

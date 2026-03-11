@@ -34,7 +34,7 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.18.4 |
+| **Version** | 1.18.5 |
 | **Status** | Summons backfill as source of truth; pReportMonth migration COMPLETE |
 | **pReportMonth** | `#date(2026, 2, 1)` |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |

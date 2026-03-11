@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
 **Last Updated:** 2026-03-11
-**Status:** ✅ v1.18.4 — Summons backfill as source of truth; visual matches backfill file exactly
-**Version:** 1.18.4
+**Status:** ✅ v1.18.5 — Community Engagement STACP fix; individual events in Out-Reach visual
+**Version:** 1.18.5
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.18.4 — Summons backfill as source of truth; visual matches backfill file exactly |
-| **Version** | 1.18.4 |
+| **Status** | ✅ v1.18.5 — Community Engagement STACP fix; individual events in Out-Reach visual |
+| **Version** | 1.18.5 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -51,7 +51,7 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | # | Script Name | Filename | Status |
 |---|-------------|----------|--------|
 | 1 | Arrests | `arrest_python_processor.py` | ✅ Enabled |
-| 2 | Community Engagement | `deploy_production.py` | ✅ Enabled |
+| 2 | Community Engagement | `src\main_processor.py` | ✅ Enabled |
 | 3 | Overtime TimeOff | `overtime_timeoff_with_backfill.py` | ✅ Enabled (validation: 05_EXPORTS\_Overtime, _Time_Off, PowerBI_Date\Backfill\vcs_time_report) |
 | 4 | Response Times | `process_cad_data_13month_rolling.py` | ✅ Enabled (CallType_Categories.csv fallback; input from report month) |
 | 5 | Summons | `summons_etl_enhanced.py` (orchestrator); `run_summons_etl.py` (v2.3.0) | ✅ Enabled |
