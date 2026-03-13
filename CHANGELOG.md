@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.6] - 2026-03-13
+
+### Changed — Report Month Window Fixes (Summons, Detectives, Policy Training)
+
+**Power BI M code — all visuals now include report month (not previous month):**
+
+- **Summons (4 queries):** `summons_13month_trend`, `summons_all_bureaus`, `summons_top5_moving`, `summons_top5_parking` — window/filter changed from `pReportMonth - 1` to `pReportMonth`. For Feb 2026 report, all show 02-26 data.
+- **Detectives:** `m_code/detectives/___Det_case_dispositions_clearance.m` — `EndFilterDate` changed from `Date.AddMonths(ReportMonth, -1)` to `Date.EndOfMonth(ReportMonth)`. Window now 02-25 through 02-26 for Feb report.
+- **Policy Training — Cost:** `m_code/training/___Cost_of_Training.m` — `Report_End_Date` changed from previous month to `Date.StartOfMonth(pReportMonth)`. Window now 02-25 through 02-26 for Feb report.
+- **Policy Training — In-Person:** `m_code/training/___In_Person_Training.m` — Loads from source workbook (`Policy_Training_Monthly.xlsx` Training_Log) directly instead of ETL output `InPerson_Prior_Month_List`. Filters by report month + In-Person delivery. Added `ParseNumber` for currency/Excel errors (#VALUE!), `Table.ReplaceErrorValues`, `TrimmedHeaders`.
+
+**ETL:**
+- Policy Training source (`Policy_Training_Monthly.xlsx`) — formulas corrected (Training_Log10 reference → valid); ETL run regenerates `policy_training_outputs.xlsx` with 02-26 in `Delivery_Cost_By_Month`.
+- Summons ETL (`run_summons_etl.py --month 2026_02`) — staging has 02-26; Department-Wide trend includes Feb 2026.
+
+**Documentation:**
+- `docs/PROMPT_Claude_MCP_Summons_Month_Fix.md` — MCP prompt for summons month fix; ETL run command.
+- `docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md` — Cost window and In-Person source updated.
+
+---
+
 ## [1.18.5] - 2026-03-11
 
 ### Changed — Community Engagement: STACP Sheet, Config Paths, Individual Events

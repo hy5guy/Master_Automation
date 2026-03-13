@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-03-11
-**Status:** ✅ v1.18.5 — Community Engagement STACP fix; individual events in Out-Reach visual
-**Version:** 1.18.5
+**Last Updated:** 2026-03-13
+**Status:** ✅ v1.18.6 — Report month window fixes (Summons, Detectives, Policy Training)
+**Version:** 1.18.6
 
 ---
 
@@ -19,9 +19,9 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.18.5 — Community Engagement STACP fix; individual events in Out-Reach visual |
-| **Version** | 1.18.5 |
-| **ETL Scripts** | 5 Enabled, 3 Disabled |
+| **Status** | ✅ v1.18.6 — Report month window fixes (Summons, Detectives, Policy Training) |
+| **Version** | 1.18.6 |
+| **ETL Scripts** | 6 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
 ---
@@ -53,14 +53,14 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | 1 | Arrests | `arrest_python_processor.py` | ✅ Enabled |
 | 2 | Community Engagement | `src\main_processor.py` | ✅ Enabled |
 | 3 | Overtime TimeOff | `overtime_timeoff_with_backfill.py` | ✅ Enabled (validation: 05_EXPORTS\_Overtime, _Time_Off, PowerBI_Date\Backfill\vcs_time_report) |
-| 4 | Response Times | `process_cad_data_13month_rolling.py` | ✅ Enabled (CallType_Categories.csv fallback; input from report month) |
-| 5 | Summons | `summons_etl_enhanced.py` (orchestrator); `run_summons_etl.py` (v2.3.0) | ✅ Enabled |
+| 4 | Policy Training Monthly | `main.py` / `src\policy_training_etl.py` | ✅ Enabled |
+| 5 | Response Times | `process_cad_data_13month_rolling.py` | ✅ Enabled (CallType_Categories.csv fallback; input from report month) |
+| 6 | Summons | `summons_etl_enhanced.py` (orchestrator); `run_summons_etl.py` (v2.3.0) | ✅ Enabled |
 
 ### Disabled Scripts
 
 | Script Name | Reason |
 |-------------|--------|
-| Policy Training Monthly | Not orchestrated from Master_Automation (run from its own project folder) |
 | Arrest Data Source | Only test files found |
 | NIBRS | No Python files found |
 
@@ -236,7 +236,7 @@ Validation tool:
 
 ## Policy Training Monthly (Backfill + Current Month)
 
-Policy Training is managed in its own project folder:
+Policy Training is managed in its own project folder (enabled in `config/scripts.json`):
 - `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Policy_Training_Monthly`
 
 Key output:
@@ -244,11 +244,12 @@ Key output:
 
 Expected behavior:
 - Backfill months match the prior-month backfill export (e.g., `PowerBI_Date\Backfill\2025_10\policy_training\...`)
-- ETL computes rolling 13-month window; **01-26** (and later months) appear in Cost by Delivery Method visual after ETL run when source workbook has that period.
-- In-Person Training visual shows prior-month In-Person courses; zeros when source has no cost (or fill **Cost Per Attendee** in source and re-run ETL for imputation).
+- ETL computes rolling 13-month window; **02-26** (and later months) appear in Cost by Delivery Method visual after ETL run when source workbook has that period.
+- **Cost of Training** (`___Cost_of_Training.m`): Window ends at **report month** (e.g. Feb report → 02-25 through 02-26).
+- **In-Person Training** (`___In_Person_Training.m`): Loads from **source workbook** (`Policy_Training_Monthly.xlsx` Training_Log) directly; filters by report month + In-Person delivery. Handles #VALUE! and currency format.
 
 Doc:
-- `docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md` – Run location, Cost of Training 13-month fix, why 01-26 missing, In-Person visual and source column alias (**Cost Per Attendee** in ETL).
+- `docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md` – Run location, Cost of Training 13-month fix, In-Person source and error handling.
 
 Validation helper:
 - `scripts/compare_policy_training_delivery.py` (visual export vs ETL output; history vs backfill)
@@ -260,6 +261,8 @@ Validation helper:
 **Status (2025-12-12):** ✅ All Issues Resolved - System Healthy
 
 **⚠️ Verification Note (2026-03-03):** Re-export all summons e-ticket data to verify counts. See `docs/SUMMONS_VERIFICATION_NOTE_2026_03.md`.
+
+**v1.18.6 (2026-03-13):** All four summons visuals (13month_trend, all_bureaus, top5_moving, top5_parking) use **report month** in window/filter — for Feb 2026 report, 02-26 data included.
 
 **v1.18.1 (2026-03-10):** Ramirez SSOCC overrides in ETL; UNASSIGNED mapping in all_bureaus; 07-25 filler rows in 13month_trend; `docs/SUMMONS_M_CODE_NOTES.md` for lessons learned.
 

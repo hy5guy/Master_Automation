@@ -6,7 +6,7 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
 
-**Latest Update (2026-03-11): v1.18.4 — Summons backfill as source of truth.** For all months in the consolidated backfill file (02-25 through 11-25), e-ticket rows are removed and backfill values used exclusively. Department-Wide Summons visual now matches backfill file exactly. See `CHANGELOG.md`.
+**Latest Update (2026-03-13): v1.18.6 — Report month window fixes.** Summons (4 queries), Detectives, and Policy Training (Cost + In-Person) M code updated so all visuals include the report month (not previous month). In-Person Training now loads from source workbook directly. See `CHANGELOG.md`.
 
 **v1.18.0 (2026-03-10): Summons Pipeline Overhaul.** Full ETL rewrite: TYPE classification fixed (raw Case Type Code M/P/C instead of broken statute lookup), multi-year file discovery (2025+2026), BOM/quote-wrapped CSV handling, `summons_slim_for_powerbi.csv` as primary Power BI source. M code: 13-month trend window aligned to `pReportMonth - 1`, WG2 filter removed from dept-wide trend, `List.Sum([TICKET_COUNT])` replaces `Table.RowCount`, all_bureaus Total null coalesce. See `CHANGELOG.md`.
 
