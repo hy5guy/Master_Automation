@@ -24,9 +24,13 @@ Centralized orchestration hub that runs all Python ETL scripts feeding into Powe
 When generating formatted HTML reports for Hackensack PD, use the design system in **`docs/templates/HPD_Report_Style_Prompt.md`**. That file is the canonical source for:
 
 - **Color palette**: Navy (#1a2744), gold (#c8a84b), dark green (#2e7d32), dark red (#b71c1c)
-- **Typography**: Georgia, serif, 13.5px body; h2 with gold underline
+- **Typography**: Segoe UI, Arial, sans-serif, 13.5px body (or Georgia for formal); h2 with gold underline
 - **Structure**: Header band (navy + gold border) -> Meta bar -> Content -> Footer
 - **Components**: `.alert`, `.alert.green`, `.summary-grid`, `.summary-box`, `.finding`, tables with navy headers
+- **Author block**: R. A. Carucci #261 | Principal Analyst | Safe Streets Operations Control Center | Hackensack Police Department
+- **Key Findings** (not "Bottom Line") for executive summary callouts
+- **Document status colors**: `.status-draft`, `.status-review`, `.status-final`
+- **Dynamic KPI arrows**: `.arrow-up` (▲), `.arrow-down` (▼)
 
 **Rule**: Always use self-contained HTML. No external stylesheets, fonts, or scripts. All CSS inline in `<style>` block. Include `@media print` for clean printing.
 
