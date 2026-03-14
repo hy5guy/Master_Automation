@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.7] - 2026-03-14
+
+### Changed — February 2026 Report Fixes (Supervisor Feedback)
+
+**Traffic Bureau (___Traffic.m):**
+- Month columns: `Int64.Type` → `type number` — preserves Parking Fees decimals ($115,283.87). Fixes total not updating when Tina entered Feb 2026 parking fees in Traffic_Monthly.xlsx.
+
+**Summons backfill:**
+- Full January report as source of truth: `PowerBI_Date/Backfill/2026_01/summons/2026_01_department_wide_summons_january_report.csv` — all 13 months (01-25 through 01-26) from January's Department-Wide Summons visual. Ensures 12-25 and 01-26 match prior report; 02-26 from e-ticket.
+
+**Documentation:**
+- `docs/FEBRUARY_2026_MONTHLY_REPORT_SUPERVISOR_FEEDBACK.md` — Supervisor feedback action plan (Pages 8, 11, 12, 20)
+- `docs/PROMPT_Claude_MCP_February_2026_Report_Fixes.md` — MCP prompt for Power BI fixes
+- `docs/PROMPT_Claude_MCP_Traffic_Parking_Fees_Fix.md` — MCP prompt for Traffic decimal/Value column fix
+- `docs/PROMPT_Claude_In_Excel_Traffic_Visual_Not_Showing.md` — Claude in Excel prompt for Traffic_Monthly formula/table fix
+
+---
+
 ## [1.18.6] - 2026-03-13
 
 ### Changed — Report Month Window Fixes (Summons, Detectives, Policy Training)
