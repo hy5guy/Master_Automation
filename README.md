@@ -211,7 +211,27 @@ Edit `config/scripts.json` to add, remove, or modify ETL scripts:
 All successful outputs are automatically:
 1. Validated (CSV format, proper structure)
 2. Copied to `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\`
-3. Ready for `organize_backfill_exports.ps1` processing
+3. Ready for `process_powerbi_exports.py` processing (match, rename, move to Processed_Exports, copy to Backfill)
+
+## Key Paths
+
+### Master_Automation
+| Path | Purpose |
+|------|---------|
+| `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` | Workspace root |
+| `Master_Automation\config\scripts.json` | ETL configuration; `powerbi_drop_path` |
+| `Master_Automation\scripts\process_powerbi_exports.py` | Process _DropExports → Processed_Exports + Backfill |
+| `Master_Automation\Standards\config\powerbi_visuals\visual_export_mapping.json` | Export-to-folder mapping |
+| `<OneDrive>\09_Reference\Standards\Processed_Exports\{target_folder}\` | Renamed exports (nibrs, arrests, summons, etc.) |
+
+### PowerBI_Date
+| Path | Purpose |
+|------|---------|
+| `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date` | Power BI data root |
+| `PowerBI_Date\_DropExports` | Power BI visual exports land here (drop zone) |
+| `PowerBI_Date\Backfill\{YYYY_MM}\vcs_time_report\` | Monthly accrual (overtime_timeoff_with_backfill) |
+| `PowerBI_Date\Backfill\{YYYY_MM}\summons\` | Summons backfill (summons_backfill_merge) |
+| `PowerBI_Date\Archive\{YYYY}\{MonthName}\` | Archived visual exports |
 
 ## Logging
 
@@ -529,9 +549,9 @@ The manifest provides a machine-readable reference for the entire Master Automat
 ---
 
 **Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`  
-**Last Updated:** 2026-03-10  
-**Version:** 1.18.0  
-**Status:** ✅ Summons pipeline overhaul — TYPE classification, multi-year discovery, M code fixes
+**Last Updated:** 2026-03-17  
+**Version:** 1.18.9  
+**Status:** ✅ ETL export reliability; DFR Summons (Dismiss/Void filter); Response Time + DFR visual prompts
 
 
 ## 2026-02-23

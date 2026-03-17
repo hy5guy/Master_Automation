@@ -38,8 +38,8 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.18.7 |
-| **Status** | February 2026 report fixes; Summons backfill (Jan report); Traffic decimals |
+| **Version** | 1.18.9 |
+| **Status** | ETL export reliability; DFR Summons; Response Time/DFR visual prompts |
 | **pReportMonth** | `#date(2026, 2, 1)` |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 46+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
@@ -85,8 +85,8 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 - `scripts/` - Execution scripts and Python helpers
 - `logs/` - ETL execution logs (auto-created)
 - `docs/` - Documentation, prompts, chatlogs
-- `m_code/` - Power BI M code queries (46 queries across 20 subfolders)
-  - `arrests/`, `benchmark/`, `chief/`, `community/`, `csb/`, `detectives/`, `drone/`, `esu/`, `functions/`, `nibrs/`, `overtime/`, `parameters/`, `patrol/`, `remu/`, `response_time/`, `shared/`, `social_media/`, `ssocc/`, `stacp/`, `summons/`, `traffic/`, `training/`
+- `m_code/` - Power BI M code queries (47 queries across 20 subfolders)
+  - `arrests/`, `benchmark/`, `chief/`, `community/`, `csb/`, `detectives/`, `drone/` (includes DFR_Summons), `esu/`, `functions/`, `nibrs/`, `overtime/`, `parameters/`, `patrol/`, `remu/`, `response_time/`, `shared/`, `social_media/`, `ssocc/`, `stacp/`, `summons/`, `traffic/`, `training/`
   - `archive/` - Superseded M code versions
 - `outputs/` - Organized output files (arrests, visual_exports, summons_validation, metadata, community_engagement, misc, large_exports)
 - `verifications/` - ETL verification framework
@@ -100,6 +100,9 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 - `docs/M_CODE_DATETIME_FIX_GUIDE.md` - DateTime.LocalNow() audit
 - `docs/MONTHLY_REPORT_TEMPLATE_WORKFLOW.md` - Template workflow and checklist
 - `docs/ESU_POWER_BI_LOAD_AND_PUBLISH.md` - ESU query docs
+- `docs/PROMPT_ETL_Export_Reliability_Diagnostic_Enhanced.md` - ETL export diagnostic prompt (full paths)
+- `docs/PROMPT_Claude_MCP_Create_Missing_Visuals_For_Monthly_Report.md` - Claude MCP prompt for Response Time + DFR visuals
+- `docs/PROMPT_Claude_In_Excel_DFR_Directed_Patrol_Summons_MCode.md` - DFR Summons M code (13-month window, Dismiss/Void filter)
 - `docs/templates/HPD_Report_Style_Prompt.md` - HTML report design system
 - `09_Reference/Standards/ResponseTime_AllMetrics_DataDictionary.md` - Response Time schema
 
@@ -160,12 +163,34 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 ## Key Paths
 Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override. Python uses `path_config.get_onedrive_root()`; PowerShell uses `$OneDriveBase`.
 
+### Master_Automation (workspace root)
 | Path | Purpose |
 |------|---------|
-| `Master_Automation` | Workspace root |
-| `config\scripts.json` | ETL configuration |
-| `logs\` | Execution logs |
-| `<OneDrive>\PowerBI_Date\_DropExports` | Power BI drop folder |
+| `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` | Workspace root |
+| `Master_Automation\config\scripts.json` | ETL configuration; `powerbi_drop_path` |
+| `Master_Automation\logs\` | Execution logs |
+| `Master_Automation\scripts\process_powerbi_exports.py` | Process _DropExports → Processed_Exports + Backfill |
+| `Master_Automation\scripts\normalize_visual_export_for_backfill.py` | Visual export normalization |
+| `Master_Automation\scripts\path_config.py` | Path resolution (get_onedrive_root, get_powerbi_paths) |
+| `Master_Automation\Standards\config\powerbi_visuals\visual_export_mapping.json` | Export-to-folder mapping |
+| `Master_Automation\Standards\config\powerbi_visuals\schema_v2.json` | Archive/cleaning rules |
+| `Master_Automation\m_code\` | Power BI M code queries (46+ queries) |
+| `Master_Automation\docs\` | Documentation, prompts, chatlogs |
+
+### PowerBI_Date (Power BI data root)
+| Path | Purpose |
+|------|---------|
+| `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date` | Power BI data root |
+| `PowerBI_Date\_DropExports` | Power BI visual exports land here (drop zone) |
+| `PowerBI_Date\Backfill\{YYYY_MM}\{folder}\` | Backfill copies (vcs_time_report, summons, response_time, etc.) |
+| `PowerBI_Date\Archive\{YYYY}\{MonthName}\` | Archived visual exports (with `--archive`) |
+| `PowerBI_Date\Backfill\{YYYY_MM}\vcs_time_report\` | Monthly accrual (overtime_timeoff_with_backfill reads) |
+| `PowerBI_Date\Backfill\{YYYY_MM}\summons\` | Summons backfill (summons_backfill_merge reads) |
+
+### OneDrive (shared)
+| Path | Purpose |
+|------|---------|
+| `<OneDrive>\09_Reference\Standards\Processed_Exports\{target_folder}\` | Renamed/moved exports (nibrs, arrests, summons, etc.) |
 | `<OneDrive>\02_ETL_Scripts\*` | ETL script directories |
 | `<OneDrive>\15_Templates\Monthly_Report_Template.pbix` | Gold copy template |
 | `<OneDrive>\Shared Folder\Compstat\Monthly Reports\YYYY\MM_monthname\` | Published reports |
@@ -184,4 +209,4 @@ M code references `C:\Users\carucci_r\...` (desktop). Laptop has `C:\Users\Rober
 
 ---
 
-*Last updated: 2026-03-14 | Format version: 4.0*
+*Last updated: 2026-03-17 | Format version: 4.2*

@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.9] - 2026-03-17
+
+### Changed — ETL Export Reliability, DFR Summons, Documentation
+
+**ETL Export Reliability Remediation (Claude Code Plan):**
+- **process_powerbi_exports.py:** `_normalize_visual_name_for_match()` now converts underscores/hyphens to spaces and lowercases — fixes misrouted exports (NIBRS, ESU). Added `--diagnose`, `--coverage-report YYYY_MM`, auto coverage report, `[UNMATCHED]` logging, `files_unmatched` counter.
+- **visual_export_mapping.json:** match_pattern added to all 36 entries; fixed NIBRS 13-Month anchor, Arrest Categories regex; defensive aliases for ESU and NIBRS; version 2.1.0.
+- **Obsolete folders removed:** Training, Time_Off, Executive, Community_Engagement, law_enforcement_duties (moved 2025_01_chief_executive_duties.csv to chief/ first).
+- **Re-processed:** 2026_02_clearance_and_crime_reporting_metrics.csv → nibrs/; 2026_02_emergency_service_unit.csv → esu/; Other/ now empty.
+- **schema_v2.json:** Added clearance_crime_reporting_metrics to rolling_13_month_visuals.
+
+**DFR_Summons M code (m_code/drone/DFR_Summons.m):**
+- **13-month window:** EndDate now uses `Date.EndOfMonth(ReportMonth)` (was first day of month) — fixes blank preview when data falls in report month.
+- **Summons Recall filter:** Excludes rows where Summons_Recall contains "Dismiss" or "Void" (case-insensitive). Schema-resilient: skips filter if column missing.
+- **Source:** Sheet fallback is "DFR Summons Log" (not "DFR_Summons"); Table first, then Sheet with PromoteHeaders.
+
+**visual_export_mapping.json:**
+- Added DFR Directed Patrol Summons mapping (target_folder: drone, match_pattern for dfr_summons).
+- Note on Officer Summons Activity: 4th Summons visual is Department-Wide Summons.
+
+**Documentation:**
+- `docs/PROMPT_ETL_Export_Reliability_Diagnostic_Enhanced.md` — Full paths for Master_Automation and PowerBI_Date; pipeline scripts, config, canonical paths.
+- `docs/PROMPT_Claude_MCP_Create_Missing_Visuals_For_Monthly_Report.md` — Claude MCP prompt for creating Response Time visuals, DFR Summons visual, skip list.
+- `docs/PROMPT_Claude_In_Excel_DFR_Directed_Patrol_Summons_MCode.md` — Updated with Summons Recall filter, EndOfMonth window, sheet name "DFR Summons Log".
+
+---
+
+## [1.18.8] - 2026-03-16
+
+### Added — Key Paths Documentation
+
+**Paths added to CLAUDE.md, README.md, CHANGELOG.md:**
+- **Master_Automation:** workspace root, config, scripts (process_powerbi_exports, path_config), visual_export_mapping, schema_v2, m_code, docs
+- **PowerBI_Date:** data root, _DropExports (drop zone), Backfill/{YYYY_MM}/vcs_time_report, Backfill/{YYYY_MM}/summons, Archive
+- **Processed_Exports:** `09_Reference\Standards\Processed_Exports\{target_folder}\` for renamed exports
+
+---
+
 ## [1.18.7] - 2026-03-14
 
 ### Changed — February 2026 Report Fixes (Supervisor Feedback)
