@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.10] - 2026-03-17
+
+### Changed — Response Time Window, DFR Text Parsing, Line Chart Time Format
+
+**___ResponseTime_AllMetrics.m (m_code/response_time/):**
+- **13-month window:** EndDate now uses `Date.EndOfMonth(ReportMonth)` (was month before pReportMonth). Matches project standard: window 02-25 through 02-26 for pReportMonth=02/01/2026.
+- **StartDate:** `Date.StartOfMonth(Date.AddMonths(ReportMonth, -12))` — full 13 months inclusive.
+
+**DFR_Summons.m (m_code/drone/):**
+- **en-US culture:** `Table.TransformColumnTypes(..., "en-US")` — fixes Excel date/fine columns stored as text. DFR preview populates when dates are text.
+
+**Response Time Line Chart:**
+- **RT Avg Formatted measure:** `AvgMinutes/1440` with format `m:ss` — displays values as M:SS (e.g., 10:48) instead of decimal (10.8).
+- **RT Line Chart Subtitle:** Patrol-style DAX: "Response time trends by priority... Rolling 13-Month Overview (February 2025 - February 2026)".
+
+**Documentation:**
+- `docs/PROMPT_Claude_MCP_Response_Time_Line_Chart_Time_Format.md` — MCP prompt for line chart M:SS formatting.
+- `docs/Visual_Build_Guide_2026_02_v2.md` — TODAY() backlog removed (cleanup complete).
+- `docs/MCP_Session_Summary_TODAY_Cleanup.md` — Session summary (50+ measures, zero TODAY()/NOW()).
+- `docs/chatlogs/Claude-Reading_and_acting_on_attached_prompts/` — Claude MCP session that built visuals, fixed TODAY() measures.
+
+---
+
 ## [1.18.9] - 2026-03-17
 
 ### Changed — ETL Export Reliability, DFR Summons, Documentation

@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-03-14
-**Status:** ✅ v1.18.7 — February 2026 report fixes (Traffic decimals, Summons backfill)
-**Version:** 1.18.7
+**Last Updated:** 2026-03-17
+**Status:** ✅ v1.18.10 — Response Time visuals; DFR en-US; TODAY() cleanup; RT line chart M:SS
+**Version:** 1.18.10
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.18.7 — February 2026 report fixes (Traffic decimals, Summons backfill) |
-| **Version** | 1.18.7 |
+| **Status** | ✅ v1.18.10 — Response Time visuals; DFR en-US; TODAY() cleanup |
+| **Version** | 1.18.10 |
 | **ETL Scripts** | 6 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -713,8 +713,8 @@ The manifest provides a machine-readable reference for the entire Master Automat
 ---
 
 **Maintained by:** R. A. Carucci  
-**Last Updated:** 2026-03-10  
-**Version:** 1.18.1
+**Last Updated:** 2026-03-17  
+**Version:** 1.18.10
 
 ---
 
