@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-03-17
-**Status:** ✅ v1.18.10 — Response Time visuals; DFR en-US; TODAY() cleanup; RT line chart M:SS
-**Version:** 1.18.10
+**Last Updated:** 2026-03-18
+**Status:** ✅ v1.18.11 — DFR Summons MM-YY/Date_Sort_Key; Response Time visuals; RT line chart M:SS
+**Version:** 1.18.11
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.18.10 — Response Time visuals; DFR en-US; TODAY() cleanup |
-| **Version** | 1.18.10 |
+| **Status** | ✅ v1.18.11 — DFR Summons MM-YY/Date_Sort_Key; Response Time visuals |
+| **Version** | 1.18.11 |
 | **ETL Scripts** | 6 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 

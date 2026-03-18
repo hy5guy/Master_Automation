@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.11] - 2026-03-18
+
+### Changed — DFR Summons M Code Overhaul (MM-YY, Date_Sort_Key, Description Shortening)
+
+**DFR_Summons.m (m_code/drone/):**
+- **MM-YY column:** Display column for matrix headers (e.g., "02-25", "03-26"); replaces DateFormatted for project consistency.
+- **Date_Sort_Key:** First-of-month date for Power BI sort-by-column; MM-YY sorts by Date_Sort_Key for chronological column order.
+- **Description shortening:** Strips "Parking or stopping in designated " prefix → zone only (e.g., FIRE LANE/FIRE ZONE); source is ALL CAPS from Excel.
+- **Violation_Type P/M/C:** P=Parking/Reg/Equipment/Fire, M=Moving (reserved), C=Complaint (Parks & Rec) — from Claude in Excel.
+- **YearMonthKey restored:** Backward compat for visuals/measures; kept alongside DateSortKey (YYYYMMDD), Date_Sort_Key, MM-YY.
+- **en-US locale:** Table.TransformColumnTypes with "en-US" for text Date/Fine_Amount parsing.
+- **Dismiss/Void filter:** FilteredRecalls step excludes Summons_Recall containing "Dismiss" or "Void".
+
+**Documentation:**
+- `docs/Visual_Build_Guide_2026_02.md` — DFR matrix uses MM-YY (sort by Date_Sort_Key), Description (shortened).
+- `docs/DFR_Summons_Claude_Excel_Development_Log.md` — Claude in Excel 29-turn development history.
+- `docs/PROMPT_Claude_MCP_Create_Missing_Visuals_For_Monthly_Report.md` — DFR visual spec updated.
+- `docs/PROMPT_Claude_In_Excel_DFR_Directed_Patrol_Summons_MCode.md` — MM-YY, Date_Sort_Key sort-by note.
+
+---
+
 ## [1.18.10] - 2026-03-17
 
 ### Changed — Response Time Window, DFR Text Parsing, Line Chart Time Format

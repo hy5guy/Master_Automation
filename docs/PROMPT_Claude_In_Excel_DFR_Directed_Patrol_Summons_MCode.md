@@ -107,7 +107,7 @@ After Claude in Excel returns the M code:
 2. **Verify sheet/table name**: Ensure the Excel workbook has a table or sheet named `DFR_Summons` with the expected columns.
 3. **Add to Power BI**: In Power BI Desktop, create a new blank query, open Advanced Editor, paste the M code, and rename the query to `DFR_Summons`.
 4. **Add to Drone Page**: Create a new visual (e.g., table, matrix, or chart) bound to `DFR_Summons`.
-5. **Register in model**: Add `DFR_Summons` to the model and create relationships if needed (e.g., to `___DimMonth` via `YearMonthKey`).
+5. **Register in model**: Add `DFR_Summons` to the model. Set `MM-YY` to sort by `Date_Sort_Key` so matrix columns display chronologically.
 6. **Test pReportMonth**: Change `pReportMonth` and refresh to confirm the 13-month window updates correctly.
 
 ---

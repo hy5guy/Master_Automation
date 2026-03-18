@@ -19,7 +19,7 @@ Connect to my open Power BI model (Monthly_Report_Template.pbix). I need you to 
 
 - **Report:** Hackensack PD Monthly Report
 - **Parameter:** `pReportMonth` controls all rolling windows (e.g. `#date(2026, 2, 1)` for Feb 2026)
-- **Design system:** HPD navy (#1a2744), gold (#c8a84b); use `docs/templates/HPD_Report_Style_Prompt.md` for HTML reports if needed
+- **Design system:** Read `CLAUDE.md` and `docs/templates/HPD_Report_Style_Prompt.md` for colors (navy #1a2744, gold #c8a84b, green #2e7d32, red #b71c1c) and typography. Do not use em dashes (—) or en dashes (–); use hyphens (-) or rephrase.
 - **Reference materials:** 
   - `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\chatlogs\Response_Time_AllMetrics_Migration_And_Documentation`
   - `C:\Users\carucci_r\OneDrive - City of Hackensack\KB_Shared\04_output\Claude-Response_time_metric_verification_artifacts`
@@ -36,20 +36,26 @@ The Response Time page needs **6 visuals** built from the `___ResponseTime_AllMe
 
 **Implementation reference:** `Master_Automation\docs\response_time\___ResponseTime_AllMetrics_IMPLEMENTATION.md`
 
+**Dedicated Response Time prompt (Option B layout):** `docs\PROMPT_Claude_MCP_Response_Time_Visuals.md` - use for the 3-visual layout (KPI cards, Line chart with small multiples, Matrix).
+
 **Create these 6 visuals:**
 
 | # | Visual Name (for export mapping) | Type | Fields / Layout |
 |---|----------------------------------|------|-----------------|
 | 1 | Average Response Times  Values are in mmss | Line chart or Matrix | X: MonthName (sort by Date_Sort_Key), Y: Average_Response_Time or Response_Time_MMSS, Legend: Response_Type. Filter by Metric_Label = "Total Response" or show all three metrics with Metric_Label in Legend. |
-| 2 | Response Times Detailed | Matrix | Rows: Response_Type, Metric_Label; Columns: MonthName; Values: Response_Time_MMSS |
+| 2 | Response Times Detailed | Matrix | Rows: Response_Type, Metric_Label; Columns: MM-YY; Values: Response_Time_MMSS |
 | 3 | Response Times by Priority | Line chart | X: MonthName, Y: Average_Response_Time, Legend: Response_Type. Use Metric_Label filter for Total Response. |
-| 4 | Average Response Time (Dispatch to On Scene) | Matrix/Line | Filter Metric_Label = "Travel Time". Rows: Response_Type; Columns: MonthName; Values: Response_Time_MMSS |
+| 4 | Average Response Time (Dispatch to On Scene) | Matrix/Line | Filter Metric_Label = "Travel Time". Rows: Response_Type; Columns: MM-YY; Values: Response_Time_MMSS |
 | 5 | Dispatch Processing Time (Call Received to Dispatch) | Matrix/Line | Filter Metric_Label = "Dispatch Queue". Same layout as #4. |
 | 6 | Average Response Time (From Time Received to On Scene) | Matrix/Line | Filter Metric_Label = "Total Response". Same layout as #4. |
 
 **Option B layout (from transcript):** Line chart + conditional-format matrix. X: Date_Sort_Key, Y: Average_Response_Time, Legend: Metric_Label, Small Multiples: Response_Type.
 
-**DAX:** Add `Response_Type_Sort` calc column if not present: `SWITCH([Response_Type], "Emergency", 1, "Urgent", 2, "Routine", 3, 99)`. Set MonthName to sort by Date_Sort_Key.
+**Matrix columns:** Use `MM-YY` (not MonthName) for columns to match other tables. MM-YY sorts by Date_Sort_Key in the model.
+
+**Filter rule:** Do not apply a Response_Type filter on the Line Chart or Matrix. All three Response_Type values (Emergency, Urgent, Routine) must be visible.
+
+**DAX:** Confirm `RT Trend Total Response` exists (format "0.0 min"). Add `Response_Type_Sort` calc column if not present: `SWITCH([Response_Type], "Emergency", 1, "Urgent", 2, "Routine", 3, 99)`. Set MonthName and MM-YY to sort by Date_Sort_Key.
 
 ---
 
@@ -64,7 +70,7 @@ A new visual for **DFR Directed Patrol Summons** data. The M code query `DFR_Sum
 **Steps:**
 1. If `DFR_Summons` query does not exist, create it using the M code from `m_code\drone\DFR_Summons.m`
 2. Add the query to the model (enable load)
-3. Create a new visual on the **Drone** page: table or matrix showing DFR summons by month (YearMonthKey), Violation_Type, Location, etc. Use a 13-month trend or summary suitable for the Drone page layout.
+3. Create a new visual on the **Drone** page: table or matrix showing DFR summons by month (MM-YY, sorted by Date_Sort_Key), Description (ALL CAPS, shortened), Violation_Type (P/M/C), Location, etc. Use a 13-month trend or summary suitable for the Drone page layout.
 
 **Reference:** `docs\PROMPT_Claude_In_Excel_DFR_Directed_Patrol_Summons_MCode.md`
 
