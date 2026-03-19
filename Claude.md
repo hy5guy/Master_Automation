@@ -1,4 +1,4 @@
-# Project: Master_Automation - ETL Script Orchestration & Power BI Integration
+# Project: 06_Workspace_Management - ETL Script Orchestration & Power BI Integration
 
 ## What This Is
 Centralized orchestration hub that runs all Python ETL scripts feeding into Power BI reports. Provides automated execution, error handling, logging, and Power BI integration for multiple data processing workflows including Arrests, Community Engagement, Overtime/TimeOff, Response Times, and Summons.
@@ -31,6 +31,10 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 - **Key Findings** (not "Bottom Line") for executive summary callouts
 - **Document status colors**: `.status-draft`, `.status-review`, `.status-final`
 - **Dynamic KPI arrows**: `.arrow-up` (▲), `.arrow-down` (▼)
+- **Key Findings markup**: Use `<span class="alert-icon">&#9654;</span> <strong>Key Findings:</strong>` (icon in separate span to avoid PDF rendering issues)
+- **Padding**: Header, meta-bar, content, footer use 24px horizontal padding (not 40px)
+- **Line-height**: Body text `line-height: 1.4`
+- **Print**: Include `@media print` with page-break rules for `.alert`, `.summary-grid`, `.summary-box`, `.signature`, `.footer`, `.header`, `.meta-bar`; footer overrides (9px font, 8px padding, 1.3 line-height)
 
 **Rule**: Always use self-contained HTML. No external stylesheets, fonts, or scripts. All CSS inline in `<style>` block. Include `@media print` for clean printing.
 
@@ -38,13 +42,13 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.18.9 |
-| **Status** | ETL export reliability; DFR Summons; Response Time/DFR visual prompts |
+| **Version** | 1.18.11 |
+| **Status** | DFR Summons MM-YY/Date_Sort_Key; Response Time visuals; RT line chart M:SS |
 | **pReportMonth** | `#date(2026, 2, 1)` |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 46+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
-| **Report Template** | `15_Templates\Monthly_Report_Template.pbix` |
-| **TMDL Export** | `m_code/tmdl_export/` (85 files, full model snapshot) |
+| **Report Template** | `08_Templates\Monthly_Report_Template.pbix` |
+| **TMDL Export** | `m_code/tmdl_export/` (87 files, full model snapshot) |
 
 ### pReportMonth Migration (COMPLETE)
 All 16 M code queries migrated from `DateTime.LocalNow()` to `pReportMonth` via Claude Desktop MCP on 2026-03-09. Each `.pbix` is now an immutable snapshot -- changing `pReportMonth` and saving-as produces a new month's report without altering historical files.
@@ -59,7 +63,14 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 
 ### Response Time ETL (updated)
 - `response_time_batch_all_metrics.py` v1.17.21 -- dynamic source discovery, NaT coercion monitoring, per-type configurable bounds
+- `___ResponseTime_AllMetrics.m` -- 13-month window uses `EndOfMonth(pReportMonth)` (project standard); X-axis MM-YY; RT Avg Formatted measure for M:SS display
 - Data dictionary: `09_Reference/Standards/ResponseTime_AllMetrics_DataDictionary.md` (and `.json`)
+
+### DFR Summons (m_code/drone/DFR_Summons.m)
+- **Source:** `dfr_directed_patrol_enforcement.xlsx` (Claude in Excel workbook)
+- **Columns:** MM-YY (matrix display), Date_Sort_Key (sort-by-column), DateSortKey (YYYYMMDD), YearMonthKey; Description shortened ("Parking...designated X" → "X"); Violation_Type P/M/C
+- **Filter:** Excludes Summons_Recall containing "Dismiss" or "Void"; en-US locale for text parsing
+- **Docs:** `docs/DFR_Summons_Claude_Excel_Development_Log.md` (29-turn history)
 
 ## Project Map
 
@@ -102,7 +113,11 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 - `docs/ESU_POWER_BI_LOAD_AND_PUBLISH.md` - ESU query docs
 - `docs/PROMPT_ETL_Export_Reliability_Diagnostic_Enhanced.md` - ETL export diagnostic prompt (full paths)
 - `docs/PROMPT_Claude_MCP_Create_Missing_Visuals_For_Monthly_Report.md` - Claude MCP prompt for Response Time + DFR visuals
+- `docs/PROMPT_Claude_MCP_Response_Time_Visuals.md` - Dedicated Response Time prompt (KPI cards, Line chart, Matrix; Option B layout)
+- `docs/PROMPT_Claude_MCP_Response_Time_Line_Chart_Time_Format.md` - MCP prompt for line chart M:SS formatting (RT Avg Formatted)
+- `docs/Visual_Build_Guide_YYYY_MM.md` - MCP-generated manual build guide (e.g., Visual_Build_Guide_2026_02.md, Visual_Build_Guide_2026_02_v2.md)
 - `docs/PROMPT_Claude_In_Excel_DFR_Directed_Patrol_Summons_MCode.md` - DFR Summons M code (13-month window, Dismiss/Void filter)
+- `docs/DFR_Summons_Claude_Excel_Development_Log.md` - Claude in Excel development history (29 turns, workbook evolution)
 - `docs/templates/HPD_Report_Style_Prompt.md` - HTML report design system
 - `09_Reference/Standards/ResponseTime_AllMetrics_DataDictionary.md` - Response Time schema
 
@@ -163,36 +178,36 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 ## Key Paths
 Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override. Python uses `path_config.get_onedrive_root()`; PowerShell uses `$OneDriveBase`.
 
-### Master_Automation (workspace root)
+### 06_Workspace_Management (workspace root)
 | Path | Purpose |
 |------|---------|
-| `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` | Workspace root |
-| `Master_Automation\config\scripts.json` | ETL configuration; `powerbi_drop_path` |
-| `Master_Automation\logs\` | Execution logs |
-| `Master_Automation\scripts\process_powerbi_exports.py` | Process _DropExports → Processed_Exports + Backfill |
-| `Master_Automation\scripts\normalize_visual_export_for_backfill.py` | Visual export normalization |
-| `Master_Automation\scripts\path_config.py` | Path resolution (get_onedrive_root, get_powerbi_paths) |
-| `Master_Automation\Standards\config\powerbi_visuals\visual_export_mapping.json` | Export-to-folder mapping |
-| `Master_Automation\Standards\config\powerbi_visuals\schema_v2.json` | Archive/cleaning rules |
-| `Master_Automation\m_code\` | Power BI M code queries (46+ queries) |
-| `Master_Automation\docs\` | Documentation, prompts, chatlogs |
+| `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` | Workspace root |
+| `06_Workspace_Management\config\scripts.json` | ETL configuration; `powerbi_drop_path` |
+| `06_Workspace_Management\logs\` | Execution logs |
+| `06_Workspace_Management\scripts\process_powerbi_exports.py` | Process _DropExports → Processed_Exports + Backfill |
+| `06_Workspace_Management\scripts\normalize_visual_export_for_backfill.py` | Visual export normalization |
+| `06_Workspace_Management\scripts\path_config.py` | Path resolution (get_onedrive_root, get_powerbi_paths) |
+| `06_Workspace_Management\Standards\config\powerbi_visuals\visual_export_mapping.json` | Export-to-folder mapping |
+| `06_Workspace_Management\Standards\config\powerbi_visuals\schema_v2.json` | Archive/cleaning rules |
+| `06_Workspace_Management\m_code\` | Power BI M code (47 queries, 87 TMDL export) |
+| `06_Workspace_Management\docs\` | Documentation, prompts, chatlogs |
 
-### PowerBI_Date (Power BI data root)
+### PowerBI_Data (Power BI data root)
 | Path | Purpose |
 |------|---------|
-| `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date` | Power BI data root |
-| `PowerBI_Date\_DropExports` | Power BI visual exports land here (drop zone) |
-| `PowerBI_Date\Backfill\{YYYY_MM}\{folder}\` | Backfill copies (vcs_time_report, summons, response_time, etc.) |
-| `PowerBI_Date\Archive\{YYYY}\{MonthName}\` | Archived visual exports (with `--archive`) |
-| `PowerBI_Date\Backfill\{YYYY_MM}\vcs_time_report\` | Monthly accrual (overtime_timeoff_with_backfill reads) |
-| `PowerBI_Date\Backfill\{YYYY_MM}\summons\` | Summons backfill (summons_backfill_merge reads) |
+| `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data` | Power BI data root |
+| `PowerBI_Data\_DropExports` | Power BI visual exports land here (drop zone) |
+| `PowerBI_Data\Backfill\{YYYY_MM}\{folder}\` | Backfill copies (vcs_time_report, summons, response_time, etc.) |
+| `PowerBI_Data\Archive\{YYYY}\{MonthName}\` | Archived visual exports (with `--archive`) |
+| `PowerBI_Data\Backfill\{YYYY_MM}\vcs_time_report\` | Monthly accrual (overtime_timeoff_with_backfill reads) |
+| `PowerBI_Data\Backfill\{YYYY_MM}\summons\` | Summons backfill (summons_backfill_merge reads) |
 
 ### OneDrive (shared)
 | Path | Purpose |
 |------|---------|
 | `<OneDrive>\09_Reference\Standards\Processed_Exports\{target_folder}\` | Renamed/moved exports (nibrs, arrests, summons, etc.) |
 | `<OneDrive>\02_ETL_Scripts\*` | ETL script directories |
-| `<OneDrive>\15_Templates\Monthly_Report_Template.pbix` | Gold copy template |
+| `<OneDrive>\08_Templates\Monthly_Report_Template.pbix` | Gold copy template |
 | `<OneDrive>\Shared Folder\Compstat\Monthly Reports\YYYY\MM_monthname\` | Published reports |
 | `<OneDrive>\09_Reference\Standards\` | Schema standards and data dictionaries |
 

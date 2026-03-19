@@ -1,6 +1,6 @@
 # Prompt for Claude Desktop MCP: Create Missing Visuals for Monthly Report
 
-**Purpose:** Pass this prompt to Claude Desktop with the Power BI MCP connected and `Monthly_Report_Template.pbix` (or `15_Templates\Monthly_Report_Template.pbix`) open. Claude will create the missing visuals described below.
+**Purpose:** Pass this prompt to Claude Desktop with the Power BI MCP connected and `Monthly_Report_Template.pbix` (or `08_Templates\Monthly_Report_Template.pbix`) open. Claude will create the missing visuals described below.
 
 **Prerequisites:**
 1. Power BI Desktop open with `Monthly_Report_Template.pbix` loaded
@@ -21,7 +21,7 @@ Connect to my open Power BI model (Monthly_Report_Template.pbix). I need you to 
 - **Parameter:** `pReportMonth` controls all rolling windows (e.g. `#date(2026, 2, 1)` for Feb 2026)
 - **Design system:** Read `CLAUDE.md` and `docs/templates/HPD_Report_Style_Prompt.md` for colors (navy #1a2744, gold #c8a84b, green #2e7d32, red #b71c1c) and typography. Do not use em dashes (—) or en dashes (–); use hyphens (-) or rephrase.
 - **Reference materials:** 
-  - `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\chatlogs\Response_Time_AllMetrics_Migration_And_Documentation`
+  - `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management\docs\chatlogs\Response_Time_AllMetrics_Migration_And_Documentation`
   - `C:\Users\carucci_r\OneDrive - City of Hackensack\KB_Shared\04_output\Claude-Response_time_metric_verification_artifacts`
   - `C:\Users\carucci_r\OneDrive - City of Hackensack\KB_Shared\04_output\Claude-Power_BI_response-time_metrics_implementation`
 
@@ -34,7 +34,7 @@ The Response Time page needs **6 visuals** built from the `___ResponseTime_AllMe
 **Source table:** `___ResponseTime_AllMetrics`  
 **Columns:** `Metric_Label`, `Metric_Sort`, `Response_Type`, `MonthName`, `Date_Sort_Key`, `Average_Response_Time`, `Response_Time_MMSS`, `Record_Count`, etc.
 
-**Implementation reference:** `Master_Automation\docs\response_time\___ResponseTime_AllMetrics_IMPLEMENTATION.md`
+**Implementation reference:** `06_Workspace_Management\docs\response_time\___ResponseTime_AllMetrics_IMPLEMENTATION.md`
 
 **Dedicated Response Time prompt (Option B layout):** `docs\PROMPT_Claude_MCP_Response_Time_Visuals.md` - use for the 3-visual layout (KPI cards, Line chart with small multiples, Matrix).
 
@@ -63,7 +63,7 @@ The Response Time page needs **6 visuals** built from the `___ResponseTime_AllMe
 
 A new visual for **DFR Directed Patrol Summons** data. The M code query `DFR_Summons` loads from `dfr_directed_patrol_enforcement.xlsx` and applies a 13-month window.
 
-**M code:** `Master_Automation\m_code\drone\DFR_Summons.m`  
+**M code:** `06_Workspace_Management\m_code\drone\DFR_Summons.m`  
 **Source:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Drone\dfr_directed_patrol_enforcement.xlsx`  
 **Table:** `DFR_Summons` (or `DFR_Summons` query — add to model if not present)
 
@@ -115,4 +115,4 @@ After Claude creates the visuals:
 
 ---
 
-*Created: 2026-03-16 | Master_Automation*
+*Created: 2026-03-16 | 06_Workspace_Management*

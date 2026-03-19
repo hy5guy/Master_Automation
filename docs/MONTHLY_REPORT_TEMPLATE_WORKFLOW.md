@@ -2,7 +2,7 @@
 
 **Created:** 2026-02-21
 **Author:** R. A. Carucci
-**Template Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\15_Templates\Monthly_Report_Template.pbix`
+**Template Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\08_Templates\Monthly_Report_Template.pbix`
 **Source:** Copied from `2026_01_Monthly_Report.pbix` (January 2026 report)
 
 ---
@@ -16,7 +16,7 @@ The Monthly Report Template is the gold-copy PBIX file used to generate each mon
 ## Monthly Cycle Steps
 
 1. **Open the template**
-   - `15_Templates\Monthly_Report_Template.pbix`
+   - `08_Templates\Monthly_Report_Template.pbix`
 
 2. **Update `pReportMonth` parameter**
    - In Power BI Desktop: Home > Transform data > Edit Parameters
@@ -146,7 +146,7 @@ After pasting all queries into the template and refreshing:
 ## Directory Structure
 
 ```
-15_Templates\
+08_Templates\
   Monthly_Report_Template.pbix    <-- Gold copy (update M code here)
 
 Shared Folder\Compstat\Monthly Reports\

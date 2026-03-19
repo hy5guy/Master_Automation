@@ -1,4 +1,4 @@
-# Master_Automation Project Summary
+# 06_Workspace_Management Project Summary
 
 **Last Updated:** 2026-03-18
 **Status:** ✅ v1.18.11 — DFR Summons MM-YY/Date_Sort_Key; Response Time visuals; RT line chart M:SS
@@ -8,7 +8,7 @@
 
 ## Project Overview
 
-Master_Automation is a centralized orchestration hub for running all Python ETL scripts that feed into Power BI reports. It provides automated execution, error handling, logging, and Power BI integration for multiple data processing workflows.
+06_Workspace_Management is a centralized orchestration hub for running all Python ETL scripts that feed into Power BI reports. It provides automated execution, error handling, logging, and Power BI integration for multiple data processing workflows.
 
 ---
 
@@ -16,7 +16,7 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 
 | Item | Details |
 |------|---------|
-| **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
+| **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
 | **Status** | ✅ v1.18.11 — DFR Summons MM-YY/Date_Sort_Key; Response Time visuals |
@@ -69,13 +69,13 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 ## Directory Structure
 
 ```
-Master_Automation/
+06_Workspace_Management/
 ├── README.md                    # Main documentation
 ├── SUMMARY.md                   # This file
 ├── CHANGELOG.md                 # Version history
 ├── Claude.md                    # AI assistant guide
 ├── verify_migration.ps1         # Migration verification
-├── Master_Automation.code-workspace  # VS Code workspace
+├── 06_Workspace_Management.code-workspace  # VS Code workspace
 ├── .gitignore                   # Git ignore rules
 ├── requirements.txt             # Python deps (pandas, openpyxl) for validation & summons backfill
 ├── config/                      # Configuration files
@@ -155,7 +155,7 @@ pip install -r requirements.txt
 ### Run All ETL Scripts
 
 ```powershell
-cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management"
 .\scripts\run_all_etl.ps1
 ```
 
@@ -375,13 +375,13 @@ Documentation:
 
 | Purpose | Path |
 |---------|------|
-| **Workspace** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
+| **Workspace** | `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` |
 | **Config** | `config\scripts.json` |
 | **Logs** | `logs\` |
 | **PowerBI Drop** | `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports` |
 | **ETL Scripts** | `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\*` |
 | **Data Sources** | `C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\*` |
-| **Report Template** | `C:\Users\carucci_r\OneDrive - City of Hackensack\15_Templates\Monthly_Report_Template.pbix` |
+| **Report Template** | `C:\Users\carucci_r\OneDrive - City of Hackensack\08_Templates\Monthly_Report_Template.pbix` |
 | **Monthly Reports** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports\YYYY\MM_monthname\` |
 
 ---
@@ -556,7 +556,7 @@ Documentation:
 - **Files Generated** - 60 total output files across all workflows
 
 ### Critical Fixes (2026-02-09):
-1. **Overtime TimeOff** - Copied `Assignment_Master_V2.csv` to Master_Automation root (19.92s, 30 files)
+1. **Overtime TimeOff** - Copied `Assignment_Master_V2.csv` to 06_Workspace_Management root (19.92s, 30 files)
 2. **Response Times ETL** - Updated script from v2.0.0 → v2.1.0 with hybrid timereport loading (76.09s, 15 files)
 3. **Response Times Power BI** - Updated M code from v2.7.1 → v2.8.0 fixing type conversion errors (0% errors)
 4. **Validation Updates** - Enhanced `run_all_etl.ps1` with fallback path logic for Response Times and Summons

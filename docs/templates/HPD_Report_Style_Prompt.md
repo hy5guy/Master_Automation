@@ -38,9 +38,9 @@ a `<style>` block in the `<head>`.
 - Document status:      Draft (#e65100), In Review (#1565c0), Final (#2e7d32)
 
 **Typography**
-- Body: 'Segoe UI', Arial, sans-serif, 13.5px, color #2c2c3e, line-height 1.75
+- Body: 'Segoe UI', Arial, sans-serif, 13.5px, color #2c2c3e, line-height 1.4
   (Alternative for formal reports: 'Georgia', serif)
-- Headings (h2): bold, 14px, uppercase, letter-spacing 1px, color #1a2744,
+- Headings (h2): bold, 15px, uppercase, letter-spacing 1px, color #1a2744,
   border-bottom 2px solid #c8a84b, padding-bottom 5px, margin 28px 0 14px
 - Headings (h3): bold, 13px, color #1a2744, margin 18px 0 8px
 - Meta bar / small labels: 11-11.5px, sans-serif, color #444
@@ -56,20 +56,20 @@ a `<style>` block in the `<head>`.
   <div class="page"> <!-- max-width:900px; margin:0 auto; white card with border and box-shadow -->
 
     <!-- 1. HEADER BAND -->
-    <!-- Navy background (#1a2744), gold bottom border (4px solid #c8a84b), padding 28px 40px 22px -->
+    <!-- Navy background (#1a2744), gold bottom border (4px solid #c8a84b), padding 28px 24px 22px -->
     <!-- Stacked: dept (gold, 11px caps), h1 (white, 20px), subtitle (slate, 12px italic) -->
 
     <!-- 2. META BAR -->
-    <!-- Background #eef0f5, border-bottom 1px #d0d4de, padding 10px 40px -->
+    <!-- Background #eef0f5, border-bottom 1px #d0d4de, padding 14px 24px -->
     <!-- Flex row with ~40px gap. Items: Prepared by | Date | Subject | Status -->
     <!-- Status: use .status-draft (orange), .status-review (blue), or .status-final (green) -->
 
     <!-- 3. CONTENT AREA -->
-    <!-- padding 32px 40px 40px -->
+    <!-- padding 32px 24px 40px -->
     <!-- Sections separated by h2 with gold underline -->
 
     <!-- 4. FOOTER BAND -->
-    <!-- Background #eef0f5, border-top 2px solid #1a2744, padding 12px 40px, font-size 10.5px -->
+    <!-- Background #eef0f5, border-top 2px solid #1a2744, padding 12px 24px, font-size 10.5px -->
     <!-- Contains methodology note + version + date + repository path -->
 
   </div>
@@ -105,7 +105,7 @@ background: #f0faf2; border-left: 4px solid #2e7d32;
 background: #fff0f0; border-left: 4px solid #b71c1c;
 ```
 - Use for: key findings summaries, peer review confirmations, important callouts
-- **Label:** Use "Key Findings:" (not "Bottom Line") for executive summary callouts
+- **Label:** Use `<span class="alert-icon">&#9654;</span> <strong>Key Findings:</strong>` (icon in separate span to avoid PDF rendering issues)
 - `<p>` inside has margin:0 and font-size 13px
 
 #### Data Tables
@@ -114,8 +114,9 @@ background: #fff0f0; border-left: 4px solid #b71c1c;
 width:100%; border-collapse:collapse; font-size:12.5px; margin:14px 0 20px;
 
 /* th */
-background:#1a2744; color:white; padding:9px 12px; text-align:left;
+background:#1a2744; color:white; padding:9px 12px; text-align:center;
 font-size:11px; text-transform:uppercase; letter-spacing:0.5px;
+th.th-nowrap { white-space:nowrap; }
 
 /* td */
 padding:8px 12px; border-bottom:1px solid #e8e8ee; vertical-align:top;
@@ -143,7 +144,7 @@ border:1px solid #d0d4de; border-radius:4px; padding:14px;
 text-align:center; background:#fafbfd;
 
 /* Label (category name) */
-font-size:10.5px; text-transform:uppercase; letter-spacing:1px; color:#666; margin-bottom:6px;
+font-size:10.5px; text-transform:uppercase; letter-spacing:1px; color:#444; margin-bottom:6px;
 
 /* Value variants */
 .summary-box .new-val { font-size:22px; font-weight:bold; color:#2e7d32; }
@@ -159,7 +160,7 @@ font-size:10.5px; text-transform:uppercase; letter-spacing:1px; color:#666; marg
 .summary-box .arrow-down { color:#b71c1c; font-size:13px; margin:2px 0; } /* ▼ decline */
 
 /* Sub-label */
-.summary-box .type { font-size:10px; color:#888; margin-top:4px; }
+.summary-box .type { font-size:10px; color:#666; margin-top:4px; }
 ```
 - **Arrow logic:** Use `▲` (U+25B2) for improvement/increase, `▼` (U+25BC) for decline/decrease. Omit the arrow div entirely if no directional change. Apply `.arrow`, `.arrow-up`, or `.arrow-down` as appropriate.
 
@@ -192,10 +193,10 @@ background:#f3f3f3; color:#555; border:1px solid #ccc;
 #### Signature Block
 ```css
 margin-top:36px; padding-top:20px; border-top:1px solid #d0d4de;
-display:grid; grid-template-columns:1fr 1fr; gap:40px; font-size:12px;
+display:grid; grid-template-columns:1fr 1fr; gap:40px; font-size:13px;
 
 /* Signature line */
-.sig-line { border-top:1px solid #333; padding-top:6px; margin-top:40px; color:#555; }
+.sig-line { border-top:1px solid #333; padding-top:6px; margin-top:40px; color:#333; font-weight:600; }
 ```
 - Include optional Date line with extra spacing: `<br><span style="margin-top:16px; display:inline-block;">Date: _________________________</span>`
 
@@ -225,7 +226,7 @@ body {
 }
 .header {
   background:#1a2744; color:white;
-  padding:28px 40px 22px; border-bottom:4px solid #c8a84b;
+  padding:28px 24px 22px; border-bottom:4px solid #c8a84b;
 }
 .header .dept {
   font-size:11px; letter-spacing:2px; text-transform:uppercase;
@@ -235,27 +236,28 @@ body {
 .header .subtitle { font-size:12px; color:#b0b8cc; font-style:italic; }
 .meta-bar {
   background:#eef0f5; border-bottom:1px solid #d0d4de;
-  padding:10px 40px; display:flex; gap:40px;
+  padding:14px 24px; display:flex; gap:40px;
   font-size:11.5px; color:#444; flex-wrap:wrap;
 }
 .meta-bar span strong { color:#1a2744; }
 .status-draft { color:#e65100; font-weight:bold; }
 .status-review { color:#1565c0; font-weight:bold; }
 .status-final { color:#2e7d32; font-weight:bold; }
-.content { padding:32px 40px 40px; }
+.content { padding:32px 24px 40px; }
 h2 {
-  font-size:14px; font-weight:bold; color:#1a2744;
+  font-size:15px; font-weight:bold; color:#1a2744;
   text-transform:uppercase; letter-spacing:1px;
   border-bottom:2px solid #c8a84b; padding-bottom:5px;
   margin:28px 0 14px;
 }
 h2:first-of-type { margin-top:0; }
 h3 { font-size:13px; font-weight:bold; color:#1a2744; margin:18px 0 8px; }
-p { line-height:1.75; margin-bottom:12px; color:#2c2c3e; }
+p { line-height:1.4; margin-bottom:12px; color:#2c2c3e; }
 .alert {
   background:#fff8e6; border-left:4px solid #c8a84b;
   padding:14px 18px; margin:16px 0; border-radius:0 4px 4px 0;
 }
+.alert-icon { margin-right:4px; }
 .alert.green { background:#f0faf2; border-left-color:#2e7d32; }
 .alert.red { background:#fff0f0; border-left-color:#b71c1c; }
 .alert p { margin:0; font-size:13px; }
@@ -270,7 +272,7 @@ p { line-height:1.75; margin-bottom:12px; color:#2c2c3e; }
 }
 .summary-box .label {
   font-size:10.5px; text-transform:uppercase;
-  letter-spacing:1px; color:#666; margin-bottom:6px;
+  letter-spacing:1px; color:#444; margin-bottom:6px;
 }
 .summary-box .old-val {
   font-size:18px; font-weight:bold;
@@ -282,16 +284,17 @@ p { line-height:1.75; margin-bottom:12px; color:#2c2c3e; }
 .summary-box .new-val { font-size:22px; font-weight:bold; color:#2e7d32; }
 .summary-box .new-val.zero { color:#555; }
 .summary-box .new-val.warn { color:#e65100; }
-.summary-box .type { font-size:10px; color:#888; margin-top:4px; }
+.summary-box .type { font-size:10px; color:#666; margin-top:4px; }
 table {
   width:100%; border-collapse:collapse;
   font-size:12.5px; margin:14px 0 20px;
 }
 th {
   background:#1a2744; color:white; padding:9px 12px;
-  text-align:left; font-size:11px;
+  text-align:center; font-size:11px;
   text-transform:uppercase; letter-spacing:0.5px;
 }
+th.th-nowrap { white-space:nowrap; }
 td {
   padding:8px 12px; border-bottom:1px solid #e8e8ee;
   vertical-align:top;
@@ -320,26 +323,28 @@ table.primary-crimes td:last-child, table.primary-crimes th:last-child { min-wid
 .excluded-note { font-size:11px; color:#777; font-style:italic; }
 .signature {
   margin-top:36px; padding-top:20px; border-top:1px solid #d0d4de;
-  display:grid; grid-template-columns:1fr 1fr; gap:40px; font-size:12px;
+  display:grid; grid-template-columns:1fr 1fr; gap:40px; font-size:13px;
 }
 .sig-line {
   border-top:1px solid #333; padding-top:6px;
-  margin-top:40px; color:#555;
+  margin-top:40px; color:#333; font-weight:600;
 }
 .footer {
   background:#eef0f5; border-top:2px solid #1a2744;
-  padding:12px 40px; font-size:10.5px; color:#666; line-height:1.6;
+  padding:12px 24px; font-size:10.5px; color:#666; line-height:1.6;
 }
 h2, h3 { page-break-after: avoid; }
-table { page-break-inside: auto; }
+table { page-break-inside: avoid; }
 tr { page-break-inside: avoid; page-break-after: auto; }
 thead { display: table-header-group; }
-.alert, .summary-grid, .signature { page-break-inside: avoid; }
-.header { page-break-inside: avoid; }
+.alert, .summary-grid, .summary-box, .signature, .footer { page-break-inside: avoid; }
+.header, .meta-bar { page-break-inside: avoid; }
+.footer { page-break-before: avoid; }
 @media print {
   body { background:white; padding:0; }
   .page { box-shadow:none; border:none; max-width:100%; }
   @page { size: A4 portrait; margin: 20mm 18mm; }
+  .footer { font-size:9px; padding:8px 24px; line-height:1.3; }
 }
 ```
 
@@ -379,7 +384,7 @@ thead { display: table-header-group; }
     <h2>Executive Summary</h2>
     <p>[Summary paragraph]</p>
     <div class="alert">
-      <p><strong>&#9654; Key Findings:</strong> [Key takeaway sentence.]</p>
+      <p><span class="alert-icon">&#9654;</span> <strong>Key Findings:</strong> [Key takeaway sentence.]</p>
     </div>
 
     <h2>[Section Title]</h2>
@@ -444,7 +449,7 @@ thead { display: table-header-group; }
     <strong>Note:</strong> [Methodology or disclaimer text.] &nbsp;|&nbsp;
     <strong>Version:</strong> [vX.X Final] &nbsp;|&nbsp;
     <strong>Date:</strong> [DATE] &nbsp;|&nbsp;
-    <strong>Repository:</strong> Master_Automation / [path]
+    <strong>Repository:</strong> 06_Workspace_Management / [path]
   </div>
 
 </div><!-- /page -->
@@ -485,9 +490,29 @@ thead { display: table-header-group; }
 
 ---
 
+### CLERY ACT REPORT - GEOGRAPHY & METHODOLOGY NOTES
+
+Use this block in the Geography & Methodology section of Clery reports. It documents filtering, buffering, and exclusions.
+
+```html
+<h2>Geography & Methodology</h2>
+<p>
+  Incidents were filtered from the full RMS export by campus location (FullAddress only; Narrative was not used to avoid false positives from detective follow-up references). Clery-reportable incident types were applied using NIBRS codes and descriptive terms.
+</p>
+<p>
+  Public property geography is defined as a 100-foot buffer around campus locations. When a campus boundary feature class exists in the project geodatabase, the buffer was created from that polygon; otherwise, it was created from geocoded campus addresses. Incident points were geocoded via the NJ Geocoder service and projected to NJ State Plane for mapping.
+</p>
+<p>
+  <strong>Excluded from this report:</strong> Incidents whose address did not match campus location terms; incidents that did not meet Clery-reportable categories when the incident-type filter was applied.
+</p>
+```
+
+---
+
 ### CONVENTIONS
 
 - **Key Findings** (not "Bottom Line") for executive summary callouts
+- **Clery reports:** Include the "Geography & Methodology" block above to document filtering, buffering, and exclusions.
 - **Non-Campus** (hyphenated) for Clery geography
 - **CY-2025** (hyphenated) for calendar year
 - **DOE Handbook 2020 ed.** for methodology references
