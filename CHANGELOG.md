@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.14] - 2026-03-19
+
+### Added — DFR Summons ETL Enhancement (summons_etl_enhanced.py)
+
+**summons_etl_enhanced.py** (02_ETL_Scripts/Summons/):
+- **DFR_CONFIG** — Module-level config: dfr_badges (0738, 2025), target workbook path, formula columns, status map.
+- **_map_to_dfr_schema()** — Filters unified dataset for DFR badges; maps to DFR Summons Log schema (Date, Time, Summons Number, Location, Statute, DFR Operator, Issuing Officer, Summons Status, DFR Unit ID, Notes).
+- **export_to_dfr_workbook()** — Appends new rows to `dfr_directed_patrol_enforcement.xlsx`; deduplicates on Summons Number; skips formula columns (A, G, H, I, J, P, R); on PermissionError saves to `.etl_temp.xlsx`.
+- **main()** — After save_to_staging(), calls _map_to_dfr_schema() and export_to_dfr_workbook() when DFR records exist.
+- **Target path:** `Shared Folder/Compstat/Contributions/Drone/dfr_directed_patrol_enforcement.xlsx`
+
+### Changed — DFR_Summons.m Filter (Dismissed/Void/Voided)
+
+**DFR_Summons.m** (m_code/drone/):
+- **FilteredStatus step** — New step between FilteredRecalls and FilteredData; excludes rows where Summons_Status contains "dismiss" or "void" (Text.Contains, case-insensitive).
+- **Catches variants:** "Dismissed", "Void", "Voided" and similar.
+- **Null-safe:** Uses `status ?? ""` before Text.Lower/Trim.
+- **Filter chain:** FilteredBlanks → FilteredRecalls → FilteredStatus → FilteredData.
+
+**Documentation:**
+- CLAUDE.md — DFR Summons section updated (ETL population, dual filter).
+- SUMMARY.md — Version 1.18.14; DFR ETL noted.
+- docs/PROMPT_Claude_In_Excel_DFR_Directed_Patrol_Summons_MCode.md — Summons_Status filter added to spec.
+
+---
+
 ## [1.18.13] - 2026-03-19
 
 ### Changed — Power BI Template MCP Injection (Directory Consolidation Complete)

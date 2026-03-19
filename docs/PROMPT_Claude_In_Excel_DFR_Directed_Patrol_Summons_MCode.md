@@ -37,9 +37,10 @@ Generate Power BI M code for a new query named **DFR_Summons** that:
    - Filter rows where the date column falls within `[StartDate, EndDate]`.
    - If the date column is datetime, use `DateTime.Date([DateColumn])` for comparison.
 
-4. **Filters out** summons marked for Dismissal or Void:
-   - Exclude rows where the Summons Recall column (if present) contains "Dismiss" or "Void" (case-insensitive).
-   - Keep rows where Summons Recall is null, empty, or does not contain those words.
+4. **Filters out** summons marked for Dismissal or Void (dual filter):
+   - **Summons_Recall:** Exclude rows where Summons Recall contains "Dismiss" or "Void" (case-insensitive).
+   - **Summons_Status:** Exclude rows where Summons Status contains "dismiss" or "void" (catches Dismissed, Void, Voided; use Text.Contains on Text.Trim(Text.Lower(status ?? ""))).
+   - Keep rows where both columns pass (null/empty or no match).
 
 5. **Adds** a `YearMonthKey` column for grouping/trending: `Date.Year([Date]) * 100 + Date.Month([Date])` (Int64.Type).
 

@@ -1,8 +1,8 @@
 # 06_Workspace_Management Project Summary
 
 **Last Updated:** 2026-03-19
-**Status:** ✅ v1.18.13 — Directory consolidation complete; Power BI template MCP injection
-**Version:** 1.18.13
+**Status:** ✅ v1.18.14 — DFR ETL population; DFR_Summons dual filter (Recall + Status)
+**Version:** 1.18.14
 
 ---
 
@@ -19,8 +19,8 @@
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.18.13 — Directory consolidation complete; Power BI template MCP injection |
-| **Version** | 1.18.13 |
+| **Status** | ✅ v1.18.14 — DFR ETL population; DFR_Summons dual filter (Recall + Status) |
+| **Version** | 1.18.14 |
 | **ETL Scripts** | 6 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -55,7 +55,7 @@
 | 3 | Overtime TimeOff | `overtime_timeoff_with_backfill.py` | ✅ Enabled (validation: 05_EXPORTS\_Overtime, _Time_Off, PowerBI_Date\Backfill\vcs_time_report) |
 | 4 | Policy Training Monthly | `main.py` / `src\policy_training_etl.py` | ✅ Enabled |
 | 5 | Response Times | `process_cad_data_13month_rolling.py` | ✅ Enabled (CallType_Categories.csv fallback; input from report month) |
-| 6 | Summons | `summons_etl_enhanced.py` (orchestrator); `run_summons_etl.py` (v2.3.0) | ✅ Enabled |
+| 6 | Summons | `summons_etl_enhanced.py` (DFR append to dfr_directed_patrol_enforcement.xlsx); `run_summons_etl.py` (v2.3.0) | ✅ Enabled |
 
 ### Disabled Scripts
 
@@ -108,7 +108,7 @@
 │   ├── community/             # 1 query (Combined_Outreach_All)
 │   ├── csb/                   # 1 query
 │   ├── detectives/            # 2 queries (Detectives, CCD)
-│   ├── drone/                 # 1 query
+│   ├── drone/                 # 1 query (DFR_Summons; dual filter Recall + Status)
 │   ├── esu/                   # 1 query (ESU_13Month)
 │   ├── functions/             # 5 shared functions (fnGetFiles, fnReadCsv, etc.)
 │   ├── nibrs/                 # 1 query
@@ -728,7 +728,7 @@ The manifest provides a machine-readable reference for the entire Master Automat
 
 **Maintained by:** R. A. Carucci  
 **Last Updated:** 2026-03-19  
-**Version:** 1.18.13
+**Version:** 1.18.14
 
 ---
 
