@@ -4,6 +4,7 @@
 **Author:** R. A. Carucci
 **Template Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\08_Templates\Monthly_Report_Template.pbix`
 **Source:** Copied from `2026_01_Monthly_Report.pbix` (January 2026 report)
+**Last MCP Update:** 2026-03-19 — Directory consolidation path corrections + DAX subtitle fixes (see `POWERBI_TEMPLATE_MCP_UPDATE_2026_03_19.md`)
 
 ---
 

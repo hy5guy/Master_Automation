@@ -1,7 +1,7 @@
 # Power BI Refresh Required — Response Time Queries
 # 2026-02-26 | v1.17.17
 
-**Status: ⏳ PENDING — Calculator M code must be updated in PBIX first, then Refresh All**
+**Status: ✅ COMPLETE — Template updated via Claude Desktop MCP injection (2026-03-19)**
 
 ---
 
@@ -101,6 +101,6 @@ if admin asks why Routine is lower than Emergency for dispatch-to-scene.
 
 Update this file: change Status at the top to `✅ COMPLETE` and add date/initials.
 
-**Completed by:** _______________
-**Date/Time:** _______________
-**Notes:** _______________
+**Completed by:** Claude Desktop (MCP injection)
+**Date/Time:** 2026-03-19
+**Notes:** Directory consolidation refactor complete. All 4 Response Time partitions (`___ResponseTime_DispVsCall`, `___ResponseTime_OutVsCall`, `___ResponseTimeCalculator`, `___ResponseTime_AllMetrics`) updated with `PowerBI_Date` → `PowerBI_Data` path corrections. See `CHANGELOG.md` v1.18.13 and `docs/POWERBI_TEMPLATE_MCP_UPDATE_2026_03_19.md`.

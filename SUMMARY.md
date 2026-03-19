@@ -1,8 +1,8 @@
 # 06_Workspace_Management Project Summary
 
-**Last Updated:** 2026-03-18
-**Status:** ✅ v1.18.11 — DFR Summons MM-YY/Date_Sort_Key; Response Time visuals; RT line chart M:SS
-**Version:** 1.18.11
+**Last Updated:** 2026-03-19
+**Status:** ✅ v1.18.13 — Directory consolidation complete; Power BI template MCP injection
+**Version:** 1.18.13
 
 ---
 
@@ -19,8 +19,8 @@
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.18.11 — DFR Summons MM-YY/Date_Sort_Key; Response Time visuals |
-| **Version** | 1.18.11 |
+| **Status** | ✅ v1.18.13 — Directory consolidation complete; Power BI template MCP injection |
+| **Version** | 1.18.13 |
 | **ETL Scripts** | 6 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -429,6 +429,20 @@ Documentation:
 
 ---
 
+## Recent Updates (2026-03-19)
+
+### v1.18.13 — Directory Consolidation Complete; Power BI Template MCP Injection ✅
+
+**Claude Desktop MCP session** successfully updated `08_Templates\Monthly_Report_Template.pbix`:
+
+- **M-Code Paths:** 4 Response Time partitions (`___ResponseTime_DispVsCall`, `___ResponseTime_OutVsCall`, `___ResponseTimeCalculator`, `___ResponseTime_AllMetrics`) — `PowerBI_Date` → `PowerBI_Data` injected.
+- **DAX Subtitles:** 13 lagged subtitle measures rewritten to use standardized 13-month rolling format based on `___DimMonth`; fixes stale dates, `FIRSTNONBLANK` error in `Subtitle_V3_Accrual`, missing column in `Metrics Qual Subtitle`.
+- **New Measure:** `Subtitle_DeptWide_Summons` on `summons_13month_trend`.
+- **Use of Force Fix:** `IncidentCount_13Month` — `EDATE` end-of-month bug excluded Feb 2025; rewritten to start-of-month (75 → 78 count resolved).
+- **Cosmetic Deferral:** `STACP_DIAGNOSTIC` comment header updated to `06_Workspace_Management`; `___STACP_pt_1_2`, `___Detectives`, `ESU_13Month` deferred (local source files already correct).
+
+---
+
 ## Recent Updates (2026-03-09)
 
 ### v1.17.31 — pReportMonth Migration EXECUTED via Claude Desktop MCP ✅
@@ -713,8 +727,8 @@ The manifest provides a machine-readable reference for the entire Master Automat
 ---
 
 **Maintained by:** R. A. Carucci  
-**Last Updated:** 2026-03-17  
-**Version:** 1.18.10
+**Last Updated:** 2026-03-19  
+**Version:** 1.18.13
 
 ---
 

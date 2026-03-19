@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.13] - 2026-03-19
+
+### Changed — Power BI Template MCP Injection (Directory Consolidation Complete)
+
+**Claude Desktop MCP session** successfully injected path corrections and DAX fixes into `08_Templates\Monthly_Report_Template.pbix`. Directory consolidation refactor is officially complete.
+
+**M-Code Paths Updated (4 Response Time partitions):**
+- `___ResponseTime_DispVsCall`, `___ResponseTime_OutVsCall`, `___ResponseTimeCalculator`, `___ResponseTime_AllMetrics` — `PowerBI_Date` → `PowerBI_Data` path corrections injected via MCP.
+
+**DAX Subtitles Standardized (13 measures):**
+- 13 lagged/broken subtitle measures rewritten to use standardized 13-month rolling date format based on `___DimMonth`.
+- Fixes stale dates when underlying source data had not been updated.
+- Resolved `FIRSTNONBLANK` error in `Subtitle_V3_Accrual` and missing column error in `Metrics Qual Subtitle`.
+
+**New Measure:**
+- `Subtitle_DeptWide_Summons` created on `summons_13month_trend` table.
+
+**Data Discrepancy Resolved:**
+- Use of Force 75 vs 78 count: `IncidentCount_13Month` measure fixed. `EDATE` was returning end-of-month date that excluded February 2025; rewritten to normalize to start-of-month date.
+
+**Cosmetic Deferral:**
+- `STACP_DIAGNOSTIC` comment header updated to `06_Workspace_Management`.
+- Comment header updates for `___STACP_pt_1_2`, `___Detectives`, and `ESU_13Month` intentionally deferred to avoid risk to live AS engine. Local extracted source files already correct.
+
+**Documentation:**
+- Phase 4.11 (Verification) marked complete in `_consolidation_project\IMPLEMENTATION_CHECKLIST_Directory_Consolidation.md`.
+- Consolidation project formally closed out.
+
+---
+
 ## [1.18.11] - 2026-03-18
 
 ### Changed — DFR Summons M Code Overhaul (MM-YY, Date_Sort_Key, Description Shortening)
