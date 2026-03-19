@@ -42,8 +42,8 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.18.11 |
-| **Status** | DFR Summons MM-YY/Date_Sort_Key; Response Time visuals; RT line chart M:SS |
+| **Version** | 1.18.14 |
+| **Status** | DFR ETL population; DFR_Summons dual filter (Recall + Status); Response Time visuals |
 | **pReportMonth** | `#date(2026, 2, 1)` |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 46+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
@@ -69,8 +69,9 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 ### DFR Summons (m_code/drone/DFR_Summons.m)
 - **Source:** `dfr_directed_patrol_enforcement.xlsx` (Claude in Excel workbook)
 - **Columns:** MM-YY (matrix display), Date_Sort_Key (sort-by-column), DateSortKey (YYYYMMDD), YearMonthKey; Description shortened ("Parking...designated X" → "X"); Violation_Type P/M/C
-- **Filter:** Excludes Summons_Recall containing "Dismiss" or "Void"; en-US locale for text parsing
-- **Docs:** `docs/DFR_Summons_Claude_Excel_Development_Log.md` (29-turn history)
+- **Filter:** Dual filter — (1) Summons_Recall containing "Dismiss" or "Void"; (2) Summons_Status containing "dismiss" or "void" (catches Dismissed, Void, Voided); en-US locale for text parsing
+- **ETL population:** `summons_etl_enhanced.py` (02_ETL_Scripts/Summons/) appends DFR records (badge 0738, 2025) to workbook after staging save; dedup on Summons Number; target `Shared Folder/Compstat/Contributions/Drone/`
+- **Docs:** `docs/DFR_Summons_Claude_Excel_Development_Log.md` (29-turn history); `docs/summons_ETL Enhancement.py` (enhancement plan)
 
 ## Project Map
 
@@ -224,4 +225,4 @@ M code references `C:\Users\carucci_r\...` (desktop). Laptop has `C:\Users\Rober
 
 ---
 
-*Last updated: 2026-03-17 | Format version: 4.2*
+*Last updated: 2026-03-19 | Format version: 4.3*
