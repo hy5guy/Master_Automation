@@ -34,11 +34,11 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.18.4 |
-| **Status** | Summons backfill as source of truth; pReportMonth migration COMPLETE |
+| **Version** | 1.18.15 |
+| **Status** | DFR split live — drone-operator records excluded from main summons; DFR_Summons.m created |
 | **pReportMonth** | `#date(2026, 2, 1)` |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
-| **Power BI Queries** | 46+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
+| **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
 | **Report Template** | `15_Templates\Monthly_Report_Template.pbix` |
 | **TMDL Export** | `m_code/tmdl_export/` (85 files, full model snapshot) |
 
@@ -68,8 +68,9 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 - `scripts/validate_exports.py` - Pre-flight check for OT/TimeOff exports
 - `scripts/validate_outputs.py` - CSV schema validation
 - `scripts/test_pipeline.bat` - Overtime/TimeOff test suite
-- `scripts/summons_etl_normalize.py` - Summons ETL v2.3.0
-- `run_summons_etl.py` - Path-agnostic summons wrapper
+- `scripts/summons_etl_normalize.py` - Summons ETL v2.4.0; `DFR_ASSIGNMENTS` + `split_dfr_records()`
+- `scripts/dfr_export.py` - DFR workbook export; `_map_to_dfr_schema()`, `export_to_dfr_workbook()`
+- `run_summons_etl.py` - Path-agnostic summons wrapper; DFR split + export wired in
 - `scripts/summons_backfill_merge.py` - Merge gap months into summons
 - `scripts/normalize_visual_export_for_backfill.py` - Visual export normalization
 - `scripts/process_powerbi_exports.py` - Power BI export processing
@@ -81,8 +82,9 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 - `scripts/` - Execution scripts and Python helpers
 - `logs/` - ETL execution logs (auto-created)
 - `docs/` - Documentation, prompts, chatlogs
-- `m_code/` - Power BI M code queries (46 queries across 20 subfolders)
+- `m_code/` - Power BI M code queries (47 queries across 20 subfolders)
   - `arrests/`, `benchmark/`, `chief/`, `community/`, `csb/`, `detectives/`, `drone/`, `esu/`, `functions/`, `nibrs/`, `overtime/`, `parameters/`, `patrol/`, `remu/`, `response_time/`, `shared/`, `social_media/`, `ssocc/`, `stacp/`, `summons/`, `traffic/`, `training/`
+  - `drone/DFR_Summons.m` - New; rolling 13-month window, dual dismiss/void filter (Recall + Status)
   - `archive/` - Superseded M code versions
 - `outputs/` - Organized output files (arrests, visual_exports, summons_validation, metadata, community_engagement, misc, large_exports)
 - `verifications/` - ETL verification framework
@@ -180,4 +182,23 @@ M code references `C:\Users\carucci_r\...` (desktop). Laptop has `C:\Users\Rober
 
 ---
 
-*Last updated: 2026-03-11 | Format version: 4.0*
+## DFR Summons Pipeline
+
+Drone-operator and temp-SSOCC records are **split out of the main summons pipeline** and written exclusively to `dfr_directed_patrol_enforcement.xlsx`.
+
+| Badge | Name | DFR Period | Rule |
+|-------|------|-----------|------|
+| 0738 | Polson | Always | Permanent drone operator at SSOCC |
+| 2025 | Ramirez | 2026-02-23 – 2026-03-01 | Temp SSOCC assignment |
+| 0377 | Mazzaccaro | 2026-03-02 – 2026-03-15 | Temp SSOCC assignment |
+
+**Flow:** `run_summons_etl.py` → `split_dfr_records()` → `export_to_dfr_workbook()` → `dfr_directed_patrol_enforcement.xlsx`
+**Main pipeline:** only non-DFR records reach `summons_powerbi_latest.xlsx` and `summons_slim_for_powerbi.csv`.
+**Power BI:** `m_code/drone/DFR_Summons.m` loads the DFR workbook with 13-month window + dual dismiss/void filter.
+**Target workbook:** `<OneDrive>/Shared Folder/Compstat/Contributions/Drone/dfr_directed_patrol_enforcement.xlsx`
+
+To add a new DFR badge assignment, update `DFR_ASSIGNMENTS` in `scripts/summons_etl_normalize.py`.
+
+---
+
+*Last updated: 2026-03-20 | Format version: 4.1*

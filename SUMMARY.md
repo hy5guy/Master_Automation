@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-03-11
-**Status:** ✅ v1.18.4 — Summons backfill as source of truth; visual matches backfill file exactly
-**Version:** 1.18.4
+**Last Updated:** 2026-03-20
+**Status:** ✅ v1.18.15 — DFR split live; drone-operator records excluded from main summons pipeline; DFR_Summons.m created
+**Version:** 1.18.15
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.18.4 — Summons backfill as source of truth; visual matches backfill file exactly |
-| **Version** | 1.18.4 |
+| **Status** | ✅ v1.18.15 — DFR split live; drone-operator records excluded from main summons pipeline |
+| **Version** | 1.18.15 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -40,9 +40,11 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 ✅ **Path portability** - `ONEDRIVE_BASE` / `ONEDRIVE_HACKENSACK` env vars (Python `path_config.py`, PowerShell `$OneDriveBase`)  
 ✅ **Overtime/TimeOff hardening** - Pre-flight validation, strict file discovery, output schema check, test_pipeline.bat  
 ✅ **Visual export normalization** - Orchestrator normalizes "Monthly Accrual and Usage Summary" CSVs in _DropExports before organize_backfill  
-✅ **Summons backfill** - `summons_backfill_merge.py` uses backfill as source of truth for all months in consolidated file (02-25 through 11-25); injection point at `docs/SUMMONS_BACKFILL_INJECTION_POINT.md`  
+✅ **Summons backfill** - `summons_backfill_merge.py` uses backfill as source of truth for all months in consolidated file (02-25 through 11-25); injection point at `docs/SUMMONS_BACKFILL_INJECTION_POINT.md`
+✅ **DFR summons split** - `split_dfr_records()` isolates drone/temp-SSOCC records (Polson 0738 always; Ramirez 2025 Feb–Mar 26; Mazzaccaro 0377 Mar 26) and routes them to `dfr_directed_patrol_enforcement.xlsx` via `dfr_export.py`; main pipeline sees only non-DFR records
+✅ **DFR Power BI query** - `m_code/drone/DFR_Summons.m` loads DFR workbook with 13-month rolling window, dual dismiss/void filter (Summons_Recall + Summons_Status), Date_Sort_Key, Month_Year, YearMonthKey
 ✅ **13-month rolling window** - 24 Power BI visuals enforced to exactly 13 months (end = previous month); `process_powerbi_exports.py` (match_pattern, enforce_13_month), `validate_13_month_window.py`; docs in `docs/13_MONTH_*.md`
-✅ **Assignment Master sync path-agnostic** - `09_Reference/Personnel/scripts/sync_assignment_master.py` (or `run_sync.bat`); uses BASE_DIR = parent of scripts/; works on desktop (carucci_r) and laptop (RobertCarucci)  
+✅ **Assignment Master sync path-agnostic** - `09_Reference/Personnel/scripts/sync_assignment_master.py` (or `run_sync.bat`); uses BASE_DIR = parent of scripts/; works on desktop (carucci_r) and laptop (RobertCarucci)
 
 ---
 
@@ -54,7 +56,7 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | 2 | Community Engagement | `deploy_production.py` | ✅ Enabled |
 | 3 | Overtime TimeOff | `overtime_timeoff_with_backfill.py` | ✅ Enabled (validation: 05_EXPORTS\_Overtime, _Time_Off, PowerBI_Date\Backfill\vcs_time_report) |
 | 4 | Response Times | `process_cad_data_13month_rolling.py` | ✅ Enabled (CallType_Categories.csv fallback; input from report month) |
-| 5 | Summons | `summons_etl_enhanced.py` (orchestrator); `run_summons_etl.py` (v2.3.0) | ✅ Enabled |
+| 5 | Summons | `run_summons_etl.py` (v2.4.0); DFR split → `dfr_export.py` → `dfr_directed_patrol_enforcement.xlsx` | ✅ Enabled |
 
 ### Disabled Scripts
 
@@ -90,7 +92,9 @@ Master_Automation/
 │   ├── validate_exports.py     # Pre-flight OT/TimeOff export check
 │   ├── validate_outputs.py     # FIXED CSV schema validation
 │   ├── test_pipeline.bat       # Overtime/TimeOff test: validate → dry-run → validate outputs
-│   ├── summons_backfill_merge.py  # Merge gap months into summons df (injection in main_orchestrator)
+│   ├── summons_backfill_merge.py  # Merge gap months into summons df
+│   ├── summons_etl_normalize.py   # Core summons ETL v2.4.0: DFR_ASSIGNMENTS, split_dfr_records()
+│   ├── dfr_export.py              # DFR workbook export: schema map, append, dedup, formula-col guard
 │   ├── normalize_visual_export_for_backfill.py  # Normalize visual exports (13-month window, PeriodLabel for OT)
 │   ├── process_powerbi_exports.py               # Process _DropExports with mapping (match_pattern, 13-month)
 │   ├── validate_13_month_window.py              # Validate 13-month window in CSV(s)
@@ -101,14 +105,14 @@ Master_Automation/
 │   ├── templates/              # Reusable AI prompt templates (HPD design system)
 │   ├── archived_workflows/     # Archived workflows
 │   └── (migration guides, reports, troubleshooting)
-├── m_code/                      # Power BI M code (46 queries, 20 page folders)
+├── m_code/                      # Power BI M code (47 queries, 20 page folders)
 │   ├── arrests/               # 4 queries (Categories, Distro, Top 5, 13Month)
 │   ├── benchmark/             # 1 query
 │   ├── chief/                 # 2 queries (Chief2, chief_projects)
 │   ├── community/             # 1 query (Combined_Outreach_All)
 │   ├── csb/                   # 1 query
 │   ├── detectives/            # 2 queries (Detectives, CCD)
-│   ├── drone/                 # 1 query
+│   ├── drone/                 # 2 queries: ___Drone + DFR_Summons (new — 13-month, dual dismiss/void filter)
 │   ├── esu/                   # 1 query (ESU_13Month)
 │   ├── functions/             # 5 shared functions (fnGetFiles, fnReadCsv, etc.)
 │   ├── nibrs/                 # 1 query

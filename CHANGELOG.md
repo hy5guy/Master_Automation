@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.15] - 2026-03-20
+
+### Added — DFR Summons Split: Drone-Operator Records Excluded from Main Pipeline
+
+**scripts/summons_etl_normalize.py** (v2.4.0):
+- **`DFR_ASSIGNMENTS`** — Module-level config list of drone/temp-SSOCC badge assignments with optional date ranges:
+  - Badge **738 (Polson)** — permanent SSOCC drone operator; always excluded from main pipeline.
+  - Badge **2025 (Ramirez)** — temp SSOCC assignment 2026-02-23 through 2026-03-01.
+  - Badge **377 (Mazzaccaro)** — temp SSOCC assignment 2026-03-02 through 2026-03-15.
+- **`split_dfr_records(df, assignments)`** — Vectorised boolean mask: splits fully-normalised DataFrame into `(dfr_df, main_df)`. Badge match is integer comparison on `PADDED_BADGE_NUMBER`; date-restricted entries only match rows whose `ISSUE_DATE` falls within the assignment window. Returns reset-index copies.
+
+**scripts/dfr_export.py** (new):
+- **`DFR_FORMULA_COLUMN_NAMES`** — Frozen set of Excel formula columns never overwritten: Summons ID, Description, Fine Amount, Violation Type, DFR Unit ID, Summons Recall, Full Summons Number.
+- **`_map_to_dfr_schema(dfr_df)`** — Maps ETL column names to DFR Summons Log headers (Date, Time, Summons Number, Location from `Offense Street Name`, Statute, DFR Operator, Issuing Officer = DFR Operator, Summons Status). Leaves OCA and Notes blank for manual entry.
+- **`export_to_dfr_workbook(dfr_df, workbook_path)`** — Opens `dfr_directed_patrol_enforcement.xlsx` with openpyxl; reads header row to build column-index map; collects existing Summons Numbers for deduplication; appends only new rows; skips formula columns; on `PermissionError` (file open in Excel) saves side-car `.etl_temp_dfr.xlsx`.
+- **Target workbook:** `<OneDrive>/Shared Folder/Compstat/Contributions/Drone/dfr_directed_patrol_enforcement.xlsx`
+
+**run_summons_etl.py**:
+- After backfill merge, calls `split_dfr_records()` then `export_to_dfr_workbook()`.
+- Only `main_records` (non-DFR) are passed to `write_three_tier_output()` — DFR badges no longer appear in `summons_powerbi_latest.xlsx` or `summons_slim_for_powerbi.csv`.
+- Console output reports number of DFR records isolated per run.
+
+**m_code/drone/DFR_Summons.m** (new — `m_code/drone/` folder created):
+- Loads `DFR_Summons` Excel Table (fallback: `DFR Summons Log` sheet) from `dfr_directed_patrol_enforcement.xlsx`.
+- Rolling 13-month window: `StartDate = StartOfMonth(pReportMonth − 12 months)`, `EndDate = EndOfMonth(pReportMonth)`.
+- **Dual dismiss/void filter** (v1.18.14 spec):
+  - `FilteredRecalls` — excludes rows where `Summons_Recall` contains "dismiss" or "void".
+  - `FilteredStatus` — excludes rows where `Summons_Status` contains "dismiss" or "void" (catches Dismissed, Void, Voided; null-safe via `?? ""`).
+- Schema-resilient rename and type map (en-US locale); `Fine_Amount` null → 0.
+- Derived columns: `Month_Year` (MM-YY), `Date_Sort_Key` (YYYYMMDD Int64), `YearMonthKey` (YYYYMM Int64).
+- Description shortening: strips "PARKING OR STOPPING IN DESIGNATED " prefix so labels read "FIRE LANE/FIRE ZONE" etc.
+
+---
+
 ## [1.18.4] - 2026-03-11
 
 ### Changed — Summons Backfill: Backfill as Source of Truth for All Backfill Months

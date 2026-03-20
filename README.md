@@ -6,7 +6,9 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
 
-**Latest Update (2026-03-11): v1.18.4 — Summons backfill as source of truth.** For all months in the consolidated backfill file (02-25 through 11-25), e-ticket rows are removed and backfill values used exclusively. Department-Wide Summons visual now matches backfill file exactly. See `CHANGELOG.md`.
+**Latest Update (2026-03-20): v1.18.15 — DFR summons split.** Drone-operator and temp-SSOCC records (Polson badge 0738, Ramirez badge 2025 Feb–Mar 26, Mazzaccaro badge 0377 Mar 26) are now excluded from the main summons pipeline and written to `dfr_directed_patrol_enforcement.xlsx` via the new `scripts/dfr_export.py`. New `m_code/drone/DFR_Summons.m` loads the DFR workbook for the Drone page with a 13-month rolling window and dual dismiss/void filter. See `CHANGELOG.md`.
+
+**v1.18.4 (2026-03-11): Summons backfill as source of truth.** For all months in the consolidated backfill file (02-25 through 11-25), e-ticket rows are removed and backfill values used exclusively. Department-Wide Summons visual now matches backfill file exactly. See `CHANGELOG.md`.
 
 **v1.18.0 (2026-03-10): Summons Pipeline Overhaul.** Full ETL rewrite: TYPE classification fixed (raw Case Type Code M/P/C instead of broken statute lookup), multi-year file discovery (2025+2026), BOM/quote-wrapped CSV handling, `summons_slim_for_powerbi.csv` as primary Power BI source. M code: 13-month trend window aligned to `pReportMonth - 1`, WG2 filter removed from dept-wide trend, `List.Sum([TICKET_COUNT])` replaces `Table.RowCount`, all_bureaus Total null coalesce. See `CHANGELOG.md`.
 
@@ -44,7 +46,8 @@ Master_Automation/
 │   ├── validate_outputs.py                   # FIXED CSV schema validation
 │   ├── test_pipeline.bat                     # Overtime/TimeOff test suite
 │   ├── summons_backfill_merge.py             # Summons gap-month merge (07-25 only as of 2026-03-10)
-│   ├── summons_etl_normalize.py             # Core summons ETL: badge lookup, TYPE classification, 3-tier output
+│   ├── summons_etl_normalize.py             # Core summons ETL v2.4.0: DFR_ASSIGNMENTS, split_dfr_records()
+│   ├── dfr_export.py                        # DFR workbook export (schema map, dedup, formula-col guard)
 │   ├── normalize_visual_export_for_backfill.py  # Normalize visual exports (13-month window, backfill)
 │   ├── process_powerbi_exports.py               # Process _DropExports with mapping (match_pattern, 13-month)
 │   ├── validate_13_month_window.py              # Validate 13-month rolling window in CSV(s)
@@ -74,7 +77,7 @@ Master_Automation/
 │   ├── community/             # ___Combined_Outreach_All
 │   ├── csb/                   # ___CSB_Monthly
 │   ├── detectives/            # ___Detectives, ___Det_case_dispositions_clearance
-│   ├── drone/                 # ___Drone
+│   ├── drone/                 # ___Drone + DFR_Summons (new)
 │   ├── esu/                   # ESU_13Month
 │   ├── functions/             # fnGetFiles, fnReadCsv, fnEnsureColumns, fnApplyRenameMap, fnLoadRaw
 │   ├── nibrs/                 # ___NIBRS_Monthly_Report
