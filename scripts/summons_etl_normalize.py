@@ -1,7 +1,8 @@
 """
 summons_etl_normalize.py
 Core normalization module with badge-based officer cleanup + statute lookup
-Version 2.3.0 — Claude complete package (7-round audit, 100% M-code coverage)
+Version 2.4.0 — DFR split support (badge 738/Polson always, badge 2025/Ramirez & 377/Mazzaccaro
+by date range); DFR records are excluded from the main summons pipeline.
 
 Resolves all 12 audit items: int badge key, column renames, true 23-col SLIM,
 WG1/WG2/TEAM correct, statute classification, RANK, robust DQ score, graceful degradation.
@@ -12,7 +13,7 @@ import json
 import logging
 import os
 import shutil
-from datetime import datetime
+from datetime import datetime, date as _date
 from pathlib import Path
 
 import pandas as pd
@@ -21,6 +22,20 @@ logger = logging.getLogger(__name__)
 
 # Override log for production overrides (PEO, Traffic Bureau)
 OVERRIDE_LOG_PATH = "logs/summons_badge_overrides.txt"
+
+# ---------------------------------------------------------------------------
+# DFR (Drone / Directed Field Report) badge assignments
+# Records matching these badge+date criteria are routed to the DFR workbook
+# and excluded from the main summons pipeline counts.
+# ---------------------------------------------------------------------------
+DFR_ASSIGNMENTS: list[dict] = [
+    # Polson — permanent drone operator at SSOCC; always DFR regardless of date
+    {"badge": 738, "start_date": None, "end_date": None, "name": "Polson"},
+    # Ramirez — temp SSOCC assignment 2026-02-23 through 2026-03-01
+    {"badge": 2025, "start_date": _date(2026, 2, 23), "end_date": _date(2026, 3, 1), "name": "Ramirez"},
+    # Mazzaccaro — temp SSOCC assignment 2026-03-02 through 2026-03-15
+    {"badge": 377, "start_date": _date(2026, 3, 2), "end_date": _date(2026, 3, 15), "name": "Mazzaccaro"},
+]
 
 
 def _build_personnel_lookup(master_path: str) -> dict:
@@ -321,3 +336,50 @@ def write_three_tier_output(df: pd.DataFrame, output_xlsx: str, original_summons
     slim_path = output_dir / "summons_slim_for_powerbi.csv"
     slim_df.to_csv(slim_path, index=False, encoding="utf-8-sig")
     logger.info("SLIM Power BI version saved: %s (%s rows, %s cols)", slim_path.name, len(slim_df), len(slim_df.columns))
+
+
+def split_dfr_records(
+    df: pd.DataFrame, assignments: list[dict] | None = None
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Split DataFrame into (dfr_records, main_records).
+
+    DFR records are those issued by drone operators during their SSOCC assignment
+    periods. They are excluded from the main summons pipeline and written to the
+    DFR directed-patrol workbook instead.
+
+    Args:
+        df: Fully normalized summons DataFrame (from normalize_personnel_data).
+        assignments: List of DFR assignment dicts. Defaults to DFR_ASSIGNMENTS.
+
+    Returns:
+        (dfr_df, main_df) — both are copies; indexes are reset.
+    """
+    if assignments is None:
+        assignments = DFR_ASSIGNMENTS
+
+    # Parse issue dates for date-range checks
+    issue_dates = pd.to_datetime(df.get("ISSUE_DATE", pd.Series(dtype=str)), errors="coerce").dt.date
+
+    # Parse badge numbers — PADDED_BADGE_NUMBER is a zero-padded string like "0738"
+    badges = pd.to_numeric(df.get("PADDED_BADGE_NUMBER", pd.Series(dtype=str)), errors="coerce")
+
+    dfr_mask = pd.Series(False, index=df.index)
+    for assignment in assignments:
+        badge_mask = badges == assignment["badge"]
+        if assignment["start_date"] is None:
+            # Always DFR (no date restriction)
+            dfr_mask |= badge_mask
+        else:
+            date_mask = (
+                (issue_dates >= assignment["start_date"])
+                & (issue_dates <= assignment["end_date"])
+            )
+            dfr_mask |= (badge_mask & date_mask)
+
+    dfr_count = dfr_mask.sum()
+    if dfr_count > 0:
+        logger.info(
+            "DFR split: %d record(s) routed to DFR workbook (excluded from main pipeline)",
+            dfr_count,
+        )
+    return df[dfr_mask].reset_index(drop=True), df[~dfr_mask].reset_index(drop=True)

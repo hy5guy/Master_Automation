@@ -20,7 +20,9 @@ from summons_etl_normalize import (
     normalize_personnel_data,
     write_three_tier_output,
     load_and_concatenate_summons,
+    split_dfr_records,
 )
+from dfr_export import export_to_dfr_workbook
 
 
 def _discover_summons_files(month_dir: Path) -> list[Path]:
@@ -121,7 +123,30 @@ def main():
         merged.loc[backfill_mask, "IS_AGGREGATE"] = True
         print(f"  Backfill merged: {len(merged) - len(final_data)} rows added.")
 
-    write_three_tier_output(merged, str(output_xlsx), str(raw_path_for_tier))
+    # ----------------------------------------------------------------
+    # DFR split: separate drone-operator records from the main pipeline.
+    # Polson (badge 0738) is always DFR; Ramirez (2025) and Mazzaccaro (0377)
+    # are DFR only during their documented SSOCC temp-assignment date ranges.
+    # DFR records go to dfr_directed_patrol_enforcement.xlsx; they do NOT
+    # appear in the main summons Power BI visuals.
+    # ----------------------------------------------------------------
+    dfr_records, main_records = split_dfr_records(merged)
+
+    if len(dfr_records) > 0:
+        print(f"  DFR records isolated: {len(dfr_records)} row(s) → dfr_directed_patrol_enforcement.xlsx")
+        dfr_workbook = (
+            base
+            / "Shared Folder"
+            / "Compstat"
+            / "Contributions"
+            / "Drone"
+            / "dfr_directed_patrol_enforcement.xlsx"
+        )
+        export_to_dfr_workbook(dfr_records, dfr_workbook)
+    else:
+        print("  DFR records: none found in this dataset.")
+
+    write_three_tier_output(main_records, str(output_xlsx), str(raw_path_for_tier))
 
     if len(paths) > 1 and raw_path_for_tier and getattr(raw_path_for_tier, "exists", lambda: False)():
         try:
