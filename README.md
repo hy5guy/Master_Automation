@@ -6,7 +6,7 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
 
-**Latest Update (2026-03-20): v1.18.15 — DFR summons split.** Drone-operator and temp-SSOCC records (Polson badge 0738, Ramirez badge 2025 Feb–Mar 26, Mazzaccaro badge 0377 Mar 26) are now excluded from the main summons pipeline and written to `dfr_directed_patrol_enforcement.xlsx` via the new `scripts/dfr_export.py`. New `m_code/drone/DFR_Summons.m` loads the DFR workbook for the Drone page with a 13-month rolling window and dual dismiss/void filter. See `CHANGELOG.md`.
+**Latest Update (2026-03-20): v1.18.16 — Arrest ETL future-proofing & _Arrest scaffolding.** Arrest processor now accepts `--report-month YYYY-MM` (via `{REPORT_MONTH_ACTUAL}` token) for pReportMonth-aligned processing. Targeted file discovery in `05_EXPORTS/_Arrest/YYYY/month/` (matches Summons E_Ticket structure). See `CHANGELOG.md`.
 
 **v1.18.4 (2026-03-11): Summons backfill as source of truth.** For all months in the consolidated backfill file (02-25 through 11-25), e-ticket rows are removed and backfill values used exclusively. Department-Wide Summons visual now matches backfill file exactly. See `CHANGELOG.md`.
 

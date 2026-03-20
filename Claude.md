@@ -34,8 +34,8 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.18.15 |
-| **Status** | DFR split live — drone-operator records excluded from main summons; DFR_Summons.m created |
+| **Version** | 1.18.16 |
+| **Status** | Arrest ETL future-proofed; _Arrest scaffolding; DFR split live |
 | **pReportMonth** | `#date(2026, 2, 1)` |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
@@ -149,7 +149,7 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 - **Never** use `DateTime.LocalNow()` in M code -- use `pReportMonth` parameter
 
 ## Enabled ETL Scripts
-1. **Arrests** - `arrest_python_processor.py`
+1. **Arrests** - `arrest_python_processor.py` (--report-month {REPORT_MONTH_ACTUAL}; targeted discovery in YYYY/month/)
 2. **Community Engagement** - `src/main_processor.py` (Patrol v2, attendee_names column)
 3. **Overtime TimeOff** - `overtime_timeoff_with_backfill.py`
 4. **Response Times** - `response_time_diagnostic.py`
@@ -168,6 +168,8 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override. 
 | `<OneDrive>\15_Templates\Monthly_Report_Template.pbix` | Gold copy template |
 | `<OneDrive>\Shared Folder\Compstat\Monthly Reports\YYYY\MM_monthname\` | Published reports |
 | `<OneDrive>\09_Reference\Standards\` | Schema standards and data dictionaries |
+| `<OneDrive>\05_EXPORTS\_Arrest\YYYY\month\` | Monthly arrest exports (YYYY_MM_*.xlsx; matches Summons scaffolding) |
+| `<OneDrive>\01_DataSources\ARREST_DATA\Power_BI\` | Arrest processor output (YYYY_MM_Arrests_PowerBI_Ready.xlsx) |
 
 ## Architecture Notes
 
@@ -201,4 +203,12 @@ To add a new DFR badge assignment, update `DFR_ASSIGNMENTS` in `scripts/summons_
 
 ---
 
-*Last updated: 2026-03-20 | Format version: 4.1*
+### Arrest ETL (Future-Proofed)
+- **Orchestrator:** Passes `{REPORT_MONTH_ACTUAL}` to Arrests script when `-ReportMonth YYYY-MM` is set.
+- **Source:** `05_EXPORTS/_Arrest/YYYY/month/YYYY_MM_*.xlsx` (targeted discovery; matches Summons E_Ticket scaffolding).
+- **Output:** `01_DataSources/ARREST_DATA/Power_BI/YYYY_MM_Arrests_PowerBI_Ready.xlsx`
+- **Fallback:** When no report-month match, uses most recent .xlsx by mtime (backward compatible).
+
+---
+
+*Last updated: 2026-03-20 | Format version: 4.2*

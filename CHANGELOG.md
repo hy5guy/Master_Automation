@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.16] - 2026-03-20
+
+### Added — Arrest ETL Future-Proofing: Report-Month Parameter & Targeted File Discovery
+
+**scripts/run_all_etl.ps1:**
+- **`{REPORT_MONTH_ACTUAL}`** — New token that passes the actual report month (e.g., 2026-03) to scripts. `{REPORT_MONTH}` continues to pass the previous month for backward compatibility.
+
+**config/scripts.json:**
+- **Arrests** — Added `"args": "--report-month {REPORT_MONTH_ACTUAL}"` so the arrest processor receives the report month from the orchestrator.
+
+**02_ETL_Scripts/Arrests/arrest_python_processor.py:**
+- **`--report-month YYYY-MM`** — Optional CLI argument. When provided (by orchestrator or manual run), processes that month instead of the previous calendar month.
+- **`get_month_info_from_report_month(report_month)`** — Builds month info from a YYYY-MM string.
+- **`find_target_files(report_month)`** — Targeted discovery: when `report_month` is set, looks in `05_EXPORTS/_Arrest/YYYY/month/` for `YYYY_MM*.xlsx` (matches Summons scaffolding). Fallback: most recent file by mtime when no match.
+- **`run_processing(report_month)`** — Accepts optional report month; passes to `find_target_files`.
+
+### Changed — 05_EXPORTS/_Arrest Scaffolding (Matches Summons E_Ticket)
+
+**05_EXPORTS/_Arrest** refactored to mirror `05_EXPORTS/_Summons/E_Ticket` structure:
+- **`YYYY/month/`** — Monthly LawSoft arrest exports (e.g., `2026_03_lawsoft_monthly_arrest.xlsx`)
+- **`YYYY/full_year/`** — Full-year arrest exports
+- **`archive/`** — Merged from legacy `Archive` and misc full_year files
+- Monthly files moved from flat `2025/`, `2026/`, and `monthly/2025`, `monthly/2026` into `YYYY/month/`
+- Full-year files moved from `full_year/YYYY/` into `YYYY/full_year/`
+
+**Place new arrest exports at:** `<OneDrive>/05_EXPORTS/_Arrest/YYYY/month/YYYY_MM_*.xlsx`
+
+---
+
 ## [1.18.15] - 2026-03-20
 
 ### Added — DFR Summons Split: Drone-Operator Records Excluded from Main Pipeline

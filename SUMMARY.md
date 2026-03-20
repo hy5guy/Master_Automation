@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
 **Last Updated:** 2026-03-20
-**Status:** ✅ v1.18.15 — DFR split live; drone-operator records excluded from main summons pipeline; DFR_Summons.m created
-**Version:** 1.18.15
+**Status:** ✅ v1.18.16 — Arrest ETL future-proofed; _Arrest scaffolding matches Summons; DFR split live
+**Version:** 1.18.16
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.18.15 — DFR split live; drone-operator records excluded from main summons pipeline |
-| **Version** | 1.18.15 |
+| **Status** | ✅ v1.18.16 — Arrest ETL future-proofed; _Arrest scaffolding; DFR split live |
+| **Version** | 1.18.16 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -43,6 +43,7 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 ✅ **Summons backfill** - `summons_backfill_merge.py` uses backfill as source of truth for all months in consolidated file (02-25 through 11-25); injection point at `docs/SUMMONS_BACKFILL_INJECTION_POINT.md`
 ✅ **DFR summons split** - `split_dfr_records()` isolates drone/temp-SSOCC records (Polson 0738 always; Ramirez 2025 Feb–Mar 26; Mazzaccaro 0377 Mar 26) and routes them to `dfr_directed_patrol_enforcement.xlsx` via `dfr_export.py`; main pipeline sees only non-DFR records
 ✅ **DFR Power BI query** - `m_code/drone/DFR_Summons.m` loads DFR workbook with 13-month rolling window, dual dismiss/void filter (Summons_Recall + Summons_Status), Date_Sort_Key, Month_Year, YearMonthKey
+✅ **Arrest ETL future-proofed** - `--report-month YYYY-MM` (via `{REPORT_MONTH_ACTUAL}`); targeted file discovery in `05_EXPORTS/_Arrest/YYYY/month/`; outputs `YYYY_MM_Arrests_PowerBI_Ready.xlsx` to `01_DataSources/ARREST_DATA/Power_BI/`
 ✅ **13-month rolling window** - 24 Power BI visuals enforced to exactly 13 months (end = previous month); `process_powerbi_exports.py` (match_pattern, enforce_13_month), `validate_13_month_window.py`; docs in `docs/13_MONTH_*.md`
 ✅ **Assignment Master sync path-agnostic** - `09_Reference/Personnel/scripts/sync_assignment_master.py` (or `run_sync.bat`); uses BASE_DIR = parent of scripts/; works on desktop (carucci_r) and laptop (RobertCarucci)
 
@@ -52,7 +53,7 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 
 | # | Script Name | Filename | Status |
 |---|-------------|----------|--------|
-| 1 | Arrests | `arrest_python_processor.py` | ✅ Enabled |
+| 1 | Arrests | `arrest_python_processor.py` (--report-month {REPORT_MONTH_ACTUAL}; targeted discovery in YYYY/month/) | ✅ Enabled |
 | 2 | Community Engagement | `deploy_production.py` | ✅ Enabled |
 | 3 | Overtime TimeOff | `overtime_timeoff_with_backfill.py` | ✅ Enabled (validation: 05_EXPORTS\_Overtime, _Time_Off, PowerBI_Date\Backfill\vcs_time_report) |
 | 4 | Response Times | `process_cad_data_13month_rolling.py` | ✅ Enabled (CallType_Categories.csv fallback; input from report month) |
