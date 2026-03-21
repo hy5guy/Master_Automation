@@ -1,198 +1,179 @@
 // # drone/DFR_Summons.m
 // # Author: R. A. Carucci
-// # Purpose: Load DFR directed-patrol enforcement summons from dfr_directed_patrol_enforcement.xlsx.
-// #          Rolling 13-month window driven by pReportMonth.
-// #          Dual filter: excludes rows dismissed or voided via Summons_Recall OR Summons_Status.
-// #          Adds YearMonthKey, MM-YY (Month_Year), Date_Sort_Key, and shortened Description.
-// # Version: v1.18.14 — FilteredStatus step added (catches Dismissed, Void, Voided variants)
-// # Last updated: 2026-03-20
-
+// # Purpose: Load DFR_Summons table from dfr_directed_patrol_enforcement.xlsx
+// #          Apply rolling 13-month window driven by pReportMonth parameter.
+// #          Standardize column names, types; add DateSortKey, Date_Sort_Key, MM-YY, YearMonthKey.
+// #          Description: shorten "Parking...designated X" -> "X"; source is ALL CAPS from Excel.
+// #          Filter out summons marked Dismiss/Void in Summons_Recall or Summons_Status.
+// # Violation_Type/Violation_Category (from Excel): P=Parking/Reg/Equipment/Fire, M=Moving (reserved), C=Complaint (Parks & Rec)
+// # Source: C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Drone\dfr_directed_patrol_enforcement.xlsx
+// # Last updated: 2026-03-20 (schema-resilient Violation_Category, Jurisdiction; dual filter Text.Contains)
 let
-    ReportMonth = pReportMonth,
-    EndDate   = Date.EndOfMonth(Date.From(ReportMonth)),
-    StartDate = Date.StartOfMonth(Date.AddMonths(Date.From(ReportMonth), -12)),
+    // === PARAMETERS ===
+    ReportMonth = Date.From(pReportMonth),
+    EndDate = Date.EndOfMonth(ReportMonth),
+    StartDate = Date.StartOfMonth(Date.AddMonths(ReportMonth, -12)),
 
-    // ----------------------------------------------------------------
-    // Load workbook — try named Table first, fall back to sheet
-    // ----------------------------------------------------------------
-    Source = Excel.Workbook(
-        File.Contents(
-            "C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Drone\dfr_directed_patrol_enforcement.xlsx"
-        ),
-        null,
-        true
-    ),
-    RawData = try Source{[Item = "DFR_Summons", Kind = "Table"]}[Data]
-        otherwise Table.PromoteHeaders(
-            Source{[Name = "DFR Summons Log", Kind = "Sheet"]}[Data],
-            [PromoteAllScalars = true]
-        ),
+    // === SOURCE: Load Excel workbook ===
+    FilePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Drone\dfr_directed_patrol_enforcement.xlsx",
+    Source = Excel.Workbook(File.Contents(FilePath), null, true),
 
-    // Promote headers only when using sheet path (Table path already has them)
-    Promoted = if Table.HasColumns(RawData, {"Column1"})
-        then Table.PromoteHeaders(RawData, [PromoteAllScalars = true])
-        else RawData,
+    // === TABLE/SHEET FALLBACK: Try named Table first, then Sheet ===
+    RawData =
+        let
+            TableResult = try Source{[Item = "DFR_Summons", Kind = "Table"]}[Data]
+        in
+            if TableResult[HasError] then
+                let
+                    SheetData = Source{[Name = "DFR Summons Log", Kind = "Sheet"]}[Data]
+                in
+                    Table.PromoteHeaders(SheetData, [PromoteAllScalars = true])
+            else
+                TableResult[Value],
 
-    // ----------------------------------------------------------------
-    // Schema-resilient column renames
-    // ----------------------------------------------------------------
-    ExistingCols = Table.ColumnNames(Promoted),
+    // === RENAME COLUMNS: Standardize spaces to underscores (schema-resilient: Violation_Type or Violation_Category, Jurisdiction) ===
     RenameMap = {
+        {"Summons ID", "Summons_ID"},
         {"Summons Number", "Summons_Number"},
-        {"Full Summons Number", "Full_Summons_Number"},
+        {"Fine Amount", "Fine_Amount"},
+        {"Source Type", "Source_Type"},
+        {"Violation Type", "Violation_Type"},
+        {"Violation Category", "Violation_Category"},
         {"DFR Operator", "DFR_Operator"},
         {"Issuing Officer", "Issuing_Officer"},
         {"Summons Status", "Summons_Status"},
+        {"DFR Unit ID", "DFR_Unit_ID"},
         {"Summons Recall", "Summons_Recall"},
-        {"Fine Amount", "Fine_Amount"},
-        {"Violation Type", "Violation_Type"},
-        {"DFR Unit ID", "DFR_Unit_ID"}
+        {"Full Summons Number", "Full_Summons_Number"},
+        {"Jurisdiction", "Jurisdiction"}
     },
-    FilteredRenames = List.Select(RenameMap, each List.Contains(ExistingCols, _{0})),
-    Renamed = Table.RenameColumns(Promoted, FilteredRenames, MissingField.Ignore),
+    ExistingColsForRename = Table.ColumnNames(RawData),
+    FilteredRenames = List.Select(RenameMap, each List.Contains(ExistingColsForRename, _{0})),
+    RenamedCols = Table.RenameColumns(RawData, FilteredRenames),
 
-    // ----------------------------------------------------------------
-    // Type mapping (schema-resilient: only transform columns present)
-    // ----------------------------------------------------------------
+    // === SCHEMA-RESILIENT TYPE MAPPING (en-US for text Date/Fine_Amount) ===
+    ExistingCols = Table.ColumnNames(RenamedCols),
     TypeMap = {
-        {"Date",            type date},
-        {"Time",            type text},
-        {"Summons_Number",  type text},
-        {"Location",        type text},
-        {"Statute",         type text},
-        {"Description",     type text},
-        {"Fine_Amount",     type number},
-        {"Violation_Type",  type text},
-        {"DFR_Operator",    type text},
+        {"Summons_ID", type text},
+        {"Date", type date},
+        {"Time", type text},
+        {"Summons_Number", type text},
+        {"Location", type text},
+        {"Statute", type text},
+        {"Description", type text},
+        {"Fine_Amount", type number},
+        {"Source_Type", type text},
+        {"Violation_Type", type text},
+        {"Violation_Category", type text},
+        {"DFR_Operator", type text},
         {"Issuing_Officer", type text},
-        {"Summons_Status",  type text},
-        {"Summons_Recall",  type text},
-        {"OCA",             type text},
-        {"Notes",           type text},
-        {"Full_Summons_Number", type text}
+        {"Summons_Status", type text},
+        {"DFR_Unit_ID", type text},
+        {"Notes", type text},
+        {"OCA", type text},
+        {"Summons_Recall", type text},
+        {"Full_Summons_Number", type text},
+        {"Jurisdiction", type text}
     },
-    ExistingCols2 = Table.ColumnNames(Renamed),
-    FilteredTypes = List.Select(TypeMap, each List.Contains(ExistingCols2, _{0})),
-    ChangedType = Table.TransformColumnTypes(Renamed, FilteredTypes, "en-US"),
+    FilteredTypes = List.Select(TypeMap, each List.Contains(ExistingCols, _{0})),
+    ChangedType = Table.TransformColumnTypes(RenamedCols, FilteredTypes, "en-US"),
 
-    // ----------------------------------------------------------------
-    // Replace null Fine Amount with 0 for DAX compatibility
-    // ----------------------------------------------------------------
-    WithFineAmount = if Table.HasColumns(ChangedType, "Fine_Amount")
-        then Table.ReplaceValue(ChangedType, null, 0, Replacer.ReplaceValue, {"Fine_Amount"})
-        else ChangedType,
+    // === CLEAN: Replace null Fine_Amount with 0 for DAX compatibility ===
+    CleanedFines =
+        if List.Contains(ExistingCols, "Fine_Amount") then
+            Table.ReplaceValue(ChangedType, null, 0, Replacer.ReplaceValue, {"Fine_Amount"})
+        else
+            ChangedType,
 
-    // ----------------------------------------------------------------
-    // Filter blank rows (no date and no summons number)
-    // ----------------------------------------------------------------
-    FilteredBlanks = Table.SelectRows(
-        WithFineAmount,
-        each not (
-            ([Date] = null or [Date] = "")
-            and ([Summons_Number] = null or [Summons_Number] = "")
-        )
-    ),
+    // === FILTER: Remove rows with no Date (empty formula rows in Excel table) ===
+    FilteredBlanks = Table.SelectRows(CleanedFines, each [Date] <> null),
 
-    // ----------------------------------------------------------------
-    // Dual dismiss/void filter
-    // Step 1 — FilteredRecalls: Summons_Recall column
-    // ----------------------------------------------------------------
-    FilteredRecalls = if Table.HasColumns(FilteredBlanks, "Summons_Recall")
-        then Table.SelectRows(
+    // === FILTER: Exclude Voided or Dismissed summons (Summons_Recall contains "Dismiss" or "Void") ===
+    FilteredRecalls =
+        if List.Contains(Table.ColumnNames(FilteredBlanks), "Summons_Recall") then
+            Table.SelectRows(FilteredBlanks, each
+                let recall = [Summons_Recall] in
+                recall = null or recall = ""
+                or (not Text.Contains(Text.Lower(recall), "dismiss") and not Text.Contains(Text.Lower(recall), "void"))
+            )
+        else
             FilteredBlanks,
-            each
-                let recall = Text.Trim(Text.Lower([Summons_Recall] ?? ""))
-                in not (Text.Contains(recall, "dismiss") or Text.Contains(recall, "void"))
-        )
-        else FilteredBlanks,
 
-    // ----------------------------------------------------------------
-    // Step 2 — FilteredStatus: Summons_Status column
-    // Catches "Dismissed", "Void", "Voided" and similar variants.
-    // Null-safe: uses ?? "" before Text.Lower/Trim.
-    // ----------------------------------------------------------------
-    FilteredStatus = if Table.HasColumns(FilteredRecalls, "Summons_Status")
-        then Table.SelectRows(
+    // === FILTER: Exclude Dismissed/Void/Voided status (Summons_Status; Text.Contains catches all variants) ===
+    FilteredStatus =
+        if List.Contains(Table.ColumnNames(FilteredRecalls), "Summons_Status") then
+            Table.SelectRows(FilteredRecalls, each
+                let status = [Summons_Status],
+                    cleaned = Text.Trim(Text.Lower(status ?? ""))
+                in
+                status = null or status = ""
+                or (not Text.Contains(cleaned, "dismiss") and not Text.Contains(cleaned, "void"))
+            )
+        else
             FilteredRecalls,
-            each
-                let status = Text.Trim(Text.Lower([Summons_Status] ?? ""))
-                in not (Text.Contains(status, "dismiss") or Text.Contains(status, "void"))
-        )
-        else FilteredRecalls,
 
-    // ----------------------------------------------------------------
-    // 13-month rolling window filter
-    // ----------------------------------------------------------------
-    FilteredData = Table.SelectRows(
-        FilteredStatus,
-        each
-            [Date] <> null
-            and Date.From([Date]) >= StartDate
-            and Date.From([Date]) <= EndDate
-    ),
+    // === FILTER: Rolling 13-month window (report month + 12 months prior) ===
+    FilteredData = Table.SelectRows(FilteredStatus, each [Date] >= StartDate and [Date] <= EndDate),
 
-    // ----------------------------------------------------------------
-    // Shorten Description: strip verbose parking prefix for cleaner labels
-    // e.g. "PARKING OR STOPPING IN DESIGNATED FIRE LANE/FIRE ZONE" → "FIRE LANE/FIRE ZONE"
-    // ----------------------------------------------------------------
-    ShortenedDescription = if Table.HasColumns(FilteredData, "Description")
-        then Table.TransformColumns(
-            FilteredData,
+    // === STANDARDIZE: Shorten "Parking or stopping in designated X" -> "X" (source is ALL CAPS from Excel) ===
+    ShortenPrefix = "Parking or stopping in designated ",
+    ShortenedDescription = Table.TransformColumns(FilteredData, {
+        {"Description", each
+            if _ = null or _ = "" then _
+            else if Text.StartsWith(Text.Lower(_), Text.Lower(ShortenPrefix)) then
+                Text.Upper(Text.Middle(_, Text.Length(ShortenPrefix)))
+            else Text.Upper(_),
+        type text}
+    }),
+
+    // === ADD: DateSortKey (YYYYMMDD integer, e.g., 20260316) for row-level sorting ===
+    AddedDateSortKey = Table.AddColumn(ShortenedDescription, "DateSortKey",
+        each Date.Year([Date]) * 10000 + Date.Month([Date]) * 100 + Date.Day([Date]), Int64.Type),
+
+    // === ADD: Date_Sort_Key (first of month) for MM-YY column sort-by in Power BI ===
+    AddedDateSortKeyCol = Table.AddColumn(AddedDateSortKey, "Date_Sort_Key", each Date.StartOfMonth([Date]), type date),
+
+    // === ADD: MM-YY (text, e.g., "03-26") for matrix column display; sorts by Date_Sort_Key ===
+    AddedMMYY = Table.AddColumn(AddedDateSortKeyCol, "MM-YY",
+        each Text.PadStart(Text.From(Date.Month([Date])), 2, "0") & "-" & Text.End(Text.From(Date.Year([Date])), 2),
+        type text),
+
+    // === ADD: YearMonthKey (e.g., 202603) for grouping/trending; backward compat for visuals ===
+    AddedYearMonthKey = Table.AddColumn(AddedMMYY, "YearMonthKey",
+        each Date.Year([Date]) * 100 + Date.Month([Date]), Int64.Type),
+
+    // === SELECT: Final column order (schema-resilient: Violation_Type or Violation_Category, Jurisdiction) ===
+    FinalColumns = Table.SelectColumns(
+        AddedYearMonthKey,
+        List.Select(
             {
-                {
-                    "Description",
-                    each
-                        let
-                            raw    = Text.Upper(Text.Trim(_ ?? "")),
-                            prefix = "PARKING OR STOPPING IN DESIGNATED "
-                        in
-                            if Text.StartsWith(raw, prefix)
-                            then Text.Middle(raw, Text.Length(prefix))
-                            else raw,
-                    type text
-                }
-            }
+                "Summons_ID",
+                "Date",
+                "DateSortKey",
+                "Date_Sort_Key",
+                "MM-YY",
+                "Time",
+                "Summons_Number",
+                "Location",
+                "Statute",
+                "Description",
+                "Fine_Amount",
+                "Source_Type",
+                "Violation_Type",
+                "Violation_Category",
+                "Jurisdiction",
+                "DFR_Operator",
+                "Issuing_Officer",
+                "Summons_Status",
+                "DFR_Unit_ID",
+                "Notes",
+                "OCA",
+                "Summons_Recall",
+                "Full_Summons_Number",
+                "YearMonthKey"
+            },
+            each List.Contains(Table.ColumnNames(AddedYearMonthKey), _)
         )
-        else FilteredData,
-
-    // ----------------------------------------------------------------
-    // Derived columns for trending and matrix sort
-    // ----------------------------------------------------------------
-    // Date_Sort_Key: YYYYMMDD integer — drives chronological sort on matrix columns
-    AddedDateSortKey = Table.AddColumn(
-        ShortenedDescription,
-        "Date_Sort_Key",
-        each
-            if [Date] <> null
-            then Date.Year([Date]) * 10000 + Date.Month([Date]) * 100 + Date.Day([Date])
-            else null,
-        Int64.Type
-    ),
-
-    // MM-YY formatted label (Month_Year) — matches format used in main Summons tables
-    AddedDateFormatted = Table.AddColumn(
-        AddedDateSortKey,
-        "Month_Year",
-        each
-            if [Date] <> null
-            then
-                Text.PadStart(Text.From(Date.Month([Date])), 2, "0")
-                & "-"
-                & Text.End(Text.From(Date.Year([Date])), 2)
-            else null,
-        type text
-    ),
-
-    // YearMonthKey: YYYYMM integer — links to ___DimMonth for cross-filtering
-    AddedYearMonthKey = Table.AddColumn(
-        AddedDateFormatted,
-        "YearMonthKey",
-        each
-            if [Date] <> null
-            then Date.Year([Date]) * 100 + Date.Month([Date])
-            else null,
-        Int64.Type
     )
-
 in
-    AddedYearMonthKey
+    FinalColumns

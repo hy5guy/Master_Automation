@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.17] - 2026-03-20
+
+### Added — DFR Summons Documentation & M Code Restoration
+
+**m_code/drone/DFR_Summons.m** (restored):
+- Schema-resilient support for `Violation_Category` (was Violation_Type) and `Jurisdiction` per Claude-in-Excel Turn 51 audit.
+- Dual filter (Summons_Recall + Summons_Status) using `Text.Contains` for Dismissed/Voided robustness.
+- 13-month rolling window, DateSortKey, Date_Sort_Key, MM-YY, YearMonthKey.
+
+**docs/** (new):
+- `PROMPT_Claude_In_Excel_DFR_Directed_Patrol_Summons_MCode.md` — M code spec for Power BI / M Code Reference sheet.
+- `DFR_Summons_Claude_In_Excel_Development_Log.md` — 51-turn workbook evolution summary (03/13–03/20/2026).
+- `DFR_Summons_Documentation_Index.md` — Index of DFR docs, M code, and chatlogs.
+
+---
+
 ## [1.18.16] - 2026-03-20
 
 ### Added — Arrest ETL Future-Proofing: Report-Month Parameter & Targeted File Discovery

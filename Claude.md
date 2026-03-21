@@ -34,8 +34,8 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.18.16 |
-| **Status** | Arrest ETL future-proofed; _Arrest scaffolding; DFR split live |
+| **Version** | 1.18.17 |
+| **Status** | DFR docs + M code restored; Arrest ETL future-proofed; DFR split live |
 | **pReportMonth** | `#date(2026, 2, 1)` |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
@@ -84,7 +84,7 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 - `docs/` - Documentation, prompts, chatlogs
 - `m_code/` - Power BI M code queries (47 queries across 20 subfolders)
   - `arrests/`, `benchmark/`, `chief/`, `community/`, `csb/`, `detectives/`, `drone/`, `esu/`, `functions/`, `nibrs/`, `overtime/`, `parameters/`, `patrol/`, `remu/`, `response_time/`, `shared/`, `social_media/`, `ssocc/`, `stacp/`, `summons/`, `traffic/`, `training/`
-  - `drone/DFR_Summons.m` - New; rolling 13-month window, dual dismiss/void filter (Recall + Status)
+  - `drone/DFR_Summons.m` - Rolling 13-month window, dual dismiss/void filter (Recall + Status), schema-resilient Violation_Category/Jurisdiction
   - `archive/` - Superseded M code versions
 - `outputs/` - Organized output files (arrests, visual_exports, summons_validation, metadata, community_engagement, misc, large_exports)
 - `verifications/` - ETL verification framework
@@ -98,6 +98,8 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 - `docs/M_CODE_DATETIME_FIX_GUIDE.md` - DateTime.LocalNow() audit
 - `docs/MONTHLY_REPORT_TEMPLATE_WORKFLOW.md` - Template workflow and checklist
 - `docs/ESU_POWER_BI_LOAD_AND_PUBLISH.md` - ESU query docs
+- `docs/PROMPT_Claude_In_Excel_DFR_Directed_Patrol_Summons_MCode.md` - DFR M code spec
+- `docs/DFR_Summons_Documentation_Index.md` - DFR docs index
 - `docs/templates/HPD_Report_Style_Prompt.md` - HTML report design system
 - `09_Reference/Standards/ResponseTime_AllMetrics_DataDictionary.md` - Response Time schema
 
