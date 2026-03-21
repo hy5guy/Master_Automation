@@ -38,14 +38,14 @@ def main() -> int:
     print("[INFO] Starting Summons Derived Outputs generation (SIMPLIFIED)...")
     
     root = get_onedrive_root()
-    output_dir = root / "PowerBI_Date" / "_DropExports"
+    output_dir = root / "PowerBI_Data" / "_DropExports"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Candidate paths for 2026_01 exports (prefer Compstat, fallback to Backfill)
     compstat = root / "Shared Folder" / "Compstat" / "Monthly Reports" / "2026" / "01_january"
     compstat_archive = compstat / "archive"
-    backfill = root / "00_dev" / "projects" / "PowerBI_Date" / "Backfill" / "2026_01" / "summons"
-    backfill_alt = root / "PowerBI_Date" / "Backfill" / "2026_01" / "summons"
+    backfill = root / "00_dev" / "projects" / "PowerBI_Data" / "Backfill" / "2026_01" / "summons"
+    backfill_alt = root / "PowerBI_Data" / "Backfill" / "2026_01" / "summons"
     
     try:
         # FILE 1: backfill_summons_summary.csv - Use Power BI export directly
@@ -131,7 +131,7 @@ def main() -> int:
             print(f"[ERROR] Top 5 Parking file not found. Checked: Compstat, archive, Backfill/2026_01/summons")
             return 1
         
-        print("\n[SUCCESS] All 4 Summons derived CSVs written to PowerBI_Date\\_DropExports:")
+        print("\n[SUCCESS] All 4 Summons derived CSVs written to PowerBI_Data\\_DropExports:")
         print(f"  - backfill_summons_summary.csv")
         print(f"  - wg2_movers_parkers_nov2025.csv")
         print(f"  - top5_moving_1125.csv")

@@ -316,11 +316,11 @@ def process_exports(
     """
     config_path = config_path or CONFIG_PATH
     config = load_config(config_path)
-    source_dir = source_dir or (AUTOMATION_ROOT / "_DropExports")
+    source_dir = source_dir or (get_onedrive_root() / "PowerBI_Data" / "_DropExports")
     if config.get("source_folder_override"):
         source_dir = Path(config["source_folder_override"])
     processed_root = processed_root or (get_onedrive_root() / "09_Reference" / "Standards" / "Processed_Exports")
-    backfill_root = backfill_root or (get_onedrive_root() / "PowerBI_Date" / "Backfill")
+    backfill_root = backfill_root or (get_onedrive_root() / "PowerBI_Data" / "Backfill")
 
     stats = ProcessingStats()
     if not source_dir.exists():

@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.19.0] - 2026-03-21
+
+### Fixed — ETL Path Corrections & DFR Reconciliation
+
+**scripts/summons_etl_normalize.py:**
+- Fixed statute lookup paths: `09_Reference/LegalCodes/Title39/` → `09_Reference/LegalCodes/data/Title39/` (and same for CityOrdinances). Silent failure — lookups loaded 0 entries but gracefully degraded; now loads 1,413 Title39 + 1,743 City Ordinance entries.
+
+**scripts/process_powerbi_exports.py:**
+- Fixed `_DropExports` source directory default from empty `06_Workspace_Management/_DropExports/` to active `PowerBI_Data/_DropExports/` (47 files).
+- Fixed `PowerBI_Date` typo → `PowerBI_Data` in backfill root path.
+
+**scripts/summons_backfill_merge.py:**
+- Fixed `PowerBI_Date` typo → `PowerBI_Data` in `_get_backfill_roots()`.
+
+**scripts/summons_derived_outputs.py:**
+- Fixed all 5 occurrences of `PowerBI_Date` → `PowerBI_Data`.
+
+### Added — DFR Fee Schedule Reconciliation
+
+**scripts/dfr_reconcile.py** (new):
+- Full reconciliation: maps DFR workbook `Full Summons Number` → ETL `TICKET_NUMBER`.
+- Handles double-prefix pattern (ETL-injected rows already have E26 prefix).
+- Cascading statute lookup: ViolationData → Fee Schedule → City Ordinances, with subsection fallback (strip parenthetical, then trailing letter suffix).
+- Produces match counts, field validation, backfill candidates, and unresolved statute report.
+- `--dry-run` mode for report-only execution.
+
+---
+
 ## [1.18.17] - 2026-03-20
 
 ### Added — DFR Summons Documentation & M Code Restoration

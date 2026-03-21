@@ -80,8 +80,8 @@ def _build_personnel_lookup(master_path: str) -> dict:
 
 def _load_statute_lookups(base_dir: Path):
     """Load Title39 and CityOrdinances JSONs. Graceful degradation if missing."""
-    title39_path = base_dir / "09_Reference" / "LegalCodes" / "Title39" / "Title39_Lookup_Dict.json"
-    ordinance_path = base_dir / "09_Reference" / "LegalCodes" / "CityOrdinances" / "CityOrdinances_Lookup_Dict.json"
+    title39_path = base_dir / "09_Reference" / "LegalCodes" / "data" / "Title39" / "Title39_Lookup_Dict.json"
+    ordinance_path = base_dir / "09_Reference" / "LegalCodes" / "data" / "CityOrdinances" / "CityOrdinances_Lookup_Dict.json"
     title39_dict = {}
     ordinance_dict = {}
     if title39_path.exists():
