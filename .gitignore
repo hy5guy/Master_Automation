@@ -55,6 +55,9 @@ desktop.ini
 # Configuration backups
 config/*.bak
 
+# Power BI API credentials (contains secrets)
+config/powerbi_api_config.json
+
 # Local one-off exports / validation artifacts (keep out of git)
 /*.csv
 /*.m
