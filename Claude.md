@@ -251,6 +251,25 @@ M code references `C:\Users\carucci_r\...` (desktop). Laptop has `C:\Users\Rober
 ### 13-Month Rolling Window
 24 of 32 Power BI visuals enforce exactly 13 full months. Config at `Standards/config/powerbi_visuals/visual_export_mapping.json`. Validation script: `scripts/validate_13_month_window.py`.
 
+## Path Resolution
+
+OneDrive root resolves via two junctions (created 2026-03-22):
+1. Profile junction:
+     C:\Users\carucci_r  →  C:\Users\RobertCarucci
+2. OneDrive junction (laptop only — must be replicated on desktop):
+     C:\Users\RobertCarucci\OneDrive
+     →  C:\Users\RobertCarucci\OneDrive - City of Hackensack
+
+Active root returned by path_config.get_onedrive_root():
+  C:\Users\carucci_r\OneDrive - City of Hackensack
+
+### Rules for AI agents
+- DO NOT change carucci_r to RobertCarucci in scripts or configs
+- DO NOT change PowerBI_Data to PowerBI_Date (PowerBI_Date was the typo)
+- scripts.json uses carucci_r paths — this is correct and intentional
+- path_config.py resolves the correct root at runtime via get_onedrive_root()
+- If a path appears broken, check junction status before editing any file
+
 ---
 
 *Last updated: 2026-03-19 | Format version: 4.3*
