@@ -42,13 +42,13 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.18.14 |
-| **Status** | DFR ETL population; DFR_Summons dual filter (Recall + Status); Response Time visuals |
+| **Version** | 1.19.1 |
+| **Status** | Phase 2 complete: fee/fine enrichment (FINE_AMOUNT), VIOLATION_CATEGORY, DFR backfill wired; ETL path fixes; DFR reconciliation; ~95 YTD DAX measures spec'd |
 | **pReportMonth** | `#date(2026, 2, 1)` |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
-| **Power BI Queries** | 46+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
-| **Report Template** | `08_Templates\Monthly_Report_Template.pbix` |
-| **TMDL Export** | `m_code/tmdl_export/` (87 files, full model snapshot) |
+| **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
+| **Report Template** | `15_Templates\Monthly_Report_Template.pbix` |
+| **TMDL Export** | `m_code/tmdl_export/` (85 files, full model snapshot) |
 
 ### pReportMonth Migration (COMPLETE)
 All 16 M code queries migrated from `DateTime.LocalNow()` to `pReportMonth` via Claude Desktop MCP on 2026-03-09. Each `.pbix` is now an immutable snapshot -- changing `pReportMonth` and saving-as produces a new month's report without altering historical files.
@@ -84,8 +84,10 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 - `scripts/validate_exports.py` - Pre-flight check for OT/TimeOff exports
 - `scripts/validate_outputs.py` - CSV schema validation
 - `scripts/test_pipeline.bat` - Overtime/TimeOff test suite
-- `scripts/summons_etl_normalize.py` - Summons ETL v2.3.0
-- `run_summons_etl.py` - Path-agnostic summons wrapper
+- `scripts/summons_etl_normalize.py` - Summons ETL v2.4.0; `DFR_ASSIGNMENTS` + `split_dfr_records()` + fee/fine + VIOLATION_CATEGORY enrichment
+- `scripts/dfr_export.py` - DFR workbook export; `_map_to_dfr_schema()`, `export_to_dfr_workbook()`
+- `scripts/dfr_backfill_descriptions.py` - DFR description/fine backfill; cascading statute lookup
+- `run_summons_etl.py` - Path-agnostic summons wrapper; DFR split + export wired in
 - `scripts/summons_backfill_merge.py` - Merge gap months into summons
 - `scripts/normalize_visual_export_for_backfill.py` - Visual export normalization
 - `scripts/process_powerbi_exports.py` - Power BI export processing
@@ -98,7 +100,8 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 - `logs/` - ETL execution logs (auto-created)
 - `docs/` - Documentation, prompts, chatlogs
 - `m_code/` - Power BI M code queries (47 queries across 20 subfolders)
-  - `arrests/`, `benchmark/`, `chief/`, `community/`, `csb/`, `detectives/`, `drone/` (includes DFR_Summons), `esu/`, `functions/`, `nibrs/`, `overtime/`, `parameters/`, `patrol/`, `remu/`, `response_time/`, `shared/`, `social_media/`, `ssocc/`, `stacp/`, `summons/`, `traffic/`, `training/`
+  - `arrests/`, `benchmark/`, `chief/`, `community/`, `csb/`, `detectives/`, `drone/`, `esu/`, `functions/`, `nibrs/`, `overtime/`, `parameters/`, `patrol/`, `remu/`, `response_time/`, `shared/`, `social_media/`, `ssocc/`, `stacp/`, `summons/`, `traffic/`, `training/`
+  - `drone/DFR_Summons.m` - Rolling 13-month window, dual dismiss/void filter (Recall + Status), schema-resilient Violation_Category/Jurisdiction
   - `archive/` - Superseded M code versions
 - `outputs/` - Organized output files (arrests, visual_exports, summons_validation, metadata, community_engagement, misc, large_exports)
 - `verifications/` - ETL verification framework
@@ -169,8 +172,25 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 - **Verify** OneDrive sync status before assuming files are available
 - **Never** use `DateTime.LocalNow()` in M code -- use `pReportMonth` parameter
 
+## Never Do
+- Use `DateTime.LocalNow()` in M code — use `pReportMonth` only
+- Hardcode OneDrive paths — always use `path_config.get_onedrive_root()`
+- Modify `config/scripts.json` without explicit confirmation from user
+- Write directly to `02_ETL_Scripts/` — those are production scripts
+- Commit `.log` files or `.xlsx` test/diagnostic files to git
+
+## Log File Locations
+| Log File | Location |
+|----------|----------|
+| ETL orchestration | `logs/run_all_etl_YYYYMMDD.log` |
+| Summons ETL | `logs/summons_etl.log` |
+| Arrest processor | `logs/arrest_processor.log` |
+| Tree report errors | `logs/tree_report_error.log` |
+
+All new scripts must write logs to `logs/` — never to the repo root.
+
 ## Enabled ETL Scripts
-1. **Arrests** - `arrest_python_processor.py`
+1. **Arrests** - `arrest_python_processor.py` (--report-month {REPORT_MONTH_ACTUAL}; targeted discovery in YYYY/month/)
 2. **Community Engagement** - `src/main_processor.py` (Patrol v2, attendee_names column)
 3. **Overtime TimeOff** - `overtime_timeoff_with_backfill.py`
 4. **Response Times** - `response_time_diagnostic.py`
@@ -211,6 +231,8 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override. 
 | `<OneDrive>\08_Templates\Monthly_Report_Template.pbix` | Gold copy template |
 | `<OneDrive>\Shared Folder\Compstat\Monthly Reports\YYYY\MM_monthname\` | Published reports |
 | `<OneDrive>\09_Reference\Standards\` | Schema standards and data dictionaries |
+| `<OneDrive>\05_EXPORTS\_Arrest\YYYY\month\` | Monthly arrest exports (YYYY_MM_*.xlsx; matches Summons scaffolding) |
+| `<OneDrive>\01_DataSources\ARREST_DATA\Power_BI\` | Arrest processor output (YYYY_MM_Arrests_PowerBI_Ready.xlsx) |
 
 ## Architecture Notes
 

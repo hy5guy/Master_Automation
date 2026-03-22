@@ -237,8 +237,9 @@
       "name": "Response Times Fresh Calculator",
       "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\scripts",
       "script": "response_time_fresh_calculator.py",
-      "enabled": false,
-      "output_to_powerbi": false,
+              "args": "--report-month {REPORT_MONTH}",
+      "enabled": true,
+      "output_to_powerbi": true,
       "order": 5.6,
       "timeout_minutes": 60,
       "output_patterns": [
@@ -251,7 +252,7 @@
         "calculator",
         "timereport"
       ],
-      "notes": "v3.0.0 - DISABLED 2026-02-09: Missing January 14, 2026 deduplication/filtering logic. Using validated Backfill data instead. Can be re-enabled once enhanced with proper filtering."
+      "notes": "v3.1.0 - RE-ENABLED 2026-03-21: Jan-14 dedup logic verified in commit e8d95f2. Validated against Jan 2026 backfill baseline (Emergency 3:11, Urgent 2:54, Routine 2:48). Resolves Issue #7."
     },
     {
       "name": "Response Times Monthly Generator (Legacy)",

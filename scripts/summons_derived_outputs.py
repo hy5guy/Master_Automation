@@ -138,7 +138,7 @@ def main() -> int:
             print(f"[ERROR] Top 5 Parking file not found. Checked: Compstat, archive, Backfill/2026_01/summons")
             return 1
         
-        print("\n[SUCCESS] All 4 Summons derived CSVs written to PowerBI_Date\\_DropExports:")
+        print("\n[SUCCESS] All 4 Summons derived CSVs written to PowerBI_Data\\_DropExports:")
         print(f"  - backfill_summons_summary.csv")
         print(f"  - wg2_movers_parkers_nov2025.csv")
         print(f"  - top5_moving_1125.csv")

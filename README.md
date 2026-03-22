@@ -7,6 +7,9 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
 
 **Latest Update (2026-03-13): v1.18.6 — Report month window fixes.** Summons (4 queries), Detectives, and Policy Training (Cost + In-Person) M code updated so all visuals include the report month (not previous month). In-Person Training now loads from source workbook directly. See `CHANGELOG.md`.
+**Latest Update (2026-03-21): v1.19.1 — Summons ETL Phase 2 complete.** Fee/fine enrichment (`FINE_AMOUNT`) and `VIOLATION_CATEGORY` columns added to all summons rows via cascading statute lookup (fee schedule → Title39 → CityOrdinances). DFR backfill wired into main ETL pipeline. SLIM CSV now 25 columns for Summons_YTD revenue KPIs. See `CHANGELOG.md`.
+
+**v1.18.4 (2026-03-11): Summons backfill as source of truth.** For all months in the consolidated backfill file (02-25 through 11-25), e-ticket rows are removed and backfill values used exclusively. Department-Wide Summons visual now matches backfill file exactly. See `CHANGELOG.md`.
 
 **v1.18.0 (2026-03-10): Summons Pipeline Overhaul.** Full ETL rewrite: TYPE classification fixed (raw Case Type Code M/P/C instead of broken statute lookup), multi-year file discovery (2025+2026), BOM/quote-wrapped CSV handling, `summons_slim_for_powerbi.csv` as primary Power BI source. M code: 13-month trend window aligned to `pReportMonth - 1`, WG2 filter removed from dept-wide trend, `List.Sum([TICKET_COUNT])` replaces `Table.RowCount`, all_bureaus Total null coalesce. See `CHANGELOG.md`.
 
@@ -44,7 +47,9 @@ Master_Automation/
 │   ├── validate_outputs.py                   # FIXED CSV schema validation
 │   ├── test_pipeline.bat                     # Overtime/TimeOff test suite
 │   ├── summons_backfill_merge.py             # Summons gap-month merge (07-25 only as of 2026-03-10)
-│   ├── summons_etl_normalize.py             # Core summons ETL: badge lookup, TYPE classification, 3-tier output
+│   ├── summons_etl_normalize.py             # Core summons ETL v2.4.0: DFR split, fee/fine + VIOLATION_CATEGORY enrichment
+│   ├── dfr_export.py                        # DFR workbook export (schema map, dedup, formula-col guard)
+│   ├── dfr_backfill_descriptions.py           # DFR description/fine backfill (cascading statute lookup)
 │   ├── normalize_visual_export_for_backfill.py  # Normalize visual exports (13-month window, backfill)
 │   ├── process_powerbi_exports.py               # Process _DropExports with mapping (match_pattern, 13-month)
 │   ├── validate_13_month_window.py              # Validate 13-month rolling window in CSV(s)
@@ -74,7 +79,7 @@ Master_Automation/
 │   ├── community/             # ___Combined_Outreach_All
 │   ├── csb/                   # ___CSB_Monthly
 │   ├── detectives/            # ___Detectives, ___Det_case_dispositions_clearance
-│   ├── drone/                 # ___Drone
+│   ├── drone/                 # ___Drone + DFR_Summons (new)
 │   ├── esu/                   # ESU_13Month
 │   ├── functions/             # fnGetFiles, fnReadCsv, fnEnsureColumns, fnApplyRenameMap, fnLoadRaw
 │   ├── nibrs/                 # ___NIBRS_Monthly_Report
