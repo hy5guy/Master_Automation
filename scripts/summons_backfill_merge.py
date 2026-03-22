@@ -63,11 +63,11 @@ TARGET_COLUMNS = ["Month_Year", "WG2", "TICKET_COUNT", "TYPE"]
 
 
 def _get_backfill_roots() -> list[Path]:
-    """Return candidate backfill roots (prefer 00_dev, then PowerBI_Date)."""
+    """Return candidate backfill roots (prefer 00_dev, then PowerBI_Data)."""
     base = get_onedrive_root()
     return [
-        base / "00_dev" / "projects" / "PowerBI_Date" / "Backfill",
-        base / "PowerBI_Date" / "Backfill",
+        base / "00_dev" / "projects" / "PowerBI_Data" / "Backfill",
+        base / "PowerBI_Data" / "Backfill",
     ]
 
 

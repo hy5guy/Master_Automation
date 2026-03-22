@@ -7,6 +7,135 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.19.1] - 2026-03-21
+
+### Added — Summons ETL Phase 2: Fee/Fine Enrichment, VIOLATION_CATEGORY, DFR Backfill Wiring
+
+**scripts/summons_etl_normalize.py (v2.4.0):**
+- `_load_statute_lookups()` now loads fee schedule (`municipal-violations-bureau-schedule.json`, 1,203 entries), Title39_Categorized (1,413 categories), and CityOrdinances_Categorized (3,156 categories) alongside existing Title39/Ordinance lookup dicts.
+- New `_enrich_row()` cascading lookup after TYPE classification: fee schedule → Title39 → CityOrdinances, using `_normalize_statute_key()` (exact → strip parens → strip trailing alpha).
+- New columns: `FINE_AMOUNT` (float, from fee schedule) and `VIOLATION_CATEGORY` (string, from Categorized JSONs).
+- Both columns added to `slim_cols` in `write_three_tier_output()` — SLIM CSV now 25 columns.
+- Enrichment applies to ALL summons rows (raw export + SLIM CSV) for Summons_YTD revenue KPIs.
+
+**run_summons_etl.py:**
+- DFR backfill (`dfr_backfill_descriptions.backfill(apply=True)`) wired into main ETL pipeline after `export_to_dfr_workbook()`. Runs automatically on every ETL cycle when DFR records are present.
+
+### Verification Results
+- `run_summons_etl.py --dry-run`: 14 files discovered, exits cleanly.
+- Full ETL run: 46,760 rows; FINE_AMOUNT populated on 4,025 rows, VIOLATION_CATEGORY on 45,209 rows.
+- `dfr_reconcile.py --dry-run`: 79/79 statutes resolved, 0 unresolved.
+- SLIM CSV (`summons_slim_for_powerbi.csv`) confirmed: 25 columns including FINE_AMOUNT, VIOLATION_CATEGORY.
+
+---
+
+## [1.19.0] - 2026-03-21
+
+### Fixed — ETL Path Corrections & DFR Reconciliation
+
+**scripts/summons_etl_normalize.py:**
+- Fixed statute lookup paths: `09_Reference/LegalCodes/Title39/` → `09_Reference/LegalCodes/data/Title39/` (and same for CityOrdinances). Silent failure — lookups loaded 0 entries but gracefully degraded; now loads 1,413 Title39 + 1,743 City Ordinance entries.
+
+**scripts/process_powerbi_exports.py:**
+- Fixed `_DropExports` source directory default from empty `06_Workspace_Management/_DropExports/` to active `PowerBI_Data/_DropExports/` (47 files).
+- Fixed `PowerBI_Date` typo → `PowerBI_Data` in backfill root path.
+
+**scripts/summons_backfill_merge.py:**
+- Fixed `PowerBI_Date` typo → `PowerBI_Data` in `_get_backfill_roots()`.
+
+**scripts/summons_derived_outputs.py:**
+- Fixed all 5 occurrences of `PowerBI_Date` → `PowerBI_Data`.
+
+### Added — DFR Fee Schedule Reconciliation
+
+**scripts/dfr_reconcile.py** (new):
+- Full reconciliation: maps DFR workbook `Full Summons Number` → ETL `TICKET_NUMBER`.
+- Handles double-prefix pattern (ETL-injected rows already have E26 prefix).
+- Cascading statute lookup: ViolationData → Fee Schedule → City Ordinances, with subsection fallback (strip parenthetical, then trailing letter suffix).
+- Produces match counts, field validation, backfill candidates, and unresolved statute report.
+- `--dry-run` mode for report-only execution.
+
+---
+
+## [1.18.17] - 2026-03-20
+
+### Added — DFR Summons Documentation & M Code Restoration
+
+**m_code/drone/DFR_Summons.m** (restored):
+- Schema-resilient support for `Violation_Category` (was Violation_Type) and `Jurisdiction` per Claude-in-Excel Turn 51 audit.
+- Dual filter (Summons_Recall + Summons_Status) using `Text.Contains` for Dismissed/Voided robustness.
+- 13-month rolling window, DateSortKey, Date_Sort_Key, MM-YY, YearMonthKey.
+
+**docs/** (new):
+- `PROMPT_Claude_In_Excel_DFR_Directed_Patrol_Summons_MCode.md` — M code spec for Power BI / M Code Reference sheet.
+- `DFR_Summons_Claude_In_Excel_Development_Log.md` — 51-turn workbook evolution summary (03/13–03/20/2026).
+- `DFR_Summons_Documentation_Index.md` — Index of DFR docs, M code, and chatlogs.
+
+---
+
+## [1.18.16] - 2026-03-20
+
+### Added — Arrest ETL Future-Proofing: Report-Month Parameter & Targeted File Discovery
+
+**scripts/run_all_etl.ps1:**
+- **`{REPORT_MONTH_ACTUAL}`** — New token that passes the actual report month (e.g., 2026-03) to scripts. `{REPORT_MONTH}` continues to pass the previous month for backward compatibility.
+
+**config/scripts.json:**
+- **Arrests** — Added `"args": "--report-month {REPORT_MONTH_ACTUAL}"` so the arrest processor receives the report month from the orchestrator.
+
+**02_ETL_Scripts/Arrests/arrest_python_processor.py:**
+- **`--report-month YYYY-MM`** — Optional CLI argument. When provided (by orchestrator or manual run), processes that month instead of the previous calendar month.
+- **`get_month_info_from_report_month(report_month)`** — Builds month info from a YYYY-MM string.
+- **`find_target_files(report_month)`** — Targeted discovery: when `report_month` is set, looks in `05_EXPORTS/_Arrest/YYYY/month/` for `YYYY_MM*.xlsx` (matches Summons scaffolding). Fallback: most recent file by mtime when no match.
+- **`run_processing(report_month)`** — Accepts optional report month; passes to `find_target_files`.
+
+### Changed — 05_EXPORTS/_Arrest Scaffolding (Matches Summons E_Ticket)
+
+**05_EXPORTS/_Arrest** refactored to mirror `05_EXPORTS/_Summons/E_Ticket` structure:
+- **`YYYY/month/`** — Monthly LawSoft arrest exports (e.g., `2026_03_lawsoft_monthly_arrest.xlsx`)
+- **`YYYY/full_year/`** — Full-year arrest exports
+- **`archive/`** — Merged from legacy `Archive` and misc full_year files
+- Monthly files moved from flat `2025/`, `2026/`, and `monthly/2025`, `monthly/2026` into `YYYY/month/`
+- Full-year files moved from `full_year/YYYY/` into `YYYY/full_year/`
+
+**Place new arrest exports at:** `<OneDrive>/05_EXPORTS/_Arrest/YYYY/month/YYYY_MM_*.xlsx`
+
+---
+
+## [1.18.15] - 2026-03-20
+
+### Added — DFR Summons Split: Drone-Operator Records Excluded from Main Pipeline
+
+**scripts/summons_etl_normalize.py** (v2.4.0):
+- **`DFR_ASSIGNMENTS`** — Module-level config list of drone/temp-SSOCC badge assignments with optional date ranges:
+  - Badge **738 (Polson)** — permanent SSOCC drone operator; always excluded from main pipeline.
+  - Badge **2025 (Ramirez)** — temp SSOCC assignment 2026-02-23 through 2026-03-01.
+  - Badge **377 (Mazzaccaro)** — temp SSOCC assignment 2026-03-02 through 2026-03-15.
+- **`split_dfr_records(df, assignments)`** — Vectorised boolean mask: splits fully-normalised DataFrame into `(dfr_df, main_df)`. Badge match is integer comparison on `PADDED_BADGE_NUMBER`; date-restricted entries only match rows whose `ISSUE_DATE` falls within the assignment window. Returns reset-index copies.
+
+**scripts/dfr_export.py** (new):
+- **`DFR_FORMULA_COLUMN_NAMES`** — Frozen set of Excel formula columns never overwritten: Summons ID, Description, Fine Amount, Violation Type, DFR Unit ID, Summons Recall, Full Summons Number.
+- **`_map_to_dfr_schema(dfr_df)`** — Maps ETL column names to DFR Summons Log headers (Date, Time, Summons Number, Location from `Offense Street Name`, Statute, DFR Operator, Issuing Officer = DFR Operator, Summons Status). Leaves OCA and Notes blank for manual entry.
+- **`export_to_dfr_workbook(dfr_df, workbook_path)`** — Opens `dfr_directed_patrol_enforcement.xlsx` with openpyxl; reads header row to build column-index map; collects existing Summons Numbers for deduplication; appends only new rows; skips formula columns; on `PermissionError` (file open in Excel) saves side-car `.etl_temp_dfr.xlsx`.
+- **Target workbook:** `<OneDrive>/Shared Folder/Compstat/Contributions/Drone/dfr_directed_patrol_enforcement.xlsx`
+
+**run_summons_etl.py**:
+- After backfill merge, calls `split_dfr_records()` then `export_to_dfr_workbook()`.
+- Only `main_records` (non-DFR) are passed to `write_three_tier_output()` — DFR badges no longer appear in `summons_powerbi_latest.xlsx` or `summons_slim_for_powerbi.csv`.
+- Console output reports number of DFR records isolated per run.
+
+**m_code/drone/DFR_Summons.m** (new — `m_code/drone/` folder created):
+- Loads `DFR_Summons` Excel Table (fallback: `DFR Summons Log` sheet) from `dfr_directed_patrol_enforcement.xlsx`.
+- Rolling 13-month window: `StartDate = StartOfMonth(pReportMonth − 12 months)`, `EndDate = EndOfMonth(pReportMonth)`.
+- **Dual dismiss/void filter** (v1.18.14 spec):
+  - `FilteredRecalls` — excludes rows where `Summons_Recall` contains "dismiss" or "void".
+  - `FilteredStatus` — excludes rows where `Summons_Status` contains "dismiss" or "void" (catches Dismissed, Void, Voided; null-safe via `?? ""`).
+- Schema-resilient rename and type map (en-US locale); `Fine_Amount` null → 0.
+- Derived columns: `Month_Year` (MM-YY), `Date_Sort_Key` (YYYYMMDD Int64), `YearMonthKey` (YYYYMM Int64).
+- Description shortening: strips "PARKING OR STOPPING IN DESIGNATED " prefix so labels read "FIRE LANE/FIRE ZONE" etc.
+
+---
+
 ## [1.18.4] - 2026-03-11
 
 ### Changed — Summons Backfill: Backfill as Source of Truth for All Backfill Months
