@@ -3,6 +3,9 @@ logs/*.log
 logs/*.err
 logs/archive/
 
+# Never commit copied .git trees (e.g. corruption recovery)
+.git_corrupt_backup_*/
+
 # Temporary files
 _DropExports/*
 !_DropExports/.gitkeep

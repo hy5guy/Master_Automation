@@ -27,9 +27,9 @@ FOLDER_RENAMES = {
     "Summons": "summons",
 }
 
-# Specific file moves
+# Specific file moves (legacy; canonical routing now uses traffic/ per visual_export_mapping.json)
 SPECIFIC_MOVES = {
-    "motor_vehicle_accidents_summary": "traffic_mva",  # from traffic to traffic_mva
+    "motor_vehicle_accidents_summary": "traffic",
 }
 
 def reorganize_files():
