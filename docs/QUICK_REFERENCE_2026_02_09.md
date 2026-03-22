@@ -102,7 +102,7 @@ timereport/
 .\scripts\run_etl_script.ps1 -ScriptName "Response Times Monthly Generator"
 
 # 3. Verify outputs
-Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports" -Filter "*response*"
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports" -Filter "*response*"
 
 # 4. Refresh Power BI and verify data integrity
 ```

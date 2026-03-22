@@ -173,7 +173,7 @@ result = if hasColon then [...colon logic...]
 
 ### File Structure Context
 **Source Data Locations** (in priority order):
-1. `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\YYYY_MM\response_time\`
+1. `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\YYYY_MM\response_time\`
 2. `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\outputs\visual_exports\`
 3. `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\data\visual_export\`
 

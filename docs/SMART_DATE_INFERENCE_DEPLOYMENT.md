@@ -48,7 +48,7 @@ Successfully deployed Claude's enhanced smart date inference logic to the Power 
 ### Files Processed: 16 CSVs
 **Source:** `_DropExports`  
 **Destination:** `Processed_Exports` (by category)  
-**Backfill:** `PowerBI_Date/Backfill/2026_01/` (4 files)
+**Backfill:** `PowerBI_Data/Backfill/2026_01/` (4 files)
 
 ### Smart Date Inference Accuracy
 
@@ -113,7 +113,7 @@ Successfully deployed Claude's enhanced smart date inference logic to the Power 
 
 ## Backfill Files Created
 
-**Location:** `PowerBI_Date/Backfill/2026_01/`
+**Location:** `PowerBI_Data/Backfill/2026_01/`
 
 1. `Summons/2026_01_department_wide_summons.csv`
 2. `Summons/2026_01_summons_moving_parking_all_bureaus.csv`

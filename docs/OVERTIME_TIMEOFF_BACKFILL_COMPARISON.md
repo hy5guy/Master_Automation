@@ -10,7 +10,7 @@
 | File | Path | Description |
 |------|------|-------------|
 | **Reference** | `Master_Automation\overtime_timeoff_backfill.txt` | Baseline data (12-24 through 12-25) |
-| **Current Backfill** | `PowerBI_Date\Backfill\2025_12\vcs_time_report\2025_12_Monthly Accrual and Usage Summary.csv` | Active backfill file used by automation |
+| **Current Backfill** | `PowerBI_Data\Backfill\2025_12\vcs_time_report\2025_12_Monthly Accrual and Usage Summary.csv` | Active backfill file used by automation |
 
 ---
 
@@ -187,7 +187,7 @@ These are also present in current backfill:
    - Usage categories (Comp, SAT Time)
    - More recent data corrections
 
-4. **For Power BI**: Continue using the current backfill file from `PowerBI_Date\Backfill\2025_12\` - it has the complete dataset.
+4. **For Power BI**: Continue using the current backfill file from `PowerBI_Data\Backfill\2025_12\` - it has the complete dataset.
 
 ---
 

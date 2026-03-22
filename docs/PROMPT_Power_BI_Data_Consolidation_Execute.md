@@ -4,7 +4,7 @@
 
 **Workspace root:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`
 
-**Canonical Power BI location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date`
+**Canonical Power BI location (2026-03+):** `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data` — use `config/scripts.json` + `path_config.get_powerbi_data_dir()` (optional repo `config.json` key `"PowerBI"`). Steps below that still mention `PowerBI_Date` refer to the **legacy folder name** before rename or the **archived** `00_dev/projects/PowerBI_Date` tree.
 
 ---
 
@@ -14,8 +14,8 @@
 
 Confirm these paths exist and are writable:
 
-- `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports`
-- `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill`
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports`
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill`
 
 If either is missing, create it. Report status.
 
@@ -106,7 +106,7 @@ Change the default `source_dir` in `process_exports()` from `AUTOMATION_ROOT / "
 
 File: `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\summons_backfill_merge.py`
 
-Change `_get_backfill_roots()` to return only the config-derived path. Remove `00_dev/projects/PowerBI_Date/Backfill` from the candidate list. Use `get_powerbi_paths()` or equivalent to get `backfill_root`.
+Change `_get_backfill_roots()` to return only the config-derived path. Remove `00_dev/projects/PowerBI_Data/Backfill` from the candidate list. Use `get_powerbi_paths()` or equivalent to get `backfill_root`.
 
 ### Step 2.4 – Update summons_derived_outputs.py
 
@@ -122,14 +122,14 @@ Apply config-derived paths to:
 - `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\verify_december_2025_overtime.py`
 - `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\compare_response_time_results.py`
 - `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\restore_fixed_from_backfill.py` (example in docstring)
-- `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\community_engagement_data_flow_check.py` (fix typo `PowerBI_Date_DropExports` → `PowerBI_Date\_DropExports`; use config)
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\community_engagement_data_flow_check.py` (fix typo `PowerBI_Date_DropExports` → `PowerBI_Data\_DropExports`; use config)
 - `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\community_engagement_diagnostic.ps1` (fix typo; read from config)
 - `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts\diagnose_summons_missing_months.py`
 
 ### Step 2.6 – Update documentation
 
 - `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\SUMMONS_BACKFILL_INJECTION_POINT.md` – Remove `00_dev` as preferred path.
-- `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\POWERBI_VISUAL_EXPORT_PIPELINE_FAQ.md` – Clarify source paths (canonical `PowerBI_Date\_DropExports`).
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\POWERBI_VISUAL_EXPORT_PIPELINE_FAQ.md` – Clarify source paths (canonical `PowerBI_Data\_DropExports`).
 - `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\M_CODE_IMPLEMENTATION_STEPS.md` – Replace `C:\Dev\PowerBI_Date` with canonical path.
 
 ### Step 2.7 – Git commit (single commit for rollback)
@@ -156,9 +156,9 @@ Confirm no path-related failures.
 
 ### Step 3.2 – Path checks
 
-- Config: `Get-Content "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\config\scripts.json" | Select-String powerbi_drop` → should show `PowerBI_Date\_DropExports`
-- Drop folder: `Test-Path "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports"` → True
-- Backfill: `Test-Path "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill"` → True
+- Config: `Get-Content "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\config\scripts.json" | Select-String powerbi_drop` → should show `PowerBI_Data\_DropExports`
+- Drop folder: `Test-Path "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports"` → True
+- Backfill: `Test-Path "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill"` → True
 
 ### Step 3.3 – Power BI Desktop (manual)
 
@@ -219,8 +219,8 @@ git revert HEAD --no-edit
 | Workspace root | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | Config | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\config\scripts.json` |
 | Canonical Power BI | `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date` |
-| Drop exports | `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports` |
-| Backfill | `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill` |
-| 00_dev source (pre-archive) | `C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\projects\PowerBI_Date\Backfill` |
+| Drop exports | `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports` |
+| Backfill | `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill` |
+| 00_dev source (pre-archive) | `C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\projects\PowerBI_Data\Backfill` |
 | Logs | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\logs` |
 | Archive base | `C:\Users\carucci_r\OneDrive - City of Hackensack\99_Archive` |

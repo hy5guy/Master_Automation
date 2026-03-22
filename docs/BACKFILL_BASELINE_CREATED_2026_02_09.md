@@ -11,7 +11,7 @@
 ## Directory Structure Created
 
 ```
-PowerBI_Date\Backfill\
+PowerBI_Data\Backfill\
 ├── 2025_01\response_time\2025_01_Average_Response_Times__Values_are_in_mmss.csv
 ├── 2025_02\response_time\2025_02_Average_Response_Times__Values_are_in_mmss.csv
 ├── 2025_03\response_time\2025_03_Average_Response_Times__Values_are_in_mmss.csv
@@ -70,14 +70,14 @@ When new data arrives for February 2026:
 3. **Export visual** to CSV
 4. **Save to**:
    ```
-   PowerBI_Date\Backfill\2026_02\response_time\2026_02_Average_Response_Times__Values_are_in_mmss.csv
+   PowerBI_Data\Backfill\2026_02\response_time\2026_02_Average_Response_Times__Values_are_in_mmss.csv
    ```
 
 ### Monthly Workflow:
 ```powershell
 # Example for adding March 2026:
 $month = "2026_03"
-$backfillPath = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\$month\response_time"
+$backfillPath = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\$month\response_time"
 New-Item -ItemType Directory -Path $backfillPath -Force
 
 # Then export your visual to: $backfillPath\${month}_Average_Response_Times__Values_are_in_mmss.csv

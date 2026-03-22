@@ -34,10 +34,10 @@ When combined, Power BI mixed fresh + old data, resulting in incorrect averages.
 **Before (v2.8.1):**
 ```powerquery
 PossiblePaths = {
-    "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports",
+    "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports",
     "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\data\visual_export",
     "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\outputs\visual_exports",
-    "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill"
+    "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill"
 },
 FindValidPath = List.First(...),
 BackfillBasePath = FindValidPath,
@@ -46,7 +46,7 @@ BackfillBasePath = FindValidPath,
 **After (v2.8.2):**
 ```powerquery
 // Use ONLY Fresh Calculator output from _DropExports
-BackfillBasePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports",
+BackfillBasePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports",
 ```
 
 ### 2. Updated File Filter
@@ -145,7 +145,7 @@ These measures use:
 ### Issue: "DataSource.NotFound" error
 **Solution**: Verify the `_DropExports` folder exists and contains CSV files:
 ```
-C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\
+C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports\
   2025_01_Average_Response_Times__Values_are_in_mmss.csv
   2025_02_Average_Response_Times__Values_are_in_mmss.csv
   ...

@@ -95,7 +95,7 @@ Key improvements:
 1. **Backup** (optional): Copy current `visual_export_mapping.json` to a timestamped backup.
 2. **Dry-run**: Place test CSVs in `_DropExports`, run `python scripts\process_powerbi_exports.py --dry-run`.
 3. **Production**: Run `python scripts\process_powerbi_exports.py`.
-4. **Verify**: Check `09_Reference\Standards\Processed_Exports` and `PowerBI_Date\Backfill\YYYY_MM` by target_folder.
+4. **Verify**: Check `09_Reference\Standards\Processed_Exports` and `PowerBI_Data\Backfill\YYYY_MM` by target_folder.
 
 ---
 

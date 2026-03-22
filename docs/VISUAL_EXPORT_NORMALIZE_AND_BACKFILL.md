@@ -74,7 +74,7 @@ python scripts\normalize_visual_export_for_backfill.py --input "path\to\export.c
 1. **Export** from Power BI: “Monthly Accrual and Usage Summary” visual → save as CSV (default Long format is fine).
 2. **Normalize and deploy** (one of):
    - Run `normalize_visual_export_for_backfill.py --input <path> [--backfill-month YYYY_MM]` so the file is written to `Backfill\YYYY_MM\vcs_time_report\`.
-   - Or manually copy the export to `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\` and name it `YYYY_MM_Monthly Accrual and Usage Summary.csv`. The pipeline accepts Long as-is; the script is for consistency and label cleaning.
+   - Or manually copy the export to `PowerBI_Data\Backfill\YYYY_MM\vcs_time_report\` and name it `YYYY_MM_Monthly Accrual and Usage Summary.csv`. The pipeline accepts Long as-is; the script is for consistency and label cleaning.
 3. **Pipeline**: Run `python scripts\overtime_timeoff_with_backfill.py` when you want to refresh FIXED and monthly_breakdown from that backfill.
 
 ---

@@ -14,7 +14,7 @@ Centralized orchestration hub that runs all Python ETL scripts feeding into Powe
 - **Orchestration**: PowerShell scripts (run_all_etl.ps1)
 - **Data Processing**: Python ETL scripts
 - **Output Format**: CSV files
-- **Reporting**: Power BI (via _DropExports folder)
+- **Reporting**: Power BI (via **PowerBI_Data** `_DropExports`, `Backfill`)
 - **Storage**: OneDrive (cloud-backed)
 - **Configuration**: JSON (config/scripts.json)
 - **Parameter**: `pReportMonth` controls all rolling windows (static snapshot per .pbix)
@@ -90,8 +90,11 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 - `run_summons_etl.py` - Path-agnostic summons wrapper; DFR split + export wired in
 - `scripts/summons_backfill_merge.py` - Merge gap months into summons
 - `scripts/normalize_visual_export_for_backfill.py` - Visual export normalization
-- `scripts/process_powerbi_exports.py` - Power BI export processing
-- `scripts/validate_13_month_window.py` - 13-month window validator
+- `scripts/process_powerbi_exports.py` - _DropExports → Processed_Exports + Backfill (uses routing; archives prior outputs)
+- `scripts/validate_13_month_window.py` - 13-month validator (`--report-month`, `--accept-warn`, partial tail WARN)
+- `scripts/validate_response_time_exports.py` - Response_time CSV structure checks
+- `scripts/tests/` - `unittest` for routing, archive, validators (`python -m unittest discover -s tests -p "test_*.py"`)
+- `config.json` (repo root, optional) - `"PowerBI": "PowerBI_Data"` for data root folder name
 - `verify_migration.ps1` - Path verification
 
 ### Data Directories
@@ -207,7 +210,8 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override. 
 | `06_Workspace_Management\logs\` | Execution logs |
 | `06_Workspace_Management\scripts\process_powerbi_exports.py` | Process _DropExports → Processed_Exports + Backfill |
 | `06_Workspace_Management\scripts\normalize_visual_export_for_backfill.py` | Visual export normalization |
-| `06_Workspace_Management\scripts\path_config.py` | Path resolution (get_onedrive_root, get_powerbi_paths) |
+| `06_Workspace_Management\scripts\path_config.py` | Path resolution (`get_onedrive_root`, `get_powerbi_data_dir`, `get_powerbi_paths`) |
+| `06_Workspace_Management\config.json` | Optional `PowerBI` folder name under OneDrive root |
 | `06_Workspace_Management\Standards\config\powerbi_visuals\visual_export_mapping.json` | Export-to-folder mapping |
 | `06_Workspace_Management\Standards\config\powerbi_visuals\schema_v2.json` | Archive/cleaning rules |
 | `06_Workspace_Management\m_code\` | Power BI M code (47 queries, 87 TMDL export) |

@@ -36,4 +36,4 @@ After the pipeline finishes:
 | 1 | Run `python scripts\overtime_timeoff_with_backfill.py` from Master_Automation |
 | 2 | Refresh Power BI (___Overtime_Timeoff_v3 or Refresh All) |
 
-No other steps are required; the backfill file is already in `PowerBI_Date\Backfill\2025_12\vcs_time_report\`.
+No other steps are required; the backfill file is already in `PowerBI_Data\Backfill\2025_12\vcs_time_report\`.

@@ -93,7 +93,7 @@ python scripts\Pre_Flight_Validation.py --report-month 2026-01
 2. Click **Transform Data → Close & Apply** to refresh with new data
 3. Spot-check all pages — summons visuals should now populate (staging file updated)
 4. Export **Response Time visual** (Average Response Times CSV) → save to:
-   `PowerBI_Date\Backfill\2026_01\response_time\2026_01_Average_Response_Times__Values_are_in_mmss.csv`
+   `PowerBI_Data\Backfill\2026_01\response_time\2026_01_Average_Response_Times__Values_are_in_mmss.csv`
 5. Run visual export processing:
    ```powershell
    python scripts\process_powerbi_exports.py
@@ -163,7 +163,7 @@ Now here's a clean summary of what the reorganization changes and what impact th
 ### Fixes Applied This Session (v1.17.6)
 
 1. **`___Traffic.m`** — removed 8 backslash line-continuation characters; file now pastes cleanly into Power BI Advanced Editor
-2. **`config/scripts.json`** `PD_BCI_LTP` override — updated from dead `C:\Dev\PowerBI_Date\_DropExports` to standard OneDrive production path
+2. **`config/scripts.json`** `PD_BCI_LTP` override — updated from dead `C:\Dev\PowerBI_Data\_DropExports` to standard OneDrive production path
 3. **`config/scripts-PD_BCI_LTP.json`** `powerbi_drop_path` — same fix
 4. **CHANGELOG / README / SUMMARY / Claude.md** — bumped to v1.17.6
 
@@ -288,7 +288,7 @@ command results below:
 === Visual Export Normalization ===
 
 >> Visual Export Normalization
-  No files matching '*Monthly Accrual and Usage Summary*.csv' in C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports
+  No files matching '*Monthly Accrual and Usage Summary*.csv' in C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports
   No Monthly Accrual and Usage Summary CSVs found in drop folder
 
 === Execution Summary ===
@@ -343,7 +343,7 @@ Now confirm the January 2026 timereport file exists, then run Response Times man
 
 The file is there. Running Response Times now:
 
-Response Times ran perfectly — 1,991 records, all 3 checks passed. One warning: `C:\Dev\PowerBI_Date\Backfill` is still hardcoded in the script. Let me copy the output to the drop folder and fix that path:
+Response Times ran perfectly — 1,991 records, all 3 checks passed. One warning: `C:\Dev\PowerBI_Data\Backfill` is still hardcoded in the script. Let me copy the output to the drop folder and fix that path:
 
 Good — the `POWERBI_OUTPUT_DIR` is a secondary "backfill copy" path and not the primary output. The main output is already saved. Let me fix the dead path and then copy the output to the drop folder:
 
@@ -380,7 +380,7 @@ Pushed. Here's the full status of the run:
 `$year` and `$monthNum` live inside the `Save-MonthlyReport` function and were invisible to the script-execution loop, so `"$year-$monthNum"` resolved to `"-"`. Fixed to compute the previous month directly from `$ReportMonth` at the point of substitution.
 
 **2. Response Times script — bad default path + double extension** (`process_cad_data_13month_rolling.py`)
-`DEFAULT_INPUT_PATH` pointed to the dead `monthly_export\2025\2025_11_Monthly_CAD.xlsx.xlsx` (wrong folder since the directory reorg, plus the double `.xlsx`). Updated to `timereport\monthly\2026_01_timereport.xlsx`. `POWERBI_OUTPUT_DIR` also corrected from `C:\Dev` to `PowerBI_Date\_DropExports`.
+`DEFAULT_INPUT_PATH` pointed to the dead `monthly_export\2025\2025_11_Monthly_CAD.xlsx.xlsx` (wrong folder since the directory reorg, plus the double `.xlsx`). Updated to `timereport\monthly\2026_01_timereport.xlsx`. `POWERBI_OUTPUT_DIR` also corrected from `C:\Dev` to `PowerBI_Data\_DropExports`.
 
 ---
 
@@ -1529,7 +1529,7 @@ That said — yes, this folder does look like it has accumulated exports that ha
 | `backfill_summons_summary.csv` | A previous backfill attempt |
 | `top5_parking_1125.csv`, `top5_moving_1125.csv` | Nov 2025 one-off exports, still sitting here |
 | `wg2_movers_parkers_nov2025.csv` | Same |
-| `2026_01_Response_Times_*.csv` | These should be in `PowerBI_Date\Backfill\2026_01\response_time\` |
+| `2026_01_Response_Times_*.csv` | These should be in `PowerBI_Data\Backfill\2026_01\response_time\` |
 
 **The backfill is done and the 13-month trend should now work.** This folder cleanup is a separate housekeeping task — want me to add it to a list and handle it after the template refresh is confirmed working?
 
@@ -1651,7 +1651,7 @@ Processed all three raw CAD sources through a consistent pipeline:
 | 2025 Full Year | 192,200 | 87,436 | 84,162 (96%) | Complete and reliable — all 3 types every month |
 | 2026-01 Monthly | 10,440 | 7,499 | 7,498 (100%) | Complete |
 
-Produced **25 monthly CSVs** in `PowerBI_Date\Backfill\response_time_all_metrics\` (2024-01 through 2026-01), each with all three metrics and columns: `Response_Type, MM-YY, Metric_Type, First_Response_Time_MMSS, Avg_Minutes, Record_Count, Median_Minutes`.
+Produced **25 monthly CSVs** in `PowerBI_Data\Backfill\response_time_all_metrics\` (2024-01 through 2026-01), each with all three metrics and columns: `Response_Type, MM-YY, Metric_Type, First_Response_Time_MMSS, Avg_Minutes, Record_Count, Median_Minutes`.
 
 **Three M code queries** (all use `Folder.Files()` — auto-picks up future months as ETL runs):
 

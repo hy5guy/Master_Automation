@@ -38,7 +38,7 @@ C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\timereport\
 ### OUTPUT Files (Aggregated Summaries) ❌ Missing/Incomplete
 These are what Power BI needs:
 ```
-C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\
+C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\
 ├── 2025_02\
 │   └── response_time\
 │       └── 2025_02_Average_Response_Times__Values_are_in_mmss.csv
@@ -73,7 +73,7 @@ cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts"
 **What this does**:
 1. Reads raw incident data from `timereport` folder (yearly + monthly files)
 2. Calculates average response times by month and priority
-3. Outputs aggregated CSV files to `PowerBI_Date\Backfill\YYYY_MM\response_time\`
+3. Outputs aggregated CSV files to `PowerBI_Data\Backfill\YYYY_MM\response_time\`
 
 **Expected duration**: 1-2 minutes
 
@@ -81,7 +81,7 @@ cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts"
 
 ```powershell
 # Check for generated files
-Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\*\response_time" -Filter "*.csv" | 
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\*\response_time" -Filter "*.csv" | 
   Select-Object Directory, Name, Length, LastWriteTime |
   Sort-Object Directory
 ```
@@ -110,7 +110,7 @@ To handle the current situation, I updated the M code to:
 
 ### 1. Try Multiple Paths
 Now checks these locations in order:
-1. `PowerBI_Date\Backfill` (standard location after ETL)
+1. `PowerBI_Data\Backfill` (standard location after ETL)
 2. `Master_Automation\outputs\visual_exports` (manual exports)
 3. `Master_Automation\data\visual_export` (testing location)
 
@@ -133,7 +133,7 @@ Errors: 31% (incomplete data structure)
 
 ### What Power BI Should Load After ETL
 ```
-Source: PowerBI_Date/Backfill/YYYY_MM/response_time/*.csv
+Source: PowerBI_Data/Backfill/YYYY_MM/response_time/*.csv
 Rows: ~39 (3 priorities × 13 months)
 Coverage: Complete 13-month rolling window
 Errors: 0%

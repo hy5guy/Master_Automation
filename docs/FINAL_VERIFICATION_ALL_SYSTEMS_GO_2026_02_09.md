@@ -83,7 +83,7 @@ cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts"
 6. ✅ **Summons Derived** - Generate derived summons outputs
 
 ### Automatic Post-Processing
-7. ✅ **Copy Outputs** - All CSV files → `PowerBI_Date\_DropExports\`
+7. ✅ **Copy Outputs** - All CSV files → `PowerBI_Data\_DropExports\`
 8. ✅ **Save Report** - Template → `Monthly Reports\2026\01_january\2026_01_Monthly_FINAL_LAP.pbix`
 
 ### Expected Duration
@@ -135,7 +135,7 @@ Failed: [should be 0]
 
 ### 2. Check Outputs
 ```powershell
-Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports" |
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports" |
   Where-Object {$_.LastWriteTime -gt (Get-Date).AddHours(-1)} |
   Select-Object Name, Length
 

@@ -135,7 +135,7 @@ Check that Visual 1 shows your January 14 validated values:
 
 ### Example Structure:
 ```
-PowerBI_Date\Backfill\
+PowerBI_Data\Backfill\
   2024_12\response_time\2024_12_Average_Response_Times__Values_are_in_mmss.csv
   2025_01\response_time\2025_01_Average_Response_Times__Values_are_in_mmss.csv
   ...

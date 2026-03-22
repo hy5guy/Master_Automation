@@ -15,7 +15,7 @@ let
     EndYM     = Date.Year(EndDate)   * 100 + Date.Month(EndDate),
     StartYM   = Date.Year(StartDate) * 100 + Date.Month(StartDate),
 
-    AllFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\response_time_all_metrics"),
+    AllFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\response_time_all_metrics"),
     CSVFiles = Table.SelectRows(AllFiles, each Text.EndsWith([Name], "_response_times.csv")),
     WithFullPath = Table.AddColumn(CSVFiles, "FullPath", each [Folder Path] & [Name], type text),
 

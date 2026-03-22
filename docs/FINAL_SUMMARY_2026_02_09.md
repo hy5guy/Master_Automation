@@ -67,7 +67,7 @@ Created 7 detailed guides:
    - Arrests → Community Engagement → Overtime/TimeOff → Response Times → Summons → Summons Derived
 
 2. **Outputs Copied to Power BI**
-   - Files automatically copied to `PowerBI_Date\_DropExports\`
+   - Files automatically copied to `PowerBI_Data\_DropExports\`
 
 3. **Monthly Report Saved**
    - Template from `15_Templates\Monthly_Report_Template.pbix`
@@ -189,8 +189,8 @@ Data Sources:
 - 05_EXPORTS\_VCS_Time_Report\  # Overtime/TimeOff
 
 Outputs:
-- PowerBI_Date\_DropExports\   # ETL outputs
-- PowerBI_Date\Backfill\       # Historical data
+- PowerBI_Data\_DropExports\   # ETL outputs
+- PowerBI_Data\Backfill\       # Historical data
 - Monthly Reports\YEAR\MM_monthname\  # Monthly reports
 
 Templates:

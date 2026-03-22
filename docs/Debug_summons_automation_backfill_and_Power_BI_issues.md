@@ -368,7 +368,7 @@ m_code/summons/summons_top5_parking.m	Power Query: Top 5 parking officers	Same a
 m_code/summons/___Summons.m	Base query; loaded by trend/bureaus	Defensive column adds; schema-resilient type casting	LOW — well-written; correctly fallback-adds TICKET_COUNT
 09_Reference/Personnel/Assignment_Master_V2.csv	Officer badge→bureau lookup	Joined on PADDED_BADGE_NUMBER; filters to ACTIVE only	MEDIUM — known unknown badges (0738, 9110 Fire Dept) cause WG2=UNKNOWN
 03_Staging/Summons/summons_powerbi_latest.xlsx	Output consumed by Power BI	Single Summons_Data sheet; if 0 bytes or schema-drifted, all visuals blank	CRITICAL
-PowerBI_Date/Backfill/{label}/summons/	Source for gap-month backfill CSVs	Gap months 03-25, 07-25, 10-25, 11-25	HIGH — not in repo; must exist on OneDrive
+PowerBI_Data/Backfill/{label}/summons/	Source for gap-month backfill CSVs	Gap months 03-25, 07-25, 10-25, 11-25	HIGH — not in repo; must exist on OneDrive
 02_ETL_Scripts/Summons/ (14 .py files)	Ad-hoc diagnostic/verify/fix scripts	Not part of production pipeline; used during debugging	LOW (operational risk is script confusion)
 summons_etl_enhanced.py (missing)	Referenced as "active script" in docs	Does not exist in repo (SUMMONS_BACKFILL_INJECTION_POINT.md references it)	HIGH — documentation discrepancy misleads anyone trying to run from docs
 3. Findings
@@ -603,7 +603,7 @@ P1	Preserve YearMonthKey through the backfill merge: remove the reindex(columns=
 P1	Add dynamic month detection to run_summons_etl.py — derive input file path from argparse --month YYYY-MM or datetime.today() so the correct monthly file loads automatically	run_summons_etl.py:11	Running the script always loads the correct current month	Medium
 P1	Resolve M=406 vs M=462 discrepancy for January 2026 — perform a manual count from the raw e-ticket export and choose the correct classification rule (statute-based or Case Type Code). Document the decision	scripts/summons_etl_normalize.py:classify logic; docs/SUMMONS_VERIFICATION_NOTE_2026_03.md	Moving count accuracy confirmed; mismatch resolved	Medium (requires business decision)
 P2	Replace Table.RowCount with List.Sum([TICKET_COUNT]) in summons_all_bureaus.m, summons_top5_moving.m, and summons_top5_parking.m group steps	All three M code files	Aggregate backfill rows contribute their full TICKET_COUNT, not just 1	Low (M code only)
-P2	Supply the 03-25 (March 2025) backfill values and add a row to the backfill CSV. The BACKFILL_DATA_ISSUES_SUMMONS.md has the table ready — just fill in M=??? and P=??? from the source report	PowerBI_Date/Backfill/{label}/summons/ CSV	March 2025 bar appears in the trend	Low (data entry)
+P2	Supply the 03-25 (March 2025) backfill values and add a row to the backfill CSV. The BACKFILL_DATA_ISSUES_SUMMONS.md has the table ready — just fill in M=??? and P=??? from the source report	PowerBI_Data/Backfill/{label}/summons/ CSV	March 2025 bar appears in the trend	Low (data entry)
 P2	Document in SUMMONS_BACKFILL_INJECTION_POINT.md that summons_etl_enhanced.py does not exist and the active scripts are run_summons_etl.py + scripts/summons_etl_normalize.py	docs/SUMMONS_BACKFILL_INJECTION_POINT.md	Prevents anyone from wasting time searching for a non-existent file	None
 P3	Delete scripts/run_summons_pipeline.py; keep only run_summons_etl.py as the single runner	scripts/run_summons_pipeline.py	One clear entry point	Low
 P3	Move 02_ETL_Scripts/Summons/*.py (14 diagnostic files) to /archive	02_ETL_Scripts/Summons/	Cleaner script directory; less confusion	Low
@@ -709,7 +709,7 @@ Use whichever methodology matches the business definition and document it.
 8. Open Questions
 What is the current Month_Year format in the live summons_powerbi_latest.xlsx? The old preview table (___Summons_preview_table.csv, 1001 rows) uses YY-Mon (e.g., "25-Jan"); the latest preview (___Summons_preview_table_latest.csv, 3379 rows) uses MM-YY (e.g., "01-25"). The BackfillMonths = {"01-25", "02-25"} in the M code expects MM-YY. If the live file still uses YY-Mon, the entire trend query gets wrong results. Which file and which run is currently live in Power BI?
 
-Has the backfill folder (PowerBI_Date/Backfill/2026_01/summons/) been created on OneDrive with the correct consolidated CSV? The summons_backfill_merge.py searches for it but it doesn't exist in the repo. Without it, every gap month (03-25, 07-25, 10-25, 11-25) silently shows blank in the 13-month trend.
+Has the backfill folder (PowerBI_Data/Backfill/2026_01/summons/) been created on OneDrive with the correct consolidated CSV? The summons_backfill_merge.py searches for it but it doesn't exist in the repo. Without it, every gap month (03-25, 07-25, 10-25, 11-25) silently shows blank in the 13-month trend.
 
 What are the actual March 2025 Moving and Parking counts? BACKFILL_DATA_ISSUES_SUMMONS.md asks for them but they were never provided. Without these values, the 03-25 backfill row cannot be created.
 

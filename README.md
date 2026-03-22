@@ -4,8 +4,10 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 ## Overview
 
-This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the Power BI Date repository. 
+This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the **PowerBI_Data** repository (`_DropExports`, `Backfill`).
 
+**Latest Update (2026-03-22): v1.18.16 — Processed_Exports routing & validation.** `visual_export_mapping.json` targets consolidated folders (`monthly_accrual_and_usage`, `detectives`, `stacp`, `traffic` for MVA); `processed_exports_routing.py` archives prior CSVs under `Processed_Exports/<category>/archive/YYYY_MM/` before overwrite; `validate_response_time_exports.py` and enhanced `validate_13_month_window.py` (`--report-month`, `--accept-warn`, partial tail month). See `CHANGELOG.md`.
+**Latest Update (2026-03-22): v1.18.15 — PowerBI_Data paths.** Repo `config.json` + `get_powerbi_data_dir()`; `scripts.json` and Python helpers use `PowerBI_Data` (not `PowerBI_Date`). `path_config.get_onedrive_root()` prefers `C:\Users\carucci_r\OneDrive - City of Hackensack` when present (laptop: junction). See `CHANGELOG.md`.
 **Latest Update (2026-03-13): v1.18.6 — Report month window fixes.** Summons (4 queries), Detectives, and Policy Training (Cost + In-Person) M code updated so all visuals include the report month (not previous month). In-Person Training now loads from source workbook directly. See `CHANGELOG.md`.
 **Latest Update (2026-03-21): v1.19.1 — Summons ETL Phase 2 complete.** Fee/fine enrichment (`FINE_AMOUNT`) and `VIOLATION_CATEGORY` columns added to all summons rows via cascading statute lookup (fee schedule → Title39 → CityOrdinances). DFR backfill wired into main ETL pipeline. SLIM CSV now 25 columns for Summons_YTD revenue KPIs. See `CHANGELOG.md`.
 
@@ -30,6 +32,7 @@ Master_Automation/
 ├── verify_migration.ps1         # Automated verification script
 ├── Master_Automation.code-workspace  # VS Code workspace
 ├── .gitignore                   # Git ignore rules
+├── config.json                  # Optional: `"PowerBI": "PowerBI_Data"` for get_powerbi_data_dir()
 ├── requirements.txt             # Python deps (pandas, openpyxl) for validation & Summons backfill
 ├── config/
 │   ├── scripts.json            # Configuration for all ETL scripts
@@ -39,7 +42,8 @@ Master_Automation/
 │   ├── run_all_etl.ps1         # PowerShell orchestrator (supports dynamic arguments)
 │   ├── run_all_etl.bat         # Batch file orchestrator
 │   ├── run_etl_script.ps1      # Helper script to run individual scripts
-│   ├── path_config.py          # Centralized get_onedrive_root() for portability (env var support)
+│   ├── path_config.py          # get_onedrive_root(), get_powerbi_data_dir(), get_powerbi_paths()
+│   ├── processed_exports_routing.py  # Canonical Processed_Exports dirs, archive-before-overwrite
 │   ├── Pre_Flight_Validation.py          # Pre-flight GO/NO-GO gate (argparse, evidence checks, mapping validation)
 │   ├── summons_derived_outputs_simple.py  # Summons derived outputs (argparse, dynamic filenames, IS_AGGREGATE)
 │   ├── overtime_timeoff_with_backfill.py     # Overtime/TimeOff monthly wrapper (v10 + backfill)
@@ -51,8 +55,10 @@ Master_Automation/
 │   ├── dfr_export.py                        # DFR workbook export (schema map, dedup, formula-col guard)
 │   ├── dfr_backfill_descriptions.py           # DFR description/fine backfill (cascading statute lookup)
 │   ├── normalize_visual_export_for_backfill.py  # Normalize visual exports (13-month window, backfill)
-│   ├── process_powerbi_exports.py               # Process _DropExports with mapping (match_pattern, 13-month)
-│   ├── validate_13_month_window.py              # Validate 13-month rolling window in CSV(s)
+│   ├── process_powerbi_exports.py               # Process _DropExports → Processed_Exports + Backfill (routing, archive)
+│   ├── validate_13_month_window.py              # 13-month window; --report-month, --accept-warn, partial tail
+│   ├── validate_response_time_exports.py        # Response_time CSV shape checks (CLI + library)
+│   ├── tests/                   # unittest: routing, archive prefix, partial-month, response_time validator
 │   ├── restore_fixed_from_backfill.py        # Restores history into FIXED_monthly_breakdown
 │   ├── compare_vcs_time_report_exports.py    # Diff tool for visual exports/backfill validation
 │   ├── compare_policy_training_delivery.py   # Policy Training: visual vs ETL/backfill diff
@@ -126,15 +132,15 @@ pip install -r requirements.txt
 
 ### Run All ETL Scripts
 
-**PowerShell (Recommended):**
+**PowerShell (Recommended):** use your clone root (examples: `06_Workspace_Management` or `Master_Automation`).
 ```powershell
-cd C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management"
 .\scripts\run_all_etl.ps1
 ```
 
 **Batch File:**
 ```batch
-cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management"
 scripts\run_all_etl.bat
 ```
 
@@ -208,7 +214,7 @@ Edit `config/scripts.json` to add, remove, or modify ETL scripts:
 1. **Configure:** Edit `config/scripts.json` with your script paths
 2. **Run:** Execute `run_all_etl.ps1` or `run_all_etl.bat`
 3. **Process:** Scripts execute in order, outputs logged
-4. **Integrate:** Successful outputs copied to Power BI Date repository
+4. **Integrate:** Successful outputs copied to **PowerBI_Data** (`_DropExports`)
 5. **Review:** Check logs for any failures or warnings
 
 ## Output Integration
@@ -225,9 +231,9 @@ All successful outputs are automatically:
 |------|---------|
 | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` | Workspace root |
 | `Master_Automation\config\scripts.json` | ETL configuration; `powerbi_drop_path` |
-| `Master_Automation\scripts\process_powerbi_exports.py` | Process _DropExports → Processed_Exports + Backfill |
-| `Master_Automation\Standards\config\powerbi_visuals\visual_export_mapping.json` | Export-to-folder mapping |
-| `<OneDrive>\09_Reference\Standards\Processed_Exports\{target_folder}\` | Renamed exports (nibrs, arrests, summons, etc.) |
+| `...\scripts\process_powerbi_exports.py` | Process _DropExports → Processed_Exports + Backfill (archives prior file per `archive/YYYY_MM/`) |
+| `...\Standards\config\powerbi_visuals\visual_export_mapping.json` | Export-to-folder mapping (canonical targets: `monthly_accrual_and_usage`, `detectives`, `stacp`, etc.) |
+| `<OneDrive>\09_Reference\Standards\Processed_Exports\{target_folder}\` | Renamed exports; legacy folder names resolved via `processed_exports_routing` |
 
 ### PowerBI_Data
 | Path | Purpose |

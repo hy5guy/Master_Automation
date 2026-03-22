@@ -12,7 +12,7 @@ Response Times workflow needs a **rolling 13-month dataset** for Power BI.
 
 **Example** (as of Feb 2026):
 - Data range: Feb 2025 through Feb 2026 (13 months)
-- Output: Monthly CSV files in PowerBI_Date/Backfill structure
+- Output: Monthly CSV files in PowerBI_Data/Backfill structure
 
 ---
 
@@ -86,7 +86,7 @@ def generate_rolling_13_months():
     # 5. Calculate response times
     response_times = calculate_response_times(combined_data)
     
-    # 6. Output to PowerBI_Date/Backfill structure
+    # 6. Output to PowerBI_Data/Backfill structure
     export_monthly_csvs(response_times)
 ```
 
@@ -215,7 +215,7 @@ def filter_by_month(df, target_month):
 
 ## Output Structure
 
-### PowerBI_Date/Backfill Structure
+### PowerBI_Data/Backfill Structure
 
 ```
 PowerBI_Date/
@@ -288,7 +288,7 @@ PowerBI_Date/
 
 - [ ] Add configuration for rolling window size (default: 13 months)
 - [ ] Add configuration for timereport base path
-- [ ] Add configuration for output path (PowerBI_Date/Backfill)
+- [ ] Add configuration for output path (PowerBI_Data/Backfill)
 - [ ] Update `config/response_time_filters.json` if needed
 
 ### Phase 3: Testing

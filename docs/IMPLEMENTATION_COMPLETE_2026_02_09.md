@@ -160,7 +160,7 @@ MONTHLY_PATTERN = "{year}_{month:02d}_timereport.xlsx"
 - Add logic to handle both `_timereport.xlsx` and `_Monthly_CAD.xlsx` patterns
 - Implement recursive folder scanning if needed
 - Add input file logging
-- Verify output path to `PowerBI_Date\Backfill\...`
+- Verify output path to `PowerBI_Data\Backfill\...`
 
 #### 2. Test End-to-End Workflow
 
@@ -174,8 +174,8 @@ Once Python scripts are updated:
 .\scripts\run_etl_script.ps1 -ScriptName "Response Times Monthly Generator"
 
 # 3. Verify outputs
-Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports" -Filter "*response*"
-Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill" -Recurse -Filter "*response*"
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports" -Filter "*response*"
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill" -Recurse -Filter "*response*"
 
 # 4. Power BI refresh and data validation
 ```

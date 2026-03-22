@@ -12,7 +12,7 @@
 **Error**:
 ```
 DataSource.NotFound: File or Folder: Could not find a part of the path 
-'C:\Dev\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Average Response Times  Values are in mmss.csv'
+'C:\Dev\PowerBI_Data\Backfill\2025_10\response_time\2025_10_Average Response Times  Values are in mmss.csv'
 ```
 
 **Root Cause**: Hardcoded file paths pointing to old/incorrect location
@@ -41,7 +41,7 @@ At: LoadedFiles step
 ```m
 // Hardcoded paths - will break when files don't exist
 BackfillRaw = Csv.Document(
-    File.Contents("C:\Dev\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Average Response Times  Values are in mmss.csv"),
+    File.Contents("C:\Dev\PowerBI_Data\Backfill\2025_10\response_time\2025_10_Average Response Times  Values are in mmss.csv"),
     [...]
 )
 
@@ -57,7 +57,7 @@ WithYearMonth = Table.AddColumn(
 ### After (Fixed v2.1.1)
 ```m
 // Dynamic folder scanning
-BackfillBasePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill"
+BackfillBasePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill"
 AllFilesRaw = Folder.Files(BackfillBasePath)
 ResponseTimeFiles = Table.SelectRows(AllFilesRaw, [filters])
 

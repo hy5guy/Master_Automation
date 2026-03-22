@@ -66,13 +66,13 @@ summons_powerbi_latest.xlsx
 
 1. **Backfill folder structure:**
    ```
-   PowerBI_Date\Backfill\YYYY_MM\summons\
+   PowerBI_Data\Backfill\YYYY_MM\summons\
    ```
 
 2. **Visual exports:**
    ```
-   PowerBI_Date\Backfill\2025_12\summons\
-   PowerBI_Date\Backfill\2025_11\summons\
+   PowerBI_Data\Backfill\2025_12\summons\
+   PowerBI_Data\Backfill\2025_11\summons\
    etc.
    ```
 
@@ -85,7 +85,7 @@ summons_powerbi_latest.xlsx
 
 ### Step 1: Find Historical Backfill Files
 ```powershell
-Get-ChildItem "C:\Users\RobertCarucci\OneDrive - City of Hackensack\PowerBI_Date\Backfill" -Recurse -Filter "*summons*.csv" | Select-Object FullName, Length
+Get-ChildItem "C:\Users\RobertCarucci\OneDrive - City of Hackensack\PowerBI_Data\Backfill" -Recurse -Filter "*summons*.csv" | Select-Object FullName, Length
 ```
 
 ### Step 2: Use summons_backfill_merge.py

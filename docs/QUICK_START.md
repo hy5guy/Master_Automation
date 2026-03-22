@@ -30,7 +30,7 @@ scripts\run_all_etl.bat
 1. **Check logs:** `logs\YYYY-MM-DD_HH-MM-SS_ETL_Run.log`
 2. **Organize Power BI files:**
    ```powershell
-   cd "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date"
+   cd "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data"
    .\tools\organize_backfill_exports.ps1
    ```
 

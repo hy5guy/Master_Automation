@@ -28,7 +28,7 @@ scripts that process raw CAD timereport Excel exports:
 
 Response types: Emergency, Urgent, Routine.
 Data source: 2024 full year, 2025 full year, 2026-01 monthly CAD timereports.
-Output: 25 monthly CSVs in PowerBI_Date\Backfill\response_time_all_metrics\
+Output: 25 monthly CSVs in PowerBI_Data\Backfill\response_time_all_metrics\
 
 ---
 
@@ -166,8 +166,8 @@ Upload these files directly into the Claude conversation. They are all small eno
 
 | # | File | Path |
 |---|------|------|
-| 6 | **Sample corrected CSV (Jan-26)** | `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\response_time_all_metrics\2026_01_response_times.csv` |
-| 7 | **Sample corrected CSV (Jan-25)** | `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\response_time_all_metrics\2025_01_response_times.csv` |
+| 6 | **Sample corrected CSV (Jan-26)** | `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\response_time_all_metrics\2026_01_response_times.csv` |
+| 7 | **Sample corrected CSV (Jan-25)** | `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\response_time_all_metrics\2025_01_response_times.csv` |
 | 8 | **Pre/post comparison doc** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\response_time\2026_02_26_PreFix_vs_PostFix_Comparison.md` |
 | 9 | **CallType reference CSV** | `C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Classifications\CallTypes\CallType_Categories.csv` |
 
@@ -184,7 +184,7 @@ Upload these files directly into the Claude conversation. They are all small eno
 
 ```
 POST-FIX CORRECTED VALUES — v1.17.17 (admin filter + dedup sort + peer review corrections)
-Source: 25 monthly CSVs in PowerBI_Date\Backfill\response_time_all_metrics\
+Source: 25 monthly CSVs in PowerBI_Data\Backfill\response_time_all_metrics\
 
 ETL pipeline record counts (all three fixes applied):
   2024: 82,891 after dedup → 35,171 after admin filter (47,720 removed = 57.6%)

@@ -10,7 +10,7 @@
 ### 1. File Organization - DONE ✅
 - ✅ 36 CSV files exported from Power BI Desktop
 - ✅ All files prefixed with `2025_12_`
-- ✅ Organized into 16 categories in `PowerBI_Date\Backfill\2025_12\`
+- ✅ Organized into 16 categories in `PowerBI_Data\Backfill\2025_12\`
 - ✅ Clean `_DropExports\` folder for next month
 
 ### 2. Diagnostic Reports Created - DONE ✅
@@ -99,7 +99,7 @@ FILTER(Table, Table[MonthYear] = "2025-12")  // Update for each month
 
 ### Organized Exports:
 ```
-C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_12\
+C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\2025_12\
 ├─ arrests\ (3 files)
 ├─ summons\ (11 files) ⚠️
 ├─ response_time\ (10 files)

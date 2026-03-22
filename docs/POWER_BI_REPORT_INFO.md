@@ -19,11 +19,11 @@
 
 **Requirements:**
 1. Load backfill data (Nov 2024 - Oct 2025) from:
-   - `C:\Dev\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Average Response Times Values are in mmss.csv`
-   - `C:\Dev\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Response Times by Priority.csv`
+   - `C:\Dev\PowerBI_Data\Backfill\2025_10\response_time\2025_10_Average Response Times Values are in mmss.csv`
+   - `C:\Dev\PowerBI_Data\Backfill\2025_10\response_time\2025_10_Response Times by Priority.csv`
 
 2. Load November 2025 data from ETL output:
-   - `C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\Average_Response_Times__Values_are_in_mmss.csv`
+   - `C:\Dev\PowerBI_Data\Backfill\2025_12\response_time\Average_Response_Times__Values_are_in_mmss.csv`
    - Other November 2025 response time files as needed
 
 3. Combine datasets with proper date continuity
@@ -37,11 +37,11 @@
 ### ETL Script Outputs
 All ETL scripts have been executed successfully (2025-12-10):
 - **268 total files** generated and organized
-- **Location:** `C:\Dev\PowerBI_Date\Backfill\2025_12\`
+- **Location:** `C:\Dev\PowerBI_Data\Backfill\2025_12\`
 - **Organized by category:** arrest, community_outreach, policy_training, response_time, stacp, summons, traffic
 
 ### Backfill Data (Nov 2024 - Oct 2025)
-- **Location:** `C:\Dev\PowerBI_Date\Backfill\2025_10\`
+- **Location:** `C:\Dev\PowerBI_Data\Backfill\2025_10\`
 - **18 backfill directories** documented in `BACKFILL_LOCATIONS.md`
 - Used for historical period reporting
 

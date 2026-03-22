@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.16] - 2026-03-22
+
+### Changed — Processed_Exports routing, archive, validation
+
+- **processed_exports_routing.py** — Canonical folder aliases (e.g. `social_media_and_time_report` → `monthly_accrual_and_usage`), resolve existing mixed-case dirs (`Drone`/`Summons`/…), archive prior file to `archive/YYYY_MM/` before overwrite, idempotent identical-file skip.
+- **process_powerbi_exports.py** — Uses routing helpers; extended dry-run normalize formats for response_time series/matrix.
+- **visual_export_mapping.json** — Targets: monthly accrual → `monthly_accrual_and_usage`; MVA → `traffic`; detectives* → `detectives`; stacp* → `stacp`.
+- **validate_response_time_exports.py** — Optional CSV structure checks for response_time exports.
+- **validate_13_month_window.py** — `--report-month`, `--accept-warn`, partial future-month (e.g. 03-26) as WARN; `MM-YY` / `Date_Sort_Key` period detection.
+- **normalize_visual_export_for_backfill.py** (+ v2) — WG2 missing warning; normalize `unknown`/empty categories for WG2/TYPE.
+- **reorganize_processed_exports.py** — MVA specific move → `traffic`.
+- **scripts/tests/** — Unittests for archive prefix, routing, partial-month validation, response_time validator.
+
+### Documentation
+
+- **README.md**, **SUMMARY.md**, **Claude.md** — Synced to v1.18.15–v1.18.16: PowerBI_Data, `config.json`, `processed_exports_routing`, validation CLIs, unittest location, canonical `carucci_r` OneDrive preference in `path_config`.
+
+---
+
 ## [1.18.15] - 2026-03-22
 
 ### Fixed — PowerBI_Data path consistency (post PowerBI_Date rename)

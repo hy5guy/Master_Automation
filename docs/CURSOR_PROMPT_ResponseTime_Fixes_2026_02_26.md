@@ -14,7 +14,7 @@
   responding units, the script keeps whichever row is first in the Excel file instead of
   the first-arriving officer (first by Time Out). This contradicts the documented methodology
   and the fix already applied to `process_cad_data_13month_rolling.py` in v1.15.9.
-- **Impact:** All 25 monthly CSVs in `PowerBI_Date\Backfill\response_time_all_metrics\` may
+- **Impact:** All 25 monthly CSVs in `PowerBI_Data\Backfill\response_time_all_metrics\` may
   report incorrect response times for multi-unit incidents.
 
 ### BUG 2 — HIGH: Missing 13-Month Window Filter in Two M Code Queries (Opus only)
@@ -112,7 +112,7 @@ After applying Task 1:
 
 1. Run `02_ETL_Scripts/Response_Times/response_time_batch_all_metrics.py`
 2. Capture the log output showing record counts per source and month
-3. Compare new CSVs in `PowerBI_Date\Backfill\response_time_all_metrics\` against the
+3. Compare new CSVs in `PowerBI_Data\Backfill\response_time_all_metrics\` against the
    old ones — note any changes in `First_Response_Time_MMSS` or `Avg_Minutes`
 4. Create a comparison file at:
    `docs/response_time/2026_02_26_PreFix_vs_PostFix_Comparison.md`
@@ -204,7 +204,7 @@ Create: `docs/response_time/POWERBI_REFRESH_REQUIRED_2026_02_26.md`
 Content:
 - All three response time queries must be refreshed in Power BI after this fix
 - Queries: ___ResponseTimeCalculator, ___ResponseTime_OutVsCall, ___ResponseTime_DispVsCall
-- New CSVs are in place at `PowerBI_Date\Backfill\response_time_all_metrics\`
+- New CSVs are in place at `PowerBI_Data\Backfill\response_time_all_metrics\`
 - Validate that the rolling window now shows 13 months for all three visuals
 - Validate Emergency Jan-26 values against the pre-fix values in the comparison doc
 - Mark this file as COMPLETE after Power BI refresh is confirmed

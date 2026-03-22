@@ -110,7 +110,7 @@ REQUIRED_FIXED_COLUMNS = {"Date", "Period", "Month", "Year", "Month_Name"}
 - Summons: 7 files
 - Summons Derived: 4 files
 
-**Location:** `PowerBI_Date\_DropExports`
+**Location:** `PowerBI_Data\_DropExports`
 
 ---
 
@@ -131,7 +131,7 @@ REQUIRED_FIXED_COLUMNS = {"Date", "Period", "Month", "Year", "Month_Name"}
 ## Backfill Data Status
 
 ### ✅ December 2025 Summons Backfill (Created Today)
-**File:** `PowerBI_Date\Backfill\2025_12\summons\2025_12_department_wide_summons.csv`
+**File:** `PowerBI_Data\Backfill\2025_12\summons\2025_12_department_wide_summons.csv`
 - 26 rows (13 months: 12-24 through 12-25)
 - Moving (M): 452 → 436
 - Parking (P): 1,778 → 2,874

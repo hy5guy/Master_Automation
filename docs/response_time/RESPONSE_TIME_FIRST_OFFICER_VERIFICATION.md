@@ -64,7 +64,7 @@ all from the **first responding officer** for that call.
 
 The three Power BI queries (**___ResponseTimeCalculator**, **___ResponseTime_OutVsCall**, **___ResponseTime_DispVsCall**) read from:
 
-`PowerBI_Date\Backfill\response_time_all_metrics\`
+`PowerBI_Data\Backfill\response_time_all_metrics\`
 
 Those CSVs are produced by:
 

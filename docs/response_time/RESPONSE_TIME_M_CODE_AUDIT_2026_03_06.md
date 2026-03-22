@@ -59,7 +59,7 @@ Each query filters `AllData` by the correct `Metric_Type` before windowing.
 
 All three use:
 ```
-C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\response_time_all_metrics
+C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\response_time_all_metrics
 ```
 
 - File pattern: `*_response_times.csv`

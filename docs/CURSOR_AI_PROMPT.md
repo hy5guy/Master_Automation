@@ -9,7 +9,7 @@
 I just completed a migration where the PowerBI_Date directory was moved from `C:\Dev\PowerBI_Date_Merged` to `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date`. The Master_Automation workspace needs to be verified to ensure all paths and configurations are correct.
 
 ### What Was Done:
-1. ✅ Updated `config\scripts.json` - `powerbi_drop_path` changed from `C:\Dev\PowerBI_Date\_DropExports` to `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports`
+1. ✅ Updated `config\scripts.json` - `powerbi_drop_path` changed from `C:\Dev\PowerBI_Data\_DropExports` to `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports`
 2. ✅ Fixed path references in `scripts\run_all_etl.ps1` (removed old `C:\Dev\PowerBI_Date` references)
 3. ✅ Updated documentation (`README.md` and `QUICK_START.md`) with new paths
 4. ✅ Created verification script (`verify_migration.ps1`)
@@ -83,7 +83,7 @@ Review `scripts\run_all_etl.ps1` and verify:
 
 ### 5. Verify Junction/Symlink
 Check if there's a junction or symlink at:
-`C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Master_Automation`
+`C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Master_Automation`
 
 This should point to:
 `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`

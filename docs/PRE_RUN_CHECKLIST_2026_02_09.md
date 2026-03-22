@@ -276,7 +276,7 @@ cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts"
 4. ✅ Response Times Monthly Generator runs (uses timereport files)
 5. ⚠️ Summons ETL runs or skips (depending on data availability)
 6. ✅ Summons Derived Outputs runs (uses existing summons data)
-7. ✅ All outputs copied to PowerBI_Date\_DropExports
+7. ✅ All outputs copied to PowerBI_Data\_DropExports
 8. ✅ Monthly report saved to correct directory with correct name
 
 ---
@@ -311,7 +311,7 @@ Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automatio
 
 ```powershell
 # Check PowerBI drop folder
-Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports" |
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports" |
   Sort-Object LastWriteTime -Descending |
   Select-Object Name, Length, LastWriteTime
 

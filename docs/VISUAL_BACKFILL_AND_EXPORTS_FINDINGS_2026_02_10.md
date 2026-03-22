@@ -35,7 +35,7 @@ From the repo (SUMMARY.md, scripts, VERIFICATION_SUMMARY.md):
   - **analytics_output/monthly_breakdown.csv** → accruals (Accrued Comp/OT by Sworn/Non-Sworn)
 - To avoid null/0 in **prior** months, `scripts/overtime_timeoff_with_backfill.py`:
   1. Runs v10 for the current 13‑month window.
-  2. Restores **historical** months in the FIXED file from `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\*Monthly Accrual and Usage Summary*.csv`.
+  2. Restores **historical** months in the FIXED file from `PowerBI_Data\Backfill\YYYY_MM\vcs_time_report\*Monthly Accrual and Usage Summary*.csv`.
   3. Backfills **monthly_breakdown.csv** for prior 12 months from that same backfill (keeps current month from v10).
 
 So backfill is for **past** months. The 01-26 zeros are not a backfill bug; they come from the **current month** (Jan 2026) having no valid Time Off data in the export.
@@ -116,7 +116,7 @@ So: the **past** structure issue was in **Response Time** CSVs and M code. For *
    - If you only need one format, keep .xlsx (and optionally .csv) and archive or skip generating .xls so “three versions” is clearly one export in one or two formats.
 
 3. **Backfill workflow**
-   - After each month’s run, save the **current** visual export to `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\` (e.g. `2026_01_Monthly Accrual and Usage Summary.csv`) so next month’s backfill has full history. The VERIFICATION_SUMMARY note (November backfill only having October data) is exactly the “visual not adding backfilled data” case when the **saved** backfill file was incomplete.
+   - After each month’s run, save the **current** visual export to `PowerBI_Data\Backfill\YYYY_MM\vcs_time_report\` (e.g. `2026_01_Monthly Accrual and Usage Summary.csv`) so next month’s backfill has full history. The VERIFICATION_SUMMARY note (November backfill only having October data) is exactly the “visual not adding backfilled data” case when the **saved** backfill file was incomplete.
 
 4. **Confirm Power BI sources**
    - Ensure Power BI points at the correct FIXED file (e.g. `FIXED_monthly_breakdown_2025-01_2026-01.csv` for the current 13‑month window) and that you refresh after re-running the pipeline.
@@ -156,4 +156,4 @@ Adjustment, Admin Leave, AWOL, Death in Family, FMLA, Holiday, Jury Duty, Marria
 
 ---
 
-*Generated 2026-02-10 from Master_Automation repo and 05_EXPORTS/02_ETL_Scripts/Overtime_TimeOff/ PowerBI_Date/Backfill.*
+*Generated 2026-02-10 from Master_Automation repo and 05_EXPORTS/02_ETL_Scripts/Overtime_TimeOff/ PowerBI_Data/Backfill.*

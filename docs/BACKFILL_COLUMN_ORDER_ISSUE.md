@@ -7,7 +7,7 @@
 
 ## Current CSV Column Order
 
-**File:** `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_10\vcs_time_report\2025_10_Monthly Accrual and Usage Summary.csv`
+**File:** `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\2025_10\vcs_time_report\2025_10_Monthly Accrual and Usage Summary.csv`
 
 **Current Order:**
 ```
@@ -90,7 +90,7 @@ Time Category, 10-24, 11-24, 12-24, 01-25, 02-25, 03-25, 04-25, 05-25, 06-25, 07
 import pandas as pd
 from pathlib import Path
 
-csv_path = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_10\vcs_time_report\2025_10_Monthly Accrual and Usage Summary.csv")
+csv_path = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\2025_10\vcs_time_report\2025_10_Monthly Accrual and Usage Summary.csv")
 
 # Read CSV
 df = pd.read_csv(csv_path)
@@ -135,7 +135,7 @@ print(f"✅ Reordered columns: {', '.join(new_order)}")
 
 ### Check Current Format
 ```powershell
-$csv = Import-Csv "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_10\vcs_time_report\2025_10_Monthly Accrual and Usage Summary.csv"
+$csv = Import-Csv "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\2025_10\vcs_time_report\2025_10_Monthly Accrual and Usage Summary.csv"
 $csv[0].PSObject.Properties.Name
 ```
 

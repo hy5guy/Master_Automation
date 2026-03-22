@@ -8,7 +8,7 @@
 ---
 
 ## 🎯 Problems Fixed
-1. Power BI error: `Could not find a part of the path 'C:\Dev\PowerBI_Date\Backfill\...'`
+1. Power BI error: `Could not find a part of the path 'C:\Dev\PowerBI_Data\Backfill\...'`
 2. Power BI error: `The field 'YearMonth' already exists in the record`
 
 ## ✅ Solution
@@ -66,8 +66,8 @@ After implementation, check:
 
 **Issue 1 - Old Code** (hardcoded paths):
 ```m
-File.Contents("C:\Dev\PowerBI_Date\Backfill\2025_10\response_time\...")
-File.Contents("C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\...")
+File.Contents("C:\Dev\PowerBI_Data\Backfill\2025_10\response_time\...")
+File.Contents("C:\Dev\PowerBI_Data\Backfill\2025_12\response_time\...")
 ```
 
 **Issue 2 - Old Code** (always adds columns):
@@ -78,7 +78,7 @@ WithYearMonth = Table.AddColumn(WithAvg, "YearMonth", ...)
 
 **Fixed Code v2.1.1** (dynamic loading + conditional columns):
 ```m
-BackfillBasePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill"
+BackfillBasePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill"
 AllFilesRaw = Folder.Files(BackfillBasePath)
 // Automatically finds all monthly CSV files
 

@@ -163,7 +163,7 @@ NowDT       = DateTime.From(ReportMonth),
 1. Create backfill script using validated logic from `process_cad_data_13month_rolling.py`
 1. Apply first-arriving unit sort to ALL historical runs
 1. Generate outputs for each missing month
-1. Copy to `PowerBI_Date\_DropExports` with proper naming convention
+1. Copy to `PowerBI_Data\_DropExports` with proper naming convention
 
 **Success Criteria:**
 

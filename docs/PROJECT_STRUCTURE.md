@@ -95,7 +95,7 @@ Master_Automation/
 **Purpose:** Temporary staging area for ETL outputs
 - ETL scripts write CSV files here
 - Files are then organized by `organize_backfill_exports.ps1`
-- Located in PowerBI_Date: `PowerBI_Date\_DropExports\`
+- Under OneDrive: `PowerBI_Data\_DropExports\` (folder name from `config.json` / `path_config.get_powerbi_data_dir()`)
 - This folder in Master_Automation is for local testing/staging if needed
 
 ---
@@ -139,11 +139,11 @@ Master_Automation/
 
 ---
 
-## PowerBI_Date Integration
+## PowerBI_Data integration
 
 **Note:** The actual `_DropExports` folder used by ETL scripts is located at:
 ```
-C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\
+C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports\
 ```
 
 This folder in Master_Automation (`_DropExports/`) is optional and can be used for:

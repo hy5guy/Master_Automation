@@ -77,8 +77,8 @@ These files could not be automatically categorized and remain in `_DropExports\`
 **To Manually Categorize:**
 ```powershell
 # Example: Move to detectives category
-$source = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\Incident Count by Date and Event Type.csv"
-$dest = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_12\detectives\2025_12_Incident_Count_by_Date_and_Event_Type.csv"
+$source = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports\Incident Count by Date and Event Type.csv"
+$dest = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\2025_12\detectives\2025_12_Incident_Count_by_Date_and_Event_Type.csv"
 Move-Item -Path $source -Destination $dest
 ```
 
@@ -141,7 +141,7 @@ Move-Item -Path $source -Destination $dest
 ### Check Backfill Files
 ```powershell
 $month = "2025_12"
-$basePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\$month"
+$basePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\$month"
 
 # Summons
 Get-ChildItem "$basePath\summons\*.csv"
@@ -158,12 +158,12 @@ Get-ChildItem "$basePath\policy_training\*.csv" | Where-Object { $_.Name -notlik
 
 ### Check Archive Files
 ```powershell
-Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_12\*\archive\*.csv" -Recurse
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\2025_12\*\archive\*.csv" -Recurse
 ```
 
 ### Check Uncategorized
 ```powershell
-Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\*.csv"
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports\*.csv"
 ```
 
 ---

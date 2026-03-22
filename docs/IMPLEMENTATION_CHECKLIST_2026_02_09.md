@@ -56,7 +56,7 @@ If update is required:
 # 3. Run Arrests only
 .\scripts\run_etl_script.ps1 -ScriptName "Arrests"
 
-# 4. Verify outputs in PowerBI_Date\_DropExports
+# 4. Verify outputs in PowerBI_Data\_DropExports
 # 5. Refresh Power BI and verify data integrity
 ```
 
@@ -75,11 +75,11 @@ If update is required:
 
 1. **Monthly Generator Script** (`response_time_monthly_generator.py`)
    - Outputs monthly CSV files in PowerBI_Date Backfill structure
-   - Pattern: `PowerBI_Date\Backfill\*\response_time\*_Average_Response_Times__Values_are_in_mmss.csv`
+   - Pattern: `PowerBI_Data\Backfill\*\response_time\*_Average_Response_Times__Values_are_in_mmss.csv`
 
 2. **Power BI M Query** (`m_code/response_time_calculator.m`)
    - Updated for OneDrive paths and overlap handling
-   - Reads from PowerBI_Date\Backfill structure
+   - Reads from PowerBI_Data\Backfill structure
 
 3. **Diagnostic Script** (`response_time_diagnostic.py`)
    - Compares backfill vs recalculated data
@@ -123,7 +123,7 @@ Current validation checks for:
 - [ ] Test Power BI refresh
 - [ ] Verify data integrity
 
-**Option B**: Power BI keeps reading from PowerBI_Date\Backfill
+**Option B**: Power BI keeps reading from PowerBI_Data\Backfill
 - [ ] Keep M code unchanged
 - [ ] Keep Python layer as transformer
 - [ ] Verify Python outputs to correct location
@@ -139,8 +139,8 @@ Current validation checks for:
 # 2. Run Response Times only
 .\scripts\run_etl_script.ps1 -ScriptName "Response Times Monthly Generator"
 
-# 3. Verify outputs land in PowerBI_Date\_DropExports
-Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports" -Filter "*response*"
+# 3. Verify outputs land in PowerBI_Data\_DropExports
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports" -Filter "*response*"
 
 # 4. Refresh Power BI and verify data
 ```
@@ -181,7 +181,7 @@ Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_Dr
 - [ ] Updated validation in run_all_etl.ps1
 - [ ] Dry-run shows zero missing inputs
 - [ ] Single script execution successful
-- [ ] Outputs appear in PowerBI_Date\_DropExports
+- [ ] Outputs appear in PowerBI_Data\_DropExports
 - [ ] Power BI refresh successful
 - [ ] Data integrity verified (record counts, date ranges)
 
@@ -193,7 +193,7 @@ Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_Dr
 - [ ] Logging added for selected input files
 - [ ] Dry-run shows zero missing inputs
 - [ ] Single script execution successful
-- [ ] Outputs appear in PowerBI_Date\_DropExports
+- [ ] Outputs appear in PowerBI_Data\_DropExports
 - [ ] Power BI refresh successful
 - [ ] Data integrity verified (no duplicates, correct counts)
 
@@ -216,7 +216,7 @@ Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_Dr
 
 ### Power BI Integration
 - `m_code\response_time_calculator.m` - M query for Power BI
-- `PowerBI_Date\_DropExports\` - Output destination for Power BI
+- `PowerBI_Data\_DropExports\` - Output destination for Power BI
 
 ### Export Locations
 - **Arrests**: `05_EXPORTS\_ARREST\` (structure TBD)

@@ -17,7 +17,7 @@
 
 3. **`_DropExports/`** - Temporary staging folder
    - For local testing/staging if needed
-   - **Note:** Actual ETL outputs go to `PowerBI_Date\_DropExports\`
+   - **Note:** Actual ETL outputs go to `PowerBI_Data\_DropExports\`
 
 4. **`logs/`** - Already existed (ETL execution logs)
    - Auto-created by scripts
@@ -96,7 +96,7 @@ Master_Automation/
 ### _DropExports Location
 **Important:** The actual `_DropExports` folder used by ETL scripts is at:
 ```
-C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\
+C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports\
 ```
 
 The `_DropExports` folder in Master_Automation is optional and can be used for:

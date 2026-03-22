@@ -138,10 +138,10 @@ python scripts\response_time_fresh_calculator.py
 ### Step 3: Verify Output
 ```powershell
 # Check output files created (should be 13 files)
-Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\*Response_Times*.csv" | Measure-Object
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports\*Response_Times*.csv" | Measure-Object
 
 # View sample file
-Get-Content "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\2025_10_Average_Response_Times__Values_are_in_mmss.csv"
+Get-Content "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports\2025_10_Average_Response_Times__Values_are_in_mmss.csv"
 ```
 
 ### Step 4: Refresh Power BI
@@ -157,7 +157,7 @@ Get-Content "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_Drop
 
 ### Output Files
 - **Count**: 13 CSV files (Jan 2025 - Jan 2026)
-- **Location**: `PowerBI_Date\_DropExports\`
+- **Location**: `PowerBI_Data\_DropExports\`
 - **Format**: `YYYY_MM_Average_Response_Times__Values_are_in_mmss.csv`
 - **Size**: ~1-2 KB per file
 - **Rows per File**: 3 (Emergency, Routine, Urgent)
@@ -223,7 +223,7 @@ Response Times Fresh Calculator (5.6) ← YOU ARE HERE
 - ✅ `config\response_time_filters.json`
 
 ### Output Destinations
-- ✅ `PowerBI_Date\_DropExports\YYYY_MM_Average_Response_Times__Values_are_in_mmss.csv`
+- ✅ `PowerBI_Data\_DropExports\YYYY_MM_Average_Response_Times__Values_are_in_mmss.csv`
 - ✅ `logs\YYYYMMDD_HHMMSS_response_time_fresh_calculator.log`
 
 ### Power BI Integration
@@ -264,7 +264,7 @@ python scripts\response_time_fresh_calculator.py
 Get-Content (Get-ChildItem "logs\*response_time_fresh*.log" | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
 
 # Verify 13 files created
-(Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\*Response_Times*.csv").Count
+(Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports\*Response_Times*.csv").Count
 ```
 
 ### 2. October 2025 Baseline Check
@@ -352,7 +352,7 @@ Execution time: 62 seconds
 
 ### Key Directories
 - **Raw Data**: `05_EXPORTS\_CAD\timereport\`
-- **Output**: `PowerBI_Date\_DropExports\`
+- **Output**: `PowerBI_Data\_DropExports\`
 - **Mapping**: `02_ETL_Scripts\Response_Times\input\`
 - **Logs**: `logs\`
 

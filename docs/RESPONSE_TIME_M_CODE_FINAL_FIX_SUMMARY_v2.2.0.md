@@ -10,7 +10,7 @@
 ## 🎯 Issues Resolved (All ✅)
 
 ### Issue 1: DataSource.NotFound ✅
-**Error**: `Could not find a part of the path 'C:\Dev\PowerBI_Date\Backfill\2025_10\...'`  
+**Error**: `Could not find a part of the path 'C:\Dev\PowerBI_Data\Backfill\2025_10\...'`  
 **Fix**: Dynamic folder scanning instead of hardcoded paths
 
 ### Issue 2: Duplicate YearMonth Column ✅
@@ -266,7 +266,7 @@ else
 **Check CSV Structure**:
 ```powershell
 # View first few lines of CSV
-Get-Content "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2026_01\response_time\*.csv" -First 5
+Get-Content "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\2026_01\response_time\*.csv" -First 5
 ```
 
 **Check Column Names**:

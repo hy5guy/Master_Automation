@@ -109,10 +109,10 @@ C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_CAD\timereport\2026
 
 ```powershell
 # Check for output files in PowerBI drop folder
-Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports" -Filter "*response*"
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports" -Filter "*response*"
 
 # Expected output pattern (from config):
-# PowerBI_Date\Backfill\*\response_time\*_Average_Response_Times__Values_are_in_mmss.csv
+# PowerBI_Data\Backfill\*\response_time\*_Average_Response_Times__Values_are_in_mmss.csv
 ```
 
 ### Step 4: Power BI Refresh

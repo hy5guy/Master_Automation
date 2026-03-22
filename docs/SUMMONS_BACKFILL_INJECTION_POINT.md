@@ -49,11 +49,11 @@ DEFAULT_BACKFILL_SUMMONS_LABEL = "2026_01"
 
 **Canonical path (single source of truth, from `config/scripts.json` → `powerbi_drop_path`):**
 
-`{OneDrive}/PowerBI_Date/Backfill/{label}/summons/`
+`{OneDrive}/PowerBI_Data/Backfill/{label}/summons/`
 
-Example: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2026_01\summons\2026_01_department_wide_summons_january_report.csv` (full January report: 01-25 through 01-26)
+Example: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\2026_01\summons\2026_01_department_wide_summons_january_report.csv` (full January report: 01-25 through 01-26)
 
-> **Note:** The legacy `00_dev/projects/PowerBI_Date/Backfill/` location was archived to `99_Archive/PowerBI_Date_00_dev_20260311` on 2026-03-11. All data was merged into the canonical path before archiving.
+> **Note:** The legacy `00_dev/projects/PowerBI_Date/Backfill/` location was archived to `99_Archive/PowerBI_Date_00_dev_20260311` on 2026-03-11. All data was merged into the canonical **PowerBI_Data** path before archiving.
 
 CSVs in these folders are expected in "Long" format with columns: `PeriodLabel` (or `Period`), `WG2`, `TICKET_COUNT` (or `Sum of Value`), `TYPE`. Column renaming is handled by `RENAME_MAP` in the merge script.
 

@@ -119,7 +119,7 @@ All tasks have been successfully completed:
 
 All 13 months (Dec 2024 - Dec 2025) successfully processed with average response times by priority:
 - Emergency, Routine, Urgent response times calculated for each month
-- Files created in: `PowerBI_Date/Backfill/YYYY_MM/response_time/`
+- Files created in: `PowerBI_Data/Backfill/YYYY_MM/response_time/`
 
 ---
 

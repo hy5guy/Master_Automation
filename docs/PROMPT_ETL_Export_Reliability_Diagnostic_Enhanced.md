@@ -50,7 +50,7 @@ Your job is to:
 
 | Path | Description |
 |------|-------------|
-| `Master_Automation/config/scripts.json` | `settings.powerbi_drop_path` → canonical `_DropExports` path (e.g. `PowerBI_Date\_DropExports`). |
+| `Master_Automation/config/scripts.json` | `settings.powerbi_drop_path` → canonical `_DropExports` path (e.g. `PowerBI_Data\_DropExports`). |
 | `Master_Automation/Standards/config/powerbi_visuals/visual_export_mapping.json` | **Export-to-folder mapping.** Each entry: `visual_name`, `match_pattern` or `match_aliases`, `standardized_filename`, `target_folder`, `backfill_folder` (optional), `is_backfill_required`, `requires_normalization`, `normalizer_format`. Unmapped exports go to `Other/` with sanitized name. |
 | `Master_Automation/Standards/config/powerbi_visuals/schema_v2.json` | Cleaning rules for archive: `arrest_visuals`, `rolling_13_month_visuals`, header/trailing-column normalization. Used by `archive_visuals()`. |
 
@@ -58,9 +58,9 @@ Your job is to:
 
 | Purpose | Path |
 |--------|------|
-| Drop zone (Power BI exports land here) | `{OneDrive}\PowerBI_Date\_DropExports` |
+| Drop zone (Power BI exports land here) | `{OneDrive}\PowerBI_Data\_DropExports` |
 | Processed exports (rename/move destination) | `{OneDrive}\09_Reference\Standards\Processed_Exports\{target_folder}\` |
-| Backfill (copy when `is_backfill_required`) | `{OneDrive}\PowerBI_Date\Backfill\{YYYY_MM}\{backfill_folder}\` |
+| Backfill (copy when `is_backfill_required`) | `{OneDrive}\PowerBI_Data\Backfill\{YYYY_MM}\{backfill_folder}\` |
 | Archive (with `--archive`) | `{OneDrive}\PowerBI_Date\Archive\{YYYY}\{MonthName}\` |
 
 ### Full Paths — Master_Automation
@@ -82,10 +82,10 @@ Your job is to:
 | Path | Purpose |
 |------|---------|
 | `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date` | Power BI data root |
-| `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports` | Drop zone (Power BI exports land here) |
-| `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\{YYYY_MM}\vcs_time_report\` | Monthly accrual (overtime backfill) |
-| `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\{YYYY_MM}\summons\` | Summons backfill |
-| `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Archive\{YYYY}\{MonthName}\` | Archived visual exports |
+| `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports` | Drop zone (Power BI exports land here) |
+| `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\{YYYY_MM}\vcs_time_report\` | Monthly accrual (overtime backfill) |
+| `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\{YYYY_MM}\summons\` | Summons backfill |
+| `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Archive\{YYYY}\{MonthName}\` | Archived visual exports |
 
 ### Key Logic in process_powerbi_exports.py
 
@@ -124,7 +124,7 @@ The following are missing the February 2026 export
 - C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Standards\Processed_Exports\traffic_mva
 - C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Standards\Processed_Exports\law_enforcement_duties
 - if C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Standards\Processed_Exports\Training is no longer being used lets remove it.
-- C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Standards\Processed_Exports\Time_Off is empty yet C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2026_02\vcs_time_report\2026_02_monthly_accrual_and_usage_summary.csv is in a different directory
+- C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Standards\Processed_Exports\Time_Off is empty yet C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\2026_02\vcs_time_report\2026_02_monthly_accrual_and_usage_summary.csv is in a different directory
 - C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Standards\Processed_Exports\Executive is empty
 - C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Standards\Processed_Exports\Community_Engagement is empty
 - C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Standards\Processed_Exports\NIBRS is missing February.

@@ -26,7 +26,7 @@ The script has been updated and tested. Output files:
 ### Step 2: Copy File to Backfill Location
 The M code expects the November 2025 file at:
 ```
-C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\2025_12_Average_Response_Times__Values_are_in_mmss.csv
+C:\Dev\PowerBI_Data\Backfill\2025_12\response_time\2025_12_Average_Response_Times__Values_are_in_mmss.csv
 ```
 
 **Action Required:**
@@ -34,7 +34,7 @@ C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\2025_12_Average_Response_Time
 # Copy the newly generated file to the backfill location
 Copy-Item `
   "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Response_Times\output\Average_Response_Times__Values_are_in_mmss.csv" `
-  "C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\2025_12_Average_Response_Times__Values_are_in_mmss.csv" `
+  "C:\Dev\PowerBI_Data\Backfill\2025_12\response_time\2025_12_Average_Response_Times__Values_are_in_mmss.csv" `
   -Force
 ```
 
@@ -77,7 +77,7 @@ These values should now be combined with backfill data (Nov 2024 - Oct 2025) to 
 
 ## ⚠️ Important Notes
 
-1. **File Location:** The M code loads from `C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\`
+1. **File Location:** The M code loads from `C:\Dev\PowerBI_Data\Backfill\2025_12\response_time\`
    - Make sure the file is there BEFORE refreshing
 
 2. **File Naming:** The file must be named exactly:
@@ -115,7 +115,7 @@ After refreshing, verify:
 - Content: ✅ November 2025 data (3 rows)
 
 **Target Location (where M code expects it):**
-- `C:\Dev\PowerBI_Date\Backfill\2025_12\response_time\2025_12_Average_Response_Times__Values_are_in_mmss.csv`
+- `C:\Dev\PowerBI_Data\Backfill\2025_12\response_time\2025_12_Average_Response_Times__Values_are_in_mmss.csv`
 - **Status:** ⚠️ Needs to be copied/updated
 
 ---

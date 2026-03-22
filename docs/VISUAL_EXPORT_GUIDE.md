@@ -39,18 +39,18 @@ These visuals show only current month data - save for archive, not backfill:
 1. Open Power BI report
 2. Right-click on visual
 3. Select "Export data" → "Summarized data"
-4. Save to: `PowerBI_Date\_DropExports\`
+4. Save to: `PowerBI_Data\_DropExports\`
 
 **For Archive Visuals:**
 1. Same export process
-2. Save to: `PowerBI_Date\_DropExports\`
+2. Save to: `PowerBI_Data\_DropExports\`
 3. Will be moved to `archive\` subfolder
 
 ### Step 2: Organize Exports
 
 Run the organization script:
 ```powershell
-cd "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date"
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data"
 .\tools\organize_backfill_exports.ps1
 ```
 
@@ -134,8 +134,8 @@ If automatic categorization fails, manually move files:
 
 ```powershell
 # Example: Move summons file
-$source = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\summons_data.csv"
-$dest = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_12\summons\2025_12_summons_data.csv"
+$source = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports\summons_data.csv"
+$dest = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\2025_12\summons\2025_12_summons_data.csv"
 Move-Item -Path $source -Destination $dest
 ```
 
@@ -167,7 +167,7 @@ Backfill\YYYY_MM\
 
 2. **Organize:**
    ```powershell
-   cd "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date"
+   cd "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data"
    .\tools\organize_backfill_exports.ps1
    ```
 

@@ -12,7 +12,7 @@ Comparison of **2026_02_10_18_24_36_Monthly Accrual and Usage Summary.csv** agai
 | **Earlier export** | `data/visual_export/2026_12/2026_02_10_Monthly Accrual and Usage Summary.csv` — referenced in VISUAL_BACKFILL doc; had 01-26 usage = 0 |
 | **Last month’s visual** | Screenshot: “Monthly Accrual and Usage Summary,” columns 11-24 through 11-25, same time categories |
 
-No backfill CSV was found under `Master_Automation` (backfill lives under `PowerBI_Date\Backfill\...` per docs).
+No backfill CSV was found under `Master_Automation` (backfill lives under `PowerBI_Data\Backfill\...` per docs).
 
 ---
 
@@ -68,6 +68,6 @@ The earlier same-day export reflected the state when 01-26 usage was still 0 (ba
 
 - **vs last month’s visual:** 18_24_36 matches the image for 11-25 usage exactly and for accruals within expected scaling/rounding.
 - **vs backfill/earlier export:** 18_24_36 shows 01-26 usage no longer zero; it is consistent with corrected source data or backfill.
-- **Recommendation:** Treat **2026_02_10_18_24_36_Monthly Accrual and Usage Summary.csv** as the current, correct visual export. Keep saving the latest visual to backfill (e.g. `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\`) each month so future backfill runs have full history.
+- **Recommendation:** Treat **2026_02_10_18_24_36_Monthly Accrual and Usage Summary.csv** as the current, correct visual export. Keep saving the latest visual to backfill (e.g. `PowerBI_Data\Backfill\YYYY_MM\vcs_time_report\`) each month so future backfill runs have full history.
 
 *Generated 2026-02-10 from Master_Automation repo.*

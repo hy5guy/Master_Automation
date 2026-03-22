@@ -25,7 +25,7 @@
 
 **✅ December 2025 Visual Exports Organized**:
 - 36 CSV files exported from Power BI
-- Organized into 16 categories in `PowerBI_Date\Backfill\2025_12\`
+- Organized into 16 categories in `PowerBI_Data\Backfill\2025_12\`
 - Status: **COMPLETE**
 
 **Categories organized**:
@@ -163,7 +163,7 @@ cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts"
 **Success Criteria**:
 - ✅ All 6 workflows complete successfully
 - ✅ Fresh January 2026 data generated
-- ✅ Outputs copied to PowerBI_Date\_DropExports
+- ✅ Outputs copied to PowerBI_Data\_DropExports
 - ✅ Monthly report saved to `2026\01_january\`
 - ⏱️ Processing time: 15-30 minutes
 

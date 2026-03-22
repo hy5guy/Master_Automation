@@ -79,7 +79,7 @@ python scripts\response_time_fresh_calculator.py
 ### Step 2: Verify Output
 ```powershell
 # Check output files created
-dir "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\*Response_Times*.csv"
+dir "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports\*Response_Times*.csv"
 
 # Expected files:
 # 2025_01_Average_Response_Times__Values_are_in_mmss.csv
@@ -202,7 +202,7 @@ CONFIG_DIR = MASTER_AUTO_DIR / "config"
 - [ ] **Output Files Created**
   ```powershell
   # Should see 13 files (Jan 2025 - Jan 2026)
-  Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\*Response_Times*.csv" | Measure-Object
+  Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports\*Response_Times*.csv" | Measure-Object
   ```
 
 - [ ] **Log File Generated**
@@ -214,7 +214,7 @@ CONFIG_DIR = MASTER_AUTO_DIR / "config"
 - [ ] **CSV Format Correct**
   ```powershell
   # Open sample file and verify structure
-  Get-Content "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\2025_01_Average_Response_Times__Values_are_in_mmss.csv" | Select-Object -First 10
+  Get-Content "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports\2025_01_Average_Response_Times__Values_are_in_mmss.csv" | Select-Object -First 10
   ```
 
 - [ ] **Power BI Refresh Success**
@@ -272,7 +272,7 @@ Test-Path "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Respo
 **Solution**:
 ```powerquery
 // In Power Query Editor, check BackfillBasePath variable
-// Should show: C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports
+// Should show: C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports
 ```
 
 ---
@@ -370,7 +370,7 @@ Test-Path "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Respo
 
 **Key Directories**:
 - Raw Data: `05_EXPORTS\_CAD\timereport\`
-- Output: `PowerBI_Date\_DropExports\`
+- Output: `PowerBI_Data\_DropExports\`
 - Mapping: `02_ETL_Scripts\Response_Times\input\`
 
 ---

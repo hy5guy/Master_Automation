@@ -12,7 +12,7 @@
 
 - **Batch ETL:** `02_ETL_Scripts\Response_Times\response_time_batch_all_metrics.py`
   - Processes **2024 full year**, **2025 full year**, and **2026-01 monthly** CAD timereports.
-  - Outputs **all three metrics** per month to `PowerBI_Date\Backfill\response_time_all_metrics\`:
+  - Outputs **all three metrics** per month to `PowerBI_Data\Backfill\response_time_all_metrics\`:
     - Time Out − Time Dispatched  
     - Time Out − Time of Call  
     - Time Dispatched − Time of Call  
@@ -34,7 +34,7 @@
 
 All three:
 
-- Load from `PowerBI_Date\Backfill\response_time_all_metrics` via `Folder.Files()`.
+- Load from `PowerBI_Data\Backfill\response_time_all_metrics` via `Folder.Files()`.
 - Filter by **rolling 13-month window** driven by **`pReportMonth`** (not `TODAY()`), so historical monthly reports show the correct window for their report month.
 - Output includes **`Summary_Type`** (literal `"Response_Type"`) so existing DAX measures (`Emergency_Avg_13M`, `Routine_Avg_13M`, `Urgent_Avg_13M`) that filter `Summary_Type = "Response_Type"` continue to work.
 
@@ -78,7 +78,7 @@ All three:
 
 1. **Power BI template:** Refresh all three response time queries; confirm `pReportMonth` is set; verify line chart and Emergency/Routine/Urgent 13M measures work.
 2. **New visuals:** Add two visuals bound to `___ResponseTime_OutVsCall` and `___ResponseTime_DispVsCall` if not already present.
-3. **Future months:** Run `response_time_batch_all_metrics.py` when new monthly timereports are available; ensure new CSV is dropped into `PowerBI_Date\Backfill\response_time_all_metrics\` (script writes there directly).
+3. **Future months:** Run `response_time_batch_all_metrics.py` when new monthly timereports are available; ensure new CSV is dropped into `PowerBI_Data\Backfill\response_time_all_metrics\` (script writes there directly).
 4. **New unmapped incidents:** Run `audit_unmapped_incidents.py` after new CAD exports; review CSV, update `CallType_Categories.csv` (or use `apply_calltype_additions.py`); update CallTypes `CHANGELOG.md` and `SUMMARY.md`.
 
 ---

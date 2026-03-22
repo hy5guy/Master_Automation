@@ -19,13 +19,13 @@ The output filename is always: **`YYYY_MM_{standardized_filename}.csv`**
 | Step | Location |
 |------|----------|
 | **1. Processed (archive)** | `09_Reference\Standards\Processed_Exports\{target_folder}\` |
-| **2. Backfill (if `is_backfill_required`)** | `PowerBI_Date\Backfill\YYYY_MM\{backfill_folder or target_folder}\` |
+| **2. Backfill (if `is_backfill_required`)** | `PowerBI_Data\Backfill\YYYY_MM\{backfill_folder or target_folder}\` |
 
 **backfill_folder override:** When a mapping has `backfill_folder`, that folder is used for Backfill instead of `target_folder` (so Processed_Exports and Backfill can differ).
 
 - **Summons** → `Processed_Exports\summons\` and `Backfill\YYYY_MM\summons\`
 - **Training** → `Processed_Exports\policy_and_training_qual\` and `Backfill\YYYY_MM\policy_and_training_qual\`
-- **Monthly Accrual** → `Processed_Exports\social_media_and_time_report\` and `Backfill\YYYY_MM\vcs_time_report\` (backfill_folder override; Overtime/TimeOff reads from vcs_time_report)
+- **Monthly Accrual** → `Processed_Exports\monthly_accrual_and_usage\` (alias: legacy `social_media_and_time_report`) and `Backfill\YYYY_MM\vcs_time_report\` (backfill_folder override; Overtime/TimeOff reads from vcs_time_report)
 
 Source files are **removed** from `_DropExports` after a successful move/copy.
 
@@ -36,7 +36,7 @@ Source files are **removed** from `_DropExports` after a successful move/copy.
 **No.** Those three files live in a **comparison folder** (`2026_12_compair`), not in the pipeline’s source folder.
 
 - **`process_powerbi_exports.py`** only reads from:
-  - **Default source:** `PowerBI_Date\_DropExports` (canonical; read from `config/scripts.json` → `settings.powerbi_drop_path`)
+  - **Default source:** `PowerBI_Data\_DropExports` (canonical; read from `config/scripts.json` → `settings.powerbi_drop_path`)
   - Or the path you pass with `--source`
 - It does **not** scan `data\backfill\2026_12_compair\`, so those CSVs were **not** processed, renamed, moved, or normalized by the script.
 
@@ -53,7 +53,7 @@ So:
 **No.** Because they were never used as input to the pipeline, nothing was written to:
 
 - `09_Reference\Standards\Processed_Exports\`
-- `PowerBI_Date\Backfill\`
+- `PowerBI_Data\Backfill\`
 
 So no previous versions in those folders were replaced by these three files.
 
@@ -63,8 +63,8 @@ So no previous versions in those folders were replaced by these three files.
 
 - **Summons** and **Overtime/TimeOff** are run by **`run_all_etl.ps1`** (when you run the full ETL).
 - They read **backfill** from:
-  - **Overtime/TimeOff:** `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\` (expects “Monthly Accrual and Usage Summary” CSV there).
-  - **Summons:** `PowerBI_Date\Backfill\YYYY_MM\summons\` (expects Department-Wide Summons CSVs there).
+  - **Overtime/TimeOff:** `PowerBI_Data\Backfill\YYYY_MM\vcs_time_report\` (expects “Monthly Accrual and Usage Summary” CSV there).
+  - **Summons:** `PowerBI_Data\Backfill\YYYY_MM\summons\` (expects Department-Wide Summons CSVs there).
 - **Policy Training Monthly** is **disabled** in `config/scripts.json` (`enabled: false`).
 
 Because the three files in `2026_12_compair` were never copied into those Backfill paths, the ETL scripts did **not** process these specific exports. They only process what’s already in Backfill (and other configured sources).
@@ -86,7 +86,7 @@ If you want these three files to be **processed, named, moved, normalized, and u
    - Match and rename to `YYYY_MM_{standardized_filename}.csv`
    - Normalize (where `requires_normalization` is true)
    - Move to `09_Reference\Standards\Processed_Exports\{target_folder}`
-   - Copy to `PowerBI_Date\Backfill\YYYY_MM\{target_folder}` for Summons and Training (because `is_backfill_required` is true)
+   - Copy to `PowerBI_Data\Backfill\YYYY_MM\{target_folder}` for Summons and Training (because `is_backfill_required` is true)
 
    **Note:** **Monthly Accrual** has `is_backfill_required: true` and `backfill_folder: "vcs_time_report"`. The processor copies it to `Backfill\YYYY_MM\vcs_time_report\` where Overtime/TimeOff expects it. Processed copies go to `social_media_and_time_report\`.
 
@@ -117,7 +117,7 @@ you can refresh the **January 2026** Power BI project and the visuals will use t
 
 | Purpose              | Source (input)                    | Destinations (output)                                                                 |
 |----------------------|-----------------------------------|----------------------------------------------------------------------------------------|
-| Visual export processor | `Master_Automation\_DropExports` or `--source` | `09_Reference\Standards\Processed_Exports\{target_folder}` and `PowerBI_Date\Backfill\YYYY_MM\{target_folder}` (when backfill required) |
-| run_all_etl “Visual Export Normalization” | `PowerBI_Date\_DropExports`       | In-place normalization only (no move/copy to Backfill)                                |
-| Overtime/TimeOff backfill | Reads from                          | `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\`                                       |
-| Summons backfill     | Reads from                        | `PowerBI_Date\Backfill\YYYY_MM\summons\`                                               |
+| Visual export processor | `Master_Automation\_DropExports` or `--source` | `09_Reference\Standards\Processed_Exports\{target_folder}` and `PowerBI_Data\Backfill\YYYY_MM\{target_folder}` (when backfill required) |
+| run_all_etl “Visual Export Normalization” | `PowerBI_Data\_DropExports`       | In-place normalization only (no move/copy to Backfill)                                |
+| Overtime/TimeOff backfill | Reads from                          | `PowerBI_Data\Backfill\YYYY_MM\vcs_time_report\`                                       |
+| Summons backfill     | Reads from                        | `PowerBI_Data\Backfill\YYYY_MM\summons\`                                               |

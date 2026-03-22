@@ -46,7 +46,7 @@
 4. _DropExports (fallback)
 
 ### Response Time Data
-**Source**: `PowerBI_Date\Backfill\YYYY_MM\response_time\`  
+**Source**: `PowerBI_Data\Backfill\YYYY_MM\response_time\`  
 **Coverage**: January 2025 - January 2026 (13 months)  
 **Format**: Monthly CSV files (3 rows each: Emergency, Routine, Urgent)  
 
@@ -75,11 +75,11 @@
 5. **Create directory**:
    ```powershell
    $month = "2026_02"  # or whatever the new month is
-   New-Item -ItemType Directory -Path "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\$month\response_time" -Force
+   New-Item -ItemType Directory -Path "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\$month\response_time" -Force
    ```
 6. **Save exported CSV** to:
    ```
-   PowerBI_Date\Backfill\2026_02\response_time\2026_02_Average_Response_Times__Values_are_in_mmss.csv
+   PowerBI_Data\Backfill\2026_02\response_time\2026_02_Average_Response_Times__Values_are_in_mmss.csv
    ```
 7. **Next month**: Power BI automatically picks it up
 
@@ -100,7 +100,7 @@
 - ✅ `config\scripts.json` - Fresh Calculator disabled
 
 ### Data Files:
-- ✅ **13 CSV files** in `PowerBI_Date\Backfill\` structure
+- ✅ **13 CSV files** in `PowerBI_Data\Backfill\` structure
 
 ### Documentation:
 - ✅ `docs\RESPONSE_TIME_v2.8.0_IMPLEMENTATION_COMPLETE.md`
@@ -151,7 +151,7 @@ Before using in production, verify:
 ## Support & Troubleshooting
 
 ### If Power BI Shows Errors:
-1. Check that Backfill files exist: `PowerBI_Date\Backfill\YYYY_MM\response_time\`
+1. Check that Backfill files exist: `PowerBI_Data\Backfill\YYYY_MM\response_time\`
 2. Verify M code is v2.8.3 (check header comment)
 3. Clear Power BI cache: File → Options → Data Load → Clear Cache
 4. Refresh again

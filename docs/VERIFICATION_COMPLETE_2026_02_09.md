@@ -110,7 +110,7 @@ The Master_Automation script is ready to run. All critical issues are resolved, 
 6. ⚠️ Summons (will skip if January 2026 data not available - acceptable)
 
 **Automatic post-processing**:
-7. ✅ Outputs copied to PowerBI_Date\_DropExports
+7. ✅ Outputs copied to PowerBI_Data\_DropExports
 8. ✅ Monthly report saved to `2026\01_january\2026_01_Monthly_FINAL_LAP.pbix`
 
 ---
@@ -144,7 +144,7 @@ cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\scripts"
 ### Post-Run Checks
 1. Review execution summary in terminal
 2. Check log file for any errors
-3. Verify outputs in PowerBI_Date\_DropExports
+3. Verify outputs in PowerBI_Data\_DropExports
 4. Confirm monthly report created
 5. Review Power BI refresh status
 

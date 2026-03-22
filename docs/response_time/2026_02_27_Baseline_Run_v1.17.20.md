@@ -13,7 +13,7 @@ First run of the v1.17.19 filter logic from **raw exports only** — no backfill
 | Item | Before | After |
 |------|--------|-------|
 | **Sources** | 2024 yearly + 2025 yearly + 2026-01 monthly (25 months) | 2025 yearly + 2026-01 monthly (13 months) |
-| **Output path** | `PowerBI_Date\Backfill\response_time_all_metrics` | `PowerBI_Date\response_time_all_metrics` |
+| **Output path** | `PowerBI_Data\Backfill\response_time_all_metrics` | `PowerBI_Date\response_time_all_metrics` |
 | **Output files** | 25 CSVs (2024-01 through 2026-01) | 13 CSVs (2025-01 through 2026-01) |
 
 ### Raw Export Paths Used
@@ -36,7 +36,7 @@ Previous 25-month backfill archived to:
 The three response time M code queries now read from:
 
 ```
-C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\response_time_all_metrics
+C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\response_time_all_metrics
 ```
 
 **If the PBIX file still references the old path:**
@@ -46,7 +46,7 @@ C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\response_time_all_
 3. In the `Folder.Files` step, change:
 
    ```
-   ...\PowerBI_Date\Backfill\response_time_all_metrics
+   ...\PowerBI_Data\Backfill\response_time_all_metrics
    ```
 
    to:

@@ -30,7 +30,7 @@ All documentation files updated from:
 
 #### Response Time Backfill Baseline
 - Created formal Backfill directory structure (13 months)
-- Location: `PowerBI_Date\Backfill\YYYY_MM\response_time\`
+- Location: `PowerBI_Data\Backfill\YYYY_MM\response_time\`
 - Files: 13 CSV files (Jan 2025 - Jan 2026)
 - Format: 3 rows per file (Emergency, Routine, Urgent) + header
 
@@ -111,7 +111,7 @@ Status: Clean (nothing to commit, working tree clean)
 2. **Refresh Power BI** - Load new data
 3. **Export Response Time visual** to CSV
 4. **Save to Backfill**:
-   - Path: `PowerBI_Date\Backfill\YYYY_MM\response_time\`
+   - Path: `PowerBI_Data\Backfill\YYYY_MM\response_time\`
    - File: `YYYY_MM_Average_Response_Times__Values_are_in_mmss.csv`
 5. **Next Month** - Power BI automatically loads from Backfill
 

@@ -45,7 +45,7 @@ The summons data pipeline imports monthly traffic summons (parking and moving vi
 **Note:** Enrichment happens in ETL before Power BI import
 
 ### Backfill Source
-**Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\{YYYY_MM}\summons\*.csv`  
+**Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\{YYYY_MM}\summons\*.csv`  
 **Purpose:** Fill gaps in historical data where e-ticket exports are missing. Backfill is only needed for the **Department-Wide Summons | Moving and Parking** visual (rolling 13-month total); other visuals use monthly data only.
 **Format:** Visual exports from Power BI in CSV format
 
@@ -511,7 +511,7 @@ Total Summons = SUM(summons_13month_trend[TICKET_COUNT])
 
 **Solution:**
 1. Export visual data from Power BI for gap months
-2. Save CSV to: `PowerBI_Date\Backfill\{YYYY_MM}\summons\`
+2. Save CSV to: `PowerBI_Data\Backfill\{YYYY_MM}\summons\`
 3. Filename format: `YYYY_MM_description.csv` (e.g., `2025_03_summons_backfill.csv`)
 4. Re-run ETL script to merge backfill data
 
@@ -560,7 +560,7 @@ C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powe
 C:\Users\carucci_r\OneDrive - City of Hackensack\09_Reference\Personnel\Assignment_Master_V2.csv
 
 # Backfill Data (Input)
-C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\{YYYY_MM}\summons\*.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\{YYYY_MM}\summons\*.csv
 
 # M Code Files (Logic)
 C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\m_code\summons\summons_13month_trend.m

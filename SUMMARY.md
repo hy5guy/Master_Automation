@@ -1,8 +1,8 @@
 # 06_Workspace_Management Project Summary
 
-**Last Updated:** 2026-03-21
-**Status:** ✅ v1.19.1 — Phase 2 complete: fee/fine enrichment, VIOLATION_CATEGORY, DFR backfill wired
-**Version:** 1.19.1
+**Last Updated:** 2026-03-22
+**Status:** ✅ v1.19.1 — Phase 2 complete (Summons); v1.18.16 — Processed_Exports routing, archive, validation CLIs
+**Version:** 1.19.1 (docs include v1.18.15–1.18.16 pipeline changes — see CHANGELOG)
 
 ---
 
@@ -37,7 +37,10 @@
 ✅ **Dry Run Mode** - Preview what would execute  
 ✅ **Input Validation** - Validates required export files before execution  
 ✅ **OneDrive Sync** - All paths synced for cloud backup  
-✅ **Path portability** - `ONEDRIVE_BASE` / `ONEDRIVE_HACKENSACK` env vars (Python `path_config.py`, PowerShell `$OneDriveBase`)  
+✅ **Path portability** - `ONEDRIVE_BASE` / `ONEDRIVE_HACKENSACK` env vars (Python `path_config.py`, PowerShell `$OneDriveBase`); **`get_onedrive_root()`** prefers `C:\Users\carucci_r\OneDrive - City of Hackensack` when it exists (canonical desktop; laptop uses junction). **`get_powerbi_data_dir()`** reads repo **`config.json`** key `"PowerBI"` (default `PowerBI_Data`)  
+✅ **Processed_Exports pipeline** - `processed_exports_routing.py` + `process_powerbi_exports.py`: canonical folder aliases, archive previous CSV under `archive/YYYY_MM/`, idempotent identical-file skip; mapping targets include `monthly_accrual_and_usage`, consolidated `detectives` / `stacp`, MVA → `traffic`  
+✅ **Validation CLIs** - `validate_response_time_exports.py` (response_time CSV shapes); `validate_13_month_window.py` with `--report-month`, `--accept-warn`, partial future-month WARN  
+✅ **Unit tests** - `cd scripts; python -m unittest discover -s tests -p "test_*.py" -v`  
 ✅ **Overtime/TimeOff hardening** - Pre-flight validation, strict file discovery, output schema check, test_pipeline.bat  
 ✅ **Visual export normalization** - Orchestrator normalizes "Monthly Accrual and Usage Summary" CSVs in _DropExports before organize_backfill  
 ✅ **Summons backfill** - `summons_backfill_merge.py` uses backfill as source of truth for all months in consolidated file (02-25 through 11-25); injection point at `docs/SUMMONS_BACKFILL_INJECTION_POINT.md`
@@ -46,7 +49,7 @@
 ✅ **DFR Power BI query** - `m_code/drone/DFR_Summons.m` loads DFR workbook with 13-month rolling window, dual dismiss/void filter (Summons_Recall + Summons_Status), schema-resilient Violation_Category/Jurisdiction, Date_Sort_Key, MM-YY, YearMonthKey
 ✅ **Arrest ETL future-proofed** - `--report-month YYYY-MM` (via `{REPORT_MONTH_ACTUAL}`); targeted file discovery in `05_EXPORTS/_Arrest/YYYY/month/`; outputs `YYYY_MM_Arrests_PowerBI_Ready.xlsx` to `01_DataSources/ARREST_DATA/Power_BI/`
 ✅ **13-month rolling window** - 24 Power BI visuals enforced to exactly 13 months (end = previous month); `process_powerbi_exports.py` (match_pattern, enforce_13_month), `validate_13_month_window.py`; docs in `docs/13_MONTH_*.md`
-✅ **Assignment Master sync path-agnostic** - `09_Reference/Personnel/scripts/sync_assignment_master.py` (or `run_sync.bat`); uses BASE_DIR = parent of scripts/; works on desktop (carucci_r) and laptop (RobertCarucci)
+✅ **Assignment Master sync path-agnostic** - `09_Reference/Personnel/scripts/sync_assignment_master.py` (or `run_sync.bat`); uses BASE_DIR = parent of scripts/; works on desktop (**carucci_r**) and laptop (**junction** `carucci_r` → profile or `ONEDRIVE_BASE`)  
 
 ---
 
@@ -80,6 +83,7 @@
 ├── verify_migration.ps1         # Migration verification
 ├── 06_Workspace_Management.code-workspace  # VS Code workspace
 ├── .gitignore                   # Git ignore rules
+├── config.json                  # Optional: Power BI root folder name for get_powerbi_data_dir()
 ├── requirements.txt             # Python deps (pandas, openpyxl) for validation & summons backfill
 ├── config/                      # Configuration files
 │   ├── scripts.json            # ETL script configuration
@@ -89,7 +93,8 @@
 │   ├── run_all_etl.ps1         # Main orchestrator
 │   ├── run_all_etl.bat         # Batch wrapper
 │   ├── run_etl_script.ps1      # Single script runner
-│   ├── path_config.py          # Centralized get_onedrive_root() for portability
+│   ├── path_config.py          # get_onedrive_root(), get_powerbi_data_dir(), get_powerbi_paths()
+│   ├── processed_exports_routing.py  # Processed_Exports canonical dirs + archive helper
 │   ├── validate_exports.py     # Pre-flight OT/TimeOff export check
 │   ├── validate_outputs.py     # FIXED CSV schema validation
 │   ├── test_pipeline.bat       # Overtime/TimeOff test: validate → dry-run → validate outputs
@@ -98,8 +103,10 @@
 │   ├── dfr_export.py              # DFR workbook export: schema map, append, dedup, formula-col guard
 │   ├── dfr_backfill_descriptions.py # DFR description/fine backfill (cascading statute lookup)
 │   ├── normalize_visual_export_for_backfill.py  # Normalize visual exports (13-month window, PeriodLabel for OT)
-│   ├── process_powerbi_exports.py               # Process _DropExports with mapping (match_pattern, 13-month)
-│   ├── validate_13_month_window.py              # Validate 13-month window in CSV(s)
+│   ├── process_powerbi_exports.py               # _DropExports → Processed_Exports + Backfill (routing, archive)
+│   ├── validate_13_month_window.py              # 13-month window; report-month, accept-warn, partial tail
+│   ├── validate_response_time_exports.py        # Response_time export CSV checks
+│   ├── tests/                   # unittest (routing, archive, validators)
 │   ├── (other helper Python scripts)
 │   └── _testing/               # Benchmark/debug scripts (4 files)
 ├── docs/                        # Documentation files
@@ -210,7 +217,7 @@ cd "C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management"
 1. **Configure** - Edit `config\scripts.json` with script paths
 2. **Run** - Execute `run_all_etl.ps1` or `run_all_etl.bat`
 3. **Process** - Scripts execute in order, outputs logged
-4. **Integrate** - Successful outputs copied to Power BI Date repository
+4. **Integrate** - Successful outputs copied to **PowerBI_Data** (`_DropExports` / `Backfill` per `config/scripts.json`)
 5. **Organize** - Run `organize_backfill_exports.ps1` in PowerBI_Data
 6. **Review** - Check logs for any failures or warnings
 

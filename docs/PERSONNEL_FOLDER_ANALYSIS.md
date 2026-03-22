@@ -124,7 +124,7 @@ Move-Item "09_Reference\Personnel\Assignment_Master_V2.xlsx" `
 
 ### 4. Verify December 2025 Summons Backfill
 
-**Created:** `PowerBI_Date\Backfill\2025_12\summons\2025_12_department_wide_summons.csv` ✅
+**Created:** `PowerBI_Data\Backfill\2025_12\summons\2025_12_department_wide_summons.csv` ✅
 
 **Data:** 26 rows (13 months × 2 types: M and P)
 - M (Moving): 452 (12-24) through 436 (12-25)

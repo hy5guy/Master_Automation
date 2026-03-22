@@ -9,7 +9,7 @@
 
 **✅ New Location (Correct):**
 ```
-C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\
+C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\
 ├── _TEMPLATE_YYYY_MM\
 ├── 2025_09\
 │   ├── arrest\
@@ -23,7 +23,7 @@ C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\
 
 **❌ Old Location (Still Referenced):**
 ```
-C:\Dev\PowerBI_Date\Backfill\  (OLD - Needs Update)
+C:\Dev\PowerBI_Data\Backfill\  (OLD - Needs Update)
 ```
 
 ---
@@ -36,12 +36,12 @@ C:\Dev\PowerBI_Date\Backfill\  (OLD - Needs Update)
 
 **Current Path (Line 32):**
 ```python
-BACKFILL_CSV = Path(r"C:\Dev\PowerBI_Date\Backfill\2025_09\response_time\Average Response Times  Values are in mmss.csv")
+BACKFILL_CSV = Path(r"C:\Dev\PowerBI_Data\Backfill\2025_09\response_time\Average Response Times  Values are in mmss.csv")
 ```
 
 **Should Be:**
 ```python
-BACKFILL_CSV = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_09\response_time\Average Response Times  Values are in mmss.csv")
+BACKFILL_CSV = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\2025_09\response_time\Average Response Times  Values are in mmss.csv")
 ```
 
 **Status:** ❌ **Hardcoded old path - needs update**
@@ -58,7 +58,7 @@ BACKFILL_CSV = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_D
 - Documentation mentions backfill but script doesn't directly read from Backfill folder
 
 **Backfill Reference in Documentation:**
-- README.md mentions: `C:\Dev\PowerBI_Date\Backfill\2025_09\vcs_time_report\Monthly Accrual and Usage Summary.csv`
+- README.md mentions: `C:\Dev\PowerBI_Data\Backfill\2025_09\vcs_time_report\Monthly Accrual and Usage Summary.csv`
 - This is for manual reference, not used by the script itself
 
 **Status:** ✅ **Script doesn't directly use Backfill path (uses local analytics_output)**
@@ -101,7 +101,7 @@ BACKFILL_CSV = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_D
 
 | Script | File | Line | Old Path | Status |
 |--------|------|------|----------|--------|
-| **Response Times** | `response_time_diagnostic.py` | 32 | `C:\Dev\PowerBI_Date\Backfill\...` | ❌ **NEEDS UPDATE** |
+| **Response Times** | `response_time_diagnostic.py` | 32 | `C:\Dev\PowerBI_Data\Backfill\...` | ❌ **NEEDS UPDATE** |
 
 ### Scripts That Are OK
 
@@ -122,24 +122,24 @@ BACKFILL_CSV = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_D
 
 **Change Line 32 from:**
 ```python
-BACKFILL_CSV = Path(r"C:\Dev\PowerBI_Date\Backfill\2025_09\response_time\Average Response Times  Values are in mmss.csv")
+BACKFILL_CSV = Path(r"C:\Dev\PowerBI_Data\Backfill\2025_09\response_time\Average Response Times  Values are in mmss.csv")
 ```
 
 **To:**
 ```python
-BACKFILL_CSV = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_09\response_time\Average Response Times  Values are in mmss.csv")
+BACKFILL_CSV = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\2025_09\response_time\Average Response Times  Values are in mmss.csv")
 ```
 
 **Note:** Verify the file exists at the new location first:
 ```powershell
-Test-Path "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_09\response_time\Average Response Times  Values are in mmss.csv"
+Test-Path "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\2025_09\response_time\Average Response Times  Values are in mmss.csv"
 ```
 
 ---
 
 ## Backfill Directory Structure
 
-**Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\`
+**Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\`
 
 **Subdirectories:**
 - `2025_09\` - September 2025 backfill data
@@ -177,17 +177,17 @@ Test-Path "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfil
 
 ### Check if Backfill Directory Exists
 ```powershell
-Test-Path "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill"
+Test-Path "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill"
 ```
 
 ### List Backfill Subdirectories
 ```powershell
-Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill" -Directory
+Get-ChildItem "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill" -Directory
 ```
 
 ### Check Response Times Backfill File
 ```powershell
-$backfillFile = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_09\response_time\Average Response Times  Values are in mmss.csv"
+$backfillFile = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\2025_09\response_time\Average Response Times  Values are in mmss.csv"
 Test-Path $backfillFile
 ```
 
