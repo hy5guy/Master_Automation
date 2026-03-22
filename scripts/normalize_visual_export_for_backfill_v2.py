@@ -258,6 +258,11 @@ def normalize_summons(df: pd.DataFrame, enforce_window: bool = False) -> pd.Data
         id_cols = [c for c in cols if c not in month_like]
         df = df.melt(id_vars=id_cols, value_vars=month_like, var_name="PeriodLabel", value_name="TICKET_COUNT")
     
+    if "Bureau" not in df.columns and "WG2" not in df.columns:
+        logger.warning(
+            "Summons export has no Bureau/WG2 column; WG2 will default to 'Unknown' (pipeline continues)."
+        )
+
     # Normalize column names
     rename_map = {
         "PeriodLabel": "Month_Year",
@@ -289,9 +294,16 @@ def normalize_summons(df: pd.DataFrame, enforce_window: bool = False) -> pd.Data
         df["WG2"] = "Unknown"
     if "TYPE" not in df.columns:
         df["TYPE"] = "Unknown"
-    
-    df["WG2"] = df["WG2"].fillna("Unknown").astype(str)
-    df["TYPE"] = df["TYPE"].fillna("Unknown").astype(str)
+
+    def _norm_cat(series: pd.Series) -> pd.Series:
+        s = series.fillna("").astype(str).str.strip()
+        s = s.replace("", "Unknown")
+        low = s.str.lower()
+        s = s.mask(low.isin(("unknown", "nan", "none")), "Unknown")
+        return s
+
+    df["WG2"] = _norm_cat(df["WG2"])
+    df["TYPE"] = _norm_cat(df["TYPE"])
     
     return df
 

@@ -24,6 +24,40 @@ from pathlib import Path
 
 import pandas as pd
 
+from processed_exports_routing import prepare_destination_file, resolve_category_directory
+
+
+def _window_ends_from_report_yyyy_mm(yyyy_mm: str) -> str:
+    """Last full month before report label month (March 2026 report -> 2026-02)."""
+    parts = yyyy_mm.split("_")
+    yi, mi = int(parts[0]), int(parts[1])
+    if mi == 1:
+        return f"{yi - 1:04d}-12"
+    return f"{yi:04d}-{mi - 1:02d}"
+
+
+def _gather_csv_sources(
+    source_dir: Path,
+    processed_root: Path,
+    scan_processed_inbox: bool,
+) -> list[Path]:
+    """Top-level *.csv from source_dir; optionally add Processed_Exports root inbox files."""
+    seen: set[Path] = set()
+    out: list[Path] = []
+    for p in sorted(source_dir.glob("*.csv")):
+        r = p.resolve()
+        if r not in seen:
+            seen.add(r)
+            out.append(p)
+    if scan_processed_inbox:
+        if processed_root.resolve() != source_dir.resolve() and processed_root.is_dir():
+            for p in sorted(processed_root.glob("*.csv")):
+                r = p.resolve()
+                if r not in seen:
+                    seen.add(r)
+                    out.append(p)
+    return out
+
 try:
     from path_config import get_onedrive_root, get_powerbi_data_dir, get_powerbi_paths
 except ImportError:
@@ -61,8 +95,9 @@ CONFIG_PATH = AUTOMATION_ROOT / "Standards" / "config" / "powerbi_visuals" / "vi
 # triggers a warning — it likely indicates a mapping entry with a non-canonical target_folder.
 CANONICAL_BACKFILL_FOLDERS = frozenset({
     "arrests", "benchmark", "chief", "community_outreach", "csb", "detectives",
-    "drone", "nibrs", "patrol", "policy_and_training_qual", "remu", "response_time",
-    "social_media", "ssocc", "stacp", "summons", "traffic", "vcs_time_report",
+    "drone", "monthly_accrual_and_usage", "nibrs", "patrol", "policy_and_training_qual",
+    "remu", "response_time", "social_media", "ssocc", "stacp", "summons", "traffic",
+    "vcs_time_report",
 })
 
 
@@ -305,7 +340,8 @@ def run_normalize(
     output_path: Path,
     dry_run: bool,
     normalizer_format: str | None = None,
-    enforce_13_month: bool = False
+    enforce_13_month: bool = False,
+    window_ends: str | None = None,
 ) -> bool:
     """Run normalize_visual_export_for_backfill.py. Returns True on success."""
     script = Path(__file__).resolve().parent / "normalize_visual_export_for_backfill.py"
@@ -316,6 +352,8 @@ def run_normalize(
         cmd.extend(["--format", normalizer_format])
     if enforce_13_month:
         cmd.append("--enforce-13-month")
+    if window_ends and enforce_13_month:
+        cmd.extend(["--13m-window-ends", window_ends])
     if dry_run:
         cmd.append("--dry-run")
     cmd_str = " ".join(f'"{x}"' if " " in x else x for x in cmd)
@@ -345,6 +383,7 @@ def process_exports(
     config_path: Path | None = None,
     dry_run: bool = False,
     report_month: str | None = None,
+    scan_processed_inbox: bool = False,
 ) -> ProcessingStats:
     """
     Scan source_dir for CSVs, match to mapping, rename to YYYY_MM_{standardized_filename}.csv,
@@ -364,7 +403,11 @@ def process_exports(
         stats.errors.append(f"Source directory does not exist: {source_dir}")
         return stats
 
-    csv_files = list(source_dir.glob("*.csv"))
+    window_ends: str | None = None
+    if report_month:
+        window_ends = _window_ends_from_report_yyyy_mm(report_month)
+
+    csv_files = _gather_csv_sources(source_dir, processed_root, scan_processed_inbox)
     for file_path in csv_files:
         if should_skip(config, file_path):
             stats.files_skipped.append(file_path.name)
@@ -398,30 +441,45 @@ def process_exports(
         new_name = f"{yyyy_mm}_{standardized_base}.csv"
         stats.files_renamed += 1
 
-        dest_dir = processed_root / target_folder
+        dest_dir = resolve_category_directory(processed_root, target_folder)
         dest_path = dest_dir / new_name
 
         if dry_run:
-            _safe_print(f"[DRY RUN] Would process: {file_path.name} -> {dest_path}")
-            if mapping.get("requires_normalization"):
-                fmt = mapping.get("normalizer_format") or "monthly_accrual"
-                enforce_window = mapping.get("enforce_13_month_window", False)
-                _norm_script = Path(__file__).resolve().parent / "normalize_visual_export_for_backfill.py"
-                _dry_cmd = [sys.executable, str(_norm_script), "--input", str(file_path), "--output", str(dest_path)]
-                if fmt in ("summons", "training_cost"):
-                    _dry_cmd.extend(["--format", fmt])
-                if enforce_window:
-                    _dry_cmd.append("--enforce-13-month")
-                _dry_cmd.append("--dry-run")
-                _cmd_str = " ".join(f'"{x}"' if " " in str(x) else str(x) for x in _dry_cmd)
-                _safe_print(f"[DRY RUN] Would run: {_cmd_str}")
-            if mapping.get("is_backfill_required"):
-                _safe_print(f"[DRY RUN] Would copy to Backfill: {backfill_root / yyyy_mm / backfill_folder / new_name}")
+            prep = prepare_destination_file(dest_path, file_path, dry_run=True, log=_safe_print)
+            if prep == "identical":
+                _safe_print(f"[DRY RUN] Would remove identical source from drop: {file_path.name}")
+            else:
+                _safe_print(f"[DRY RUN] Would process: {file_path.name} -> {dest_path}")
+                if mapping.get("requires_normalization"):
+                    fmt = mapping.get("normalizer_format") or "monthly_accrual"
+                    enforce_window = mapping.get("enforce_13_month_window", False)
+                    _norm_script = Path(__file__).resolve().parent / "normalize_visual_export_for_backfill.py"
+                    _dry_cmd = [sys.executable, str(_norm_script), "--input", str(file_path), "--output", str(dest_path)]
+                    if fmt in ("summons", "training_cost", "response_time_series", "response_time_priority_matrix"):
+                        _dry_cmd.extend(["--format", fmt])
+                    if enforce_window:
+                        _dry_cmd.append("--enforce-13-month")
+                        if window_ends:
+                            _dry_cmd.extend(["--13m-window-ends", window_ends])
+                    _dry_cmd.append("--dry-run")
+                    _cmd_str = " ".join(f'"{x}"' if " " in str(x) else str(x) for x in _dry_cmd)
+                    _safe_print(f"[DRY RUN] Would run: {_cmd_str}")
+                if mapping.get("is_backfill_required"):
+                    _safe_print(f"[DRY RUN] Would copy to Backfill: {backfill_root / yyyy_mm / backfill_folder / new_name}")
             stats.files_moved += 1
             continue
 
         # Normalize to dest, or copy then move to dest
         dest_dir.mkdir(parents=True, exist_ok=True)
+        prep = prepare_destination_file(dest_path, file_path, dry_run=False, log=_safe_print)
+        if prep == "identical":
+            try:
+                file_path.unlink()
+            except OSError as e:
+                stats.errors.append(f"Could not remove duplicate source: {file_path.name} -> {e}")
+            stats.files_moved += 1
+            continue
+
         if mapping.get("requires_normalization"):
             fmt = mapping.get("normalizer_format")
             enforce_window = mapping.get("enforce_13_month_window", False)
@@ -429,8 +487,9 @@ def process_exports(
                 file_path,
                 dest_path,
                 dry_run=False,
-                normalizer_format=fmt,
-                enforce_13_month=enforce_window
+                normalizer_format=fmt or "monthly_accrual",
+                enforce_13_month=enforce_window,
+                window_ends=window_ends,
             )
             if not ok:
                 stats.errors.append(f"Normalization failed: {file_path.name}")
@@ -520,6 +579,11 @@ def main() -> int:
     ap.add_argument("--report-month", type=str, default=None,
                     help="Explicit report month in YYYY-MM format (overrides data/filename inference)")
     ap.add_argument("--dry-run", action="store_true", help="Do not move or delete files")
+    ap.add_argument(
+        "--scan-processed-exports-inbox",
+        action="store_true",
+        help="Also process *.csv sitting at the root of Processed_Exports (same pipeline as drop)",
+    )
     ap.add_argument("--verify-only", action="store_true", help="Only verify (no process)")
     args = ap.parse_args()
 
@@ -542,13 +606,19 @@ def main() -> int:
             _safe_print(f"[ERROR] Invalid --report-month format: {args.report_month} (expected YYYY-MM)")
             return 1
 
+    proc_root = (
+        args.processed
+        if args.processed is not None
+        else (get_onedrive_root() / "09_Reference" / "Standards" / "Processed_Exports")
+    )
     stats = process_exports(
         source_dir=resolved_source,
-        processed_root=args.processed,
+        processed_root=proc_root,
         backfill_root=args.backfill,
         config_path=args.config,
         dry_run=args.dry_run,
         report_month=report_month_override,
+        scan_processed_inbox=args.scan_processed_exports_inbox,
     )
     verify_processing(source_dir=resolved_source, processed_root=args.processed, stats=stats)
     return 0 if not stats.errors else 1

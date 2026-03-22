@@ -22,6 +22,11 @@ from typing import TYPE_CHECKING
 import pandas as pd
 
 try:
+    from validate_13_month_window import calculate_13_month_window_through
+except ImportError:
+    calculate_13_month_window_through = None  # type: ignore[misc, assignment]
+
+try:
     from path_config import get_onedrive_root
 except ImportError:
     import os
@@ -143,16 +148,22 @@ def _period_label_to_year_month(label: str) -> tuple[int, int] | None:
     return (year, month)
 
 
-def enforce_13_month_window(df: pd.DataFrame, period_column: str = "Period") -> pd.DataFrame:
+def enforce_13_month_window(
+    df: pd.DataFrame,
+    period_column: str = "Period",
+    *,
+    window_end_ym: tuple[int, int] | None = None,
+) -> pd.DataFrame:
     """
     Filter dataframe to only include records from the 13-month rolling window.
-    
+
     Args:
         df: DataFrame with period column
         period_column: Name of column containing MM-YY period labels
-    
-    Returns:
-        Filtered DataFrame with validation warnings
+        window_end_ym: If set, (year, month) inclusive end of the 13-month window
+            (e.g. March 2026 report with last full month Feb -> (2026, 2)).
+            Excludes partial next-month rows (e.g. 03-26) from visuals.
+            If None, uses rolling window from *today* (previous complete month as end).
     """
     if period_column not in df.columns:
         logger.warning(
@@ -161,15 +172,29 @@ def enforce_13_month_window(df: pd.DataFrame, period_column: str = "Period") -> 
             list(df.columns)
         )
         return df
-    
-    start_period, end_period, valid_periods = calculate_13_month_window()
-    
-    logger.info(
-        "Enforcing 13-month window: %s through %s (%d periods)",
-        start_period,
-        end_period,
-        len(valid_periods)
-    )
+
+    if window_end_ym is not None:
+        if calculate_13_month_window_through is None:
+            logger.warning("calculate_13_month_window_through unavailable; skipping window filter")
+            return df
+        ey, em = window_end_ym
+        start_period, end_period, valid_periods = calculate_13_month_window_through(ey, em)
+        logger.info(
+            "Enforcing 13-month window (report-driven end %04d-%02d): %s through %s (%d periods)",
+            ey,
+            em,
+            start_period,
+            end_period,
+            len(valid_periods),
+        )
+    else:
+        start_period, end_period, valid_periods = calculate_13_month_window()
+        logger.info(
+            "Enforcing 13-month window: %s through %s (%d periods)",
+            start_period,
+            end_period,
+            len(valid_periods),
+        )
     
     # Normalize period labels in dataframe
     df[period_column] = df[period_column].astype(str).str.strip()
@@ -186,8 +211,14 @@ def enforce_13_month_window(df: pd.DataFrame, period_column: str = "Period") -> 
             "Filtered out %d rows from %d periods outside 13-month window: %s",
             original_count - filtered_count,
             len(removed_periods),
-            sorted(removed_periods)[:5]
+            sorted(removed_periods)[:5],
         )
+        future = sorted(removed_periods)
+        if future:
+            logger.warning(
+                "Excluded periods (partial or out-of-window, not double-counted): %s",
+                future[:10],
+            )
     
     # Validate coverage
     actual_periods = set(df_filtered[period_column].unique())
@@ -210,7 +241,11 @@ def enforce_13_month_window(df: pd.DataFrame, period_column: str = "Period") -> 
     return df_filtered
 
 
-def normalize_monthly_accrual(df: pd.DataFrame, enforce_window: bool = False) -> pd.DataFrame:
+def normalize_monthly_accrual(
+    df: pd.DataFrame,
+    enforce_window: bool = False,
+    window_end_ym: tuple[int, int] | None = None,
+) -> pd.DataFrame:
     """
     Normalize Monthly Accrual and Usage Summary (default format).
     Handles Long format with Time Category, PeriodLabel, Sum of Value.
@@ -230,14 +265,20 @@ def normalize_monthly_accrual(df: pd.DataFrame, enforce_window: bool = False) ->
         df["PeriodLabel"] = df["PeriodLabel"].astype(str).str.strip()
         df["PeriodLabel"] = df["PeriodLabel"].str.replace(r"^Sum of ", "", regex=True).str.strip()
         if enforce_window:
-            df = enforce_13_month_window(df, period_column="PeriodLabel")
+            df = enforce_13_month_window(
+                df, period_column="PeriodLabel", window_end_ym=window_end_ym
+            )
     if "Value" in df.columns:
         df["Value"] = pd.to_numeric(df["Value"], errors="coerce").fillna(0)
 
     return df
 
 
-def normalize_summons(df: pd.DataFrame, enforce_window: bool = False) -> pd.DataFrame:
+def normalize_summons(
+    df: pd.DataFrame,
+    enforce_window: bool = False,
+    window_end_ym: tuple[int, int] | None = None,
+) -> pd.DataFrame:
     """
     Normalize Summons visual exports (Long format).
     Expected columns: PeriodLabel or Month_Year, Bureau or WG2, Moving/Parking or TYPE, Sum of Value or TICKET_COUNT.
@@ -258,6 +299,11 @@ def normalize_summons(df: pd.DataFrame, enforce_window: bool = False) -> pd.Data
         id_cols = [c for c in cols if c not in month_like]
         df = df.melt(id_vars=id_cols, value_vars=month_like, var_name="PeriodLabel", value_name="TICKET_COUNT")
     
+    if "Bureau" not in df.columns and "WG2" not in df.columns:
+        logger.warning(
+            "Summons export has no Bureau/WG2 column; WG2 will default to 'Unknown' (pipeline continues)."
+        )
+
     # Normalize column names
     rename_map = {
         "PeriodLabel": "Month_Year",
@@ -278,8 +324,10 @@ def normalize_summons(df: pd.DataFrame, enforce_window: bool = False) -> pd.Data
         
         # Enforce 13-month window if requested
         if enforce_window:
-            df = enforce_13_month_window(df, period_column="Month_Year")
-    
+            df = enforce_13_month_window(
+                df, period_column="Month_Year", window_end_ym=window_end_ym
+            )
+
     # Ensure TICKET_COUNT is numeric
     if "TICKET_COUNT" in df.columns:
         df["TICKET_COUNT"] = pd.to_numeric(df["TICKET_COUNT"], errors="coerce").fillna(0)
@@ -290,13 +338,24 @@ def normalize_summons(df: pd.DataFrame, enforce_window: bool = False) -> pd.Data
     if "TYPE" not in df.columns:
         df["TYPE"] = "Unknown"
     
-    df["WG2"] = df["WG2"].fillna("Unknown").astype(str)
-    df["TYPE"] = df["TYPE"].fillna("Unknown").astype(str)
+    def _norm_cat(series: pd.Series) -> pd.Series:
+        s = series.fillna("").astype(str).str.strip()
+        s = s.replace("", "Unknown")
+        low = s.str.lower()
+        s = s.mask(low.isin(("unknown", "nan", "none")), "Unknown")
+        return s
+
+    df["WG2"] = _norm_cat(df["WG2"])
+    df["TYPE"] = _norm_cat(df["TYPE"])
     
     return df
 
 
-def normalize_training_cost(df: pd.DataFrame, enforce_window: bool = False) -> pd.DataFrame:
+def normalize_training_cost(
+    df: pd.DataFrame,
+    enforce_window: bool = False,
+    window_end_ym: tuple[int, int] | None = None,
+) -> pd.DataFrame:
     """
     Normalize Training Cost by Delivery Method (Long format).
     Expected columns: Delivery_Type, PeriodLabel or period columns, Sum of Value or Cost.
@@ -331,8 +390,10 @@ def normalize_training_cost(df: pd.DataFrame, enforce_window: bool = False) -> p
         
         # Enforce 13-month window if requested
         if enforce_window:
-            df = enforce_13_month_window(df, period_column="Period")
-    
+            df = enforce_13_month_window(
+                df, period_column="Period", window_end_ym=window_end_ym
+            )
+
     # Ensure Cost is numeric
     if "Cost" in df.columns:
         df["Cost"] = pd.to_numeric(df["Cost"], errors="coerce").fillna(0)
@@ -344,7 +405,11 @@ def normalize_training_cost(df: pd.DataFrame, enforce_window: bool = False) -> p
     return df
 
 
-def normalize_response_time_series(df: pd.DataFrame, enforce_window: bool = False) -> pd.DataFrame:
+def normalize_response_time_series(
+    df: pd.DataFrame,
+    enforce_window: bool = False,
+    window_end_ym: tuple[int, int] | None = None,
+) -> pd.DataFrame:
     """
     Normalize response time series exports (Emergency/Routine/Urgent Total Response).
     Input has Date_Sort_Key (datetime) and a value column with "X.X min" format.
@@ -358,7 +423,9 @@ def normalize_response_time_series(df: pd.DataFrame, enforce_window: bool = Fals
         # Derive MM-YY period label for window enforcement
         df["Period"] = df[date_col].dt.strftime("%m-%y")
         if enforce_window:
-            df = enforce_13_month_window(df, period_column="Period")
+            df = enforce_13_month_window(
+                df, period_column="Period", window_end_ym=window_end_ym
+            )
 
     # Standardize value column: find the response time column
     value_cols = [c for c in df.columns if c != date_col and c != "Period"]
@@ -370,7 +437,11 @@ def normalize_response_time_series(df: pd.DataFrame, enforce_window: bool = Fals
     return df
 
 
-def normalize_response_time_priority_matrix(df: pd.DataFrame, enforce_window: bool = False) -> pd.DataFrame:
+def normalize_response_time_priority_matrix(
+    df: pd.DataFrame,
+    enforce_window: bool = False,
+    window_end_ym: tuple[int, int] | None = None,
+) -> pd.DataFrame:
     """
     Normalize Response Time Trends by Priority exports.
     Input: MM-YY, RT Avg Formatted, Response_Type, Metric_Label.
@@ -382,7 +453,9 @@ def normalize_response_time_priority_matrix(df: pd.DataFrame, enforce_window: bo
         df[period_col] = df[period_col].astype(str).str.strip()
         df[period_col] = df[period_col].str.replace(r"^Sum of ", "", regex=True).str.strip()
         if enforce_window:
-            df = enforce_13_month_window(df, period_column=period_col)
+            df = enforce_13_month_window(
+                df, period_column=period_col, window_end_ym=window_end_ym
+            )
 
     return df
 
@@ -393,6 +466,7 @@ def normalize_export(
     normalizer_format: str = "monthly_accrual",
     enforce_13_month: bool = False,
     dry_run: bool = False,
+    window_end_ym: tuple[int, int] | None = None,
 ) -> bool:
     """
     Normalize a Power BI visual export and write to output_path.
@@ -423,15 +497,25 @@ def normalize_export(
         
         # Apply normalization based on format
         if normalizer_format == "summons":
-            df = normalize_summons(df, enforce_window=enforce_13_month)
+            df = normalize_summons(
+                df, enforce_window=enforce_13_month, window_end_ym=window_end_ym
+            )
         elif normalizer_format == "training_cost":
-            df = normalize_training_cost(df, enforce_window=enforce_13_month)
+            df = normalize_training_cost(
+                df, enforce_window=enforce_13_month, window_end_ym=window_end_ym
+            )
         elif normalizer_format == "response_time_series":
-            df = normalize_response_time_series(df, enforce_window=enforce_13_month)
+            df = normalize_response_time_series(
+                df, enforce_window=enforce_13_month, window_end_ym=window_end_ym
+            )
         elif normalizer_format == "response_time_priority_matrix":
-            df = normalize_response_time_priority_matrix(df, enforce_window=enforce_13_month)
+            df = normalize_response_time_priority_matrix(
+                df, enforce_window=enforce_13_month, window_end_ym=window_end_ym
+            )
         else:  # monthly_accrual (default)
-            df = normalize_monthly_accrual(df, enforce_window=enforce_13_month)
+            df = normalize_monthly_accrual(
+                df, enforce_window=enforce_13_month, window_end_ym=window_end_ym
+            )
         
         if df.empty:
             logger.error("After normalization, dataframe is empty. Check 13-month window filters.")
@@ -476,14 +560,45 @@ def main() -> int:
         action="store_true",
         help="Enforce 13-month rolling window (ending with previous complete month)"
     )
+    parser.add_argument(
+        "--13m-window-ends",
+        dest="window_ends",
+        type=str,
+        default=None,
+        metavar="YYYY-MM",
+        help="Inclusive end month for the 13-month window (drops partial months after this, e.g. 2026-02 for a March 2026 report)",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Preview only, do not write output")
     
     args = parser.parse_args()
+
+    window_end_ym: tuple[int, int] | None = None
+    if args.window_ends:
+        try:
+            ys, ms = args.window_ends.strip().split("-", 1)
+            window_end_ym = (int(ys), int(ms))
+            if not (1 <= window_end_ym[1] <= 12):
+                raise ValueError
+        except ValueError:
+            logger.error("Invalid --13m-window-ends %r (use YYYY-MM)", args.window_ends)
+            return 1
     
     # Log 13-month window for reference
     if args.enforce_13_month:
-        start, end, periods = calculate_13_month_window()
-        logger.info("13-month window: %s to %s (%d periods)", start, end, len(periods))
+        if window_end_ym and calculate_13_month_window_through:
+            ey, em = window_end_ym
+            start, end, periods = calculate_13_month_window_through(ey, em)
+            logger.info(
+                "13-month window (fixed end %04d-%02d): %s to %s (%d periods)",
+                ey,
+                em,
+                start,
+                end,
+                len(periods),
+            )
+        else:
+            start, end, periods = calculate_13_month_window()
+            logger.info("13-month window: %s to %s (%d periods)", start, end, len(periods))
     
     success = normalize_export(
         input_path=args.input,
@@ -491,6 +606,7 @@ def main() -> int:
         normalizer_format=args.format,
         enforce_13_month=args.enforce_13_month,
         dry_run=args.dry_run,
+        window_end_ym=window_end_ym,
     )
     
     return 0 if success else 1

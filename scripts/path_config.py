@@ -12,18 +12,21 @@ from pathlib import Path
 
 
 def get_onedrive_root() -> Path:
-    """Resolve OneDrive root dynamically. Auto-detects desktop (carucci_r) vs laptop (RobertCarucci)."""
+    """Resolve OneDrive root. Canonical profile is carucci_r (desktop); laptop uses junction carucci_r -> profile."""
     base = os.environ.get("ONEDRIVE_BASE") or os.environ.get("ONEDRIVE_HACKENSACK")
     if base:
         p = Path(base)
         if p.exists():
             return p
-    # Auto-detect: try current user's OneDrive (works on desktop and laptop)
+    # Prefer canonical desktop path when present (laptop: mklink /J C:\\Users\\carucci_r C:\\Users\\<user>)
+    canon_onedrive = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack")
+    if canon_onedrive.exists():
+        return canon_onedrive
+    # Current user's OneDrive (laptop without junction)
     home_onedrive = Path.home() / "OneDrive - City of Hackensack"
     if home_onedrive.exists():
         return home_onedrive
-    # Fallback for local dev
-    return Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack")
+    return canon_onedrive
 
 
 def get_powerbi_data_dir() -> Path:

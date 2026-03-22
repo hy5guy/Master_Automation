@@ -1,7 +1,7 @@
 """
 run_summons_etl.py
 Path-agnostic wrapper for Summons ETL (v2.3.0)
-Auto-detects desktop (carucci_r) vs laptop (RobertCarucci).
+Resolves OneDrive via path_config (canonical carucci_r path; laptop: junction to profile).
 Produces 3 output tiers: RAW copy, CLEAN Excel, SLIM CSV.
 Loads all months in folder (prefers _FIXED.csv from DOpus) for full 13-month coverage.
 """

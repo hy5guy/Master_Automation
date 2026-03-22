@@ -129,7 +129,7 @@
       "requires_normalization": true,
       "is_backfill_required": true,
       "enforce_13_month_window": true,
-      "target_folder": "social_media_and_time_report",
+      "target_folder": "monthly_accrual_and_usage",
       "notes": "Trend data. Backfill enabled for tracking accruals over time. | Overtime/TimeOff backfill reads from Backfill/YYYY_MM/vcs_time_report/ - backfill_folder overrides target_folder",
       "backfill_folder": "vcs_time_report",
       "normalizer_format": "monthly_accrual"
@@ -619,7 +619,7 @@
       "requires_normalization": false,
       "is_backfill_required": false,
       "enforce_13_month_window": true,
-      "target_folder": "traffic_mva",
+      "target_folder": "traffic",
       "notes": "Trend data. Normalization needed for 'First Value'."
     },
     {
@@ -638,7 +638,7 @@
       "requires_normalization": false,
       "is_backfill_required": false,
       "enforce_13_month_window": true,
-      "target_folder": "detectives_pt1",
+      "target_folder": "detectives",
       "notes": "Trend data. Normalization needed to remove 'Sum of Value' prefix."
     },
     {
@@ -657,7 +657,7 @@
       "requires_normalization": false,
       "is_backfill_required": false,
       "enforce_13_month_window": true,
-      "target_folder": "detectives_pt2",
+      "target_folder": "detectives",
       "notes": "Trend data. Normalization needed to remove 'Sum of Value' prefix."
     },
     {
@@ -673,7 +673,7 @@
       "requires_normalization": false,
       "is_backfill_required": false,
       "enforce_13_month_window": true,
-      "target_folder": "detectives_case_dispositions",
+      "target_folder": "detectives",
       "notes": "Trend data. Normalization needed to clean '%' from value column."
     },
     {
@@ -692,7 +692,7 @@
       "requires_normalization": false,
       "is_backfill_required": false,
       "enforce_13_month_window": true,
-      "target_folder": "detectives_case_dispositions",
+      "target_folder": "detectives",
       "notes": "Trend data. Normalization needed to clean '%' from 'Display Value'."
     },
     {
@@ -733,7 +733,7 @@
       "requires_normalization": false,
       "is_backfill_required": false,
       "enforce_13_month_window": true,
-      "target_folder": "stacp_pt1",
+      "target_folder": "stacp",
       "notes": "Trend data. Normalization needed to remove 'Sum of Value' prefix."
     },
     {
@@ -754,7 +754,7 @@
       "requires_normalization": false,
       "is_backfill_required": false,
       "enforce_13_month_window": true,
-      "target_folder": "stacp_pt2",
+      "target_folder": "stacp",
       "notes": "Trend data. Normalization needed to remove 'Sum of Value' prefix."
     },
     {
