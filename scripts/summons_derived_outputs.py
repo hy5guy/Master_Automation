@@ -17,12 +17,24 @@ from datetime import datetime
 import pandas as pd
 
 try:
-    from path_config import get_onedrive_root
+    from path_config import get_onedrive_root, get_powerbi_paths
 except ImportError:
     def get_onedrive_root() -> Path:
         import os
         base = os.environ.get("ONEDRIVE_BASE") or os.environ.get("ONEDRIVE_HACKENSACK")
         return Path(base) if base else Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack")
+
+    def get_powerbi_paths() -> tuple[Path, Path]:
+        import json, os
+        config_path = Path(__file__).resolve().parent.parent / "config" / "scripts.json"
+        try:
+            with open(config_path, encoding="utf-8") as f:
+                data = json.load(f)
+            drop = Path(data["settings"]["powerbi_drop_path"])
+            return drop, drop.parent / "Backfill"
+        except Exception:
+            root = get_onedrive_root()
+            return root / "PowerBI_Date" / "_DropExports", root / "PowerBI_Date" / "Backfill"
 
 
 def _find_file(candidates: list[Path]) -> Path | None:
@@ -38,14 +50,13 @@ def main() -> int:
     print("[INFO] Starting Summons Derived Outputs generation (SIMPLIFIED)...")
     
     root = get_onedrive_root()
-    output_dir = root / "PowerBI_Data" / "_DropExports"
+    output_dir, backfill_root = get_powerbi_paths()
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Candidate paths for 2026_01 exports (prefer Compstat, fallback to Backfill)
     compstat = root / "Shared Folder" / "Compstat" / "Monthly Reports" / "2026" / "01_january"
     compstat_archive = compstat / "archive"
-    backfill = root / "00_dev" / "projects" / "PowerBI_Data" / "Backfill" / "2026_01" / "summons"
-    backfill_alt = root / "PowerBI_Data" / "Backfill" / "2026_01" / "summons"
+    backfill = backfill_root / "2026_01" / "summons"
     
     try:
         # FILE 1: backfill_summons_summary.csv - Use Power BI export directly
@@ -53,7 +64,6 @@ def main() -> int:
             compstat / "Department-Wide Summons  Moving and Parking.csv",
             compstat_archive / "Department-Wide Summons  Moving and Parking.csv",
             backfill / "2026_01_Department-Wide Summons  Moving and Parking.csv",
-            backfill_alt / "2026_01_Department-Wide Summons  Moving and Parking.csv",
         ]
         dept_file = _find_file(dept_candidates)
         if dept_file:
@@ -75,7 +85,6 @@ def main() -> int:
             compstat / "Summons  Moving & Parking  All Bureaus.csv",
             compstat_archive / "Summons  Moving & Parking  All Bureaus.csv",
             backfill / "2026_01_Summons  Moving & Parking  All Bureaus.csv",
-            backfill_alt / "2026_01_Summons  Moving & Parking  All Bureaus.csv",
         ]
         wg2_file = _find_file(wg2_candidates)
         if wg2_file:
@@ -94,7 +103,6 @@ def main() -> int:
             compstat / "Top 5 Moving Violations - Department Wide.csv",
             compstat_archive / "Top 5 Moving Violations - Department Wide.csv",
             backfill / "2026_01_Top 5 Moving Violations - Department Wide.csv",
-            backfill_alt / "2026_01_Top 5 Moving Violations - Department Wide.csv",
         ]
         top5m_file = _find_file(top5m_candidates)
         if top5m_file:
@@ -115,7 +123,6 @@ def main() -> int:
             compstat / "Top 5 Parking Violations - Department Wide.csv",
             compstat_archive / "Top 5 Parking Violations - Department Wide.csv",
             backfill / "2026_01_Top 5 Parking Violations - Department Wide.csv",
-            backfill_alt / "2026_01_Top 5 Parking Violations - Department Wide.csv",
         ]
         top5p_file = _find_file(top5p_candidates)
         if top5p_file:

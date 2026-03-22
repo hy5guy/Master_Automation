@@ -1,0 +1,189 @@
+{
+  "source_file": "Claude-Reading and acting on attached prompts.json",
+  "source_path": "C:\\_chunker\\02_data\\Claude-Reading and acting on attached prompts.json",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\Claude-Reading_and_acting_on_attached_prompts\\2026_03_17_22_41_56_Claude-Reading_and_acting_on_attached_prompts.origin.json",
+  "created_at": "2026_03_17_22_41_56",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "dataset",
+    "docs",
+    "excel",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "python",
+    "sql",
+    "training"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "data",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "let",
+      "measures",
+      "time",
+      "format",
+      "process",
+      "data"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "{\n  \"metadata\": {\n    \"title\": \"Reading and acting on attached prompts\",\n    \"user\": {\n      \"name\": \"RAC\"\n    },\n    \"dates\": {\n      \"created\": \"2026/3/17 17:23:07\",\n      \"updated\": \"2026/3/17 22:11:42\",\n      \"exported\": \"2026/3/17 2...",
+    "first_line": "{"
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-03-17T22:41:56+00:00_Claude-Reading_and_acting_on_attached_prompts_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "dataset",
+        "docs",
+        "excel",
+        "json",
+        "legal",
+        "markdown",
+        "measures",
+        "nthought",
+        "police",
+        "process",
+        "python",
+        "response",
+        "sql",
+        "time",
+        "training"
+      ],
+      "key_terms": [
+        "let",
+        "measures",
+        "response",
+        "time",
+        "process",
+        "nthought"
+      ],
+      "summary": "{\n  \"metadata\": {\n    \"title\": \"Reading and acting on attached prompts\",\n    \"user\": {\n      \"name\": \"RAC\"\n    },\n    \"dates\": {\n      \"created\": \"2026/3/17 17:23:07\",\n      \"updated\": \"2026/3/17 22:11:42\",\n      \"exported\": \"2026/3/17 2...",
+      "char_length": 29909,
+      "byte_length": 30030
+    },
+    {
+      "chunk_id": "2026-03-17T22:41:56+00:00_Claude-Reading_and_acting_on_attached_prompts_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "dataset",
+        "docs",
+        "excel",
+        "json",
+        "legal",
+        "markdown",
+        "measures",
+        "nthought",
+        "police",
+        "process",
+        "python",
+        "sql",
+        "subtitle",
+        "today",
+        "training"
+      ],
+      "key_terms": [
+        "measures",
+        "let",
+        "process",
+        "subtitle",
+        "nthought",
+        "today"
+      ],
+      "summary": "Let me do a simpler spot check.\\n\\n\\nTool: dax_query_operations\\n\\n\\nThought process: Evaluated model completeness and identified remaining configuration tasks.\\n\\nAll 9 cells for Jan 2026 have CF values - green, amber, and red distribut...",
+      "char_length": 29998,
+      "byte_length": 30032
+    },
+    {
+      "chunk_id": "2026-03-17T22:41:56+00:00_Claude-Reading_and_acting_on_attached_prompts_chunk3",
+      "chunk_index": 3,
+      "file": "chunk_00002.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "dataset",
+        "docs",
+        "excel",
+        "format",
+        "json",
+        "legal",
+        "markdown",
+        "measure",
+        "minutes",
+        "police",
+        "power",
+        "python",
+        "sql",
+        "time",
+        "training",
+        "values"
+      ],
+      "key_terms": [
+        "format",
+        "minutes",
+        "time",
+        "measure",
+        "values",
+        "power"
+      ],
+      "summary": "These are the real numbers.\\n\\nNow let me check the CF measures with the new data to make sure they still work correctly.\\n\\n\\nKPI measures working.",
+      "char_length": 30069,
+      "byte_length": 30154
+    },
+    {
+      "chunk_id": "2026-03-17T22:41:56+00:00_Claude-Reading_and_acting_on_attached_prompts_chunk4",
+      "chunk_index": 4,
+      "file": "chunk_00003.txt",
+      "tags": [
+        "ai",
+        "axis",
+        "chart",
+        "code",
+        "data",
+        "dataset",
+        "docs",
+        "excel",
+        "format",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sql",
+        "training",
+        "values",
+        "visual",
+        "y-axis"
+      ],
+      "key_terms": [
+        "format",
+        "chart",
+        "axis",
+        "y-axis",
+        "values",
+        "visual"
+      ],
+      "summary": "Instead of fraction-of-day, I'll create a measure that returns an integer encoding (e.g., 631 for 6:31) and use a number format #\\\":\\\"00 to display with a colon.\\n\\n\\nTool: dax_query_operations\\n\\n\\nThought process: Validated time format...",
+      "char_length": 20848,
+      "byte_length": 20893
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

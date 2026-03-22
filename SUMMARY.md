@@ -1,4 +1,4 @@
-# Master_Automation Project Summary
+# 06_Workspace_Management Project Summary
 
 **Last Updated:** 2026-03-21
 **Status:** ✅ v1.19.1 — Phase 2 complete: fee/fine enrichment, VIOLATION_CATEGORY, DFR backfill wired
@@ -8,7 +8,7 @@
 
 ## Project Overview
 
-Master_Automation is a centralized orchestration hub for running all Python ETL scripts that feed into Power BI reports. It provides automated execution, error handling, logging, and Power BI integration for multiple data processing workflows.
+06_Workspace_Management is a centralized orchestration hub for running all Python ETL scripts that feed into Power BI reports. It provides automated execution, error handling, logging, and Power BI integration for multiple data processing workflows.
 
 ---
 
@@ -16,7 +16,7 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 
 | Item | Details |
 |------|---------|
-| **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
+| **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
 | **Status** | ✅ v1.19.1 — Phase 2 complete: fee/fine enrichment, VIOLATION_CATEGORY, DFR backfill wired |
@@ -64,7 +64,6 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 
 | Script Name | Reason |
 |-------------|--------|
-| Policy Training Monthly | Not orchestrated from Master_Automation (run from its own project folder) |
 | Arrest Data Source | Only test files found |
 | NIBRS | No Python files found |
 
@@ -73,13 +72,13 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 ## Directory Structure
 
 ```
-Master_Automation/
+06_Workspace_Management/
 ├── README.md                    # Main documentation
 ├── SUMMARY.md                   # This file
 ├── CHANGELOG.md                 # Version history
 ├── Claude.md                    # AI assistant guide
 ├── verify_migration.ps1         # Migration verification
-├── Master_Automation.code-workspace  # VS Code workspace
+├── 06_Workspace_Management.code-workspace  # VS Code workspace
 ├── .gitignore                   # Git ignore rules
 ├── requirements.txt             # Python deps (pandas, openpyxl) for validation & summons backfill
 ├── config/                      # Configuration files
@@ -162,7 +161,7 @@ pip install -r requirements.txt
 ### Run All ETL Scripts
 
 ```powershell
-cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management"
 .\scripts\run_all_etl.ps1
 ```
 
@@ -243,7 +242,7 @@ Validation tool:
 
 ## Policy Training Monthly (Backfill + Current Month)
 
-Policy Training is managed in its own project folder:
+Policy Training is managed in its own project folder (enabled in `config/scripts.json`):
 - `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Policy_Training_Monthly`
 
 Key output:
@@ -251,11 +250,12 @@ Key output:
 
 Expected behavior:
 - Backfill months match the prior-month backfill export (e.g., `PowerBI_Date\Backfill\2025_10\policy_training\...`)
-- ETL computes rolling 13-month window; **01-26** (and later months) appear in Cost by Delivery Method visual after ETL run when source workbook has that period.
-- In-Person Training visual shows prior-month In-Person courses; zeros when source has no cost (or fill **Cost Per Attendee** in source and re-run ETL for imputation).
+- ETL computes rolling 13-month window; **02-26** (and later months) appear in Cost by Delivery Method visual after ETL run when source workbook has that period.
+- **Cost of Training** (`___Cost_of_Training.m`): Window ends at **report month** (e.g. Feb report → 02-25 through 02-26).
+- **In-Person Training** (`___In_Person_Training.m`): Loads from **source workbook** (`Policy_Training_Monthly.xlsx` Training_Log) directly; filters by report month + In-Person delivery. Handles #VALUE! and currency format.
 
 Doc:
-- `docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md` – Run location, Cost of Training 13-month fix, why 01-26 missing, In-Person visual and source column alias (**Cost Per Attendee** in ETL).
+- `docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md` – Run location, Cost of Training 13-month fix, In-Person source and error handling.
 
 Validation helper:
 - `scripts/compare_policy_training_delivery.py` (visual export vs ETL output; history vs backfill)
@@ -267,6 +267,8 @@ Validation helper:
 **Status (2025-12-12):** ✅ All Issues Resolved - System Healthy
 
 **⚠️ Verification Note (2026-03-03):** Re-export all summons e-ticket data to verify counts. See `docs/SUMMONS_VERIFICATION_NOTE_2026_03.md`.
+
+**v1.18.6 (2026-03-13):** All four summons visuals (13month_trend, all_bureaus, top5_moving, top5_parking) use **report month** in window/filter — for Feb 2026 report, 02-26 data included.
 
 **v1.18.1 (2026-03-10):** Ramirez SSOCC overrides in ETL; UNASSIGNED mapping in all_bureaus; 07-25 filler rows in 13month_trend; `docs/SUMMONS_M_CODE_NOTES.md` for lessons learned.
 
@@ -379,13 +381,13 @@ Documentation:
 
 | Purpose | Path |
 |---------|------|
-| **Workspace** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
+| **Workspace** | `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` |
 | **Config** | `config\scripts.json` |
 | **Logs** | `logs\` |
 | **PowerBI Drop** | `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports` |
 | **ETL Scripts** | `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\*` |
 | **Data Sources** | `C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\*` |
-| **Report Template** | `C:\Users\carucci_r\OneDrive - City of Hackensack\15_Templates\Monthly_Report_Template.pbix` |
+| **Report Template** | `C:\Users\carucci_r\OneDrive - City of Hackensack\08_Templates\Monthly_Report_Template.pbix` |
 | **Monthly Reports** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports\YYYY\MM_monthname\` |
 
 ---
@@ -430,6 +432,20 @@ Documentation:
 - Check `powerbi_drop_path` exists
 - Verify OneDrive sync status
 - Check file permissions
+
+---
+
+## Recent Updates (2026-03-19)
+
+### v1.18.13 — Directory Consolidation Complete; Power BI Template MCP Injection ✅
+
+**Claude Desktop MCP session** successfully updated `08_Templates\Monthly_Report_Template.pbix`:
+
+- **M-Code Paths:** 4 Response Time partitions (`___ResponseTime_DispVsCall`, `___ResponseTime_OutVsCall`, `___ResponseTimeCalculator`, `___ResponseTime_AllMetrics`) — `PowerBI_Date` → `PowerBI_Data` injected.
+- **DAX Subtitles:** 13 lagged subtitle measures rewritten to use standardized 13-month rolling format based on `___DimMonth`; fixes stale dates, `FIRSTNONBLANK` error in `Subtitle_V3_Accrual`, missing column in `Metrics Qual Subtitle`.
+- **New Measure:** `Subtitle_DeptWide_Summons` on `summons_13month_trend`.
+- **Use of Force Fix:** `IncidentCount_13Month` — `EDATE` end-of-month bug excluded Feb 2025; rewritten to start-of-month (75 → 78 count resolved).
+- **Cosmetic Deferral:** `STACP_DIAGNOSTIC` comment header updated to `06_Workspace_Management`; `___STACP_pt_1_2`, `___Detectives`, `ESU_13Month` deferred (local source files already correct).
 
 ---
 
@@ -560,7 +576,7 @@ Documentation:
 - **Files Generated** - 60 total output files across all workflows
 
 ### Critical Fixes (2026-02-09):
-1. **Overtime TimeOff** - Copied `Assignment_Master_V2.csv` to Master_Automation root (19.92s, 30 files)
+1. **Overtime TimeOff** - Copied `Assignment_Master_V2.csv` to 06_Workspace_Management root (19.92s, 30 files)
 2. **Response Times ETL** - Updated script from v2.0.0 → v2.1.0 with hybrid timereport loading (76.09s, 15 files)
 3. **Response Times Power BI** - Updated M code from v2.7.1 → v2.8.0 fixing type conversion errors (0% errors)
 4. **Validation Updates** - Enhanced `run_all_etl.ps1` with fallback path logic for Response Times and Summons
@@ -717,8 +733,8 @@ The manifest provides a machine-readable reference for the entire Master Automat
 ---
 
 **Maintained by:** R. A. Carucci  
-**Last Updated:** 2026-03-10  
-**Version:** 1.18.1
+**Last Updated:** 2026-03-19  
+**Version:** 1.18.14
 
 ---
 

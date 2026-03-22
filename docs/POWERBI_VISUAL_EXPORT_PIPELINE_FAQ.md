@@ -36,7 +36,7 @@ Source files are **removed** from `_DropExports` after a successful move/copy.
 **No.** Those three files live in a **comparison folder** (`2026_12_compair`), not in the pipeline’s source folder.
 
 - **`process_powerbi_exports.py`** only reads from:
-  - **Default source:** `Master_Automation\_DropExports`
+  - **Default source:** `PowerBI_Date\_DropExports` (canonical; read from `config/scripts.json` → `settings.powerbi_drop_path`)
   - Or the path you pass with `--source`
 - It does **not** scan `data\backfill\2026_12_compair\`, so those CSVs were **not** processed, renamed, moved, or normalized by the script.
 

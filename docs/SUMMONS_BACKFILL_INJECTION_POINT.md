@@ -2,7 +2,7 @@
 
 **Purpose:** Fill Department-Wide Summons data gaps for months where no e-ticket export exists, by merging aggregate totals from the organized backfill folder.
 
-**Last Updated:** 2026-03-11
+**Last Updated:** 2026-03-14
 
 ---
 
@@ -47,15 +47,17 @@ DEFAULT_BACKFILL_SUMMONS_LABEL = "2026_01"
 
 ## Backfill Folder Layout
 
-**Confirmed paths (checked in order):**
-1. `{OneDrive}/00_dev/projects/PowerBI_Date/Backfill/{label}/summons/` — **preferred**
-2. `{OneDrive}/PowerBI_Date/Backfill/{label}/summons/`
+**Canonical path (single source of truth, from `config/scripts.json` → `powerbi_drop_path`):**
 
-Example: `C:\Users\carucci_r\OneDrive - City of Hackensack\00_dev\projects\PowerBI_Date\Backfill\2026_01\summons\2026_01_Department-Wide Summons  Moving and Parking.csv`
+`{OneDrive}/PowerBI_Date/Backfill/{label}/summons/`
+
+Example: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2026_01\summons\2026_01_department_wide_summons_january_report.csv` (full January report: 01-25 through 01-26)
+
+> **Note:** The legacy `00_dev/projects/PowerBI_Date/Backfill/` location was archived to `99_Archive/PowerBI_Date_00_dev_20260311` on 2026-03-11. All data was merged into the canonical path before archiving.
 
 CSVs in these folders are expected in "Long" format with columns: `PeriodLabel` (or `Period`), `WG2`, `TICKET_COUNT` (or `Sum of Value`), `TYPE`. Column renaming is handled by `RENAME_MAP` in the merge script.
 
-**Backfill-as-source-of-truth (v1.18.4):** For ALL months in the consolidated backfill file, e-ticket rows are removed and backfill values are used exclusively. The Department-Wide Summons visual now matches the backfill file exactly (e.g. 02-25 M=274, 07-25 M=402). Months not in backfill (12-25, 01-26, 02-26) use e-ticket data.
+**Backfill-as-source-of-truth (v1.18.4+):** For ALL months in the consolidated backfill file, e-ticket rows are removed and backfill values are used exclusively. As of v1.18.7, `2026_01_department_wide_summons_january_report.csv` contains the full January report (01-25 through 01-26). Months not in backfill (e.g. 02-26) use e-ticket data.
 
 ---
 

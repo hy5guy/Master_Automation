@@ -1,12 +1,204 @@
 # Changelog
 
-All notable changes to the Master_Automation workspace will be documented in this file.
+All notable changes to the 06_Workspace_Management workspace will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.18.14] - 2026-03-19
+
+### Added — DFR Summons ETL Enhancement (summons_etl_enhanced.py)
+
+**summons_etl_enhanced.py** (02_ETL_Scripts/Summons/):
+- **DFR_CONFIG** — Module-level config: dfr_badges (0738, 2025), target workbook path, formula columns, status map.
+- **_map_to_dfr_schema()** — Filters unified dataset for DFR badges; maps to DFR Summons Log schema (Date, Time, Summons Number, Location, Statute, DFR Operator, Issuing Officer, Summons Status, DFR Unit ID, Notes).
+- **export_to_dfr_workbook()** — Appends new rows to `dfr_directed_patrol_enforcement.xlsx`; deduplicates on Summons Number; skips formula columns (A, G, H, I, J, P, R); on PermissionError saves to `.etl_temp.xlsx`.
+- **main()** — After save_to_staging(), calls _map_to_dfr_schema() and export_to_dfr_workbook() when DFR records exist.
+- **Target path:** `Shared Folder/Compstat/Contributions/Drone/dfr_directed_patrol_enforcement.xlsx`
+
+### Changed — DFR_Summons.m Filter (Dismissed/Void/Voided)
+
+**DFR_Summons.m** (m_code/drone/):
+- **FilteredStatus step** — New step between FilteredRecalls and FilteredData; excludes rows where Summons_Status contains "dismiss" or "void" (Text.Contains, case-insensitive).
+- **Catches variants:** "Dismissed", "Void", "Voided" and similar.
+- **Null-safe:** Uses `status ?? ""` before Text.Lower/Trim.
+- **Filter chain:** FilteredBlanks → FilteredRecalls → FilteredStatus → FilteredData.
+
+**Documentation:**
+- CLAUDE.md — DFR Summons section updated (ETL population, dual filter).
+- SUMMARY.md — Version 1.18.14; DFR ETL noted.
+- docs/PROMPT_Claude_In_Excel_DFR_Directed_Patrol_Summons_MCode.md — Summons_Status filter added to spec.
+
+---
+
+## [1.18.13] - 2026-03-19
+
+### Changed — Power BI Template MCP Injection (Directory Consolidation Complete)
+
+**Claude Desktop MCP session** successfully injected path corrections and DAX fixes into `08_Templates\Monthly_Report_Template.pbix`. Directory consolidation refactor is officially complete.
+
+**M-Code Paths Updated (4 Response Time partitions):**
+- `___ResponseTime_DispVsCall`, `___ResponseTime_OutVsCall`, `___ResponseTimeCalculator`, `___ResponseTime_AllMetrics` — `PowerBI_Date` → `PowerBI_Data` path corrections injected via MCP.
+
+**DAX Subtitles Standardized (13 measures):**
+- 13 lagged/broken subtitle measures rewritten to use standardized 13-month rolling date format based on `___DimMonth`.
+- Fixes stale dates when underlying source data had not been updated.
+- Resolved `FIRSTNONBLANK` error in `Subtitle_V3_Accrual` and missing column error in `Metrics Qual Subtitle`.
+
+**New Measure:**
+- `Subtitle_DeptWide_Summons` created on `summons_13month_trend` table.
+
+**Data Discrepancy Resolved:**
+- Use of Force 75 vs 78 count: `IncidentCount_13Month` measure fixed. `EDATE` was returning end-of-month date that excluded February 2025; rewritten to normalize to start-of-month date.
+
+**Cosmetic Deferral:**
+- `STACP_DIAGNOSTIC` comment header updated to `06_Workspace_Management`.
+- Comment header updates for `___STACP_pt_1_2`, `___Detectives`, and `ESU_13Month` intentionally deferred to avoid risk to live AS engine. Local extracted source files already correct.
+
+**Documentation:**
+- Phase 4.11 (Verification) marked complete in `_consolidation_project\IMPLEMENTATION_CHECKLIST_Directory_Consolidation.md`.
+- Consolidation project formally closed out.
+
+---
+
+## [1.18.11] - 2026-03-18
+
+### Changed — DFR Summons M Code Overhaul (MM-YY, Date_Sort_Key, Description Shortening)
+
+**DFR_Summons.m (m_code/drone/):**
+- **MM-YY column:** Display column for matrix headers (e.g., "02-25", "03-26"); replaces DateFormatted for project consistency.
+- **Date_Sort_Key:** First-of-month date for Power BI sort-by-column; MM-YY sorts by Date_Sort_Key for chronological column order.
+- **Description shortening:** Strips "Parking or stopping in designated " prefix → zone only (e.g., FIRE LANE/FIRE ZONE); source is ALL CAPS from Excel.
+- **Violation_Type P/M/C:** P=Parking/Reg/Equipment/Fire, M=Moving (reserved), C=Complaint (Parks & Rec) — from Claude in Excel.
+- **YearMonthKey restored:** Backward compat for visuals/measures; kept alongside DateSortKey (YYYYMMDD), Date_Sort_Key, MM-YY.
+- **en-US locale:** Table.TransformColumnTypes with "en-US" for text Date/Fine_Amount parsing.
+- **Dismiss/Void filter:** FilteredRecalls step excludes Summons_Recall containing "Dismiss" or "Void".
+
+**Documentation:**
+- `docs/Visual_Build_Guide_2026_02.md` — DFR matrix uses MM-YY (sort by Date_Sort_Key), Description (shortened).
+- `docs/DFR_Summons_Claude_Excel_Development_Log.md` — Claude in Excel 29-turn development history.
+- `docs/PROMPT_Claude_MCP_Create_Missing_Visuals_For_Monthly_Report.md` — DFR visual spec updated.
+- `docs/PROMPT_Claude_In_Excel_DFR_Directed_Patrol_Summons_MCode.md` — MM-YY, Date_Sort_Key sort-by note.
+
+---
+
+## [1.18.10] - 2026-03-17
+
+### Changed — Response Time Window, DFR Text Parsing, Line Chart Time Format
+
+**___ResponseTime_AllMetrics.m (m_code/response_time/):**
+- **13-month window:** EndDate now uses `Date.EndOfMonth(ReportMonth)` (was month before pReportMonth). Matches project standard: window 02-25 through 02-26 for pReportMonth=02/01/2026.
+- **StartDate:** `Date.StartOfMonth(Date.AddMonths(ReportMonth, -12))` — full 13 months inclusive.
+
+**DFR_Summons.m (m_code/drone/):**
+- **en-US culture:** `Table.TransformColumnTypes(..., "en-US")` — fixes Excel date/fine columns stored as text. DFR preview populates when dates are text.
+
+**Response Time Line Chart:**
+- **RT Avg Formatted measure:** `AvgMinutes/1440` with format `m:ss` — displays values as M:SS (e.g., 10:48) instead of decimal (10.8).
+- **RT Line Chart Subtitle:** Patrol-style DAX: "Response time trends by priority... Rolling 13-Month Overview (February 2025 - February 2026)".
+
+**Documentation:**
+- `docs/PROMPT_Claude_MCP_Response_Time_Line_Chart_Time_Format.md` — MCP prompt for line chart M:SS formatting.
+- `docs/Visual_Build_Guide_2026_02_v2.md` — TODAY() backlog removed (cleanup complete).
+- `docs/MCP_Session_Summary_TODAY_Cleanup.md` — Session summary (50+ measures, zero TODAY()/NOW()).
+- `docs/chatlogs/Claude-Reading_and_acting_on_attached_prompts/` — Claude MCP session that built visuals, fixed TODAY() measures.
+
+---
+
+## [1.18.9] - 2026-03-17
+
+### Changed — ETL Export Reliability, DFR Summons, Documentation
+
+**ETL Export Reliability Remediation (Claude Code Plan):**
+- **process_powerbi_exports.py:** `_normalize_visual_name_for_match()` now converts underscores/hyphens to spaces and lowercases — fixes misrouted exports (NIBRS, ESU). Added `--diagnose`, `--coverage-report YYYY_MM`, auto coverage report, `[UNMATCHED]` logging, `files_unmatched` counter.
+- **visual_export_mapping.json:** match_pattern added to all 36 entries; fixed NIBRS 13-Month anchor, Arrest Categories regex; defensive aliases for ESU and NIBRS; version 2.1.0.
+- **Obsolete folders removed:** Training, Time_Off, Executive, Community_Engagement, law_enforcement_duties (moved 2025_01_chief_executive_duties.csv to chief/ first).
+- **Re-processed:** 2026_02_clearance_and_crime_reporting_metrics.csv → nibrs/; 2026_02_emergency_service_unit.csv → esu/; Other/ now empty.
+- **schema_v2.json:** Added clearance_crime_reporting_metrics to rolling_13_month_visuals.
+
+**DFR_Summons M code (m_code/drone/DFR_Summons.m):**
+- **13-month window:** EndDate now uses `Date.EndOfMonth(ReportMonth)` (was first day of month) — fixes blank preview when data falls in report month.
+- **Summons Recall filter:** Excludes rows where Summons_Recall contains "Dismiss" or "Void" (case-insensitive). Schema-resilient: skips filter if column missing.
+- **Source:** Sheet fallback is "DFR Summons Log" (not "DFR_Summons"); Table first, then Sheet with PromoteHeaders.
+
+**visual_export_mapping.json:**
+- Added DFR Directed Patrol Summons mapping (target_folder: drone, match_pattern for dfr_summons).
+- Note on Officer Summons Activity: 4th Summons visual is Department-Wide Summons.
+
+**Documentation:**
+- `docs/PROMPT_ETL_Export_Reliability_Diagnostic_Enhanced.md` — Full paths for 06_Workspace_Management and PowerBI_Data; pipeline scripts, config, canonical paths.
+- `docs/PROMPT_Claude_MCP_Create_Missing_Visuals_For_Monthly_Report.md` — Claude MCP prompt for creating Response Time visuals, DFR Summons visual, skip list.
+- `docs/PROMPT_Claude_In_Excel_DFR_Directed_Patrol_Summons_MCode.md` — Updated with Summons Recall filter, EndOfMonth window, sheet name "DFR Summons Log".
+
+---
+
+## [1.18.8] - 2026-03-16
+
+### Added — Key Paths Documentation
+
+**Paths added to CLAUDE.md, README.md, CHANGELOG.md:**
+- **06_Workspace_Management:** workspace root, config, scripts (process_powerbi_exports, path_config), visual_export_mapping, schema_v2, m_code, docs
+- **PowerBI_Data:** data root, _DropExports (drop zone), Backfill/{YYYY_MM}/vcs_time_report, Backfill/{YYYY_MM}/summons, Archive
+- **Processed_Exports:** `09_Reference\Standards\Processed_Exports\{target_folder}\` for renamed exports
+
+---
+
+## [1.18.7] - 2026-03-14
+
+### Changed — February 2026 Report Fixes (Supervisor Feedback)
+
+**Traffic Bureau (___Traffic.m):**
+- Month columns: `Int64.Type` → `type number` — preserves Parking Fees decimals ($115,283.87). Fixes total not updating when Tina entered Feb 2026 parking fees in Traffic_Monthly.xlsx.
+
+**Summons backfill:**
+- Full January report as source of truth: `PowerBI_Data/Backfill/2026_01/summons/2026_01_department_wide_summons_january_report.csv` — all 13 months (01-25 through 01-26) from January's Department-Wide Summons visual. Ensures 12-25 and 01-26 match prior report; 02-26 from e-ticket.
+
+**Documentation:**
+- `docs/FEBRUARY_2026_MONTHLY_REPORT_SUPERVISOR_FEEDBACK.md` — Supervisor feedback action plan (Pages 8, 11, 12, 20)
+- `docs/PROMPT_Claude_MCP_February_2026_Report_Fixes.md` — MCP prompt for Power BI fixes
+- `docs/PROMPT_Claude_MCP_Traffic_Parking_Fees_Fix.md` — MCP prompt for Traffic decimal/Value column fix
+- `docs/PROMPT_Claude_In_Excel_Traffic_Visual_Not_Showing.md` — Claude in Excel prompt for Traffic_Monthly formula/table fix
+
+---
+
+## [1.18.6] - 2026-03-13
+
+### Changed — Report Month Window Fixes (Summons, Detectives, Policy Training)
+
+**Power BI M code — all visuals now include report month (not previous month):**
+
+- **Summons (4 queries):** `summons_13month_trend`, `summons_all_bureaus`, `summons_top5_moving`, `summons_top5_parking` — window/filter changed from `pReportMonth - 1` to `pReportMonth`. For Feb 2026 report, all show 02-26 data.
+- **Detectives:** `m_code/detectives/___Det_case_dispositions_clearance.m` — `EndFilterDate` changed from `Date.AddMonths(ReportMonth, -1)` to `Date.EndOfMonth(ReportMonth)`. Window now 02-25 through 02-26 for Feb report.
+- **Policy Training — Cost:** `m_code/training/___Cost_of_Training.m` — `Report_End_Date` changed from previous month to `Date.StartOfMonth(pReportMonth)`. Window now 02-25 through 02-26 for Feb report.
+- **Policy Training — In-Person:** `m_code/training/___In_Person_Training.m` — Loads from source workbook (`Policy_Training_Monthly.xlsx` Training_Log) directly instead of ETL output `InPerson_Prior_Month_List`. Filters by report month + In-Person delivery. Added `ParseNumber` for currency/Excel errors (#VALUE!), `Table.ReplaceErrorValues`, `TrimmedHeaders`.
+
+**ETL:**
+- Policy Training source (`Policy_Training_Monthly.xlsx`) — formulas corrected (Training_Log10 reference → valid); ETL run regenerates `policy_training_outputs.xlsx` with 02-26 in `Delivery_Cost_By_Month`.
+- Summons ETL (`run_summons_etl.py --month 2026_02`) — staging has 02-26; Department-Wide trend includes Feb 2026.
+
+**Documentation:**
+- `docs/PROMPT_Claude_MCP_Summons_Month_Fix.md` — MCP prompt for summons month fix; ETL run command.
+- `docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md` — Cost window and In-Person source updated.
+
+---
+
+## [1.18.5] - 2026-03-11
+
+### Changed — Community Engagement: STACP Sheet, Config Paths, Individual Events
+
+**Community Engagement ETL (02_ETL_Scripts/Community_Engagment):**
+- Config: STACP sheet updated from `_25_outreach` (does not exist) to `School_Outreach`. Fixes missing Feb 2026 STA&CP incidents.
+- Config: All paths use base `C:\Users\carucci_r\OneDrive - City of Hackensack` (desktop); laptop uses `RobertCarucci`.
+
+**Power BI M code:**
+- `m_code/community/___Combined_Outreach_All.m`: Added Event ID and Row_ID columns so each event displays as an individual row. Prevents "Engagement Initiatives by Bureau" visual from aggregating multiple events (e.g. 9 LEAD events) into 2 rows. Add Row_ID to visual's Rows well.
+
+**Documentation:**
+- `02_ETL_Scripts/Community_Engagment/`: SUMMARY.md, README.md, CHANGELOG.md updated.
+- `docs/PROMPT_Fix_Social_Media_MMYY_Columns.md`: ___Combined_Outreach_All section updated with STACP sheet, config path, Event ID/Row_ID.
+- `SUMMARY.md`: Community Engagement script corrected to `src\main_processor.py`.
 ## [1.19.1] - 2026-03-21
 
 ### Added — Summons ETL Phase 2: Fee/Fine Enrichment, VIOLATION_CATEGORY, DFR Backfill Wiring
@@ -152,7 +344,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Python ETL:**
 - `scripts/summons_backfill_merge.py`: Type-aware merge — for gap months (07-25), add backfill rows only for (Month_Year, TYPE) combinations not already in main df. Fixes 07-25 P and C missing: main had 17 M e-ticket rows; old logic skipped 07-25 entirely (>10 rows). Now adds backfill P (3413) and C without duplicating M. Superseded by v1.18.4 (backfill-as-source-of-truth).
 
-**Backfill path confirmed:** `00_dev/projects/PowerBI_Date/Backfill/2026_01/summons/` (preferred) and `PowerBI_Date/Backfill/2026_01/summons/`. File `2026_01_Department-Wide Summons  Moving and Parking.csv` is used.
+**Backfill path confirmed:** `00_dev/projects/PowerBI_Data/Backfill/2026_01/summons/` (preferred) and `PowerBI_Data/Backfill/2026_01/summons/`. File `2026_01_Department-Wide Summons  Moving and Parking.csv` is used.
 
 ---
 
@@ -334,11 +526,11 @@ Migration executed via Claude Desktop with Power BI MCP tools in 4 waves (save b
 
 **Overtime TimeOff validation (run_all_etl.ps1):**
 - Fixed validation to check actual script inputs instead of non-existent `05_EXPORTS\_VCS_Time_Report`
-- Now validates: `05_EXPORTS\_Overtime\export\month\{year}\*_otactivity.xlsx`, `05_EXPORTS\_Time_Off\export\month\{year}\*_timeoffactivity.xlsx`, `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\`
+- Now validates: `05_EXPORTS\_Overtime\export\month\{year}\*_otactivity.xlsx`, `05_EXPORTS\_Time_Off\export\month\{year}\*_timeoffactivity.xlsx`, `PowerBI_Data\Backfill\YYYY_MM\vcs_time_report\`
 
 **Summons Derived Outputs (summons_derived_outputs.py):**
-- Added fallback paths for Department-Wide and related exports: Compstat `01_january`, `archive`, `Backfill\2026_01\summons` (00_dev and PowerBI_Date)
-- Output to `PowerBI_Date\_DropExports`
+- Added fallback paths for Department-Wide and related exports: Compstat `01_january`, `archive`, `Backfill\2026_01\summons` (00_dev and PowerBI_Data)
+- Output to `PowerBI_Data\_DropExports`
 - Uses `path_config.get_onedrive_root()` for portability
 
 **Response Times (process_cad_data_13month_rolling.py):**
@@ -417,14 +609,14 @@ Migration executed via Claude Desktop with Power BI MCP tools in 4 waves (save b
 
 ### Changed — Assignment Master Sync Path-Agnostic (09_Reference/Personnel)
 
-**Location:** `09_Reference\Personnel\` (sibling to Master_Automation; not in this repo)
+**Location:** `09_Reference\Personnel\` (sibling to 06_Workspace_Management; not in this repo)
 
 The Assignment Master sync pipeline (`sync_assignment_master.py`, `fix_team_traffic.py`) was updated to use path-agnostic `BASE_DIR`:
 
 - **Before:** Hardcoded `C:\Users\RobertCarucci\OneDrive - City of Hackensack\09_Reference\Personnel` (laptop path)
 - **After:** `os.path.dirname(os.path.abspath(__file__))` — works on desktop (`carucci_r`) and laptop (`RobertCarucci`) without modification
 
-**Impact:** Personnel sync can be run from either machine. ETL scripts (Overtime/TimeOff, Summons) consume `Assignment_Master_V2.csv` from `09_Reference\Personnel\` or `Master_Automation\` (copy). Run `python scripts/sync_assignment_master.py` or `run_sync.bat` from `09_Reference\Personnel\` after editing GOLD; copy CSV to Master_Automation if ETL reads from there.
+**Impact:** Personnel sync can be run from either machine. ETL scripts (Overtime/TimeOff, Summons) consume `Assignment_Master_V2.csv` from `09_Reference\Personnel\` or `06_Workspace_Management\` (copy). Run `python scripts/sync_assignment_master.py` or `run_sync.bat` from `09_Reference\Personnel\` after editing GOLD; copy CSV to 06_Workspace_Management if ETL reads from there.
 
 **Personnel repo:** Git initialized in `09_Reference\Personnel\` with v1.3.0 commit. As of 2026-03-02, Personnel reorganized: scripts in `scripts/`, POSS CSVs in `data/`, backups in `backups/`, `run_sync.bat` for one-click sync.
 
@@ -458,10 +650,10 @@ First run of v1.17.19 filter logic from raw exports only — no backfill. Establ
 13-month baseline for future runs.
 
 - **Sources:** 2024 removed. Only 2025 yearly + 2026-01 monthly (Jan 2025–Jan 2026).
-- **Output path:** `PowerBI_Date\Backfill\response_time_all_metrics` → `PowerBI_Date\response_time_all_metrics` (canonical baseline)
+- **Output path:** `PowerBI_Data\Backfill\response_time_all_metrics` → `PowerBI_Data\response_time_all_metrics` (canonical baseline)
 - **Output files:** 13 monthly CSVs (2025_01 through 2026_01), not 25.
 
-**Archive:** Previous 25-month backfill archived to `Master_Automation\archive\response_time_backfill_pre_baseline_20260227\`.
+**Archive:** Previous 25-month backfill archived to `06_Workspace_Management\archive\response_time_backfill_pre_baseline_20260227\`.
 
 **Power BI:** The three M code queries (`___ResponseTimeCalculator`, `___ResponseTime_OutVsCall`, `___ResponseTime_DispVsCall`) updated to read from the new path. **Update the PBIX file** if it still references the old Backfill path.
 
@@ -590,7 +782,7 @@ Full comparison: `docs/response_time/2026_02_27_PreFix_vs_PostFix_Comparison_v1.
 - 2025: 114,064 → 17,785 final (84% reduction)
 - 2026-01: 10,435 → 1,444 final (86% reduction)
 
-**All 25 monthly CSVs regenerated** at `PowerBI_Date\Backfill\response_time_all_metrics\`.
+**All 25 monthly CSVs regenerated** at `PowerBI_Data\Backfill\response_time_all_metrics\`.
 Power BI refresh required.
 
 ### Tech Debt Logged
@@ -655,7 +847,7 @@ The following corrections and new findings were applied.
   The production copy is correct.
 
 ### New Finding — Routine "Dispatch to On Scene" Bimodal Distribution
-- **File:** `PowerBI_Date\Backfill\response_time_all_metrics\`
+- **File:** `PowerBI_Data\Backfill\response_time_all_metrics\`
 - **Metric:** `Time Out - Time Dispatched` | **Response Type:** Routine
 - **Finding:** Mean/median ratio is ~10× (01-25: Mean 2:01, Median 0:11; 01-26: Mean 2:04,
   Median 0:13). This is a **bimodal distribution** — a large cluster of near-zero times
@@ -780,7 +972,7 @@ The following corrections and new findings were applied.
 - **2024**: 82,891 records after dedup → 82,889 usable. 858 from CAD, 82,031 from CallType map, 2 excluded.
 - **2025**: 87,436 records after dedup → 87,428 usable. 84,162 from CAD, 3,266 from map, 8 excluded.
 - **2026-01**: 7,499 records after dedup → 7,499 usable. 7,498 from CAD, 1 from map, 0 excluded.
-- Total runtime: ~111 seconds. 25 CSVs written to `PowerBI_Date\Backfill\response_time_all_metrics\`.
+- Total runtime: ~111 seconds. 25 CSVs written to `PowerBI_Data\Backfill\response_time_all_metrics\`.
 
 ---
 
@@ -823,18 +1015,18 @@ The following corrections and new findings were applied.
 ## [1.17.11] - 2026-02-26
 
 ### Added
-- **`02_ETL_Scripts\Response_Times\response_time_batch_all_metrics.py`** — New batch ETL that processes all available CAD timereport data and outputs all three response time metrics to a single folder consumed by Power BI via `Folder.Files()`. Sources: `2024_full_timereport.xlsx`, `2025_full_timereport.xlsx`, `2026_01_timereport.xlsx`. Produces 25 monthly CSVs in `PowerBI_Date\Backfill\response_time_all_metrics\`.
+- **`02_ETL_Scripts\Response_Times\response_time_batch_all_metrics.py`** — New batch ETL that processes all available CAD timereport data and outputs all three response time metrics to a single folder consumed by Power BI via `Folder.Files()`. Sources: `2024_full_timereport.xlsx`, `2025_full_timereport.xlsx`, `2026_01_timereport.xlsx`. Produces 25 monthly CSVs in `PowerBI_Data\Backfill\response_time_all_metrics\`.
 - **`m_code\response_time\___ResponseTime_OutVsCall.m`** — New Power BI query for **Time Out − Time of Call** (total response: call receipt to officer on scene). Uses `Folder.Files()` on the unified backfill folder, filtered by `Metric_Type = "Time Out - Time of Call"`. Same output schema as `___ResponseTimeCalculator.m` for DAX compatibility.
 - **`m_code\response_time\___ResponseTime_DispVsCall.m`** — New Power BI query for **Time Dispatched − Time of Call** (dispatcher queue time: call receipt to dispatch). Same architecture as above, filtered by `Metric_Type = "Time Dispatched - Time of Call"`.
 
 ### Changed
-- **`m_code\response_time\___ResponseTimeCalculator.m`** — Replaced all hardcoded individual CSV source blocks with a single `Folder.Files()` load from `PowerBI_Date\Backfill\response_time_all_metrics`, filtered to `Metric_Type = "Time Out - Time Dispatched"`. This is the "golden standard" re-run using raw CAD data (not the old pre-aggregated backfill CSVs with potentially flawed calculations). Covers 2024–01-26. Output schema unchanged for DAX compatibility.
+- **`m_code\response_time\___ResponseTimeCalculator.m`** — Replaced all hardcoded individual CSV source blocks with a single `Folder.Files()` load from `PowerBI_Data\Backfill\response_time_all_metrics`, filtered to `Metric_Type = "Time Out - Time Dispatched"`. This is the "golden standard" re-run using raw CAD data (not the old pre-aggregated backfill CSVs with potentially flawed calculations). Covers 2024–01-26. Output schema unchanged for DAX compatibility.
 
 ### ETL Run — Response Time Batch (2026-02-26)
 - **2024 Full Year**: 82,891 records after dedup. `Response Type` was nearly unpopulated (< 1% valid values — CAD export issue). Only `Routine` (and a handful of `Emergency`) appear for 2024 months. Data is included but should be interpreted with caution.
 - **2025 Full Year**: 87,436 records after dedup → 84,162 with valid Response Type (96%). All three types (Emergency/Urgent/Routine) present for all 12 months. 2025 data is reliable.
 - **2026-01 Monthly**: 7,499 records after dedup → 7,498 with valid Response Type (100%). All three types present.
-- **Output**: 25 monthly CSVs (2024-01 through 2026-01) written to `PowerBI_Date\Backfill\response_time_all_metrics\`.
+- **Output**: 25 monthly CSVs (2024-01 through 2026-01) written to `PowerBI_Data\Backfill\response_time_all_metrics\`.
 
 ---
 
@@ -842,7 +1034,7 @@ The following corrections and new findings were applied.
 
 ### Fixed
 - **`summons_etl_enhanced.py` — Assignment Master V3 schema support** — The ETL's `_load_assignment_master` function was hardcoded to look for `Proposed 4-Digit Format` (V2 schema, Jan 14 vintage). The `09_Reference\Personnel\Assignment_Master_V2.csv` file was updated to V3 schema on 2026-02-20, replacing `Proposed 4-Digit Format` with `STANDARD_NAME` and renaming `PATROL BUREAU` → `PATROL DIVISION`. Updated `_load_assignment_master` to detect schema version and accept either column name, with detailed logging for which schema is in use. File: `02_ETL_Scripts\Summons\summons_etl_enhanced.py`.
-- **Updated `Master_Automation\Assignment_Master_V2.csv` to Feb 20, 2026 version** — ETL was reading the Jan 14 vintage (163 rows, `PATROL BUREAU` in WG2, 29 Traffic Bureau officers). Installed the current `09_Reference\Personnel\Assignment_Master_V2.csv` (166 rows, `PATROL DIVISION`, 36 Traffic Bureau officers, 9 Detective Bureau officers). Old file backed up as `Assignment_Master_V2_backup_20260114.csv`.
+- **Updated `06_Workspace_Management\Assignment_Master_V2.csv` to Feb 20, 2026 version** — ETL was reading the Jan 14 vintage (163 rows, `PATROL BUREAU` in WG2, 29 Traffic Bureau officers). Installed the current `09_Reference\Personnel\Assignment_Master_V2.csv` (166 rows, `PATROL DIVISION`, 36 Traffic Bureau officers, 9 Detective Bureau officers). Old file backed up as `Assignment_Master_V2_backup_20260114.csv`.
 
 ### ETL Re-run — Summons (2026-02-26 18:09)
 After the Assignment Master and ETL script fixes, the summons ETL was re-run. January 2026 results now match the submitted report:
@@ -873,8 +1065,8 @@ After the Assignment Master and ETL script fixes, the summons ETL was re-run. Ja
 ## [1.17.8] - 2026-02-26
 
 ### Fixed
-- **`summons_powerbi_latest.xlsx` staging schema mismatch** — The staging file at `03_Staging\Summons\summons_powerbi_latest.xlsx` retained the OLD schema (first column `PADDED_BADGE_NUMBER`, no `TICKET_NUMBER`), while the M code in `summons_13month_trend` expects `TICKET_NUMBER` as the first column. Fix: copied the ETL-fresh `PowerBI_Date\_DropExports\summons_powerbi_latest.xlsx` (new schema with `TICKET_NUMBER` first) over the staging copy. The staging file now matches the M code schema and resolves the "The column 'TICKET_NUMBER' of the table wasn't found" refresh error.
-- **`___ResponseTimeCalculator.m` missing January 2026 source** — The M code was hardcoded to only two backfill CSV files (Oct 2025 and Dec 2025), so `01-26` never appeared in Response Time visuals after refresh. Added a third source block loading `PowerBI_Date\Backfill\2026_01\response_time\2026_01_Average_Response_Times__Values_are_in_mmss.csv` and included it in `Table.Combine`. File: `m_code/response_time/___ResponseTimeCalculator.m`.
+- **`summons_powerbi_latest.xlsx` staging schema mismatch** — The staging file at `03_Staging\Summons\summons_powerbi_latest.xlsx` retained the OLD schema (first column `PADDED_BADGE_NUMBER`, no `TICKET_NUMBER`), while the M code in `summons_13month_trend` expects `TICKET_NUMBER` as the first column. Fix: copied the ETL-fresh `PowerBI_Data\_DropExports\summons_powerbi_latest.xlsx` (new schema with `TICKET_NUMBER` first) over the staging copy. The staging file now matches the M code schema and resolves the "The column 'TICKET_NUMBER' of the table wasn't found" refresh error.
+- **`___ResponseTimeCalculator.m` missing January 2026 source** — The M code was hardcoded to only two backfill CSV files (Oct 2025 and Dec 2025), so `01-26` never appeared in Response Time visuals after refresh. Added a third source block loading `PowerBI_Data\Backfill\2026_01\response_time\2026_01_Average_Response_Times__Values_are_in_mmss.csv` and included it in `Table.Combine`. File: `m_code/response_time/___ResponseTimeCalculator.m`.
 
 ### ETL Refresh Validation (2026-02-26 Power BI refresh)
 - **Summons — Moving & Parking (All Bureaus)**: ✅ Data populated after refresh. CSB: 5M/0P, Detective Bureau: 15M/61P, Patrol Bureau: 255M/628P, Traffic Bureau: 143M/2599P.
@@ -892,13 +1084,13 @@ After the Assignment Master and ETL script fixes, the summons ETL was re-run. Ja
 ### Fixed
 - **`{REPORT_MONTH}` token scoping bug in `run_all_etl.ps1`** — Variables `$year` and `$monthNum` are defined only inside the `Save-MonthlyReport` function and were out of scope when the token replacement ran during the script-execution loop, causing the substitution to produce `"-"` instead of `"2026-01"`. Fixed by computing `$prevMonthToken` directly from the `$ReportMonth` parameter using `[datetime]::ParseExact` at the point of substitution. File: `scripts/run_all_etl.ps1` (lines ~517–526).
 - **`DEFAULT_INPUT_PATH` double-extension and wrong folder in Response Times script** — Hardcoded default was `monthly_export\2025\2025_11_Monthly_CAD.xlsx.xlsx` (dead path post-reorganization + double `.xlsx` extension). Updated to `timereport\monthly\2026_01_timereport.xlsx` to match the current file structure. File: `02_ETL_Scripts\Response_Times\process_cad_data_13month_rolling.py` (line 45).
-- **`POWERBI_OUTPUT_DIR` dead `C:\Dev` path in Response Times script** — Secondary copy target pointed to `C:\Dev\PowerBI_Date\Backfill\2025_12\response_time` (dead since 2026-02-24 reorganization). Updated to the production drop folder `PowerBI_Date\_DropExports`. File: `02_ETL_Scripts\Response_Times\process_cad_data_13month_rolling.py` (line 48).
+- **`POWERBI_OUTPUT_DIR` dead `C:\Dev` path in Response Times script** — Secondary copy target pointed to `C:\Dev\PowerBI_Data\Backfill\2025_12\response_time` (dead since 2026-02-24 reorganization). Updated to the production drop folder `PowerBI_Data\_DropExports`. File: `02_ETL_Scripts\Response_Times\process_cad_data_13month_rolling.py` (line 48).
 
 ### ETL Run — February 2026 Cycle (2026-02-26)
 - **Arrests** ✅ — 42 January 2026 records from `2026_01_LAWSOFT_ARREST.xlsx`; output `2026_01_Arrests_PowerBI_Ready.xlsx`.
 - **Community Engagement** ✅ — 2 files copied to drop folder.
 - **Overtime / TimeOff** ✅ — 13-month window 2025-01 → 2026-01; 10,060 rows; 30 output files.
-- **Response Times** ✅ *(manual re-run after orchestrator fix)* — 1,991 records, all 3 response types validated. `2026_01_Average_Response_Times__Values_are_in_mmss.csv` copied to drop folder and backfill (`PowerBI_Date\Backfill\2026_01\response_time\`).
+- **Response Times** ✅ *(manual re-run after orchestrator fix)* — 1,991 records, all 3 response types validated. `2026_01_Average_Response_Times__Values_are_in_mmss.csv` copied to drop folder and backfill (`PowerBI_Data\Backfill\2026_01\response_time\`).
 - **Summons** ✅ — 7 files including refreshed `summons_powerbi_latest_summons_data.csv` copied to drop folder.
 - **Summons Derived Outputs** ❌ *(expected — not a blocker)* — Requires Power BI visual export (`Department-Wide Summons Moving and Parking.csv`) to exist in the monthly reports folder before this script can run. Re-run after Power BI refresh + export step.
 
@@ -912,11 +1104,11 @@ After the Assignment Master and ETL script fixes, the summons ETL was re-run. Ja
 
 ### Fixed
 - **`___Traffic.m` backslash syntax errors** — Removed all M code backslash line-continuation characters (invalid in Power BI Advanced Editor); query now pastes cleanly. Also fixed indentation and removed string-concatenation split across lines in `File.Contents()` path. File: `m_code/traffic/___Traffic.m`
-- **Dead `C:\Dev\PowerBI_Date` path in config** — `C:\Dev\PowerBI_Date` was moved to `04_PowerBI/PowerBI_Date_Dev` during 2026-02-24 directory reorganization. Updated `PD_BCI_LTP` override in `config/scripts.json` and `config/scripts-PD_BCI_LTP.json` to point to the standard OneDrive production path. Laptop junction (`C:\Users\carucci_r` → `C:\Users\RobertCarucci`) makes this override unnecessary in practice.
+- **Dead `C:\Dev\PowerBI_Data` path in config** — `C:\Dev\PowerBI_Data` was moved to `04_PowerBI/PowerBI_Data_Dev` during 2026-02-24 directory reorganization. Updated `PD_BCI_LTP` override in `config/scripts.json` and `config/scripts-PD_BCI_LTP.json` to point to the standard OneDrive production path. Laptop junction (`C:\Users\carucci_r` → `C:\Users\RobertCarucci`) makes this override unnecessary in practice.
 
 ### Context
-- **2026-02-24 Directory Reorganization** — `C:\Dev` consolidated into OneDrive numbered directory structure. Key moves affecting Master_Automation:
-  - `C:\Dev\PowerBI_Date` → `04_PowerBI/PowerBI_Date_Dev` (archived Dev copy; production `PowerBI_Date` remains at OneDrive root — unaffected)
+- **2026-02-24 Directory Reorganization** — `C:\Dev` consolidated into OneDrive numbered directory structure. Key moves affecting 06_Workspace_Management:
+  - `C:\Dev\PowerBI_Data` → `04_PowerBI/PowerBI_Data_Dev` (archived Dev copy; production `PowerBI_Data` remains at OneDrive root — unaffected)
   - `C:\Dev\Power_BI_Data` → `04_PowerBI/Power_BI_Data_Dev`
   - `C:\Dev\overtime_timeoff`, `response_times`, `summons`, etc. → `00_dev/projects/` (dev copies; production ETL scripts remain in `02_ETL_Scripts\` — unaffected)
   - Migration scripts → `14_Workspace/scripts/`
@@ -950,7 +1142,7 @@ Successfully applied surgical M code edits to the February 2026 Power BI templat
   - `ESU_13Month` — `C:\Users\RobertCarucci` → `C:\Users\carucci_r`
   - `summons_top5_parking` — `C:\Users\RobertCarucci` → `C:\Users\carucci_r`
   - `summons_top5_moving` — `C:\Users\RobertCarucci` → `C:\Users\carucci_r`
-  - `___ResponseTimeCalculator` — `C:\Dev\PowerBI_Date` → `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date` (2 file paths)
+  - `___ResponseTimeCalculator` — `C:\Dev\PowerBI_Data` → `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data` (2 file paths)
 - **DateTime.LocalNow() → pReportMonth (6 queries):**
   - `summons_top5_moving`, `summons_all_bureaus`, `___Drone`, `___Traffic`, `___Social_Media`
   - `summons_top5_moving` also had a stray `DateTime.LocalNow()` concatenated to the final `in` clause — removed
@@ -987,7 +1179,7 @@ Attempted to paste repo M code into all 11 queries in the refreshed January 2026
 
 ### Changed
 - **Report template refreshed** — Old template had cascading Power BI model errors after bulk M code paste; archived as `Monthly_Report_Template_ARCHIVED_2026_02_22.pbix`
-- **New template** — Copied from January 2026 published report (`2026_01_Monthly_Report.pbix`) to `15_Templates\Monthly_Report_Template.pbix`; clean baseline with latest formatting, DAX model, and all working queries
+- **New template** — Copied from January 2026 published report (`2026_01_Monthly_Report.pbix`) to `08_Templates\Monthly_Report_Template.pbix`; clean baseline with latest formatting, DAX model, and all working queries
 
 ### Added
 - **Laptop path junction** — Created Windows junction `C:\Users\carucci_r` → `C:\Users\RobertCarucci` so M code data sources resolve on both desktop and laptop without modifying M code files
@@ -1347,7 +1539,7 @@ Attempted to paste repo M code into all 11 queries in the refreshed January 2026
   - `docs/OVERTIME_TIMEOFF_RERUN_AFTER_BACKFILL.md` – Steps to re-run pipeline and refresh Power BI after backfill update
 
 ### Changed
-- **Backfill** – Primary backfill for Monthly Accrual and Usage Summary is 2025_12 visual export (12-24 through 12-25); deployed to `PowerBI_Date\Backfill\2025_12\vcs_time_report\` and `data/backfill/`
+- **Backfill** – Primary backfill for Monthly Accrual and Usage Summary is 2025_12 visual export (12-24 through 12-25); deployed to `PowerBI_Data\Backfill\2025_12\vcs_time_report\` and `data/backfill/`
 - **Restore/pipeline** – Already accept Long format and "Sum of Value"; no code change required for default export
 
 ### Fixed
@@ -1369,7 +1561,7 @@ Attempted to paste repo M code into all 11 queries in the refreshed January 2026
 
 ### Added
 - **Response Time Backfill Baseline** - Created formal Backfill directory structure
-  - Created 13 monthly directories (Jan 2025 - Jan 2026) in `PowerBI_Date\Backfill\YYYY_MM\response_time\`
+  - Created 13 monthly directories (Jan 2025 - Jan 2026) in `PowerBI_Data\Backfill\YYYY_MM\response_time\`
   - Populated with current validated data (3 rows per month: Emergency, Routine, Urgent)
   - Established repeatable monthly workflow for adding new months
   - M code now prioritizes Backfill folder as primary data source
@@ -1494,7 +1686,7 @@ Attempted to paste repo M code into all 11 queries in the refreshed January 2026
 ### Fixed
 - **Overtime TimeOff Workflow Restored** 
   - Resolved missing personnel file dependency (`Assignment_Master_V2.csv`)
-  - Copied file from `outputs\summons_validation\` to Master_Automation root
+  - Copied file from `outputs\summons_validation\` to 06_Workspace_Management root
   - Script now successfully processes all workflows and generates 30 output files
   - Execution time: 19.92 seconds
   
@@ -1603,8 +1795,8 @@ Attempted to paste repo M code into all 11 queries in the refreshed January 2026
   
 ### Changed
 - **File Organization Structure:**
-  - Cleaned `PowerBI_Date\_DropExports\` folder after organizing exports
-  - Created `PowerBI_Date\Backfill\2025_12\` with 16 subdirectories
+  - Cleaned `PowerBI_Data\_DropExports\` folder after organizing exports
+  - Created `PowerBI_Data\Backfill\2025_12\` with 16 subdirectories
   - Files distributed across: arrests (3), summons (11), response_time (10), community_engagement (2),
     use_of_force (3), nibrs (2), patrol (1), traffic (4), detective (4), crime_suppression (1),
     training (2), records (1), safe_streets (2), drones (2), school (2), chief (3)
@@ -1735,7 +1927,7 @@ Attempted to paste repo M code into all 11 queries in the refreshed January 2026
 ### Fixed
 - **Response Time ETL and Power BI Query Update**
   - Updated M code (`m_code/response_time_calculator.m`) to use correct OneDrive paths
-  - Changed base path from `C:\Dev\PowerBI_Date\` to `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\`
+  - Changed base path from `C:\Dev\PowerBI_Data\` to `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\`
   - Expanded data coverage from 2 months to full 13-month range (Dec 2024 - Dec 2025)
   - Added graceful handling for missing monthly files
   - Fixed deduplication to prevent double-counting when files overlap
@@ -1818,7 +2010,7 @@ Attempted to paste repo M code into all 11 queries in the refreshed January 2026
 
 ---
 
-## [1.3.0] - 2025-12-11 - PowerBI_Date Migration to OneDrive
+## [1.3.0] - 2025-12-11 - PowerBI_Data Migration to OneDrive
 
 ### Added
 - **Migration verification script** (`verify_migration.ps1`)
@@ -1834,12 +2026,12 @@ Attempted to paste repo M code into all 11 queries in the refreshed January 2026
 
 ### Changed
 - **Configuration (`config\scripts.json`)**
-  - Updated `powerbi_drop_path` from `C:\Dev\PowerBI_Date\_DropExports` to `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports`
+  - Updated `powerbi_drop_path` from `C:\Dev\PowerBI_Data\_DropExports` to `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports`
   - Backup created: `config\scripts.json.bak`
 
 - **Scripts**
-  - `scripts\run_all_etl.ps1` - Updated next-step instructions with new PowerBI_Date path
-  - Removed all references to old `C:\Dev\PowerBI_Date` paths
+  - `scripts\run_all_etl.ps1` - Updated next-step instructions with new PowerBI_Data path
+  - Removed all references to old `C:\Dev\PowerBI_Data` paths
 
 - **Documentation**
   - `README.md` - Updated with migration information, new directory structure, and recent updates section
@@ -1851,15 +2043,15 @@ Attempted to paste repo M code into all 11 queries in the refreshed January 2026
 - Documentation consistency across all files
 
 ### Infrastructure
-- **Master_Automation Junction Created**
-  - Location: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Master_Automation`
-  - Target: `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`
+- **06_Workspace_Management Junction Created**
+  - Location: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\06_Workspace_Management`
+  - Target: `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management`
   - Type: NTFS Junction (symlink)
 
 ### Verified
 - ✅ Config file paths correct
-- ✅ PowerBI_Date directory structure intact
-- ✅ Master_Automation junction functional
+- ✅ PowerBI_Data directory structure intact
+- ✅ 06_Workspace_Management junction functional
 - ✅ All script path references updated
 - ✅ Documentation paths corrected
 - ✅ Python executable accessible (Python 3.13.7)
@@ -1959,7 +2151,7 @@ Attempted to paste repo M code into all 11 queries in the refreshed January 2026
 ## [1.0.0] - 2025-12-09 - Initial Setup
 
 ### Added
-- Initial Master_Automation workspace structure
+- Initial 06_Workspace_Management workspace structure
 - ETL orchestrator scripts (`run_all_etl.ps1`, `run_all_etl.bat`, `run_etl_script.ps1`)
 - Configuration file (`config\scripts.json`)
 - Basic documentation (`README.md`, `QUICK_START.md`)
@@ -1994,7 +2186,7 @@ Attempted to paste repo M code into all 11 queries in the refreshed January 2026
 ## Notes
 
 - All paths are now OneDrive-synced for cloud backup and multi-device access
-- Junction link allows seamless access to Master_Automation from PowerBI_Date directory
+- Junction link allows seamless access to 06_Workspace_Management from PowerBI_Data directory
 - Verification script should be run after any configuration changes
 - Logs directory is auto-created on first ETL run
 

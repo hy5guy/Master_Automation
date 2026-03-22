@@ -1,7 +1,7 @@
 # Power BI Refresh Required — Response Time Queries
 # 2026-02-26 | v1.17.17
 
-**Status: ⏳ PENDING — Calculator M code must be updated in PBIX first, then Refresh All**
+**Status: ✅ COMPLETE — Template updated via Claude Desktop MCP injection (2026-03-19)**
 
 ---
 
@@ -39,13 +39,13 @@ All 25 monthly CSVs have been regenerated with both fixes. However:
 
 ## Step 1 — Update Calculator M Code in Power BI Desktop
 
-1. Open the February 2026 template (`15_Templates\Monthly_Report_Template.pbix`)
+1. Open the February 2026 template (`08_Templates\Monthly_Report_Template.pbix`)
 2. Home → Transform data (Power Query Editor)
 3. Select `___ResponseTimeCalculator` in the left panel
 4. Click **Advanced Editor** and replace the entire M code with the contents of:
-   `Master_Automation\m_code\response_time\___ResponseTimeCalculator.m`
+   `06_Workspace_Management\m_code\response_time\___ResponseTimeCalculator.m`
 5. The critical line is:
-   `AllFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\response_time_all_metrics"),`
+   `AllFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\response_time_all_metrics"),`
 6. Close Advanced Editor → Apply & Close
 
 ---
@@ -59,7 +59,7 @@ The three queries that must load correctly:
 - `___ResponseTime_OutVsCall` — Time Out − Time of Call (Time Received to On Scene)
 - `___ResponseTime_DispVsCall` — Time Dispatched − Time of Call (Dispatch Processing)
 
-**Data folder:** `PowerBI_Date\Backfill\response_time_all_metrics\`
+**Data folder:** `PowerBI_Data\Backfill\response_time_all_metrics\`
 **CSVs last regenerated:** 2026-02-26 23:33 EST (v1.17.16 admin filter applied)
 
 ---
@@ -101,6 +101,6 @@ if admin asks why Routine is lower than Emergency for dispatch-to-scene.
 
 Update this file: change Status at the top to `✅ COMPLETE` and add date/initials.
 
-**Completed by:** _______________
-**Date/Time:** _______________
-**Notes:** _______________
+**Completed by:** Claude Desktop (MCP injection)
+**Date/Time:** 2026-03-19
+**Notes:** Directory consolidation refactor complete. All 4 Response Time partitions (`___ResponseTime_DispVsCall`, `___ResponseTime_OutVsCall`, `___ResponseTimeCalculator`, `___ResponseTime_AllMetrics`) updated with `PowerBI_Date` → `PowerBI_Data` path corrections. See `CHANGELOG.md` v1.18.13 and `docs/POWERBI_TEMPLATE_MCP_UPDATE_2026_03_19.md`.

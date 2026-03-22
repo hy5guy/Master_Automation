@@ -22,13 +22,25 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 try:
-    from path_config import get_onedrive_root
+    from path_config import get_onedrive_root, get_powerbi_paths
 except ImportError:
     def get_onedrive_root() -> Path:
         base = os.environ.get("ONEDRIVE_BASE") or os.environ.get("ONEDRIVE_HACKENSACK")
         if base:
             return Path(base)
         return Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack")
+
+    def get_powerbi_paths() -> tuple[Path, Path]:
+        import json
+        config_path = Path(__file__).resolve().parent.parent / "config" / "scripts.json"
+        try:
+            with open(config_path, encoding="utf-8") as f:
+                data = json.load(f)
+            drop = Path(data["settings"]["powerbi_drop_path"])
+            return drop, drop.parent / "Backfill"
+        except Exception:
+            root = get_onedrive_root()
+            return root / "PowerBI_Date" / "_DropExports", root / "PowerBI_Date" / "Backfill"
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -63,12 +75,9 @@ TARGET_COLUMNS = ["Month_Year", "WG2", "TICKET_COUNT", "TYPE"]
 
 
 def _get_backfill_roots() -> list[Path]:
-    """Return candidate backfill roots (prefer 00_dev, then PowerBI_Data)."""
-    base = get_onedrive_root()
-    return [
-        base / "00_dev" / "projects" / "PowerBI_Data" / "Backfill",
-        base / "PowerBI_Data" / "Backfill",
-    ]
+    """Return canonical backfill root from config."""
+    _, backfill = get_powerbi_paths()
+    return [backfill]
 
 
 def _log() -> logging.Logger:
@@ -128,22 +137,24 @@ def merge_missing_summons_months(
                     bf_data = bf_data.rename(columns=RENAME_MAP)
                     if "Month_Year" not in bf_data.columns:
                         continue
-                    # Add backfill: when main df has few months (e-ticket discovery failed), merge ALL 2025
-                    # Otherwise: gap months + prefer months (01-25, 02-25) for consistent values
-                    main_month_count = (df["Month_Year"].nunique()) if "Month_Year" in df.columns else 0
-                    if main_month_count < 5:
-                        gap_to_add = list(SUMMONS_BACKFILL_ALL_2025)
-                        logger.info("Main df has %s months; merging full 2025 backfill for 13-month coverage", main_month_count)
-                    else:
-                        gap_to_add = list(SUMMONS_BACKFILL_PREFER_MONTHS)
-                        for m in SUMMONS_GAP_MONTHS:
-                            if (df["Month_Year"] == m).sum() > 10:
-                                logger.debug("Skipping backfill for %s: main df has e-ticket data", m)
-                            else:
-                                gap_to_add.append(m)
-                    bf_data = bf_data[bf_data["Month_Year"].isin(gap_to_add)].copy()
+                    # Backfill-as-source-of-truth: for ALL months in the backfill file, use backfill
+                    # values exclusively. Remove e-ticket rows for those months so visual matches
+                    # backfill exactly (e.g. 02-25 M=274 not 324, 07-25 M=402 not 17).
+                    backfill_months = set(bf_data["Month_Year"].astype(str).unique())
+                    bf_data = bf_data[bf_data["Month_Year"].astype(str).isin(backfill_months)].copy()
                     if bf_data.empty:
                         continue
+                    # Remove main df rows for backfill months — we replace them entirely with backfill
+                    if "Month_Year" in df.columns:
+                        before_main = len(df)
+                        df = df[~df["Month_Year"].astype(str).isin(backfill_months)]
+                        removed = before_main - len(df)
+                        if removed > 0:
+                            logger.info(
+                                "Removed %s e-ticket rows for backfill months %s (backfill is source of truth)",
+                                removed,
+                                sorted(backfill_months),
+                            )
                     if "TICKET_COUNT" not in bf_data.columns:
                         bf_data["TICKET_COUNT"] = 1
                     bf_data["TICKET_COUNT"] = pd.to_numeric(bf_data["TICKET_COUNT"], errors="coerce").fillna(0)

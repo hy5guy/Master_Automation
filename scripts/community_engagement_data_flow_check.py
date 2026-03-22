@@ -16,8 +16,19 @@ from datetime import datetime, timedelta
 
 # Configuration
 
+import sys, os, json as _json
+from pathlib import Path as _Path
+
+def _get_drop_path() -> str:
+    _cfg = _Path(__file__).resolve().parent.parent / "config" / "scripts.json"
+    try:
+        with open(_cfg, encoding="utf-8") as _f:
+            return _json.load(_f)["settings"]["powerbi_drop_path"]
+    except Exception:
+        return r’C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports’
+
 SOURCE_DIR = r’C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment’
-OUTPUT_DIR = r’C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date_DropExports’
+OUTPUT_DIR = _get_drop_path()
 
 print(”=” * 70)
 print(“COMMUNITY ENGAGEMENT DATA FLOW DIAGNOSTIC”)
