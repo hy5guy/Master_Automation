@@ -86,9 +86,9 @@ If you want these three files to be **processed, named, moved, normalized, and u
    - Match and rename to `YYYY_MM_{standardized_filename}.csv`
    - Normalize (where `requires_normalization` is true)
    - Move to `09_Reference\Standards\Processed_Exports\{target_folder}`
-   - Copy to `PowerBI_Data\Backfill\YYYY_MM\{target_folder}` for Summons and Training (because `is_backfill_required` is true)
+   - Copy to `PowerBI_Data\Backfill\YYYY_MM\{backfill_folder}` when `is_backfill_required` is true (defaults to `target_folder` if `backfill_folder` is omitted — e.g. Summons → `summons`, Training → `policy_and_training_qual`).
 
-   **Note:** **Monthly Accrual** has `is_backfill_required: true` and `backfill_folder: "vcs_time_report"`. The processor copies it to `Backfill\YYYY_MM\vcs_time_report\` where Overtime/TimeOff expects it. Processed copies go to `social_media_and_time_report\`.
+   **Note:** **Monthly Accrual** has `is_backfill_required: true` and `backfill_folder: "vcs_time_report"`. The processor copies it to `Backfill\YYYY_MM\vcs_time_report\` where Overtime/TimeOff expects it. Processed_Exports copies go to **`monthly_accrual_and_usage\`** (legacy on-disk folder `social_media_and_time_report` is still resolved by `processed_exports_routing`).
 
 2. **Run the ETL** so downstream scripts use the new backfill:
 
@@ -117,7 +117,7 @@ you can refresh the **January 2026** Power BI project and the visuals will use t
 
 | Purpose              | Source (input)                    | Destinations (output)                                                                 |
 |----------------------|-----------------------------------|----------------------------------------------------------------------------------------|
-| Visual export processor | `Master_Automation\_DropExports` or `--source` | `09_Reference\Standards\Processed_Exports\{target_folder}` and `PowerBI_Data\Backfill\YYYY_MM\{target_folder}` (when backfill required) |
+| Visual export processor | `PowerBI_Data\_DropExports` (default) or `--source` / optional `--scan-processed-exports-inbox` | `09_Reference\Standards\Processed_Exports\{target_folder}` and `PowerBI_Data\Backfill\YYYY_MM\{backfill_folder}` when `is_backfill_required` (see mapping) |
 | run_all_etl “Visual Export Normalization” | `PowerBI_Data\_DropExports`       | In-place normalization only (no move/copy to Backfill)                                |
 | Overtime/TimeOff backfill | Reads from                          | `PowerBI_Data\Backfill\YYYY_MM\vcs_time_report\`                                       |
 | Summons backfill     | Reads from                        | `PowerBI_Data\Backfill\YYYY_MM\summons\`                                               |

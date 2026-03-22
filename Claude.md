@@ -79,7 +79,7 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 - `scripts/run_all_etl.ps1` - Main PowerShell orchestrator
 - `scripts/run_all_etl.bat` - Batch wrapper
 - `scripts/run_etl_script.ps1` - Individual script runner
-- `scripts/path_config.py` - Centralized get_onedrive_root() (ONEDRIVE_BASE / ONEDRIVE_HACKENSACK)
+- `scripts/path_config.py` - `get_onedrive_root()`, `get_powerbi_data_dir()` (repo `config.json` / `PowerBI_Data`), `get_powerbi_paths()` from `scripts.json`
 - `scripts/overtime_timeoff_with_backfill.py` - Overtime/TimeOff monthly wrapper
 - `scripts/validate_exports.py` - Pre-flight check for OT/TimeOff exports
 - `scripts/validate_outputs.py` - CSV schema validation
@@ -89,8 +89,10 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 - `scripts/dfr_backfill_descriptions.py` - DFR description/fine backfill; cascading statute lookup
 - `run_summons_etl.py` - Path-agnostic summons wrapper; DFR split + export wired in
 - `scripts/summons_backfill_merge.py` - Merge gap months into summons
-- `scripts/normalize_visual_export_for_backfill.py` - Visual export normalization
-- `scripts/process_powerbi_exports.py` - _DropExports → Processed_Exports + Backfill (uses routing; archives prior outputs)
+- `scripts/normalize_visual_export_for_backfill.py` - Visual export normalization; `--enforce-13-month` with optional `--13m-window-ends YYYY-MM` (exclude partial months after window end)
+- `scripts/process_powerbi_exports.py` - _DropExports → Processed_Exports + Backfill (routing, archive; `--scan-processed-exports-inbox`; `--report-month` → normalizer `--13m-window-ends` for 13-month filter end)
+- `scripts/processed_exports_routing.py` - Canonical folder aliases, `resolve_category_directory`, `prepare_destination_file` / archive under `archive/YYYY_MM/` or `undated`
+- `scripts/canonicalize_processed_exports_layout.py` - Optional on-disk fix: merge `traffic_mva`/mixed `Traffic` → `traffic`, detective & STACP splits → `detectives` / `stacp`, PascalCase → lowercase (`Benchmark`→`benchmark`, `Drone`→`drone`, etc.)
 - `scripts/validate_13_month_window.py` - 13-month validator (`--report-month`, `--accept-warn`, partial tail WARN)
 - `scripts/validate_response_time_exports.py` - Response_time CSV structure checks
 - `scripts/tests/` - `unittest` for routing, archive, validators (`python -m unittest discover -s tests -p "test_*.py"`)

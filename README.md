@@ -6,6 +6,7 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the **PowerBI_Data** repository (`_DropExports`, `Backfill`).
 
+**Latest Update (2026-03-23): v1.18.17 — Processed_Exports docs & layout tooling.** `canonicalize_processed_exports_layout.py` merges legacy folders on disk (`traffic_mva`→`traffic`, `detectives_pt*` / `detectives_case_dispositions`→`detectives`, `stacp_pt*`→`stacp`) and normalizes PascalCase dirs (`Benchmark`, `Drone`, `NIBRS`, `Other`, `Patrol`, `Summons`, `Traffic`) to lowercase. `process_powerbi_exports.py`: `--scan-processed-exports-inbox` (CSV inbox at Processed_Exports root); with `--report-month`, normalization passes `--13m-window-ends` so partial next-month rows (e.g. 03-26) are excluded from enforced 13-month output. See `CHANGELOG.md`.
 **Latest Update (2026-03-22): v1.18.16 — Processed_Exports routing & validation.** `visual_export_mapping.json` targets consolidated folders (`monthly_accrual_and_usage`, `detectives`, `stacp`, `traffic` for MVA); `processed_exports_routing.py` archives prior CSVs under `Processed_Exports/<category>/archive/YYYY_MM/` before overwrite; `validate_response_time_exports.py` and enhanced `validate_13_month_window.py` (`--report-month`, `--accept-warn`, partial tail month). See `CHANGELOG.md`.
 **Latest Update (2026-03-22): v1.18.15 — PowerBI_Data paths.** Repo `config.json` + `get_powerbi_data_dir()`; `scripts.json` and Python helpers use `PowerBI_Data` (not `PowerBI_Date`). `path_config.get_onedrive_root()` prefers `C:\Users\carucci_r\OneDrive - City of Hackensack` when present (laptop: junction). See `CHANGELOG.md`.
 **Latest Update (2026-03-13): v1.18.6 — Report month window fixes.** Summons (4 queries), Detectives, and Policy Training (Cost + In-Person) M code updated so all visuals include the report month (not previous month). In-Person Training now loads from source workbook directly. See `CHANGELOG.md`.
@@ -44,6 +45,7 @@ Master_Automation/
 │   ├── run_etl_script.ps1      # Helper script to run individual scripts
 │   ├── path_config.py          # get_onedrive_root(), get_powerbi_data_dir(), get_powerbi_paths()
 │   ├── processed_exports_routing.py  # Canonical Processed_Exports dirs, archive-before-overwrite
+│   ├── canonicalize_processed_exports_layout.py  # One-time merge/rename on-disk Processed_Exports folders
 │   ├── Pre_Flight_Validation.py          # Pre-flight GO/NO-GO gate (argparse, evidence checks, mapping validation)
 │   ├── summons_derived_outputs_simple.py  # Summons derived outputs (argparse, dynamic filenames, IS_AGGREGATE)
 │   ├── overtime_timeoff_with_backfill.py     # Overtime/TimeOff monthly wrapper (v10 + backfill)

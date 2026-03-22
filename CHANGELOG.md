@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.17] - 2026-03-23
+
+### Documentation
+
+- **README.md**, **SUMMARY.md**, **Claude.md**, **CHANGELOG.md** — Synced to current Processed_Exports tooling: `canonicalize_processed_exports_layout.py` (on-disk merges / lowercase folders), `process_powerbi_exports.py` flags (`--scan-processed-exports-inbox`, `--report-month` → normalizer window end), `processed_exports_routing` / `normalize_visual_export_for_backfill` (`--13m-window-ends`).
+- **docs/POWERBI_VISUAL_EXPORT_PIPELINE_FAQ.md** — Backfill copy uses `backfill_folder` when set; Monthly Accrual Processed_Exports target corrected to `monthly_accrual_and_usage`.
+
+### Added / changed (code reference for doc readers)
+
+- **canonicalize_processed_exports_layout.py** — Merge legacy Processed_Exports directories and Windows case-fix PascalCase category folders.
+- **process_powerbi_exports.py** — Processed_Exports root inbox scan; pass window end to normalizer subprocess when `--report-month` is set.
+- **normalize_visual_export_for_backfill.py** — `enforce_13_month_window(..., window_end_ym=...)`; CLI `--13m-window-ends`.
+- **processed_exports_routing.py** — Additional legacy aliases; flexible `YYYY_MM` archive prefix parsing.
+- **validate_response_time_exports.py** — All-metrics branch; stricter series/priority checks.
+
+---
+
 ## [1.18.16] - 2026-03-22
 
 ### Changed — Processed_Exports routing, archive, validation

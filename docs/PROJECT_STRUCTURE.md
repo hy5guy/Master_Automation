@@ -151,6 +151,8 @@ This folder in Master_Automation (`_DropExports/`) is optional and can be used f
 - Staging before Power BI organization
 - Development/testing purposes
 
+**Processed_Exports** (`09_Reference\Standards\Processed_Exports\`): category subfolders should use **lowercase** canonical names (`benchmark`, `drone`, `nibrs`, `patrol`, `summons`, `traffic`, `detectives`, `stacp`, etc.). New exports are routed by `process_powerbi_exports.py` + `visual_export_mapping.json` + `processed_exports_routing.py`. To reconcile legacy splits or PascalCase folders on disk, run `scripts/canonicalize_processed_exports_layout.py` (see README).
+
 ---
 
 ## Maintenance

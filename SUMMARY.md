@@ -1,8 +1,8 @@
 # 06_Workspace_Management Project Summary
 
-**Last Updated:** 2026-03-22
-**Status:** ✅ v1.19.1 — Phase 2 complete (Summons); v1.18.16 — Processed_Exports routing, archive, validation CLIs
-**Version:** 1.19.1 (docs include v1.18.15–1.18.16 pipeline changes — see CHANGELOG)
+**Last Updated:** 2026-03-23
+**Status:** ✅ v1.19.1 — Phase 2 complete (Summons); v1.18.16–v1.18.17 — Processed_Exports routing, on-disk canonical layout, validation CLIs
+**Version:** 1.19.1 (docs include v1.18.15–1.18.17 pipeline changes — see CHANGELOG)
 
 ---
 
@@ -38,7 +38,7 @@
 ✅ **Input Validation** - Validates required export files before execution  
 ✅ **OneDrive Sync** - All paths synced for cloud backup  
 ✅ **Path portability** - `ONEDRIVE_BASE` / `ONEDRIVE_HACKENSACK` env vars (Python `path_config.py`, PowerShell `$OneDriveBase`); **`get_onedrive_root()`** prefers `C:\Users\carucci_r\OneDrive - City of Hackensack` when it exists (canonical desktop; laptop uses junction). **`get_powerbi_data_dir()`** reads repo **`config.json`** key `"PowerBI"` (default `PowerBI_Data`)  
-✅ **Processed_Exports pipeline** - `processed_exports_routing.py` + `process_powerbi_exports.py`: canonical folder aliases, archive previous CSV under `archive/YYYY_MM/`, idempotent identical-file skip; mapping targets include `monthly_accrual_and_usage`, consolidated `detectives` / `stacp`, MVA → `traffic`  
+✅ **Processed_Exports pipeline** - `processed_exports_routing.py` + `process_powerbi_exports.py`: canonical folder aliases, archive previous CSV under `archive/YYYY_MM/`, idempotent identical-file skip; mapping targets include `monthly_accrual_and_usage`, consolidated `detectives` / `stacp`, MVA → `traffic`; optional `--scan-processed-exports-inbox`; `--report-month` drives `--13m-window-ends` in normalizer (drops partial tail month). **`canonicalize_processed_exports_layout.py`** — optional on-disk merge/rename to lowercase canonical folders (see README).  
 ✅ **Validation CLIs** - `validate_response_time_exports.py` (response_time CSV shapes); `validate_13_month_window.py` with `--report-month`, `--accept-warn`, partial future-month WARN  
 ✅ **Unit tests** - `cd scripts; python -m unittest discover -s tests -p "test_*.py" -v`  
 ✅ **Overtime/TimeOff hardening** - Pre-flight validation, strict file discovery, output schema check, test_pipeline.bat  
@@ -95,6 +95,7 @@
 │   ├── run_etl_script.ps1      # Single script runner
 │   ├── path_config.py          # get_onedrive_root(), get_powerbi_data_dir(), get_powerbi_paths()
 │   ├── processed_exports_routing.py  # Processed_Exports canonical dirs + archive helper
+│   ├── canonicalize_processed_exports_layout.py  # Merge legacy Processed_Exports dirs → canonical names
 │   ├── validate_exports.py     # Pre-flight OT/TimeOff export check
 │   ├── validate_outputs.py     # FIXED CSV schema validation
 │   ├── test_pipeline.bat       # Overtime/TimeOff test: validate → dry-run → validate outputs
