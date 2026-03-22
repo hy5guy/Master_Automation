@@ -1,0 +1,277 @@
+**SUMMONS_QUICK_REFERENCE.md** (06_Workspace_Management/docs/)
+
+Added **Critical Business Rule #8**:
+
+> **CompStat / Fee Schedule dashboards:** Filter `Jurisdiction` = "Hackensack" to exclude external agency violations (Title 4/13/16/19/27/5A). See `09_Reference/LegalCodes/docs/SUMMONS_DATA_DICTIONARY_MAINTENANCE.md`. ---
+
+**User**
+
+Claude encountered 146 unmatched subsection variants during the Master Fee Schedule enrichment process and upgraded the ETL logic on the fly. Please update the `SUMMONS_DATA_DICTIONARY_MAINTENANCE.md` (or the relevant ETL documentation) with this updated resolution logic:
+
+**Master Fee Schedule Enrichment Logic (Updated):**
+To ensure the `Master Fee Schedule` remains robust against highly specific subsection variants, the static text injection now uses a 5-tier cascading fallback system:
+1. Local `CityOrdinances` JSON Dictionary
+2. State `Title39` JSON Dictionary
+3. State MVB Schedule
+4. **Historical Data:** The legacy `ViolationData` sheet is scanned for historical descriptions. 5. **Parent-Code Inheritance:** If a specific subsection (e.g., `170-44.1B`) fails all exact matches, the pipeline truncates the suffix and searches for the parent statute (`170-44`) to inherit the base legal description. * Any code failing all 5 tiers is flagged as "UNRESOLVED" to prevent silent blanks in Power BI. ---
+
+**Cursor**
+
+
+Updated `SUMMONS_DATA_DICTIONARY_MAINTENANCE.md` with the new enrichment logic. ## Updates
+
+### New section: **Master Fee Schedule Enrichment Logic (5-tier cascading fallback)**
+
+Added a section describing the enrichment flow:
+
+| Tier | Source |
+|------|--------|
+| 1 | Local CityOrdinances JSON |
+| 2 | State Title39 JSON |
+| 3 | State MVB Schedule |
+| 4 | Historical Data (legacy ViolationData sheet) |
+| 5 | Parent-code inheritance (e.g., `170-44.1B` → `170-44`) |
+
+Also documented:
+- **UNRESOLVED** flag when all 5 tiers fail (to avoid silent blanks in Power BI)
+- Context: 146 unmatched subsection variants led to this ETL change
+- `ViolationData` sheet added to the Related Files table
+
+**Document version**: 1.1 → 1.2
+
+---
+
+**User**
+
+Claude successfully completed the Master Fee Schedule enrichment with a 100% match rate! Please update the `SUMMONS_DATA_DICTIONARY_MAINTENANCE.md` (or relevant ETL documentation) to reflect the final, implemented logic for the Master Fee Schedule:
+
+**Master Fee Schedule Enrichment Logic (Final Implementation):**
+To ensure the `Master Fee Schedule` remains fully portable without external dependencies, all 47 missing dictionary codes were injected directly into the workbook's internal `ViolationData` sheet. The Master Fee Schedule is then enriched using live, traceable formulas. * **3-Tier Cascading XLOOKUP:** Formulas in the `Master Fee Schedule` resolve codes against the `ViolationData` sheet using a 3-tier string manipulation cascade:
+  1. **Exact Match:** Full violation code. 2. **Strip Parentheticals:** Removes subsections (e.g., `39:4-36(A)(3)` -> `39:4-36`). 3. **Strip Trailing Letters:** Removes suffix characters (e.g., `39:4-138A` -> `39:4-138`). * **New Dimensions:** `Description`, `Source Type`, and `Violation Category` populate dynamically based on this internal lookup, achieving a 100% resolution rate with zero "UNRESOLVED" flags. ---
+
+**Cursor**
+
+
+Updated `SUMMONS_DATA_DICTIONARY_MAINTENANCE.md` with the final implementation. ## Changes
+
+### Replaced: **Master Fee Schedule Enrichment Logic (Final Implementation)**
+
+**Design choices:**
+- **Portability**: All 47 missing codes added to the workbook’s internal `ViolationData` sheet (no external dependencies). - **Enrichment**: Master Fee Schedule uses live formulas instead of static text. **3-tier cascading XLOOKUP:**
+
+| Tier | Logic | Example |
+|------|-------|---------|
+| 1 | Exact match | Full violation code |
+| 2 | Strip parentheticals | `39:4-36(A)(3)` → `39:4-36` |
+| 3 | Strip trailing letters | `39:4-138A` → `39:4-138` |
+
+**Dimensions populated by lookup:**
+- Description  
+- Source Type  
+- Violation Category  
+
+**Result**: 100% resolution rate, no "UNRESOLVED" flags. ### Other edits
+- **ViolationData** in Related Files: described as the internal lookup table with 47 injected codes and the 3-tier XLOOKUP source. - **Document version**: 1.2 → 1.3
+
+---
+
+**User**
+
+Claude has successfully completed Task #5, fully wiring the front-end DFR Summons Log. Please update our documentation (e.g., `SUMMONS_DATA_DICTIONARY_MAINTENANCE.md` or a frontend UX guide) with these architectural features:
+
+**DFR Summons Log - Data Entry UX:**
+To ensure high data quality without bottlenecking operations, the `DFR Summons Log` features:
+1. **Dynamic Lookups:** Entering a violation code triggers 3-tier cascading XLOOKUPs that instantly auto-populate 5 dimensions: `Description`, `Fine Amount`, `Source Type`, `Violation Category`, and `Jurisdiction`. 2. **Forgiving Data Validation:** The Violation Code column uses a Warning-level dropdown linked to the Master Fee Schedule. Clerks can select from the 316 known codes, but can override the validation with free-text if a new, unindexed code is encountered in the field. 3. **Visual Alerts (Conditional Formatting):** Unresolved codes trigger a bold red "NOT FOUND" alert, while out-of-jurisdiction codes trigger an orange alert, instantly flagging data anomalies for review. ---
+
+**Cursor**
+
+
+Updated `SUMMONS_DATA_DICTIONARY_MAINTENANCE.md` with the DFR Summons Log data entry UX details. ## New section: **DFR Summons Log – Data Entry UX (Task #5)**
+
+### 1. Dynamic lookups
+Entering a violation code triggers 3-tier cascading XLOOKUPs that auto-populate:
+- Description  
+- Fine Amount  
+- Source Type  
+- Violation Category  
+- Jurisdiction  
+
+### 2. Forgiving data validation
+- **Violation Code** uses a **Warning-level dropdown** linked to the Master Fee Schedule (316 known codes). - Clerks can override with free-text for new, unindexed codes. - Keeps workflows moving while encouraging standardized codes. ### 3. Visual alerts (conditional formatting)
+| Condition              | Alert                 |
+|------------------------|-----------------------|
+| Unresolved code        | Bold red "NOT FOUND"  |
+| Out-of-jurisdiction    | Orange alert          |
+
+### Other edits
+- **Related Files**: DFR Summons workbook now includes Master Fee Schedule, ViolationData, DFR Summons Log, and reconciliation worksheet. - **Document version**: 1.3 → 1.4
+
+---
+
+**User**
+
+please create a readme, summary, changelog and claude.md file 
+
+---
+
+**Cursor**
+
+
+Created all four files in `05_EXPORTS/_Summons`:
+
+## Created files
+
+### 1. **README.md**
+- Project overview and directory layout
+- Workflows (fee schedule pipeline, DFR Summons Log, e-ticket exports)
+- Output files
+- Links to related docs
+- Dependencies
+
+### 2. **SUMMARY.md**
+- Executive summary
+- Main achievements (2026-03)
+- Architecture diagram
+- Conventions
+- Links to related docs
+
+### 3. **CHANGELOG.md**
+- Version history (1.0 → 1.4)
+- v1.4: DFR Summons Log UX
+- v1.3: Master Fee Schedule final implementation
+- v1.2: Jurisdiction dimension
+- v1.1: Data ingestion, VIOLATION_NUMBER cleaning, ordinance normalization, unmatched logging
+- v1.0: Initial setup
+
+### 4. **claude.md**
+- AI assistant context
+- Project scope and main files
+- Conventions (normalization, 3-tier lookup, jurisdiction)
+- Common tasks
+- Do-nots
+- Reference links
+
+---
+
+**User**
+
+The Summons ETL and Fee Schedule Integration project is officially 100% COMPLETE! Claude has successfully built the final Dashboard and summary views. Please update `SUMMONS_DATA_DICTIONARY_MAINTENANCE.md` (and/or `README_ETL_OUTPUTS.md`) to reflect the final state of the `DFR Summons` workbook:
+
+**Phase 6: Native Excel Dashboard & Power BI Readiness**
+* A native, 100% formula-driven dashboard was created within the workbook to track real-time KPIs (Total Summons, Active, Jurisdiction Splits, Status Breakdowns, and Source Types). * **Architecture Note:** All metrics use structured table references (e.g., `tbl_FeeSchedule[...]`) ensuring seamless, native integration when this file is ingested by Power BI. No volatile functions or macros were used in the final dashboard, maintaining strict `.xlsx` compatibility. **Project Conclusion:**
+All 6 ETL tasks are complete. The workbook now features a fully enriched Master Fee Schedule, a strictly validated user data-entry log with 3-tier cascading XLOOKUPs, and a clean separation of Hackensack vs. Out-of-Jurisdiction violations. Please ensure all markdown documentation is saved, and prepare the repository for the next phase: Power BI ingestion! ---
+
+**Cursor**
+
+
+Documentation is updated for project completion and Power BI readiness. Summary of changes:
+
+## Updates
+
+### 1. **SUMMONS_DATA_DICTIONARY_MAINTENANCE.md**
+
+- **Phase 6: Native Excel Dashboard & Power BI Readiness**
+  - 100% formula-driven dashboard (Total Summons, Active, Jurisdiction Splits, Status, Source Types)
+  - Use of structured table references (`tbl_FeeSchedule[...]`)
+  - No volatile functions or macros; `.xlsx` compatible
+
+- **Project Conclusion**
+  - All 6 ETL tasks complete
+  - Master Fee Schedule, DFR Summons Log, jurisdiction separation, Native Dashboard
+  - Next phase: Power BI ingestion
+
+- **Related Files**: DFR Summons workbook now includes Native Dashboard and “Power BI ready”
+- **Document version**: 1.4 → 1.5
+
+### 2. **README_ETL_OUTPUTS.md** (new in `05_EXPORTS/_Summons/docs/`)
+
+- DFR Summons workbook as primary ETL output
+- Workbook structure (Master Fee Schedule, ViolationData, DFR Summons Log, tbl_OtherJurisdiction, Native Dashboard)
+- Power BI ingestion (structured tables, no volatile functions)
+- Jurisdiction filter guidance
+- ETL pipeline summary
+- Project completion checklist (all 6 tasks)
+
+### 3. **README.md**, **SUMMARY.md**, **CHANGELOG.md**, **claude.md**
+
+- Native Dashboard and Power BI readiness added
+- Status set to “100% COMPLETE”
+- CHANGELOG v1.5 entry for Phase 6
+- `docs/README.md` updated to reference `README_ETL_OUTPUTS.md`
+
+---
+
+**Repository status**: Documentation is updated and ready for the Power BI ingestion phase. ---
+
+**User**
+
+Update all project documentation files so they accurately reflect the latest code and configuration changes in this repo. Then automatically run the necessary git commands to:
+1.stage only the updated documentation files,
+2.create a single, clear commit for these doc updates with an appropriate versioned message, and
+3.push to the current remote branch. Do not ask for confirmation; run the commands directly, and then summarize what you changed and the git commands you executed. ---
+
+**Cursor**
+
+
+Updating documentation to fix stale content, then initializing git and running the requested commands. Updating `SUMMONS_DATA_DICTIONARY_MAINTENANCE.md` (outside this repo) and preparing the summary:
+
+
+
+---
+
+## Summary
+
+### Documentation updates
+
+1. **scripts/README.md** — Clarified that the main fee schedule script is in the project root, not in `scripts/`. 2. **README.md** — Clarified that `scripts/` holds supporting scripts and the main script is in the root. ### Git commands run
+
+| Command | Result |
+|--------|--------|
+| `git init` | Initialized a new repo in `05_EXPORTS/_Summons` |
+| `git add` (11 doc files) | Staged all documentation files |
+| `git commit -m "docs: v1.5 - Project documentation update (Phase 6 complete, Power BI ready)"` | Commit `81d6674` created |
+| `git push -u origin main` | Failed — no remote configured |
+
+### Files staged and committed
+
+- `README.md`
+- `SUMMARY.md`
+- `CHANGELOG.md`
+- `claude.md`
+- `docs/README.md`
+- `docs/README_ETL_OUTPUTS.md`
+- `docs/dfr_summons_update_title_39.md`
+- `scripts/README.md`
+- `data/README.md`
+- `logs/README.md`
+- `output/README.md`
+
+### Push status
+
+Push failed because no remote is configured. To push:
+
+```powershell
+cd "c:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons"
+git remote add origin <your-repo-url>
+git push -u origin main
+```
+
+### Note
+
+`09_Reference/LegalCodes/docs/SUMMONS_DATA_DICTIONARY_MAINTENANCE.md` is outside this repo (it lives under the OneDrive root). It was not included in this commit. If that folder is in a different repo, update and commit it there. ---
+
+**User**
+
+I'm preparing to export this chat. Please generate a descriptive filename that summarizes the main topic or task of this conversation. Requirements:
+• 4-8 words
+• Title Case (capitalize major words)
+• Replace spaces with underscores
+• Include .md extension
+• No dates or special characters
+
+Output only the filename, with the suffix .md and nothing else. ---
+
+**Cursor**
+
+
+Summons_ETL_Fee_Schedule_Integration_Documentation.md

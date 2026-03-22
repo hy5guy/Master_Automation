@@ -1,0 +1,215 @@
+3. Fix Ordinance Normalization:
+
+Update normalize_violation_for_match(code: str). It currently only strips trailing letters/subsections from Title 39 codes. It must also strip trailing letters and parentheses from City Ordinances. For example, 170-13B should normalize to 170-13, and 117-3(B) should normalize to 117-3 so they match the keys in the CityOrdinances JSONs. 4. Improve Unmatched Logging:
+
+Update the unmatched logging logic at the end of update_json_references. If a code starts with 13:, 16:, or 19:, log it to a separate file called other_jurisdiction_violations.txt. Only output true, clean Title 39 or City Ordinance codes that failed to match into unmatched_violations.txt. ---
+
+**Cursor**
+
+
+Updating unmatched logging and main() to handle the two output files:
+
+
+
+Adding a filter in `extract_unique_fee_structures` and fixing the 25_03_ATS error:
+
+
+
+Error in `to_numeric`: when `val` is a Series (e.g., merged Excel cells), `pd.isna(val) or val == ""` triggers the ambiguous truth-value error. Fixing `to_numeric` to handle non-scalar values:
+
+
+
+Investigating duplicate column names causing the KeyError. Checking the mapping path and adding deduplication. Summary of the changes that fixed the `25_03_ATS.xlsx` load error:
+
+## Fixes applied
+
+### 1. **`to_numeric` – handle Series from merged cells**
+Some Excel cells (e.g. merged cells) were passed as pandas Series instead of scalars. The check `pd.isna(val) or val == ""` then raised “truth value of a Series is ambiguous.”
+
+**Change:** Convert Series to scalars before validation:
+```python
+if hasattr(val, "iloc"):
+    val = val.iloc[0] if len(val) else None
+elif hasattr(val, "item") and callable(getattr(val, "item", None)):
+    try:
+        val = val.item()
+    except (ValueError, AttributeError):
+        pass
+```
+
+### 2. **Duplicate column names – `KeyError: 0`**
+`build_header_mapping` could map multiple columns to the same name (e.g. two “ASSESSED_AMOUNT” columns). That produced duplicate column names and broke the amount conversion. **Change:** Deduplicate columns after mapping, keeping the first occurrence:
+```python
+data_df = data_df.loc[:, ~data_df.columns.duplicated(keep="first")]
+```
+
+`25_03_ATS.xlsx` now loads successfully (3,518 rows), and the full script completes with 120,320 combined rows. ---
+
+**User**
+
+Context: Use "With Codebase" context. Goal: We have a major logic flaw in summons_aggregate_update_json.py. The script is generating a massive unmatched_violations.txt file because the matching logic is backwards, and the regex is failing on City Ordinances that contain decimals. Please implement the following three fixes exactly as described:
+
+Step 1: Fix the Normalization Regex
+Replace the current normalize_violation_for_match function with this updated version that handles decimals in Ordinances, strips parentheses from Title 39, and expands the "Other Jurisdictions" list:
+
+Python
+import re
+
+def normalize_violation_for_match(code: str) -> tuple[str, str]:
+    """
+    Return (base_code, code_type) for matching against JSON lookups. Handles decimals, parentheses, and trailing letters.
+    """ code = str(code).strip().upper()
+    if not code or code == "NAN":
+        return "", "unknown"
+        
+    base = re.sub(r"[\s]+", "", code)
+    
+    # 1. Title 39 (e.g., 39:4-138D, 39:3-39(B), 39:4-50.4a)
+    if base.startswith("39:"):
+        # Strip parens and trailing uppercase letters, but preserve lowercase letters used in actual statutes (like 50.4a)
+        m = re.match(r"(39:\d+-\d+(\.\d+)?[a-z]? )[A-Z\(\)]*", base)
+        if m:
+            return m.group(1), "title39"
+        return base, "title39"
+        
+    # 2. Other Jurisdictions (Title 4, 13, 16, 19, 27, 5A)
+    if re.match(r"^(4|13|16|19|27|5A):", base):
+        return base, "other_jurisdiction"
+        
+    # 3. City Ordinances (e.g., 170-44.1B, 117-3(B))
+    m = re.match(r"(\d+-\d+(\.\d+)? )[A-Z\(\)]*", base)
+    if m:
+        return m.group(1), "ordinance"
+        
+    return base, "unknown"
+Step 2: Fix the Backwards Matching Logic
+Currently, the script builds fees_by_code using the raw, un-normalized Excel codes. This causes matches to fail. Update the update_json_references function to normalize the Excel codes before adding them to the fees_by_code dictionary. Change this logic:
+
+Python
+    fees_by_code = {}
+    for _, row in fee_df.iterrows():
+        code = str(row["violation_code"]).strip()
+        fees_by_code[code] = build_fee_schedule_entry(row)
+To this:
+
+Python
+    fees_by_code = {}
+    for _, row in fee_df.iterrows():
+        raw_code = str(row["violation_code"]).strip()
+        base_code, code_type = normalize_violation_for_match(raw_code)
+        
+        # Map the fee to the NORMALIZED base code (e.g., 170-13)
+        if base_code:
+            fees_by_code[base_code] = build_fee_schedule_entry(row)
+            
+        # Also map to the raw code just in case a JSON key relies on the exact raw string
+        fees_by_code[raw_code] = build_fee_schedule_entry(row)
+Step 3: Update Unmatched Logging
+Ensure that any code categorized as "other_jurisdiction" by the new normalization function is appended to the other_jurisdiction list and written to other_jurisdiction_violations.txt, keeping them out of unmatched_violations.txt. ---
+
+**Cursor**
+
+
+Implementing all three fixes. All three fixes are in place. Summary:
+
+## Summary of Changes
+
+### 1. Normalization regex (`normalize_violation_for_match`)
+
+- **Title 39**: Handles decimals (e.g. `39:4-50.4a`), strips parentheses and trailing uppercase letters, keeps lowercase statute suffixes. - **Other jurisdictions**: Treats `4:`, `13:`, `16:`, `19:`, `27:`, and `5A:` as other jurisdictions. - **City ordinances**: Handles decimals (e.g. `170-44.1B`, `117-3(B)`) and strips trailing letters and parentheses. ### 2. Matching logic (`fees_by_code`)
+
+- Fees are stored under the **normalized base code** (e.g. `170-13` for `170-13B`). - Fees are also stored under the **raw code** for exact matches. - JSON lookups like `170-13` now match Excel variants such as `170-13B`. ### 3. Unmatched logging
+
+- Uses `code_type` from `normalize_violation_for_match` instead of a regex. - Codes with `code_type == "other_jurisdiction"` go to `other_jurisdiction_violations.txt`. - Only Title 39 and City Ordinance codes that fail to match go to `unmatched_violations.txt`. ## Results
+
+- **Unmatched violations**: 23 (down from the previous large set). - **Other jurisdiction violations**: 12 (4:, 13:, 16:, 19:, 27:). - **JSON updates**: 29 City Ordinances, 182 Title 39, 138 municipal-violations-bureau-schedule. ---
+
+**User**
+
+leaving the below folders in the root, please create scaffolding for directory for the scripts, logs, docs, data and any other folders need to tidy the directory up
+C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\INFOCOP
+C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\Court
+C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket
+C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\__pycache__
+
+---
+
+**Cursor**
+
+
+Scaffolding for the `_Summons` directory is in place. Here’s what was added:
+
+## Directory structure
+
+| Folder | Purpose |
+|--------|---------|
+| **scripts/** | Python and automation scripts (e.g. `summons_aggregate_update_json.py`) |
+| **logs/** | Execution logs from summons scripts |
+| **docs/** | Documentation, prompts, and instructions |
+| **data/** | Processed data outputs and intermediate files |
+| **output/** | Script-generated exports and reports |
+
+## Folders left in place (as requested)
+
+- **INFOCOP**
+- **Court**
+- **E_Ticket**
+- **__pycache__**
+
+Each new folder has a `README.md` describing its purpose. You can move existing files into these folders when you’re ready (e.g. logs → `logs/`, CSVs → `data/` or `output/`). ---
+
+**User**
+
+Claude recommended stripping the VBA macro out of the DFR Summons workbook so it can be saved as a standard, universally compatible `.xlsx` file for the team. I have done this, but I don't want to lose the VBA code in case we need to re-import a new fee schedule next year. Please create a new text file at `08_Templates\VBA\Fee_Schedule_Processing_Macro.bas` (or `.txt`) and save the VBA macro code that was used to process the fee schedule there for future reference. ---
+
+**Cursor**
+
+
+Creating `08_Templates\VBA\Fee_Schedule_Processing_Macro.bas` with a reconstruction template. The original VBA was removed when the workbook was saved as `.xlsx`, so the exact code isn't recoverable. The template is based on the DFR workflow (ViolationData sheet, fee schedule CSV import). Created the VBA file at `08_Templates\VBA\Fee_Schedule_Processing_Macro.bas`. **Note:** The original macro code is not available because it was removed when the workbook was saved as `.xlsx`. The file contains a **reconstruction** based on the DFR workflow (ViolationData sheet, fee schedule CSV import). **Contents:**
+- `ImportFeeSchedule` – uses a file picker to select a fee schedule CSV and load it into the ViolationData sheet
+- `GetOrCreateSheet` – creates the ViolationData sheet if it doesn’t exist
+- Instructions for re-importing the macro into Excel (save as `.xlsm`, then Import File in the VBA editor)
+
+**To re-import next year:**
+1. Save the DFR workbook as `.xlsm` (macro-enabled). 2. Press Alt+F11 to open the VBA editor. 3. File → Import File → select `08_Templates\VBA\Fee_Schedule_Processing_Macro.bas`. 4. Assign the macro to a button or run it from the Macros dialog. If you still have the original VBA (e.g. from a backup or `.xlsm` copy), paste it into this file and it will be preserved for future use. ---
+
+**User**
+
+Claude has successfully analyzed the 23 unmatched violation codes and generated a reconciliation worksheet in the DFR Summons workbook. Please update the `SUMMONS_DATA_DICTIONARY_MAINTENANCE.md` (or the most relevant summons documentation file) with the following findings from the analysis:
+
+1. **The Subsections (14 codes):** The parent code existed in the dictionary, but the specific subsection granularity did not. 2. **The Completely Missing (4 codes):** Neither the code nor its parent existed in the dictionary, requiring full manual lookup. 3. **The Speed Brackets (4 codes):** These were specifically formatted NJ court speeding codes indicating MPH over the limit (e.g., `39:4-98 .14` for 1-14 MPH over limit). 4. **The Typo (1 code):** A data entry truncation error from the source system where a parenthesis was cut off (`175-13.1(C)(1`). Note in the documentation that a reconciliation worksheet was created to manually map these exceptions, and the JSON dictionaries will be permanently updated with these mappings to prevent future lookup failures. ---
+
+**Cursor**
+
+
+Creating `SUMMONS_DATA_DICTIONARY_MAINTENANCE.md` in `09_Reference/LegalCodes/docs` (where the violation dictionaries live) and adding the findings:
+
+
+
+Created `SUMMONS_DATA_DICTIONARY_MAINTENANCE.md` and linked it from the LegalCodes README. Summary:
+
+## Created: `09_Reference/LegalCodes/docs/SUMMONS_DATA_DICTIONARY_MAINTENANCE.md`
+
+**Contents:**
+
+1. **The Subsections (14 codes)** – Parent code existed, but subsection-level entries were missing. 2. **The Completely Missing (4 codes)** – Neither code nor parent in the dictionary; full manual lookup required. 3. **The Speed Brackets (4 codes)** – NJ court speeding codes by MPH over limit (e.g., `39:4-98 .14` = 1–14 MPH over). 4. **The Typo (1 code)** – Source truncation (`175-13.1(C)(1` instead of `175-13.1(C)(1)`). **Also documented:**
+- Use of a reconciliation worksheet in the DFR Summons workbook for manual mapping. - Plan to update the JSON dictionaries with these mappings to avoid future lookup failures. - Related files (scripts, outputs, dictionaries). - Maintenance schedule (post-run review, annual reconciliation). **Updated:** `09_Reference/LegalCodes/README.md` – added this doc to the Documentation section. ---
+
+**User**
+
+Claude successfully completed Task #3 for the Summons pipeline. Please update our documentation (like `SUMMONS_DATA_DICTIONARY_MAINTENANCE.md` or the relevant ETL architecture doc) with the following architectural decision:
+**Handling Out-of-Jurisdiction Violations:**
+To prevent external agency violations (e.g., NJ Turnpike Authority, NJ Dept of Transportation) from artificially inflating Hackensack's CompStat metrics, a new `Jurisdiction` dimension has been added to the Master Fee Schedule. * A reference table (`tbl_OtherJurisdiction`) tracks the 12 known external codes (Title 13, Title 19, etc.). * The Master Fee Schedule now includes a `Jurisdiction` column that flags records as either "Hackensack" or "Other Jurisdiction". * **Power BI Implementation Note:** When building summons dashboards, use the `Jurisdiction` column as a page or visual-level filter set to "Hackensack" to ensure accurate local reporting while preserving the full audit trail in the underlying dataset. ---
+
+**Cursor**
+
+
+Summary of updates:
+
+## Documentation updates
+
+### 1. **SUMMONS_DATA_DICTIONARY_MAINTENANCE.md** (09_Reference/LegalCodes/docs/)
+
+Added an **Architectural Decision: Handling Out-of-Jurisdiction Violations** section covering:
+
+- **Rationale**: External agency violations (NJ Turnpike Authority, NJ DOT, etc.) must not inflate Hackensack CompStat metrics. - **Reference table**: `tbl_OtherJurisdiction` for 12 known external codes (Title 4, 13, 16, 19, 27, 5A). - **Master Fee Schedule**: New `Jurisdiction` column with values "Hackensack" or "Other Jurisdiction". - **Power BI note**: Use `Jurisdiction` as a page- or visual-level filter set to "Hackensack" for local reporting while keeping the full audit trail. Also added `tbl_OtherJurisdiction` to the Related Files table. ### 2.

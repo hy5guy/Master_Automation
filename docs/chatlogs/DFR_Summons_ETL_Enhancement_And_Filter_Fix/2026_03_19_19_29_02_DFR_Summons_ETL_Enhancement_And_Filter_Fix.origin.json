@@ -1,0 +1,38 @@
+{
+  "tags": [
+    "ai",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "text",
+        "date",
+        "summons",
+        "dfr",
+        "type",
+        "table"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# DFR summons log ETL enhancement\n_Exported on 3/19/2026 at 19:28:40 EDT from Cursor (2.6.20)_\n\n---\n\n**User**\n\n## Your Role\nYou are a Senior Python ETL Engineer working on summons_etl_enhanced.py for the Hackensack Police Department anal...",
+      "first_line": "# DFR summons log ETL enhancement"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-03-19T19:29:02.675934",
+  "department": "admin"
+}

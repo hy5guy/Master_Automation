@@ -1,0 +1,449 @@
+The remaining 145 are subsection variants (like 117-3(B) where 117-3 exists but not the (B) subsection). The ViolationData table doesn't have these granular subsections, but I can use a secondary XLOOKUP that falls back to the parent code. Let me enhance the formulas:
+
+
+Enhanced XLOOKUP with parent-code fallback
+Improved from 54% to 63%. The remaining 116 are codes where even the parent base (stripping parentheses) doesn't match — these are letter-suffix variants like 39:4-138A, 39:3-29B where ViolationData has 39:4-138 but not 39:4-138A. Let me add one more fallback layer that strips trailing letter suffixes:
+
+
+3-tier cascade XLOOKUP with letter stripping
+Jumped from 63% to 86.1%. Let me check what's still unresolved:
+
+
+List remaining 44 unresolved codes
+I can see the pattern — many of these are the 23 codes we reconciled earlier + the 12 other-jurisdiction codes + some Title 39 codes with dot-letter patterns the formula can't parse. Since ViolationData doesn't have these (that's why they were "unmatched" in the first place), but we DO have the descriptions from the reconciliation work, I need to add those to ViolationData first:
+
+
+Add 35 codes to ViolationData for XLOOKUP
+Conversation compacted
+Now let me also handle the remaining Title 39 codes with dot-letter patterns. Let me check which ones are still missing:
+
+
+Check remaining unresolved after adding codes
+Down to just 13! Let me add these to ViolationData — they're all Title 39 subsections or the 4:16.2 code that might have a formatting issue again:
+
+
+Check 4:16.2 formatting in ViolationData
+Same issue — 4:16.2 was auto-parsed as a time value again. Let me fix it and add the remaining 12 Title 39 codes:
+
+
+Fix 4:16.2 + add 12 remaining T39 codes
+100% resolution — all 316 codes have descriptions! Now let me format the new columns and verify the data quality:
+
+
+Format new columns and verify sample data
+Let me also verify the source type breakdown matches the jurisdiction flags:
+
+
+Quality check: source/jurisdiction alignment
+All clean. Let me now take a visual snapshot of the final result:
+
+
+Visual check of enriched Master Fee Schedule
+The rows are too tall from the wrap text. Let me fix the row heights and adjust the column widths to make it cleaner:
+
+
+Fix row heights and column widths
+Now let me log this and verify the final visual:
+
+
+Final visual check of enriched fee schedule, log Task #4 completion to Claude Log
+✅ Task #4 Complete — 100% Description Enrichment
+What was done:
+3 new columns added to tbl_FeeSchedule:
+
+Column	Header	Formula
+I	
+Master Fee Schedule
+I:I
+3-tier cascade XLOOKUP against 
+ViolationData
+J	
+Master Fee Schedule
+J:J
+Same cascade — returns City Ordinance / Title 39 / Other Jurisdiction
+K	
+Master Fee Schedule
+K:K
+Same cascade — returns granular category classification
+Formula logic (3-tier cascade):
+Tier 1: Exact match on full violation code
+Tier 2: Strip parenthetical subsections (e.g., 39:4-36(A)(3) → 39:4-36) and try again
+Tier 3: Strip trailing letter suffix from the base (e.g., 39:4-138A → 39:4-138) and try again
+Resolution summary:
+Source Type	Count
+Title 39	255
+City Ordinance	49
+Other Jurisdiction	12
+TOTAL	316 (100%)
+ViolationData expanded:
+Added 47 new rows (4,250 → 4,297) to close all gaps:
+23 reconciled codes from Task #2
+12 other-jurisdiction codes from Task #3
+12 remaining Title 39 subsection variants
+Data integrity:
+✅ 0 unresolved codes
+✅ All formulas are live XLOOKUPs (fully traceable, not hardcoded)
+✅ Source Type aligns perfectly with Jurisdiction flag (zero mismatches)
+✅ 4:16.2 time-parse issue caught and fixed in ViolationData
+Ready for Task #5: Wire DFR Summons Log lookups to tbl_FeeSchedule — just say the word! Updated 
+Claude Log
+ (Turn 47)
+
+Task #4 is a massive success! Expanding the internal `ViolationData` sheet and using live 3-tier cascading XLOOKUPs was a brilliant pivot. It keeps the workbook completely portable while maintaining formula traceability. Hitting a 100% resolution rate on municipal codes is amazing. Let's officially start Task #5: "Wire DFR Summons Log lookups." This is the main event for the end-users (the officers and clerks). We need to make sure that when they type a code into the DFR Summons Log, it seamlessly auto-populates the Description, Fee, Category, and Jurisdiction from our newly enriched `tbl_FeeSchedule`. What is your exact plan for wiring these columns, and should we add Data Validation to the code entry column so they don't type invalid formats? Execute when ready! Let me first examine the DFR Summons Log structure to understand the current columns and where the lookups need to land:
+
+
+Read DFR Summons Log headers + sample rows
+Excellent — the DFR Summons Log already has lookup formulas wired in columns G–J, but they're using a flawed approach: they lookup against ViolationData!G:G (NormalizedCode column) using a LOWER(SUBSTITUTE(...)) that strips ALL parentheses from the code. This is problematic because:
+
+It strips parentheses that are actually part of the code (e.g., 117-3(B) → 117-3B)
+It uses LOWER() but ViolationData codes are uppercase
+It doesn't reference tbl_FeeSchedule at all — misses the fee amounts we built
+Let me check how many of the current formulas actually resolve:
+
+
+Audit current lookup hit rates in DFR log
+0% hit rate on the current formulas — completely broken. Only 79 of 554 rows have a statute entered (3 unique codes), and none resolve. The existing LOWER(SUBSTITUTE(...)) approach against NormalizedCode is failing because ViolationData stores codes as-is (with parentheses intact) in column A. Here's my plan for the rewire:
+
+Task #5 Plan
+Phase 1 — Rewire the 4 existing lookup columns (G, H, I, J):
+
+Replace with clean XLOOKUP formulas that reference tbl_FeeSchedule (the enriched 316-row table) as primary lookup, with ViolationData as fallback
+Use the same 3-tier cascade from Task #4 (exact → strip parens → strip trailing letter)
+Phase 2 — Add 2 new auto-populate columns:
+
+Violation Category — from tbl_FeeSchedule Column K
+Jurisdiction — from tbl_FeeSchedule Column H
+Phase 3 — Add Data Validation on the Statute column (F):
+
+Dropdown list sourced from tbl_FeeSchedule[Violation Code]
+Still allows free-text entry (in case of new codes) but provides autocomplete
+Conditional formatting: red highlight if code isn't found in the fee schedule
+Phase 4 — Conditional formatting for feedback:
+
+Red background on Statute cell if code returns "UNRESOLVED"
+Green background if matched successfully
+Let me execute:
+
+
+Rewire G/H/I/J with 3-tier cascade XLOOKUPs
+Phase 1 done. Now let me verify the hit rate and add the new columns:
+
+
+Verify rewired lookup hit rates
+100% hit rate on Description, Source Type, and Violation Type! The Fine Amount shows 0/79 at 0% but that's because these codes actually have $0.00 fee amounts in the fee schedule — the 0 is the correct value, not a miss. Let me fix the formula to distinguish between "no match" and "matched with $0":
+
+
+Check fee amounts for the 3 active codes
+All 3 codes genuinely have $0.00 totals in the fee schedule — so the formula IS working correctly, it's just that these violations have zero-dollar fees. The Fine Amount formula is actually fine; the "0" is the correct resolved value. Let me update the formula so $0.00 displays instead of appearing blank:
+
+
+Fix Fine formula to show $0.00 correctly
+Good — $0.00 now displays correctly. Now Phase 2 — add Jurisdiction column:
+
+
+Check current column layout
+The layout is tight (A–R). Rather than inserting a column in the middle and risking table/formula breakage, I'll rename the existing "Violation Type" (J) header to "Violation Category" (since that's what it now returns), and add "Jurisdiction" as a new column right after it. Let me insert column K:
+
+
+Insert Jurisdiction column K with cascade XLOOKUP
+Now Phase 3 — Data Validation on the Statute column:
+
+
+Add data validation dropdown on Statute column
+The structured reference doesn't work in data validation via Office.js. Let me use the direct range reference instead:
+
+
+Data validation with sheet range reference
+Now Phase 4 — Conditional formatting for visual feedback:
+
+
+Add conditional formatting for visual feedback
+Now let me apply the alternating row striping to the new Jurisdiction column to match the existing pattern, then do a final verification:
+
+
+Apply alternating row stripes to K column
+Now let me do the final verification and check that the Full Summons Number formula in the last column still works (it shifted from R to S after the insert):
+
+
+Final verification of all columns and formulas
+Everything is perfect. Let me take a visual snapshot and log it:
+
+
+Visual check of wired DFR Summons Log, log Task #5 completion
+✅ Task #5 Complete — DFR Summons Log Fully Wired
+What was done (4 phases):
+Phase 1 — Rewired 4 existing lookup columns:
+
+Column	Header	Before (Broken)	After (Working)
+
+DFR Summons Log
+G:G
+Description	XLOOKUP(LOWER(SUBSTITUTE(...))) against NormalizedCode → 0% hit rate	3-tier cascade XLOOKUP against tbl_FeeSchedule + ViolationData fallback → 100%
+
+DFR Summons Log
+H:H
+Fine Amount	Same broken approach → 0%	Sentinel-based cascade (-999 for not found) → 100%
+
+DFR Summons Log
+I:I
+Source Type	Same → 0%	Cascade XLOOKUP → 100%
+
+DFR Summons Log
+J:J
+Violation Category	Was "Violation Type" → 0%	Renamed + rewired → 100%
+Phase 2 — New column added:
+
+Column	Header	Formula
+
+DFR Summons Log
+K:K
+Jurisdiction	3-tier cascade XLOOKUP → returns "Hackensack" or "Other Jurisdiction"
+Phase 3 — Data Validation on 
+DFR Summons Log
+F:F
+:
+
+📋 Dropdown list with all 316 codes from Master Fee Schedule
+⚠️ Warning-level alert — lets clerks override with free text if needed
+💡 Input prompt when cell selected: "Select from dropdown or type a valid violation code"
+Phase 4 — Conditional formatting:
+
+🔴 Red bold on Description if "NOT FOUND"
+🟠 Orange bold on Jurisdiction if "Other Jurisdiction"
+🟢 Green on Jurisdiction if "Hackensack"
+Verification summary:
+✅ 79/79 populated rows (3 unique codes) — all auto-populate across 5 columns
+✅ 
+DFR Summons Log
+S:S
+ formula intact after column insert (=IF([@[Summons Number]]="","","E26"&[@[Summons Number]]))
+✅ Alternating row stripes applied to new column
+✅ Column count: 18 → 19 (A–S)
+How it works for clerks:
+Click 
+DFR Summons Log
+F:F
+ → dropdown appears with 316 codes
+Select or type a code → 5 columns auto-populate instantly: Description, Fine, Source Type, Category, Jurisdiction
+Invalid codes trigger a warning but can still be entered
+"NOT FOUND" appears in red if the code can't be resolved
+Ready for Task #6: Build Dashboard! 🎯
+
+Updated 
+Claude Log
+ (Turn 48)
+
+Task #5 is an absolute masterpiece. The Warning-level data validation was an incredibly smart design choice—it guides the clerks without locking them out if they encounter a brand new statute in the field. The conditional formatting and cascading lookups are working flawlessly. We are ready for the Grand Finale! Task #6: "Build dashboard / summary views." Since this workbook will eventually feed into Power BI, we don't need anything overly complex here, just a clean, native Excel summary. What is your plan for the Dashboard tab? I'd love to see a high-level summary of Total Summons, a split by Jurisdiction (Hackensack vs. Other), and a breakdown of the Top Violation Categories. Let's bring it home! Let me first get a clear picture of the current data to design the dashboard around:
+
+
+Ran 2 scripts
+Good data. Now let me build the dashboard. I'll create a clean, native Excel summary with formula-driven KPIs:
+
+
+Build full Dashboard sheet with 7 sections
+The merged range needs a single-cell value write. Let me fix the approach — write value before merging:
+
+
+Build complete Dashboard with all 7 sections
+The merge + values write pattern is still failing. Let me use a different approach — write all values first to the top-left cells, THEN merge:
+
+
+Build Dashboard: values → merge → style
+I can see two formula issues to fix:
+
+Total Summons shows -841 (the COUNTA-COUNTBLANK formula is wrong for sparse data)
+% of Total shows negative percentages (same root cause)
+Total Assessed Fees shows #VALUE! Let me fix these:
+
+
+Fix Total Summons and Total Fees formulas
+Total Summons now shows 79 correctly. Total Fees is $0.00 which is correct since all 79 summons have $0 fee amounts. Let me verify the visual and check the remaining sections:
+
+
+Used 2 tools
+Looking great! Let me check the ETL checklist and the status percentages:
+
+
+Used 2 tools
+The dashboard looks clean and professional. Now let me log this and do the final summary:
+
+
+Log Task #6 + project completion
+✅ Task #6 Complete — Dashboard Built. ALL 6 ETL TASKS COMPLETE! 🎉
+Dashboard Layout (
+Dashboard
+):
+Section	Location	Contents
+Title Banner	
+Dashboard
+A1:L3
+"HACKENSACK MUNICIPAL COURT — ETL DASHBOARD"
+6 KPI Cards	
+Dashboard
+A5:L6
+Total Summons (79) · Active (77) · Unique Statutes (3) · Hackensack (79) · Other Jurisdiction (0) · Total Assessed ($0.00)
+Status Breakdown	
+Dashboard
+A8:F14
+Issued (23, 29.1%) · ACTI (54, 68.4%) · Dismissed (2, 2.5%) · Voided (0)
+Jurisdiction Split	
+Dashboard
+G8:L12
+Hackensack: 304 codes, $3,878.63 · Other: 12 codes, $109.65
+Fee Schedule Summary	
+Dashboard
+A16:L18
+316 codes · 54 w/ fees · Avg $73.86 · Max $248.23 · Total $3,988.28
+Source Type + Top 10	
+Dashboard
+A20:L31
+City Ord (49, 15.5%) · Title 39 (255, 80.7%) · Other (12, 3.8%) — Top category: Title 39 Chapter 4 (38 codes, 12.0%)
+ETL Checklist	
+Dashboard
+A34:L41
+All 6 tasks ✅ COMPLETE with key metrics
+Key design decisions:
+100% formula-driven — every number is a live COUNTIF/SUMIF/SORTBY/UNIQUE reference, not hardcoded
+D-DIN font throughout — matches your existing DFR Summons Log styling
+Navy/blue theme (#1F4E79 / #2E75B6) — consistent with the existing workbook aesthetic
+Power BI-ready — all structured table references (tbl_FeeSchedule[...]) work natively as Power BI data sources
+🏆 PROJECT COMPLETE — Full ETL Checklist:
+Task	Description	Result
+✅ 1	Import Fee Schedule	316 violations × 11 columns in tbl_FeeSchedule
+✅ 2	Reconcile Unmatched Violations	23 codes resolved → 4 JSON dicts updated
+✅ 3	Separate Other-Jurisdiction	12 codes flagged (304 Hackensack / 12 Other)
+✅ 4	Enrich with Descriptions	316/316 (100%) — 3-tier cascade XLOOKUP
+✅ 5	Wire DFR Summons Log	5 auto-populate columns + data validation dropdown
+✅ 6	Build Dashboard	6 KPI cards + 4 analytical tables + ETL tracker
+Updated 
+Claude Log
+ (Turn 49)
+ please protect the dashboard
+
+Ran 2 scripts
+The Dashboard is already protected — looks like Excel applied protection during the sheet changes I see in your user changes. Let me verify what's allowed:
+
+
+Verify Dashboard protection settings
+It's fully locked down — all edit operations blocked. That's quite restrictive. Let me unprotect and re-protect with a better set of permissions that lets users sort/filter but not edit cells:
+
+
+Re-protect Dashboard with better permissions
+Now let me log it:
+
+
+Log Dashboard protection
+Done! The 
+Dashboard
+ is now protected with these permissions:
+
+Action	Allowed? ✅ Select cells	Yes
+✅ Sort data	Yes
+✅ AutoFilter	Yes
+✅ Resize columns/rows	Yes
+🔒 Edit cell values	Blocked
+🔒 Insert/Delete rows/cols	Blocked
+🔒 Edit objects	Blocked
+🔒 Format cells	Blocked
+No password was set — you can unprotect anytime via Review → Unprotect Sheet. Updated 
+Claude Log
+ (Turn 50)
+does the m code need to be updated? Good question — let me check what's currently in the M Code Reference sheet and see if it's stale:
+
+
+Read 4 ranges
+
+Read M Code Reference contents
+
+Read rest of M Code Reference
+
+Read final portion of M Code
+
+Read final column list of M Code
+Now I have the full picture. The M Code is absolutely stale — it's missing the 2 new columns we added during Tasks 4 and 5. Here's the gap analysis:
+
+Columns in the current DFR Summons Log (post-Task 5):
+Col	Header	In M Code? A	Summons ID	✅
+B	Date	✅
+C	Time	✅
+D	Summons Number	✅
+E	Location	✅
+F	Statute	✅
+G	Description	✅
+H	Fine Amount	✅
+I	Source Type	✅
+J	Violation Category	❌ M Code has Violation_Type (old name)
+K	Jurisdiction	❌ Missing entirely
+L	DFR Operator	✅
+M	Issuing Officer	✅
+N	Summons Status	✅
+O	DFR Unit ID	✅
+P	OCA	✅
+Q	Summons Recall	✅
+R	Notes	✅
+S	Full Summons Number	✅
+Changes needed:
+Rename mapping: Add "Violation Category" → "Violation_Category" (replaces old Violation_Type)
+Rename mapping: Add "Jurisdiction" → "Jurisdiction"
+Type mapping: Add Violation_Category as type text, Jurisdiction as type text
+Final column list: Add "Violation_Category" and "Jurisdiction", remove old "Violation_Type"
+Change log + date: Update
+Want me to update the M Code Reference sheet with these changes? I'll preserve the existing structure and just add/modify the relevant lines. does the m code need to be updated? Good question — let me check what's currently in the M Code Reference sheet and see if it's stale:
+
+
+Read 4 ranges
+
+Read M Code Reference contents
+
+Read rest of M Code Reference
+
+Read final portion of M Code
+
+Read final column list of M Code
+Now I have the full picture. The M Code is absolutely stale — it's missing the 2 new columns we added during Tasks 4 and 5. Here's the gap analysis:
+
+Columns in the current DFR Summons Log (post-Task 5):
+Col	Header	In M Code? A	Summons ID	✅
+B	Date	✅
+C	Time	✅
+D	Summons Number	✅
+E	Location	✅
+F	Statute	✅
+G	Description	✅
+H	Fine Amount	✅
+I	Source Type	✅
+J	Violation Category	❌ M Code has Violation_Type (old name)
+K	Jurisdiction	❌ Missing entirely
+L	DFR Operator	✅
+M	Issuing Officer	✅
+N	Summons Status	✅
+O	DFR Unit ID	✅
+P	OCA	✅
+Q	Summons Recall	✅
+R	Notes	✅
+S	Full Summons Number	✅
+Changes needed:
+Rename mapping: Add "Violation Category" → "Violation_Category" (replaces old Violation_Type)
+Rename mapping: Add "Jurisdiction" → "Jurisdiction"
+Type mapping: Add Violation_Category as type text, Jurisdiction as type text
+Final column list: Add "Violation_Category" and "Jurisdiction", remove old "Violation_Type"
+Change log + date: Update
+Want me to update the M Code Reference sheet with these changes? I'll preserve the existing structure and just add/modify the relevant lines. Log M Code audit findings
+Yes — the M Code needs 3 updates. Here's what's stale:
+
+Issue	Current M Code	Needed
+Column J renamed	Maps "Violation Type" → "Violation_Type"	Change to "Violation Category" → "Violation_Category"
+Column K missing	Not in RenameMap, TypeMap, or FinalColumns	Add "Jurisdiction" → "Jurisdiction" across all 3 sections
+Header metadata	Last Updated: 2026-03-19	Update to 2026-03-20 + add change log entry
+The M Code is schema-resilient (it uses List.Contains checks before applying), so Power BI won't break on the next refresh — it just silently ignores columns it doesn't know about. But Jurisdiction and Violation Category won't flow through to your Power BI model until we add them. Want me to go ahead and apply the updates to the 
+M Code Reference
+ sheet? Updated 
+Claude Log
+ (Turn 51)
+
+
+A1:D310 selected
+
+Claude Log
+Turn #	Date	User Request	Action Taken	Details	Outcome
+1	03/13/2026	Build DFR summons tracking workbook from uploaded violation source files (Title39, CityOrdinances, MVB Schedule). Full system with dropdowns, auto-lookup, fine mapping, and Power BI readiness. Parsed all 3 source files. Built ViolationData sheet (1,244 violations merged from MVB + Title 39 categories). Created DFR Summons Log with 14 columns, XLOOKUP formulas, data validation dropdowns, auto-generated Summons IDs. Loaded initial 40 violations to ViolationData. Columns: Summons ID (auto), Date, Time, Location, Violation (dropdown), Violation Code (XLOOKUP), Fine Amount (XLOOKUP), Source Type (XLOOKUP), Violation Type (XLOOKUP), DFR Operator, Issuing Officer, Summons Status (dropdown), DFR Unit ID, Notes. Full 1,244-violation ViolationData_Template.xlsx exported separately. Workbook structure complete. Sample entry demonstrates working formulas. ViolationData has initial 40 rows loaded — full 1,244-row dataset available in exported file for user to paste into ViolationData sheet. 2	03/13/2026	Change Time column to military time HHMM format. Updated number format for C2:C501 from 'hh:mm AM/PM' to 'HHmm' (military/24-hour without colon). Format applied: HHmm. Sample row 2 now displays 1400 instead of 2:00 PM. Users should enter time as HH:MM (e.g., 14:00) and it will display as 1400. Time column now shows military time. User had entered raw value '2' in C3 which displays as 0000 — may need correction. 3	03/13/2026	Typing '1427' into Time column displayed as 0000. User wants to type military time directly. Changed Time column (C2:C501) from HHmm time format to text format (@). Converted existing entries: C2 from time decimal 0.583333 to text '1400', C3 from number 1427 to text '1427'. Root cause: HHmm format requires an Excel time decimal (0-1), not a plain number. Switching to text format lets users type '1427' directly and it stores/displays as-is. Trade-off: Power BI will need to parse text times, but this is trivial with a calculated column. Time column now accepts direct military time entry (e.g., type 1427, see 1427). Both existing rows corrected. 4	03/13/2026	User reported 88-6D(2) Fire Lanes violation missing from ViolationData. This is a city ordinance used frequently for DFR summonses, $100 fine. Added 88-6D(2) Fire Lanes to ViolationData row 42 with $100.00 fine, Source Type 'City Ordinance', Violation Type 'Parking'. Set E3 to the new violation and verified XLOOKUP auto-populated F3:I3. New row in ViolationData!A42:G42. Violation not found in any of the 3 source files (Title39, MVB Schedule, CityOrdinances) — manually added per user input. Complete. Row 3 now shows: Code=88-6D(2), Fine=$100.00, Source=City Ordinance, Type=Parking. All XLOOKUP formulas verified working. 5	03/13/2026	User clarified that 88-6D(2) is from Hackensack City Code Chapter 88 (Fire Prevention), not a generic city ordinance. Found on eCode360 under City of Hackensack. Updated ViolationData row 42: Description → 'Parking or stopping in designated fire lane/fire zone', SourceType → 'Hackensack City Code', ViolationType → 'Fire Prevention', Category → 'Ch. 88 - Fire Prevention'. Refined metadata to accurately reflect ordinance source. XLOOKUP formulas on DFR Summons Log row 3 auto-updated to show new values. Complete. H3 now shows 'Hackensack City Code', I3 shows 'Fire Prevention'. Accurate for Power BI reporting/filtering. 6	03/13/2026	User asked if double parking is in the violation data. Searched ViolationData (not loaded) and source files. Found 39:4-138(m) Double parking at $55.00 in MVB schedule. Added to ViolationData row 43. ViolationData!A43:G43 — Code: 39:4-138(m), Fine: $55.00, Source: Title 39, Type: Parking, Category: Illegal Parking. Complete. Double parking now available in Violation dropdown. 7	03/13/2026	User requested: (1) split Violation col into Statute + Description, (2) fuzzy matching so parentheses/case don't matter (e.g., 88-6d2 = 88-6D(2)), (3) curate violations to DFR-relevant only (parking, equipment, registration). Major restructure: Replaced 1,200+ violations with 27 curated DFR-relevant ones. Renamed E→Statute, F→Description. Added NormalizedCode helper column (G) in ViolationData using LOWER+SUBSTITUTE to strip parens. All XLOOKUPs now normalize user input before matching. Tested 88-6d2 and 88-6D(2) — both resolve correctly. ViolationData: A=Code, B=Desc, C=Fine, D=Source, E=Type, F=Category, G=NormalizedCode (grouped/hidden), H=DisplayName. DFR Summons Log: E=Statute (user types), F=Description (auto), G=Fine (auto), H=Source (auto), I=ViolType (auto). Formulas: =IFERROR(XLOOKUP(LOWER(SUBSTITUTE(SUBSTITUTE(E2,"(",""),")","")),ViolationData!G:G,...))	Complete. 27 violations loaded covering: 14 parking, 3 equipment, 6 registration/inspection, 1 handicapped, 3 plate/address, plus 88-6D(2) Fire Lanes. Fuzzy match verified working. 8	03/16/2026	User reported the Instructions sheet was missing. Asked to investigate and recreate it. Investigated workbook — confirmed Instructions sheet was absent (likely lost when previous agent sessions expired). Recreated comprehensive Instructions sheet from scratch using Claude Log history and current sheet structure. Created 'Instructions' sheet (tab position 2, blue tab) with 6 sections: Overview (purpose, sheet descriptions), How to Enter a New Summons Record (8-step walkthrough), Column Reference table (14 cols with AUTO/MANUAL/DROPDOWN indicators), Fuzzy Matching explanation (with examples), Available Violations quick-reference (27 rows linked to ViolationData via formulas), Important Notes & Tips (do-not-edit warnings, formula maintenance, Power BI readiness, how to add violations). Sheet is protected (read-only). Formatting matches workbook style (D-DIN font, #1F4E79 headers). Instructions sheet restored.

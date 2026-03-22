@@ -1,0 +1,273 @@
+{
+  "source_file": "dfr_summons_update_title_39.md",
+  "source_path": "C:\\_chunker\\02_data\\dfr_summons_update_title_39.md",
+  "manifest_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\KB_Shared\\04_output\\dfr_summons_update_title_39\\2026_03_20_20_02_35_dfr_summons_update_title_39.origin.json",
+  "created_at": "2026_03_20_20_02_35",
+  "tags": [
+    "ai",
+    "code",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata": {
+    "project_name": "02_data",
+    "source_type": "documentation",
+    "language": "en",
+    "department": "admin",
+    "key_terms": [
+      "code",
+      "column",
+      "summons",
+      "all",
+      "sheet",
+      "table"
+    ],
+    "enrichment_version": "1.0.0"
+  },
+  "summaries": {
+    "file_summary": "Role: Please act as an expert Excel Data Analyst and VBA Developer. Context: I am managing a municipal court ETL project for Hackensack, NJ.",
+    "first_line": "Role: Please act as an expert Excel Data Analyst and VBA Developer."
+  },
+  "chunks": [
+    {
+      "chunk_id": "2026-03-20T20:02:35+00:00_dfr_summons_update_title_39_chunk1",
+      "chunk_index": 1,
+      "file": "chunk_00000.txt",
+      "tags": [
+        "ai",
+        "code",
+        "columns",
+        "data",
+        "docs",
+        "excel",
+        "file",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "range",
+        "sql",
+        "wsnew"
+      ],
+      "key_terms": [
+        "wsnew",
+        "range",
+        "data",
+        "file",
+        "columns",
+        "fee"
+      ],
+      "summary": "Role: Please act as an expert Excel Data Analyst and VBA Developer.",
+      "char_length": 29269,
+      "byte_length": 29863
+    },
+    {
+      "chunk_id": "2026-03-20T20:02:35+00:00_dfr_summons_update_title_39_chunk2",
+      "chunk_index": 2,
+      "file": "chunk_00001.txt",
+      "tags": [
+        "ai",
+        "code",
+        "codes",
+        "column",
+        "data",
+        "docs",
+        "excel",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "schedule",
+        "sql",
+        "your"
+      ],
+      "key_terms": [
+        "your",
+        "codes",
+        "let",
+        "schedule",
+        "column",
+        "log"
+      ],
+      "summary": "=========================================================================\n    Dim feeStartCol As Long\n    feeStartCol = 3     ' Column C = Assessed (3rd column in the table)\n    \n    ' Get the DataBodyRange of column 3 (Assessed), then r...",
+      "char_length": 27445,
+      "byte_length": 28104
+    },
+    {
+      "chunk_id": "2026-03-20T20:02:35+00:00_dfr_summons_update_title_39_chunk3",
+      "chunk_index": 3,
+      "file": "chunk_00002.txt",
+      "tags": [
+        "ai",
+        "code",
+        "column",
+        "data",
+        "docs",
+        "excel",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sql",
+        "summons",
+        "type"
+      ],
+      "key_terms": [
+        "summons",
+        "code",
+        "log",
+        "column",
+        "let",
+        "type"
+      ],
+      "summary": "The remaining 145 are subsection variants (like 117-3(B) where 117-3 exists but not the (B) subsection).",
+      "char_length": 24624,
+      "byte_length": 25440
+    },
+    {
+      "chunk_id": "2026-03-20T20:02:35+00:00_dfr_summons_update_title_39_chunk4",
+      "chunk_index": 4,
+      "file": "chunk_00003.txt",
+      "tags": [
+        "ai",
+        "code",
+        "column",
+        "data",
+        "docs",
+        "excel",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sheet",
+        "sql",
+        "summons",
+        "table"
+      ],
+      "key_terms": [
+        "summons",
+        "table",
+        "code",
+        "column",
+        "all",
+        "sheet"
+      ],
+      "summary": "All 6 sections populated.",
+      "char_length": 12486,
+      "byte_length": 12516
+    },
+    {
+      "chunk_id": "2026-03-20T20:02:35+00:00_dfr_summons_update_title_39_chunk5",
+      "chunk_index": 5,
+      "file": "chunk_00004.txt",
+      "tags": [
+        "2026",
+        "ai",
+        "code",
+        "data",
+        "date",
+        "docs",
+        "excel",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sheet",
+        "sql",
+        "updated",
+        "user"
+      ],
+      "key_terms": [
+        "code",
+        "date",
+        "2026",
+        "user",
+        "sheet",
+        "updated"
+      ],
+      "summary": "Null fine→0 and blank date filtering handle empty formula rows.",
+      "char_length": 11557,
+      "byte_length": 11655
+    },
+    {
+      "chunk_id": "2026-03-20T20:02:35+00:00_dfr_summons_update_title_39_chunk6",
+      "chunk_index": 6,
+      "file": "chunk_00005.txt",
+      "tags": [
+        "ai",
+        "code",
+        "codes",
+        "data",
+        "docs",
+        "excel",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sql",
+        "user",
+        "violations"
+      ],
+      "key_terms": [
+        "user",
+        "all",
+        "json",
+        "codes",
+        "violations",
+        "fee"
+      ],
+      "summary": "ViolationData row 30 corrected.",
+      "char_length": 13053,
+      "byte_length": 13114
+    },
+    {
+      "chunk_id": "2026-03-20T20:02:35+00:00_dfr_summons_update_title_39_chunk7",
+      "chunk_index": 7,
+      "file": "chunk_00006.txt",
+      "tags": [
+        "ai",
+        "code",
+        "data",
+        "date",
+        "docs",
+        "each",
+        "excel",
+        "json",
+        "legal",
+        "markdown",
+        "police",
+        "python",
+        "sql",
+        "summons",
+        "table",
+        "text",
+        "type"
+      ],
+      "key_terms": [
+        "text",
+        "date",
+        "type",
+        "table",
+        "summons",
+        "each"
+      ],
+      "summary": "All 5 lookup columns auto-populate from Statute entry.",
+      "char_length": 11435,
+      "byte_length": 11637
+    }
+  ],
+  "enrichment_version": "1.0.0"
+}

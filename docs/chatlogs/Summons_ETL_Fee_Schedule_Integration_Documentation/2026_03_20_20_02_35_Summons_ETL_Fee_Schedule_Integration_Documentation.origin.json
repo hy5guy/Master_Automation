@@ -1,0 +1,40 @@
+{
+  "tags": [
+    "ai",
+    "code",
+    "conversation",
+    "data",
+    "docs",
+    "excel",
+    "json",
+    "legal",
+    "markdown",
+    "police",
+    "python",
+    "sql"
+  ],
+  "metadata_enrichment": {
+    "metadata": {
+      "project_name": "02_data",
+      "source_type": "documentation",
+      "language": "en",
+      "department": "admin",
+      "key_terms": [
+        "json",
+        "files",
+        "fee",
+        "data",
+        "summons",
+        "schedule"
+      ],
+      "enrichment_version": "1.0.0"
+    },
+    "summaries": {
+      "file_summary": "# Chat name generation process\n_Exported on 3/20/2026 at 19:57:54 EDT from Cursor (2.6.20)_\n\n---\n\n**User**\n\nHere is an analysis of your original prompt and a highly optimized version specifically tailored for Cursor Composer. Your origin...",
+      "first_line": "# Chat name generation process"
+    },
+    "enrichment_version": "1.0.0"
+  },
+  "last_processed_at": "2026-03-20T20:02:35.679040",
+  "department": "admin"
+}

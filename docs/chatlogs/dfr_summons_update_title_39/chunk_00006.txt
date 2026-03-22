@@ -1,0 +1,189 @@
+All 5 lookup columns auto-populate from Statute entry. Data validation provides dropdown with 316 codes. Old broken formulas (LOWER/SUBSTITUTE against NormalizedCode) fully replaced. Ready for Task #6: Dashboard. 49	03/20/2026	Execute Task #6: Build Dashboard & Summary Views. User requested KPI cards, jurisdiction split, top violation categories, and ETL progress tracker. Created 'Dashboard' sheet with 7 sections: Title banner, 6 KPI cards, Summons Status breakdown, Jurisdiction breakdown, Fee Schedule summary (6 metric cards), Source Type + Top 10 Categories tables, ETL Task Checklist. All values formula-driven. Fixed COUNTA formula for sparse data. Matched D-DIN font + navy/blue theme. All formulas reference live data: tbl_FeeSchedule structured refs, DFR Summons Log ranges, COUNTIF/SUMIF/SORTBY/UNIQUE for dynamic ranking. KPIs: 79 total summons (77 active), 3 unique statutes, 79 Hackensack/0 Other, $0.00 assessed. Fee schedule: 316 codes (54 w/ fees), avg $73.86, max $248.23, total $3,988.28. Top categories: Title 39 Ch.4 (38), Title 39 (35), License Violation (24). ALL 6 ETL TASKS COMPLETE. Dashboard is Power BI-ready with clean structured references. Workbook has 11 sheets: Claude Log, Dashboard, DFR Summons Log, Instructions, M Code Reference, ViolationData, Cursor Prompt, ETL Enhancement, Master Fee Schedule, Unmatched Violations, Other Jurisdiction. 50	03/20/2026	Protect Dashboard sheet from accidental edits. Unprotected (was fully locked), re-protected with sensible permissions: allow sort, autofilter, resize cols/rows. Cell editing, inserts, deletes all blocked. No password set. Allowed: AutoFilter, Sort, Format columns, Format rows, Normal selection. Blocked: Cell editing, Insert/Delete rows/cols, Edit objects, Pivot tables, Hyperlinks, Format cells. Dashboard is now read-only for clerks. To unprotect: Review tab → Unprotect Sheet (no password needed). 51	03/20/2026	User asked if M Code Reference needs updating after ETL changes. Audited M Code Reference against current DFR Summons Log schema (19 cols, A-S). Found 2 gaps: (1) Column J renamed from 'Violation Type' to 'Violation Category' — M Code still maps old name. (2) Column K 'Jurisdiction' is brand new — not in M Code at all. Rename map, type map, and FinalColumns list all need updating. Stale items: RenameMap missing 'Violation Category'→'Violation_Category' and 'Jurisdiction'→'Jurisdiction'. TypeMap missing both. FinalColumns missing both. Old 'Violation_Type' rename/type/column entries need updating to 'Violation_Category'. Change log and Last Updated date need refresh. Awaiting user confirmation to proceed with M Code update. m code
+DFR_Summons.m — Power Query M Code Reference			
+			
+Query Name:	DFR_Summons		
+Author:	R. A. Carucci		
+Source File:	C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Drone\dfr_directed_patrol_enforcement.xlsx		
+Last Updated:	2026-03-19		
+Change Log:	Fixed MM-YY/Date_Sort_Key column names to match Power BI visuals; added FilteredStatus step for Summons_Status Dismiss/Void filter; DateSortKey YYYYMMDD; en-US locale; Description shortening; Date.EndOfMonth/StartOfMonth window		
+			
+M CODE — Copy everything below into Power BI Advanced Editor			
+// # drone/DFR_Summons.m			
+// # Author: R. A. Carucci			
+// # Purpose: Load DFR_Summons table from dfr_directed_patrol_enforcement.xlsx			
+// #          Apply rolling 13-month window driven by pReportMonth parameter. // #          Standardize column names, types; add DateSortKey, Date_Sort_Key, MM-YY, YearMonthKey. // #          Description: shorten "Parking...designated X" -> "X"; source is ALL CAPS from Excel. // #          Filter out summons marked Dismiss/Void in Summons_Recall or Summons_Status. // # Violation_Type (from Excel): P=Parking/Reg/Equipment/Fire, M=Moving (reserved), C=Complaint (Parks & Rec)			
+// # Source: C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Drone\dfr_directed_patrol_enforcement.xlsx			
+// # Last updated: 2026-03-19 (Fixed MM-YY + Date_Sort_Key column names; added FilteredStatus step)			
+let			
+    // === PARAMETERS ===			
+    ReportMonth = Date.From(pReportMonth),			
+    EndDate = Date.EndOfMonth(ReportMonth),			
+    StartDate = Date.StartOfMonth(Date.AddMonths(ReportMonth, -12)),			
+			
+			
+    // === SOURCE: Load Excel workbook ===			
+    FilePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Drone\dfr_directed_patrol_enforcement.xlsx",			
+    Source = Excel.Workbook(File.Contents(FilePath), null, true),			
+			
+			
+    // === TABLE/SHEET FALLBACK: Try named Table first, then Sheet ===			
+    RawData =			
+        let			
+            TableResult = try Source{[Item = "DFR_Summons", Kind = "Table"]}[Data]			
+        in			
+            if TableResult[HasError] then			
+                let			
+                    SheetData = Source{[Name = "DFR Summons Log", Kind = "Sheet"]}[Data]			
+                in			
+                    Table.PromoteHeaders(SheetData, [PromoteAllScalars = true])			
+            else			
+                TableResult[Value],			
+			
+			
+    // === RENAME COLUMNS: Standardize spaces to underscores ===			
+    RenameMap = {			
+        {"Summons ID", "Summons_ID"},			
+        {"Summons Number", "Summons_Number"},			
+        {"Fine Amount", "Fine_Amount"},			
+        {"Source Type", "Source_Type"},			
+        {"Violation Type", "Violation_Type"},			
+        {"DFR Operator", "DFR_Operator"},			
+        {"Issuing Officer", "Issuing_Officer"},			
+        {"Summons Status", "Summons_Status"},			
+        {"DFR Unit ID", "DFR_Unit_ID"},			
+        {"Summons Recall", "Summons_Recall"},			
+        {"Full Summons Number", "Full_Summons_Number"}			
+    },			
+    ExistingColsForRename = Table.ColumnNames(RawData),			
+    FilteredRenames = List.Select(RenameMap, each List.Contains(ExistingColsForRename, _{0})),			
+    RenamedCols = Table.RenameColumns(RawData, FilteredRenames),			
+			
+			
+    // === SCHEMA-RESILIENT TYPE MAPPING (en-US for text Date/Fine_Amount) ===			
+    ExistingCols = Table.ColumnNames(RenamedCols),			
+    TypeMap = {			
+        {"Summons_ID", type text},			
+        {"Date", type date},			
+        {"Time", type text},			
+        {"Summons_Number", type text},			
+        {"Location", type text},			
+        {"Statute", type text},			
+        {"Description", type text},			
+        {"Fine_Amount", type number},			
+        {"Source_Type", type text},			
+        {"Violation_Type", type text},			
+        {"DFR_Operator", type text},			
+        {"Issuing_Officer", type text},			
+        {"Summons_Status", type text},			
+        {"DFR_Unit_ID", type text},			
+        {"Notes", type text},			
+        {"OCA", type text},			
+        {"Summons_Recall", type text},			
+        {"Full_Summons_Number", type text}			
+    },			
+    FilteredTypes = List.Select(TypeMap, each List.Contains(ExistingCols, _{0})),			
+    ChangedType = Table.TransformColumnTypes(RenamedCols, FilteredTypes, "en-US"),			
+			
+			
+    // === CLEAN: Replace null Fine_Amount with 0 for DAX compatibility ===			
+    CleanedFines =			
+        if List.Contains(ExistingCols, "Fine_Amount") then			
+            Table.ReplaceValue(ChangedType, null, 0, Replacer.ReplaceValue, {"Fine_Amount"})			
+        else			
+            ChangedType,			
+			
+			
+    // === FILTER: Remove rows with no Date (empty formula rows in Excel table) ===			
+    FilteredBlanks = Table.SelectRows(CleanedFines, each [Date] <> null),			
+			
+			
+    // === FILTER: Exclude Voided or Dismissed summons (Summons_Recall contains "Dismiss" or "Void") ===			
+    FilteredRecalls =			
+        if List.Contains(Table.ColumnNames(FilteredBlanks), "Summons_Recall") then			
+            Table.SelectRows(FilteredBlanks, each			
+                let recall = [Summons_Recall] in			
+                recall = null or recall = ""			
+                or (not Text.Contains(Text.Lower(recall), "dismiss") and not Text.Contains(Text.Lower(recall), "void"))			
+            )			
+        else			
+            FilteredBlanks,			
+			
+    // === FILTER: Exclude Dismissed/Void status (Summons_Status, null-safe, trim-safe, case-insensitive) ===			
+    FilteredStatus =			
+        if List.Contains(Table.ColumnNames(FilteredRecalls), "Summons_Status") then			
+            Table.SelectRows(FilteredRecalls, each			
+                let status = [Summons_Status] in			
+                status = null or (			
+                    let cleaned = Text.Trim(Text.Lower(status)) in			
+                    cleaned <> "dismissed" and cleaned <> "void"			
+                )			
+            )			
+        else			
+            FilteredRecalls,			
+			
+    // === FILTER: Rolling 13-month window (report month + 12 months prior) ===			
+    FilteredData = Table.SelectRows(FilteredStatus, each [Date] >= StartDate and [Date] <= EndDate),			
+			
+			
+    // === STANDARDIZE: Shorten "Parking or stopping in designated X" -> "X" (source is ALL CAPS from Excel) ===			
+    ShortenPrefix = "Parking or stopping in designated ",			
+    ShortenedDescription = Table.TransformColumns(FilteredData, {			
+        {"Description", each			
+            if _ = null or _ = "" then _			
+            else if Text.StartsWith(Text.Lower(_), Text.Lower(ShortenPrefix)) then			
+                Text.Upper(Text.Middle(_, Text.Length(ShortenPrefix)))			
+            else Text.Upper(_),			
+        type text}			
+    }),			
+			
+			
+    // === ADD: DateSortKey (YYYYMMDD integer, e.g., 20260316) for sorting ===			
+    AddedDateSortKey = Table.AddColumn(ShortenedDescription, "DateSortKey",			
+        each Date.Year([Date]) * 10000 + Date.Month([Date]) * 100 + Date.Day([Date]), Int64.Type),			
+			
+    // === ADD: Date_Sort_Key (first of month, sort-by column for MM-YY) ===			
+    AddedDateSortKeyCol = Table.AddColumn(AddedDateSortKey, "Date_Sort_Key", each Date.StartOfMonth([Date]), type date),			
+			
+    // === ADD: MM-YY (text, e.g., "03-26") for display ===			
+    AddedMMYY = Table.AddColumn(AddedDateSortKeyCol, "MM-YY",			
+        each Text.PadStart(Text.From(Date.Month([Date])), 2, "0") & "-" & Text.End(Text.From(Date.Year([Date])), 2),			
+        type text),			
+			
+    // === ADD: YearMonthKey (e.g., 202603) for grouping/trending and MM-YY sort-by-column ===			
+    AddedYearMonthKey = Table.AddColumn(AddedMMYY, "YearMonthKey",			
+        each Date.Year([Date]) * 100 + Date.Month([Date]), Int64.Type),			
+			
+			
+    // === SELECT: Final column order ===			
+    FinalColumns = Table.SelectColumns(			
+        AddedYearMonthKey,			
+        List.Select(			
+            {			
+                "Summons_ID",			
+                "Date",			
+                "DateSortKey",			
+                "Date_Sort_Key",			
+                "MM-YY",			
+                "Time",			
+                "Summons_Number",			
+                "Location",			
+                "Statute",			
+                "Description",			
+                "Fine_Amount",			
+                "Source_Type",			
+                "Violation_Type",			
+                "DFR_Operator",			
+                "Issuing_Officer",			
+                "Summons_Status",			
+                "DFR_Unit_ID",			
+                "Notes",			
+                "OCA",			
+                "Summons_Recall",			
+                "Full_Summons_Number",			
+                "YearMonthKey"			
+            },			
+            each List.Contains(Table.ColumnNames(AddedYearMonthKey), _)			
+        )			
+    )			
+in			
+    FinalColumns
