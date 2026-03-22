@@ -34,8 +34,8 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.18.17 |
-| **Status** | DFR docs + M code restored; Arrest ETL future-proofed; DFR split live |
+| **Version** | 1.19.1 |
+| **Status** | Phase 2 complete: fee/fine enrichment (FINE_AMOUNT), VIOLATION_CATEGORY, DFR backfill wired; ETL path fixes; DFR reconciliation; ~95 YTD DAX measures spec'd |
 | **pReportMonth** | `#date(2026, 2, 1)` |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
@@ -68,8 +68,9 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 - `scripts/validate_exports.py` - Pre-flight check for OT/TimeOff exports
 - `scripts/validate_outputs.py` - CSV schema validation
 - `scripts/test_pipeline.bat` - Overtime/TimeOff test suite
-- `scripts/summons_etl_normalize.py` - Summons ETL v2.4.0; `DFR_ASSIGNMENTS` + `split_dfr_records()`
+- `scripts/summons_etl_normalize.py` - Summons ETL v2.4.0; `DFR_ASSIGNMENTS` + `split_dfr_records()` + fee/fine + VIOLATION_CATEGORY enrichment
 - `scripts/dfr_export.py` - DFR workbook export; `_map_to_dfr_schema()`, `export_to_dfr_workbook()`
+- `scripts/dfr_backfill_descriptions.py` - DFR description/fine backfill; cascading statute lookup
 - `run_summons_etl.py` - Path-agnostic summons wrapper; DFR split + export wired in
 - `scripts/summons_backfill_merge.py` - Merge gap months into summons
 - `scripts/normalize_visual_export_for_backfill.py` - Visual export normalization
@@ -150,6 +151,23 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 - **Verify** OneDrive sync status before assuming files are available
 - **Never** use `DateTime.LocalNow()` in M code -- use `pReportMonth` parameter
 
+## Never Do
+- Use `DateTime.LocalNow()` in M code — use `pReportMonth` only
+- Hardcode OneDrive paths — always use `path_config.get_onedrive_root()`
+- Modify `config/scripts.json` without explicit confirmation from user
+- Write directly to `02_ETL_Scripts/` — those are production scripts
+- Commit `.log` files or `.xlsx` test/diagnostic files to git
+
+## Log File Locations
+| Log File | Location |
+|----------|----------|
+| ETL orchestration | `logs/run_all_etl_YYYYMMDD.log` |
+| Summons ETL | `logs/summons_etl.log` |
+| Arrest processor | `logs/arrest_processor.log` |
+| Tree report errors | `logs/tree_report_error.log` |
+
+All new scripts must write logs to `logs/` — never to the repo root.
+
 ## Enabled ETL Scripts
 1. **Arrests** - `arrest_python_processor.py` (--report-month {REPORT_MONTH_ACTUAL}; targeted discovery in YYYY/month/)
 2. **Community Engagement** - `src/main_processor.py` (Patrol v2, attendee_names column)
@@ -196,8 +214,8 @@ Drone-operator and temp-SSOCC records are **split out of the main summons pipeli
 | 2025 | Ramirez | 2026-02-23 – 2026-03-01 | Temp SSOCC assignment |
 | 0377 | Mazzaccaro | 2026-03-02 – 2026-03-15 | Temp SSOCC assignment |
 
-**Flow:** `run_summons_etl.py` → `split_dfr_records()` → `export_to_dfr_workbook()` → `dfr_directed_patrol_enforcement.xlsx`
-**Main pipeline:** only non-DFR records reach `summons_powerbi_latest.xlsx` and `summons_slim_for_powerbi.csv`.
+**Flow:** `run_summons_etl.py` → `split_dfr_records()` → `export_to_dfr_workbook()` → `dfr_backfill(apply=True)` → `dfr_directed_patrol_enforcement.xlsx`
+**Main pipeline:** only non-DFR records reach `summons_powerbi_latest.xlsx` and `summons_slim_for_powerbi.csv` (25 cols, includes FINE_AMOUNT + VIOLATION_CATEGORY).
 **Power BI:** `m_code/drone/DFR_Summons.m` loads the DFR workbook with 13-month window + dual dismiss/void filter.
 **Target workbook:** `<OneDrive>/Shared Folder/Compstat/Contributions/Drone/dfr_directed_patrol_enforcement.xlsx`
 
@@ -213,4 +231,35 @@ To add a new DFR badge assignment, update `DFR_ASSIGNMENTS` in `scripts/summons_
 
 ---
 
-*Last updated: 2026-03-20 | Format version: 4.2*
+---
+
+## Skill: ETL Script Development
+- All scripts must use `path_config.get_onedrive_root()` — never hardcode paths
+- Use structured logging: `logging.getLogger(__name__)`, rotating file handler
+- All outputs go to `outputs/` subdirectory matching data type
+- Scripts must be runnable standalone AND via `run_all_etl.ps1`
+- Dry-run mode (`--dry-run`) must be supported on any script that writes files
+- Always append a version bump entry to `CHANGELOG.md` when modifying a script
+
+## Skill: Power BI M Code
+- NEVER use `DateTime.LocalNow()` — always use `pReportMonth` parameter
+- Standard window pattern: `EndOfWindow = Date.EndOfMonth(pReportMonth)`, `StartOfWindow = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12))`
+- M code source of truth is `m_code/` folder — edit there, then paste into Power BI
+- After any M code change, run `scripts/validate_13_month_window.py`
+
+## Skill: HPD HTML Reports
+- Always use design system in `docs/templates/HPD_Report_Style_Prompt.md`
+- Self-contained HTML only — no external CSS, fonts, or JS
+- Include `@media print` block in every report
+- Color palette: Navy (#1a2744), Gold (#c8a84b), Dark Green (#2e7d32), Dark Red (#b71c1c)
+- Typography: Georgia serif, 13.5px body, h2 with gold underline
+
+## Skill: Data Validation
+- Schema validation: `scripts/validate_outputs.py` — run after any ETL change
+- 13-month window checks: `scripts/validate_13_month_window.py`
+- Pre-flight for OT exports: `scripts/validate_exports.py`
+- Verification framework lives in `verifications/` — add new checks there, not inline
+
+---
+
+*Last updated: 2026-03-21 | Format version: 4.3*

@@ -1,8 +1,8 @@
 # Master_Automation Project Summary
 
-**Last Updated:** 2026-03-20
-**Status:** ✅ v1.18.17 — DFR docs + M code restored; Arrest ETL future-proofed; DFR split live
-**Version:** 1.18.17
+**Last Updated:** 2026-03-21
+**Status:** ✅ v1.19.1 — Phase 2 complete: fee/fine enrichment, VIOLATION_CATEGORY, DFR backfill wired
+**Version:** 1.19.1
 
 ---
 
@@ -19,8 +19,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.18.17 — DFR docs + M code restored; Arrest ETL future-proofed; DFR split live |
-| **Version** | 1.18.17 |
+| **Status** | ✅ v1.19.1 — Phase 2 complete: fee/fine enrichment, VIOLATION_CATEGORY, DFR backfill wired |
+| **Version** | 1.19.1 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -41,7 +41,8 @@ Master_Automation is a centralized orchestration hub for running all Python ETL 
 ✅ **Overtime/TimeOff hardening** - Pre-flight validation, strict file discovery, output schema check, test_pipeline.bat  
 ✅ **Visual export normalization** - Orchestrator normalizes "Monthly Accrual and Usage Summary" CSVs in _DropExports before organize_backfill  
 ✅ **Summons backfill** - `summons_backfill_merge.py` uses backfill as source of truth for all months in consolidated file (02-25 through 11-25); injection point at `docs/SUMMONS_BACKFILL_INJECTION_POINT.md`
-✅ **DFR summons split** - `split_dfr_records()` isolates drone/temp-SSOCC records (Polson 0738 always; Ramirez 2025 Feb–Mar 26; Mazzaccaro 0377 Mar 26) and routes them to `dfr_directed_patrol_enforcement.xlsx` via `dfr_export.py`; main pipeline sees only non-DFR records
+✅ **DFR summons split** - `split_dfr_records()` isolates drone/temp-SSOCC records (Polson 0738 always; Ramirez 2025 Feb–Mar 26; Mazzaccaro 0377 Mar 26) and routes them to `dfr_directed_patrol_enforcement.xlsx` via `dfr_export.py`; DFR backfill auto-runs after export; main pipeline sees only non-DFR records
+✅ **Fee/fine enrichment** - Cascading statute lookup (fee schedule → Title39 → CityOrdinances) adds `FINE_AMOUNT` and `VIOLATION_CATEGORY` to all summons rows; SLIM CSV now 25 columns for Summons_YTD revenue KPIs
 ✅ **DFR Power BI query** - `m_code/drone/DFR_Summons.m` loads DFR workbook with 13-month rolling window, dual dismiss/void filter (Summons_Recall + Summons_Status), schema-resilient Violation_Category/Jurisdiction, Date_Sort_Key, MM-YY, YearMonthKey
 ✅ **Arrest ETL future-proofed** - `--report-month YYYY-MM` (via `{REPORT_MONTH_ACTUAL}`); targeted file discovery in `05_EXPORTS/_Arrest/YYYY/month/`; outputs `YYYY_MM_Arrests_PowerBI_Ready.xlsx` to `01_DataSources/ARREST_DATA/Power_BI/`
 ✅ **13-month rolling window** - 24 Power BI visuals enforced to exactly 13 months (end = previous month); `process_powerbi_exports.py` (match_pattern, enforce_13_month), `validate_13_month_window.py`; docs in `docs/13_MONTH_*.md`
@@ -94,8 +95,9 @@ Master_Automation/
 │   ├── validate_outputs.py     # FIXED CSV schema validation
 │   ├── test_pipeline.bat       # Overtime/TimeOff test: validate → dry-run → validate outputs
 │   ├── summons_backfill_merge.py  # Merge gap months into summons df
-│   ├── summons_etl_normalize.py   # Core summons ETL v2.4.0: DFR_ASSIGNMENTS, split_dfr_records()
+│   ├── summons_etl_normalize.py   # Core summons ETL v2.4.0: DFR split, fee/fine + VIOLATION_CATEGORY
 │   ├── dfr_export.py              # DFR workbook export: schema map, append, dedup, formula-col guard
+│   ├── dfr_backfill_descriptions.py # DFR description/fine backfill (cascading statute lookup)
 │   ├── normalize_visual_export_for_backfill.py  # Normalize visual exports (13-month window, PeriodLabel for OT)
 │   ├── process_powerbi_exports.py               # Process _DropExports with mapping (match_pattern, 13-month)
 │   ├── validate_13_month_window.py              # Validate 13-month window in CSV(s)

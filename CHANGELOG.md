@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.19.1] - 2026-03-21
+
+### Added — Summons ETL Phase 2: Fee/Fine Enrichment, VIOLATION_CATEGORY, DFR Backfill Wiring
+
+**scripts/summons_etl_normalize.py (v2.4.0):**
+- `_load_statute_lookups()` now loads fee schedule (`municipal-violations-bureau-schedule.json`, 1,203 entries), Title39_Categorized (1,413 categories), and CityOrdinances_Categorized (3,156 categories) alongside existing Title39/Ordinance lookup dicts.
+- New `_enrich_row()` cascading lookup after TYPE classification: fee schedule → Title39 → CityOrdinances, using `_normalize_statute_key()` (exact → strip parens → strip trailing alpha).
+- New columns: `FINE_AMOUNT` (float, from fee schedule) and `VIOLATION_CATEGORY` (string, from Categorized JSONs).
+- Both columns added to `slim_cols` in `write_three_tier_output()` — SLIM CSV now 25 columns.
+- Enrichment applies to ALL summons rows (raw export + SLIM CSV) for Summons_YTD revenue KPIs.
+
+**run_summons_etl.py:**
+- DFR backfill (`dfr_backfill_descriptions.backfill(apply=True)`) wired into main ETL pipeline after `export_to_dfr_workbook()`. Runs automatically on every ETL cycle when DFR records are present.
+
+### Verification Results
+- `run_summons_etl.py --dry-run`: 14 files discovered, exits cleanly.
+- Full ETL run: 46,760 rows; FINE_AMOUNT populated on 4,025 rows, VIOLATION_CATEGORY on 45,209 rows.
+- `dfr_reconcile.py --dry-run`: 79/79 statutes resolved, 0 unresolved.
+- SLIM CSV (`summons_slim_for_powerbi.csv`) confirmed: 25 columns including FINE_AMOUNT, VIOLATION_CATEGORY.
+
+---
+
 ## [1.19.0] - 2026-03-21
 
 ### Fixed — ETL Path Corrections & DFR Reconciliation
