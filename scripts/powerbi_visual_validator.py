@@ -264,9 +264,9 @@ def run_phase_4_cross_visual(yyyy_mm: str) -> Dict:
     issues = []
 
     # Check 1: Duplicate months in backfill CSVs
-    powerbi_date = onedrive / "00_dev" / "projects" / "PowerBI_Date"
+    powerbi_date = onedrive / "00_dev" / "projects" / "PowerBI_Data"
     if not powerbi_date.exists():
-        powerbi_date = onedrive / "PowerBI_Date"
+        powerbi_date = onedrive / "PowerBI_Data"
 
     backfill_dir = powerbi_date / "Backfill" / yyyy_mm
     duplicate_files = []

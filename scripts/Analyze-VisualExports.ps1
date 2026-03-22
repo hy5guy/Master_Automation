@@ -17,7 +17,7 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $automationRoot = Split-Path -Parent $scriptDir
 
 # Key paths
-$dropExportsPath = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports"
+$dropExportsPath = "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports"
 $mappingPath = Join-Path $automationRoot "Standards\config\powerbi_visuals\visual_export_mapping.json"
 $logDir = Join-Path $automationRoot "logs"
 

@@ -2,8 +2,8 @@
 """
 merge_powerbi_backfill.py
 
-Merges Backfill data from the legacy 00_dev/projects/PowerBI_Date/Backfill location
-into the canonical PowerBI_Date/Backfill location.
+Merges Backfill data from the legacy 00_dev/projects/PowerBI_Data/Backfill location
+into the canonical PowerBI_Data/Backfill location.
 
 Run with DRY_RUN = True first to preview, then set DRY_RUN = False for live run.
 """
@@ -18,8 +18,8 @@ from pathlib import Path
 # ─── Configuration ────────────────────────────────────────────────────────────
 ONEDRIVE_ROOT = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack")
 
-DEV_BACKFILL_DIR = ONEDRIVE_ROOT / "00_dev" / "projects" / "PowerBI_Date" / "Backfill"
-CANONICAL_BACKFILL_DIR = ONEDRIVE_ROOT / "PowerBI_Date" / "Backfill"
+DEV_BACKFILL_DIR = ONEDRIVE_ROOT / "00_dev" / "projects" / "PowerBI_Data" / "Backfill"
+CANONICAL_BACKFILL_DIR = ONEDRIVE_ROOT / "PowerBI_Data" / "Backfill"
 
 LOG_DIR = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\logs")
 

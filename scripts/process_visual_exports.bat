@@ -125,8 +125,8 @@ if %PYTHON_EXIT_CODE% EQU 0 (
     echo.
     if "%MODE%"=="2" (
         echo Next steps:
-        echo 1. Review processed files in PowerBI_Date\Processed_Exports\
-        echo 2. Run: PowerBI_Date\tools\organize_backfill_exports.ps1
+        echo 1. Review processed files in PowerBI_Data\Processed_Exports\
+        echo 2. Run: PowerBI_Data\tools\organize_backfill_exports.ps1
         echo 3. Refresh Power BI reports to load new data
     )
 ) else (

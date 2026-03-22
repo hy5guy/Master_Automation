@@ -9,13 +9,13 @@
     "profile_key_for_overrides": "PD_BCI_LTP"
   },
   "settings": {
-    "powerbi_drop_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\_DropExports",
+    "powerbi_drop_path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Data\\_DropExports",
     "log_directory": "logs",
     "python_executable": "python",
     "continue_on_error": true,
     "cleanup_temp_files": true,
     "powerbi_drop_path_overrides": {
-      "PD_BCI_LTP": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\_DropExports"
+      "PD_BCI_LTP": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Data\\_DropExports"
     }
   },
   "scripts": [
@@ -243,7 +243,7 @@
       "order": 5.6,
       "timeout_minutes": 60,
       "output_patterns": [
-        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\_DropExports\\*_Average_Response_Times__Values_are_in_mmss.csv"
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Data\\_DropExports\\*_Average_Response_Times__Values_are_in_mmss.csv"
       ],
       "keywords": [
         "response",
@@ -263,7 +263,7 @@
       "order": 5.5,
       "timeout_minutes": 30,
       "output_patterns": [
-        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\Backfill\\*\\response_time\\*_Average_Response_Times__Values_are_in_mmss.csv"
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Data\\Backfill\\*\\response_time\\*_Average_Response_Times__Values_are_in_mmss.csv"
       ],
       "keywords": [
         "response",
@@ -315,7 +315,7 @@
       }
     },
     {
-      "name": "Summons Derived Outputs (PowerBI_Date CSVs)",
+      "name": "Summons Derived Outputs (PowerBI_Data CSVs)",
       "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\scripts",
       "script": "summons_derived_outputs.py",
       "enabled": true,
@@ -323,10 +323,10 @@
       "order": 6.5,
       "timeout_minutes": 10,
       "output_patterns": [
-        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\backfill_summons_summary.csv",
-        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\wg2_movers_parkers_nov2025.csv",
-        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\top5_moving_1125.csv",
-        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\top5_parking_1125.csv"
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Data\\backfill_summons_summary.csv",
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Data\\wg2_movers_parkers_nov2025.csv",
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Data\\top5_moving_1125.csv",
+        "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Data\\top5_parking_1125.csv"
       ],
       "keywords": [
         "summons",

@@ -13,7 +13,7 @@ SUMMONS_GAP_MONTHS = ("03-25", "07-25", "10-25", "11-25")
 DEFAULT_LABEL = "2025_12"
 
 def main():
-    root = get_onedrive_root() / "PowerBI_Date" / "Backfill"
+    root = get_onedrive_root() / "PowerBI_Data" / "Backfill"
     summons_dir = root / DEFAULT_LABEL / "summons"
     print("Backfill root:", root)
     print("Summons dir:  ", summons_dir)

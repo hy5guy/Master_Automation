@@ -289,7 +289,7 @@ def process_exports(
     if config.get("source_folder_override"):
         source_dir = Path(config["source_folder_override"])
     processed_root = processed_root or (get_onedrive_root() / "09_Reference" / "Standards" / "Processed_Exports")
-    backfill_root = backfill_root or (get_onedrive_root() / "PowerBI_Date" / "Backfill")
+    backfill_root = backfill_root or (get_onedrive_root() / "PowerBI_Data" / "Backfill")
 
     stats = ProcessingStats()
     if not source_dir.exists():

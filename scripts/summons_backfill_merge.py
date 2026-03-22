@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import logging
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -40,7 +41,7 @@ except ImportError:
             return drop, drop.parent / "Backfill"
         except Exception:
             root = get_onedrive_root()
-            return root / "PowerBI_Date" / "_DropExports", root / "PowerBI_Date" / "Backfill"
+            return root / "PowerBI_Data" / "_DropExports", root / "PowerBI_Data" / "Backfill"
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -53,8 +54,16 @@ SUMMONS_GAP_MONTHS = ("07-25",)
 SUMMONS_BACKFILL_PREFER_MONTHS = ()
 # All 2025 months in consolidated backfill (for full 13-month coverage when e-ticket discovery fails)
 SUMMONS_BACKFILL_ALL_2025 = tuple(f"{m:02d}-25" for m in range(1, 13))
-# Prefer most recent backfill (last month's report); fallback to 2025_12
-DEFAULT_BACKFILL_SUMMONS_LABEL = "2026_01"
+def _compute_default_backfill_label() -> str:
+    """Compute default backfill label as previous complete month (YYYY_MM)."""
+    now = datetime.now()
+    if now.month == 1:
+        return f"{now.year - 1:04d}_12"
+    return f"{now.year:04d}_{now.month - 1:02d}"
+
+
+# Prefer most recent backfill (last month's report); fallback to month before that
+DEFAULT_BACKFILL_SUMMONS_LABEL = _compute_default_backfill_label()
 FALLBACK_BACKFILL_LABELS = ("2025_12",)
 
 # Map visual-export / backfill CSV headers to ETL schema (update if Power BI export format changes)

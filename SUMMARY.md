@@ -56,7 +56,7 @@
 |---|-------------|----------|--------|
 | 1 | Arrests | `arrest_python_processor.py` (--report-month {REPORT_MONTH_ACTUAL}; targeted discovery in YYYY/month/) | ✅ Enabled |
 | 2 | Community Engagement | `deploy_production.py` | ✅ Enabled |
-| 3 | Overtime TimeOff | `overtime_timeoff_with_backfill.py` | ✅ Enabled (validation: 05_EXPORTS\_Overtime, _Time_Off, PowerBI_Date\Backfill\vcs_time_report) |
+| 3 | Overtime TimeOff | `overtime_timeoff_with_backfill.py` | ✅ Enabled (validation: 05_EXPORTS\_Overtime, _Time_Off, PowerBI_Data\Backfill\vcs_time_report) |
 | 4 | Response Times | `process_cad_data_13month_rolling.py` | ✅ Enabled (CallType_Categories.csv fallback; input from report month) |
 | 5 | Summons | `run_summons_etl.py` (v2.4.0); DFR split → `dfr_export.py` → `dfr_directed_patrol_enforcement.xlsx` | ✅ Enabled |
 
@@ -211,7 +211,7 @@ cd "C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management"
 2. **Run** - Execute `run_all_etl.ps1` or `run_all_etl.bat`
 3. **Process** - Scripts execute in order, outputs logged
 4. **Integrate** - Successful outputs copied to Power BI Date repository
-5. **Organize** - Run `organize_backfill_exports.ps1` in PowerBI_Date
+5. **Organize** - Run `organize_backfill_exports.ps1` in PowerBI_Data
 6. **Review** - Check logs for any failures or warnings
 
 ---
@@ -227,14 +227,14 @@ The 13-month “Monthly Accrual and Usage Summary” visual is built from **two 
 
 To prevent “null/0” in prior months, the wrapper `scripts/overtime_timeoff_with_backfill.py`:
 - runs the production v10 script for the current month
-- restores historical months into the FIXED file from `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\...`
+- restores historical months into the FIXED file from `PowerBI_Data\Backfill\YYYY_MM\vcs_time_report\...`
 - backfills `monthly_breakdown.csv` for the prior 12 months from the same backfill export (preserving the current month from v10)
 
 Validation tool:
 - `scripts/compare_vcs_time_report_exports.py` compares a refreshed export against a known-good baseline (e.g., Oct-24 monthly export) for the prior 12 months.
 
 **v1.13.0 (2026-02-10):**
-- Primary backfill: 2025_12 visual export in `data/backfill/` and `PowerBI_Date\Backfill\2025_12\vcs_time_report\`
+- Primary backfill: 2025_12 visual export in `data/backfill/` and `PowerBI_Data\Backfill\2025_12\vcs_time_report\`
 - `scripts/normalize_visual_export_for_backfill.py` normalizes default Power BI export (Long/Wide) and writes to backfill folder
 - Single-query M: `m_code/2026_02_10_Overtime_Timeoff_v3_CONSOLIDATED.m` (use in ___Overtime_Timeoff_v3 if staging refs fail); see `docs/VISUAL_EXPORT_NORMALIZE_AND_BACKFILL.md` and `docs/OVERTIME_TIMEOFF_RERUN_AFTER_BACKFILL.md`
 
@@ -249,10 +249,9 @@ Key output:
 - `...\output\policy_training_outputs.xlsx` (sheets: `Delivery_Cost_By_Month`, `InPerson_Prior_Month_List`, etc.)
 
 Expected behavior:
-- Backfill months match the prior-month backfill export (e.g., `PowerBI_Date\Backfill\2025_10\policy_training\...`)
-- ETL computes rolling 13-month window; **02-26** (and later months) appear in Cost by Delivery Method visual after ETL run when source workbook has that period.
-- **Cost of Training** (`___Cost_of_Training.m`): Window ends at **report month** (e.g. Feb report → 02-25 through 02-26).
-- **In-Person Training** (`___In_Person_Training.m`): Loads from **source workbook** (`Policy_Training_Monthly.xlsx` Training_Log) directly; filters by report month + In-Person delivery. Handles #VALUE! and currency format.
+- Backfill months match the prior-month backfill export (e.g., `PowerBI_Data\Backfill\2025_10\policy_training\...`)
+- ETL computes rolling 13-month window; **01-26** (and later months) appear in Cost by Delivery Method visual after ETL run when source workbook has that period.
+- In-Person Training visual shows prior-month In-Person courses; zeros when source has no cost (or fill **Cost Per Attendee** in source and re-run ETL for imputation).
 
 Doc:
 - `docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md` – Run location, Cost of Training 13-month fix, In-Person source and error handling.
@@ -280,7 +279,7 @@ Current month source:
 - Example: `2025\2025_12_eticket_export.csv` for December 2025
 
 History/backfill source:
-- `PowerBI_Date\Backfill\YYYY_MM\summons\...` (e.g. Dept-Wide Moving/Parking CSVs)
+- `PowerBI_Data\Backfill\YYYY_MM\summons\...` (e.g. Dept-Wide Moving/Parking CSVs)
 
 **Recent Fixes (2025-12-12):**
 - ✅ WG2 column: Fixed - 134,144 rows populated (42.52%), 181,363 null (historical - expected)
@@ -320,12 +319,12 @@ Documentation:
 ## Output Integration
 
 **ETL Outputs:**
-- Written to: `PowerBI_Date\_DropExports\`
+- Written to: `PowerBI_Data\_DropExports\`
 - Format: CSV files
 - Naming: As specified by each ETL script
 
 **Organization:**
-- Run `PowerBI_Date\tools\organize_backfill_exports.ps1`
+- Run `PowerBI_Data\tools\organize_backfill_exports.ps1`
 - Files moved to: `Backfill\YYYY_MM\category\`
 - Files renamed with month prefix
 
@@ -360,11 +359,11 @@ Documentation:
 
 ## Migration Status
 
-✅ **Complete** - PowerBI_Date migrated to OneDrive
+✅ **Complete** - PowerBI_Data migrated to OneDrive
 
 **Migration Details:**
-- **From:** `C:\Dev\PowerBI_Date_Merged`
-- **To:** `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date`
+- **From:** `C:\Dev\PowerBI_Data_Merged`
+- **To:** `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data`
 - **Date:** 2025-12-11
 - **Status:** All paths updated and verified
 
@@ -384,7 +383,7 @@ Documentation:
 | **Workspace** | `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` |
 | **Config** | `config\scripts.json` |
 | **Logs** | `logs\` |
-| **PowerBI Drop** | `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports` |
+| **PowerBI Drop** | `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports` |
 | **ETL Scripts** | `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\*` |
 | **Data Sources** | `C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\*` |
 | **Report Template** | `C:\Users\carucci_r\OneDrive - City of Hackensack\08_Templates\Monthly_Report_Template.pbix` |
@@ -597,7 +596,7 @@ Documentation:
 
 ### v1.8.1 - December 2025 Power BI Visual Export Processing & Diagnostics
 - ✅ **December 2025 Export Organization** - Processed and organized 36 CSV exports from December 2025 monthly report
-- ✅ **File Categorization** - Organized 53 total files into 16 categories in `PowerBI_Date\Backfill\2025_12\`
+- ✅ **File Categorization** - Organized 53 total files into 16 categories in `PowerBI_Data\Backfill\2025_12\`
 - ✅ **Data Quality Issues Identified** - Documented 3 critical issues (2 blank exports, 1 data gap)
 - ✅ **Comprehensive Diagnostics** - Created 3 detailed reports with root cause analysis and fix recommendations
 - ⚠️ **Action Required** - Fix Power BI date filters before January 2026 export
@@ -674,7 +673,7 @@ Documentation:
 - ✅ Removed 32,749 duplicate rows preventing double/triple counting
 
 ### 2025-12-11
-- ✅ Migrated PowerBI_Date to OneDrive
+- ✅ Migrated PowerBI_Data to OneDrive
 - ✅ Updated all path references
 - ✅ Verified script filenames
 - ✅ Created folder structure (docs, chatlogs)

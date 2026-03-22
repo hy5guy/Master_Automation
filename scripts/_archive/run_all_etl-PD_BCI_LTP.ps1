@@ -245,7 +245,7 @@ if ($successCount -eq $results.Count) {
     if (-not $SkipPowerBI) {
         Write-Host ""
         Write-Host "Next step: Run Power BI organization script" -ForegroundColor Cyan
-        Write-Host "  cd C:\Dev\PowerBI_Date" -ForegroundColor Gray
+        Write-Host "  cd C:\Dev\PowerBI_Data" -ForegroundColor Gray
         Write-Host "  .\tools\organize_backfill_exports.ps1" -ForegroundColor Gray
     }
     exit 0

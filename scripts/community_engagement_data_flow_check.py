@@ -25,7 +25,7 @@ def _get_drop_path() -> str:
         with open(_cfg, encoding="utf-8") as _f:
             return _json.load(_f)["settings"]["powerbi_drop_path"]
     except Exception:
-        return r’C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports’
+        return r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports"
 
 SOURCE_DIR = r’C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment’
 OUTPUT_DIR = _get_drop_path()

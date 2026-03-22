@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.15] - 2026-03-22
+
+### Fixed — PowerBI_Data path consistency (post PowerBI_Date rename)
+
+- **path_config.py** — `get_powerbi_data_dir()` reads repo `config.json` key `PowerBI` (default folder `PowerBI_Data`).
+- **config/scripts.json** — `powerbi_drop_path` and related patterns use `PowerBI_Data`.
+- **scripts/** — Residual `PowerBI_Date` string literals updated to `PowerBI_Data` (orchestrator helpers, backups, diagnostics).
+- **process_powerbi_exports.py** — Default `_DropExports` via `get_powerbi_data_dir()`; import fallback aligned.
+
+---
+
 ## [1.18.14] - 2026-03-19
 
 ### Added — DFR Summons ETL Enhancement (summons_etl_enhanced.py)

@@ -156,7 +156,7 @@ def check_visual_export_mapping(master_path: Path) -> dict:
 def validate_system(year: int, month: int) -> bool:
     root = get_onedrive_root()
     master_path = root / "Master_Automation"
-    drop_folder = root / "PowerBI_Date" / "_DropExports"
+    drop_folder = root / "PowerBI_Data" / "_DropExports"
     yyyy_mm = f"{year}_{month:02d}"
 
     print(f"--- PRE-FLIGHT AUDIT: Master Automation ---")

@@ -34,7 +34,7 @@ except ImportError:
             return drop, drop.parent / "Backfill"
         except Exception:
             root = get_onedrive_root()
-            return root / "PowerBI_Date" / "_DropExports", root / "PowerBI_Date" / "Backfill"
+            return root / "PowerBI_Data" / "_DropExports", root / "PowerBI_Data" / "Backfill"
 
 
 def _find_file(candidates: list[Path]) -> Path | None:

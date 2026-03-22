@@ -26,13 +26,36 @@ def get_onedrive_root() -> Path:
     return Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack")
 
 
+def get_powerbi_data_dir() -> Path:
+    """Canonical Power BI filesystem root: <OneDrive>/PowerBI_Data (replaces legacy PowerBI_* folder).
+
+    Reads optional repo-root config.json key "PowerBI" for the folder name under get_onedrive_root().
+    """
+    repo_root = Path(__file__).resolve().parent.parent
+    cfg_path = repo_root / "config.json"
+    folder_name = "PowerBI_Data"
+    if cfg_path.exists():
+        try:
+            import json
+
+            with open(cfg_path, encoding="utf-8") as f:
+                raw = json.load(f)
+            name = raw.get("PowerBI")
+            if isinstance(name, str) and name.strip():
+                folder_name = name.strip().strip("\\/")
+        except Exception:
+            pass
+    return get_onedrive_root() / folder_name
+
+
 def get_powerbi_paths() -> tuple[Path, Path]:
     """Return (drop_path, backfill_root) from config/scripts.json.
 
-    drop_path     – canonical _DropExports folder (PowerBI_Date\\_DropExports)
-    backfill_root – canonical Backfill folder      (PowerBI_Date\\Backfill)
+    drop_path     – _DropExports under PowerBI_Data
+    backfill_root – Backfill folder next to _DropExports
     """
     import json
+
     config_path = Path(__file__).resolve().parent.parent / "config" / "scripts.json"
     with open(config_path, encoding="utf-8") as f:
         data = json.load(f)

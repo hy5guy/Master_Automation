@@ -22,7 +22,7 @@ Usage (PowerShell)
 ------------------
 python .\\scripts\\restore_fixed_from_backfill.py `
   --fixed \"C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Overtime_TimeOff\\output\\FIXED_monthly_breakdown_2024-11_2025-11.csv\" `
-  --backfill \"C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Date\\Backfill\\2025_10\\vcs_time_report\\2025_10_Monthly Accrual and Usage Summary.csv\" `
+  --backfill \"C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\PowerBI_Data\\Backfill\\2025_10\\vcs_time_report\\2025_10_Monthly Accrual and Usage Summary.csv\" `
   --inplace
 
 Notes

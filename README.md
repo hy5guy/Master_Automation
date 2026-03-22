@@ -215,8 +215,8 @@ Edit `config/scripts.json` to add, remove, or modify ETL scripts:
 
 All successful outputs are automatically:
 1. Validated (CSV format, proper structure)
-2. Copied to `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports\`
-3. Ready for `process_powerbi_exports.py` processing (match, rename, move to Processed_Exports, copy to Backfill)
+2. Copied to `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports\`
+3. Ready for `organize_backfill_exports.ps1` processing
 
 ## Key Paths
 
@@ -229,14 +229,14 @@ All successful outputs are automatically:
 | `Master_Automation\Standards\config\powerbi_visuals\visual_export_mapping.json` | Export-to-folder mapping |
 | `<OneDrive>\09_Reference\Standards\Processed_Exports\{target_folder}\` | Renamed exports (nibrs, arrests, summons, etc.) |
 
-### PowerBI_Date
+### PowerBI_Data
 | Path | Purpose |
 |------|---------|
-| `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date` | Power BI data root |
-| `PowerBI_Date\_DropExports` | Power BI visual exports land here (drop zone) |
-| `PowerBI_Date\Backfill\{YYYY_MM}\vcs_time_report\` | Monthly accrual (overtime_timeoff_with_backfill) |
-| `PowerBI_Date\Backfill\{YYYY_MM}\summons\` | Summons backfill (summons_backfill_merge) |
-| `PowerBI_Date\Archive\{YYYY}\{MonthName}\` | Archived visual exports |
+| `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data` | Power BI data root |
+| `PowerBI_Data\_DropExports` | Power BI visual exports land here (drop zone) |
+| `PowerBI_Data\Backfill\{YYYY_MM}\vcs_time_report\` | Monthly accrual (overtime_timeoff_with_backfill) |
+| `PowerBI_Data\Backfill\{YYYY_MM}\summons\` | Summons backfill (summons_backfill_merge) |
+| `PowerBI_Data\Archive\{YYYY}\{MonthName}\` | Archived visual exports |
 
 ## Logging
 
@@ -259,7 +259,7 @@ Logs are saved to:
 
 #### What Was Done:
 - **Backfill Directory Structure Created** - 13 monthly directories (Jan 2025 - Jan 2026)
-  - Location: `PowerBI_Date\Backfill\YYYY_MM\response_time\`
+  - Location: `PowerBI_Data\Backfill\YYYY_MM\response_time\`
   - Files: `YYYY_MM_Average_Response_Times__Values_are_in_mmss.csv`
   - Each file: 3 rows (Emergency, Routine, Urgent) + header
   - Source: Current validated visual export data
@@ -402,7 +402,7 @@ Logs are saved to:
 - **December 2025 Visual Exports Organized**
   - Processed and organized 36 CSV exports from December 2025 Power BI report
   - Added `2025_12_` prefix to all exported files
-  - Organized 53 total files into 16 categories in `PowerBI_Date\Backfill\2025_12\`
+  - Organized 53 total files into 16 categories in `PowerBI_Data\Backfill\2025_12\`
   - Cleaned `_DropExports\` folder for next monthly export
 - **Critical Data Quality Issues Identified**
   - Issue #1: "Engagement Initiatives by Bureau" - Blank export (expected 22 events, 71 attendees)
@@ -485,7 +485,7 @@ Logs are saved to:
 ### 2025-12-11: Migration to OneDrive Complete ✅
 
 ### Migration to OneDrive Complete ✅
-- **PowerBI_Date** moved from `C:\Dev\PowerBI_Date_Merged` to OneDrive location
+- **PowerBI_Data** moved from `C:\Dev\PowerBI_Data_Merged` to OneDrive location
 - All path references updated in configuration and scripts
 - Master_Automation junction created for seamless integration
 - Verification scripts and documentation added
@@ -496,7 +496,7 @@ Logs are saved to:
 - Documentation moved under `docs/` (migration + verification + guides)
 
 ### Configuration Updates
-- `powerbi_drop_path` updated to: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\_DropExports`
+- `powerbi_drop_path` updated to: `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports`
 - All script paths verified and updated
 - Documentation paths corrected
 
@@ -509,7 +509,7 @@ Run `.\verify_migration.ps1` to verify all paths and configurations are correct.
   - `...\Overtime_TimeOff\analytics_output\monthly_breakdown.csv` (accrual rows)
 - `scripts/overtime_timeoff_with_backfill.py` now:
   - Runs the production v10 script
-  - Restores historical months into the FIXED output from `PowerBI_Date\Backfill\YYYY_MM\vcs_time_report\...`
+  - Restores historical months into the FIXED output from `PowerBI_Data\Backfill\YYYY_MM\vcs_time_report\...`
   - Backfills `analytics_output\monthly_breakdown.csv` for prior 12 months from the same export (preserving the current month from v10)
 - Validation helper:
   - `scripts/compare_vcs_time_report_exports.py` can diff a refreshed visual export against a known-good baseline (e.g., Oct-24 monthly export)

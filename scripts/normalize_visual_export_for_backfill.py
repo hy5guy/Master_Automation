@@ -344,6 +344,49 @@ def normalize_training_cost(df: pd.DataFrame, enforce_window: bool = False) -> p
     return df
 
 
+def normalize_response_time_series(df: pd.DataFrame, enforce_window: bool = False) -> pd.DataFrame:
+    """
+    Normalize response time series exports (Emergency/Routine/Urgent Total Response).
+    Input has Date_Sort_Key (datetime) and a value column with "X.X min" format.
+    """
+    logger.info("Normalizing Response Time Series format")
+
+    # Standardize date column
+    date_col = "Date_Sort_Key"
+    if date_col in df.columns:
+        df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
+        # Derive MM-YY period label for window enforcement
+        df["Period"] = df[date_col].dt.strftime("%m-%y")
+        if enforce_window:
+            df = enforce_13_month_window(df, period_column="Period")
+
+    # Standardize value column: find the response time column
+    value_cols = [c for c in df.columns if c != date_col and c != "Period"]
+    for col in value_cols:
+        if df[col].dtype == object:
+            # Strip " min" suffix for numeric parsing
+            df[col] = df[col].astype(str).str.replace(r"\s*min$", "", regex=True)
+
+    return df
+
+
+def normalize_response_time_priority_matrix(df: pd.DataFrame, enforce_window: bool = False) -> pd.DataFrame:
+    """
+    Normalize Response Time Trends by Priority exports.
+    Input: MM-YY, RT Avg Formatted, Response_Type, Metric_Label.
+    """
+    logger.info("Normalizing Response Time Priority Matrix format")
+
+    period_col = "MM-YY"
+    if period_col in df.columns:
+        df[period_col] = df[period_col].astype(str).str.strip()
+        df[period_col] = df[period_col].str.replace(r"^Sum of ", "", regex=True).str.strip()
+        if enforce_window:
+            df = enforce_13_month_window(df, period_column=period_col)
+
+    return df
+
+
 def normalize_export(
     input_path: Path,
     output_path: Path,
@@ -383,6 +426,10 @@ def normalize_export(
             df = normalize_summons(df, enforce_window=enforce_13_month)
         elif normalizer_format == "training_cost":
             df = normalize_training_cost(df, enforce_window=enforce_13_month)
+        elif normalizer_format == "response_time_series":
+            df = normalize_response_time_series(df, enforce_window=enforce_13_month)
+        elif normalizer_format == "response_time_priority_matrix":
+            df = normalize_response_time_priority_matrix(df, enforce_window=enforce_13_month)
         else:  # monthly_accrual (default)
             df = normalize_monthly_accrual(df, enforce_window=enforce_13_month)
         
@@ -420,7 +467,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True, help="Output CSV file")
     parser.add_argument(
         "--format",
-        choices=["monthly_accrual", "summons", "training_cost"],
+        choices=["monthly_accrual", "summons", "training_cost", "response_time_series", "response_time_priority_matrix"],
         default="monthly_accrual",
         help="Normalization format (default: monthly_accrual)"
     )

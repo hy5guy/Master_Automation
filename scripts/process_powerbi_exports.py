@@ -25,17 +25,22 @@ from pathlib import Path
 import pandas as pd
 
 try:
-    from path_config import get_onedrive_root, get_powerbi_paths
+    from path_config import get_onedrive_root, get_powerbi_data_dir, get_powerbi_paths
 except ImportError:
     import os
+
     def get_onedrive_root() -> Path:
         base = os.environ.get("ONEDRIVE_BASE") or os.environ.get("ONEDRIVE_HACKENSACK")
         if base:
             return Path(base)
         return Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack")
 
+    def get_powerbi_data_dir() -> Path:
+        return get_onedrive_root() / "PowerBI_Data"
+
     def get_powerbi_paths() -> tuple[Path, Path]:
         import json
+
         config_path = Path(__file__).resolve().parent.parent / "config" / "scripts.json"
         try:
             with open(config_path, encoding="utf-8") as f:
@@ -43,14 +48,22 @@ except ImportError:
             drop = Path(data["settings"]["powerbi_drop_path"])
             return drop, drop.parent / "Backfill"
         except Exception:
-            root = get_onedrive_root()
-            drop = root / "PowerBI_Date" / "_DropExports"
-            return drop, root / "PowerBI_Date" / "Backfill"
+            root = get_powerbi_data_dir()
+            drop = root / "_DropExports"
+            return drop, root / "Backfill"
 
 
 # Repo root (parent of scripts/)
 AUTOMATION_ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = AUTOMATION_ROOT / "Standards" / "config" / "powerbi_visuals" / "visual_export_mapping.json"
+
+# Canonical Backfill subfolder names (18 folders). Any backfill_folder not in this list
+# triggers a warning — it likely indicates a mapping entry with a non-canonical target_folder.
+CANONICAL_BACKFILL_FOLDERS = frozenset({
+    "arrests", "benchmark", "chief", "community_outreach", "csb", "detectives",
+    "drone", "nibrs", "patrol", "policy_and_training_qual", "remu", "response_time",
+    "social_media", "ssocc", "stacp", "summons", "traffic", "vcs_time_report",
+})
 
 
 def _safe_print(msg: str) -> None:
@@ -220,19 +233,28 @@ def infer_yyyymm_from_path(file_path: Path) -> str:
     return yyyy_mm
 
 
-def infer_yyyymm_smart(file_path: Path, enforce_13_month: bool = False) -> str:
+def infer_yyyymm_smart(
+    file_path: Path,
+    enforce_13_month: bool = False,
+    report_month: str | None = None,
+) -> str:
     """
-    Smart date inference: Try data first, fall back to filename/previous month.
-    
+    Smart date inference with optional explicit override.
+
     Priority:
-    1. Read CSV data (13-month: last column, others: Period column)
-    2. Parse filename for YYYY_MM
-    3. Use previous complete month
+    1. Explicit report_month override (from --report-month CLI arg)
+    2. Read CSV data (13-month: last column, others: Period column)
+    3. Parse filename for YYYY_MM
+    4. Use previous complete month
     """
+    if report_month:
+        _safe_print(f"[OVERRIDE] Using explicit report month: {report_month} for {file_path.name}")
+        return report_month
+
     yyyymm = infer_yyyymm_from_data(file_path, enforce_13_month)
     if yyyymm:
         return yyyymm
-    
+
     return infer_yyyymm_from_path(file_path)
 
 
@@ -290,7 +312,7 @@ def run_normalize(
     if not script.exists():
         return False
     cmd = [sys.executable, str(script), "--input", str(input_path), "--output", str(output_path)]
-    if normalizer_format and normalizer_format in ("summons", "training_cost"):
+    if normalizer_format and normalizer_format != "monthly_accrual":
         cmd.extend(["--format", normalizer_format])
     if enforce_13_month:
         cmd.append("--enforce-13-month")
@@ -322,6 +344,7 @@ def process_exports(
     backfill_root: Path | None = None,
     config_path: Path | None = None,
     dry_run: bool = False,
+    report_month: str | None = None,
 ) -> ProcessingStats:
     """
     Scan source_dir for CSVs, match to mapping, rename to YYYY_MM_{standardized_filename}.csv,
@@ -367,8 +390,8 @@ def process_exports(
         else:
             enforce_13_month = mapping.get("enforce_13_month_window", False)
         
-        # Smart date inference: read data for 13-month visuals
-        yyyy_mm = infer_yyyymm_smart(file_path, enforce_13_month)
+        # Smart date inference: explicit override > data > filename > previous month
+        yyyy_mm = infer_yyyymm_smart(file_path, enforce_13_month, report_month=report_month)
         
         target_folder = mapping.get("target_folder", "Other")
         backfill_folder = mapping.get("backfill_folder") or target_folder
@@ -434,6 +457,8 @@ def process_exports(
         stats.files_moved += 1
 
         if mapping.get("is_backfill_required"):
+            if backfill_folder not in CANONICAL_BACKFILL_FOLDERS:
+                _safe_print(f"[WARN] Non-canonical backfill folder: '{backfill_folder}' for {file_path.name}")
             backfill_dir = backfill_root / yyyy_mm / backfill_folder
             backfill_dir.mkdir(parents=True, exist_ok=True)
             backfill_file = backfill_dir / new_name
@@ -451,7 +476,7 @@ def verify_processing(
     stats: ProcessingStats | None = None,
 ) -> bool:
     """Verify: source folder empty, destination files exist and not empty."""
-    source_dir = source_dir or get_powerbi_paths()[0]
+    source_dir = source_dir or (get_powerbi_data_dir() / "_DropExports")
     processed_root = processed_root or (get_onedrive_root() / "09_Reference" / "Standards" / "Processed_Exports")
 
     print("--- Verification Report ---")
@@ -492,22 +517,40 @@ def main() -> int:
     ap.add_argument("--processed", type=Path, default=None, help="Processed exports root")
     ap.add_argument("--backfill", type=Path, default=None, help="Backfill root")
     ap.add_argument("--config", type=Path, default=None, help="Path to visual_export_mapping.json")
+    ap.add_argument("--report-month", type=str, default=None,
+                    help="Explicit report month in YYYY-MM format (overrides data/filename inference)")
     ap.add_argument("--dry-run", action="store_true", help="Do not move or delete files")
     ap.add_argument("--verify-only", action="store_true", help="Only verify (no process)")
     args = ap.parse_args()
 
+    # Single canonical default so process_exports and verify_processing stay aligned
+    default_drop = get_powerbi_data_dir() / "_DropExports"
+    resolved_source = args.source if args.source is not None else default_drop
+
     if args.verify_only:
-        verify_processing(source_dir=args.source, processed_root=args.processed)
+        verify_processing(source_dir=resolved_source, processed_root=args.processed)
         return 0
 
+    # Parse --report-month to YYYY_MM format if provided
+    report_month_override = None
+    if args.report_month:
+        try:
+            parts = args.report_month.split("-")
+            report_month_override = f"{int(parts[0]):04d}_{int(parts[1]):02d}"
+            _safe_print(f"[INFO] Using explicit report month: {report_month_override}")
+        except (ValueError, IndexError):
+            _safe_print(f"[ERROR] Invalid --report-month format: {args.report_month} (expected YYYY-MM)")
+            return 1
+
     stats = process_exports(
-        source_dir=args.source,
+        source_dir=resolved_source,
         processed_root=args.processed,
         backfill_root=args.backfill,
         config_path=args.config,
         dry_run=args.dry_run,
+        report_month=report_month_override,
     )
-    verify_processing(source_dir=args.source or get_powerbi_paths()[0], processed_root=args.processed, stats=stats)
+    verify_processing(source_dir=resolved_source, processed_root=args.processed, stats=stats)
     return 0 if not stats.errors else 1
 
 

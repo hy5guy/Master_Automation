@@ -62,3 +62,20 @@ config/powerbi_api_config.json
 /*.csv
 /*.m
 
+# Diagnostic / test Excel files
+*_DIAGNOSTIC_VERSION.xlsx
+*_ROBUST_VERSION.xlsx
+*_ULTRA_SIMPLE.xlsx
+
+# Benchmark diagnostics
+benchmark_diagnostic_*.json
+
+# Pre-move backup files
+*.premove
+
+# Manifest files (Power BI export metadata)
+_manifest.*
+
+# Log files (repo-wide)
+*.log
+

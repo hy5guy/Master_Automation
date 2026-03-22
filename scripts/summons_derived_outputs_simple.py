@@ -31,7 +31,7 @@ def main() -> int:
     yyyy_mm = f"{year}_{month:02d}"
 
     root = get_onedrive_root()
-    output_dir = root / "Master_Automation" / "_DropExports"
+    output_dir = root / "PowerBI_Data" / "_DropExports"
     export_path = root / "Shared Folder" / "Compstat" / "Monthly Reports" / str(year) / f"{month:02d}_{MONTH_NAMES[month]}"
 
     print(f"[INFO] Starting Summons Derived Outputs generation (SIMPLIFIED)...")

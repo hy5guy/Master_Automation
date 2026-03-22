@@ -10,9 +10,9 @@ from pathlib import Path
 import glob
 
 # Paths
-OLD_FILE = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Average Response Times  Values are in mmss.csv")
-NEW_FILE = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill\2025_10\response_time\2025_10_Average_Response_Times__Values_are_in_mmss.csv")
-NEW_BACKFILL_DIR = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\Backfill")
+OLD_FILE = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\2025_10\response_time\2025_10_Average Response Times  Values are in mmss.csv")
+NEW_FILE = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill\2025_10\response_time\2025_10_Average_Response_Times__Values_are_in_mmss.csv")
+NEW_BACKFILL_DIR = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\Backfill")
 
 print("=" * 80)
 print("RESPONSE TIME ETL COMPARISON")

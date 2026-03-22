@@ -4,6 +4,7 @@
     {
       "visual_name": "Department-Wide Summons",
       "page_name": "Summons",
+      "match_pattern": "(?i)department.wide.summons",
       "match_aliases": [
         "Department-Wide Summons Moving and Parking",
         "Department-Wide Summons  Moving and Parking"
@@ -24,6 +25,7 @@
     {
       "visual_name": "Summons  Moving & Parking  All Bureaus",
       "page_name": "Summons",
+      "match_pattern": "(?i)summons.moving.*parking.*all.bureaus",
       "match_aliases": [
         "Summons Moving & Parking All Bureaus",
         "Summons Moving and Parking All Bureaus"
@@ -44,6 +46,7 @@
     {
       "visual_name": "Top 5 Parking Violations - Department Wide",
       "page_name": "Summons",
+      "match_pattern": "(?i)top.5.parking.violations",
       "match_aliases": [
         "Top 5 Parking Violations Department Wide"
       ],
@@ -63,6 +66,7 @@
     {
       "visual_name": "Top 5 Moving Violations - Department Wide",
       "page_name": "Summons",
+      "match_pattern": "(?i)top.5.moving.violations",
       "match_aliases": [
         "Top 5 Moving Violations Department Wide"
       ],
@@ -82,6 +86,7 @@
     {
       "visual_name": "Training Cost by Delivery Method",
       "page_name": "Policy & Training Qual",
+      "match_pattern": "(?i)training.cost.*delivery.method",
       "standardized_filename": "training_cost_by_delivery_method",
       "normalized_folder": "training",
       "data_format": "Long",
@@ -98,6 +103,7 @@
     {
       "visual_name": "In-Person Training",
       "page_name": "Policy & Training Qual",
+      "match_pattern": "(?i)in.person.training",
       "standardized_filename": "in_person_training",
       "normalized_folder": "training",
       "data_format": "Long",
@@ -113,6 +119,7 @@
     {
       "visual_name": "Monthly Accrual and Usage Summary",
       "page_name": "Social Media and Time Report",
+      "match_pattern": "(?i)monthly.accrual.*usage.summary",
       "standardized_filename": "monthly_accrual_and_usage_summary",
       "normalized_folder": "personnel",
       "data_format": "Long",
@@ -130,6 +137,7 @@
     {
       "visual_name": "Arrest Categories by Type and Gender",
       "page_name": "Arrests",
+      "match_pattern": "(?i)arrest.categories.*type.*gender",
       "standardized_filename": "arrest_categories_by_type_gender",
       "normalized_folder": "arrests",
       "data_format": "Long",
@@ -145,6 +153,7 @@
     {
       "visual_name": "Arrest Distribution by Local, State & Out of State",
       "page_name": "Arrests",
+      "match_pattern": "(?i)arrest.distribution.*local.*state",
       "match_aliases": [
         "Arrest Distribution by Local State & Out of State"
       ],
@@ -161,8 +170,49 @@
       "notes": "Header contains month name ('Count of Total July Arrests'), but rows do not have date column."
     },
     {
+      "visual_name": "Arrests by Charge Category — 13-Month Trend",
+      "page_name": "Arrests",
+      "match_pattern": "(?i)arrests by charge category.*13.month trend",
+      "match_aliases": [
+        "Arrests by Charge Category  13-Month Trend",
+        "Arrest Category Trend"
+      ],
+      "standardized_filename": "arrest_category_trend",
+      "normalized_folder": "arrests",
+      "data_format": "Long",
+      "date_column": "Month Year",
+      "date_format": "MM-YY",
+      "time_period": "Rolling 13 months",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "arrests",
+      "notes": "New Feb 2026 stacked bar chart. Rolling 13-month by charge category."
+    },
+    {
+      "visual_name": "Arrests by Resident Origin — 13-Month Trend",
+      "page_name": "Arrests",
+      "match_pattern": "(?i)arrests by resident origin.*13.month trend",
+      "match_aliases": [
+        "Arrests by Resident Origin  13-Month Trend",
+        "Resident Origin Arrest Trend"
+      ],
+      "standardized_filename": "resident_origin_arrest_trend",
+      "normalized_folder": "arrests",
+      "data_format": "Long",
+      "date_column": "Month Year",
+      "date_format": "MM-YY",
+      "time_period": "Rolling 13 months",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "arrests",
+      "notes": "New Feb 2026 clustered column chart. Rolling 13-month by home category."
+    },
+    {
       "visual_name": "TOP 5 ARREST LEADERS",
       "page_name": "Arrests",
+      "match_pattern": "(?i)top.5.arrest.leaders",
       "match_aliases": [
         "Top 5 Arrest Leaders"
       ],
@@ -181,7 +231,7 @@
     {
       "visual_name": "13-Month NIBRS Clearance Rate Trend",
       "page_name": "NIBRS",
-      "match_pattern": "^13-Month NIBRS Clearance Rate Trend",
+      "match_pattern": "(?i)13.month.nibrs.clearance.rate.trend",
       "match_aliases": [
         "13-Month NIBRS Clearance Rate Trend January 2025 - January 2026",
         "13-Month NIBRS Clearance Rate Trend February 2025 - February 2026"
@@ -199,11 +249,33 @@
       "notes": "Visual name changes monthly due to DAX subtitle. Use match_pattern to handle dynamic date range. Contains clearance rate decimal values."
     },
     {
+      "visual_name": "Clearance and Crime Reporting Metrics",
+      "page_name": "NIBRS",
+      "match_pattern": "(?i)clearance.and.crime.reporting.metrics",
+      "match_aliases": [
+        "clearance_and_crime_reporting_metrics",
+        "Clearance and Crime Reporting Metrics"
+      ],
+      "standardized_filename": "clearance_crime_reporting_metrics",
+      "normalized_folder": "nibrs",
+      "data_format": "Long",
+      "date_column": "Month",
+      "date_format": "MM-YY",
+      "time_period": "Rolling 13 months",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "nibrs",
+      "notes": "Clearance and crime reporting metrics summary."
+    },
+    {
       "visual_name": "Average Response Times  Values are in mmss",
       "page_name": "Response Time",
+      "match_pattern": "(?i)average_response_times.*values_are_in_mmss",
       "match_aliases": [
         "Average Response Times Values are in mmss",
-        "Average Response Times  Values"
+        "Average Response Times  Values",
+        "Average_Response_Times__Values_are_in_mmss"
       ],
       "standardized_filename": "average_response_times",
       "normalized_folder": "response_time",
@@ -218,8 +290,25 @@
       "notes": "Trend data. Normalization needed for 'First Response_Time_MMSS'."
     },
     {
+      "visual_name": "Response Times Detailed",
+      "page_name": "Response Time",
+      "match_pattern": "(?i)response_times_detailed",
+      "standardized_filename": "response_times_detailed",
+      "normalized_folder": "response_time",
+      "data_format": "Long",
+      "date_column": "MM-YY",
+      "date_format": "MM-YY",
+      "time_period": "Rolling 13 months",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "response_time",
+      "notes": "Detailed response time export. match_pattern handles YYYY_MM prefix."
+    },
+    {
       "visual_name": "Response Times by Priority",
       "page_name": "Response Time",
+      "match_pattern": "(?i)response.times.by.priority",
       "standardized_filename": "response_times_by_priority",
       "normalized_folder": "response_time",
       "data_format": "Long",
@@ -235,6 +324,7 @@
     {
       "visual_name": "Average Response Time (Dispatch to On Scene)",
       "page_name": "Response Time",
+      "match_pattern": "(?i)average.response.time.*dispatch.to.on.scene",
       "match_aliases": [
         "Average Response Time (Dispatch to On Scene)",
         "Response Time__Average Response Time (Dispatch to On Scene)"
@@ -254,6 +344,7 @@
     {
       "visual_name": "Dispatch Processing Time (Call Received to Dispatch)",
       "page_name": "Response Time",
+      "match_pattern": "(?i)dispatch.processing.time.*call.received",
       "match_aliases": [
         "Dispatch Processing Time (Call Received to Dispatch)",
         "Response Time__Dispatch Processing Time (Call Received to Dispatch)"
@@ -273,6 +364,7 @@
     {
       "visual_name": "Average Response Time (From Time Received to On Scene)",
       "page_name": "Response Time",
+      "match_pattern": "(?i)average.response.time.*time.received.to.on.scene",
       "match_aliases": [
         "Average Response Time (From Time Received to On Scene)",
         "Response Time__Average Response Time (From Time Received to On Scene)"
@@ -292,6 +384,7 @@
     {
       "visual_name": "Incident Count by Date and Event Type",
       "page_name": "Benchmark",
+      "match_pattern": "(?i)incident.count.*date.*event.type",
       "standardized_filename": "benchmark_incident_count",
       "normalized_folder": "nibrs",
       "data_format": "Long",
@@ -307,6 +400,7 @@
     {
       "visual_name": "Incident Distribution by Event Type",
       "page_name": "Benchmark",
+      "match_pattern": "(?i)incident.distribution.*event.type",
       "standardized_filename": "benchmark_incident_distribution",
       "normalized_folder": "nibrs",
       "data_format": "Long",
@@ -322,6 +416,7 @@
     {
       "visual_name": "Use of Force Incident Matrix",
       "page_name": "Benchmark",
+      "match_pattern": "(?i)use.of.force.*incident.matrix",
       "standardized_filename": "benchmark_use_of_force_matrix",
       "normalized_folder": "nibrs",
       "data_format": "Long",
@@ -337,6 +432,7 @@
     {
       "visual_name": "Chief Michael Antista's Projects and Initiatives",
       "page_name": "Chief Projects",
+      "match_pattern": "(?i)chief.*projects.*initiatives",
       "standardized_filename": "chiefs_projects_initiatives",
       "normalized_folder": "chief",
       "data_format": "Long",
@@ -352,6 +448,7 @@
     {
       "visual_name": "Social Media Posts",
       "page_name": "Social Media and Time Report",
+      "match_pattern": "(?i)social.media.posts",
       "standardized_filename": "social_media_posts",
       "normalized_folder": "social_media",
       "data_format": "Wide",
@@ -367,6 +464,7 @@
     {
       "visual_name": "Chief Law Enforcement Executive Duties",
       "page_name": "Law Enforcement Duties",
+      "match_pattern": "(?i)chief.*executive.duties|law.enforcement.*duties",
       "standardized_filename": "chief_executive_duties",
       "normalized_folder": "chief",
       "data_format": "Long",
@@ -386,6 +484,11 @@
     {
       "visual_name": "Engagement Initiatives by Bureau",
       "page_name": "Out-Reach",
+      "match_pattern": "(?i)engagement.initiatives.by.bureau",
+      "match_aliases": [
+        "Engagement Initiatives by Bureau",
+        "after_update_Engagement Initiatives by Bureau"
+      ],
       "standardized_filename": "engagement_initiatives_by_bureau",
       "normalized_folder": "outreach",
       "data_format": "Long",
@@ -399,8 +502,25 @@
       "notes": "List of specific dated events. No aggregation."
     },
     {
+      "visual_name": "Community Engagement Data",
+      "page_name": "Out-Reach",
+      "match_pattern": "(?i)community_engagement_data",
+      "standardized_filename": "community_engagement_data",
+      "normalized_folder": "outreach",
+      "data_format": "Long",
+      "date_column": "Date",
+      "date_format": "MM/DD/YYYY",
+      "time_period": "Historical List",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": false,
+      "target_folder": "out_reach",
+      "notes": "ETL output with timestamp suffix (e.g. _20260213_004652). match_pattern ignores suffix."
+    },
+    {
       "visual_name": "DFR Activity Performance Metrics",
       "page_name": "Drone",
+      "match_pattern": "(?i)dfr.activity.performance.metrics",
       "standardized_filename": "dfr_activity_performance_metrics",
       "normalized_folder": "dfr",
       "data_format": "Long",
@@ -416,6 +536,7 @@
     {
       "visual_name": "Non-DFR Performance Metrics",
       "page_name": "Drone",
+      "match_pattern": "(?i)non.dfr.performance.metrics",
       "standardized_filename": "non_dfr_performance_metrics",
       "normalized_folder": "dfr",
       "data_format": "Long",
@@ -431,6 +552,7 @@
     {
       "visual_name": "Patrol Division",
       "page_name": "Patrol",
+      "match_pattern": "(?i)patrol.division",
       "standardized_filename": "patrol_division_activity",
       "normalized_folder": "patrol",
       "data_format": "Wide",
@@ -446,6 +568,7 @@
     {
       "visual_name": "Traffic Bureau",
       "page_name": "Traffic",
+      "match_pattern": "(?i)traffic.bureau",
       "standardized_filename": "traffic_bureau_activity",
       "normalized_folder": "traffic",
       "data_format": "Long",
@@ -461,9 +584,12 @@
     {
       "visual_name": "ESU",
       "page_name": "ESU",
+      "match_pattern": "(?i)\\besu\\b|emergency.service.unit",
       "match_aliases": [
         "ESU",
-        "ESU__ESU"
+        "ESU__ESU",
+        "Emergency Service Unit",
+        "emergency_service_unit"
       ],
       "standardized_filename": "esu_activity",
       "normalized_folder": "esu",
@@ -480,6 +606,7 @@
     {
       "visual_name": "Motor Vehicle Accidents - Summary",
       "page_name": "Traffic MVA",
+      "match_pattern": "(?i)motor.vehicle.accidents.*summary",
       "match_aliases": [
         "Motor Vehicle Accidents Summary"
       ],
@@ -498,6 +625,7 @@
     {
       "visual_name": "Detective Division  Part 1",
       "page_name": "Detectives_Pt1",
+      "match_pattern": "(?i)detective.division.*part.1",
       "match_aliases": [
         "Detective Division Part 1"
       ],
@@ -516,6 +644,7 @@
     {
       "visual_name": "Detective Division  Part 2",
       "page_name": "Detectives_Pt2",
+      "match_pattern": "(?i)detective.division.*part.2",
       "match_aliases": [
         "Detective Division Part 2"
       ],
@@ -534,6 +663,7 @@
     {
       "visual_name": "Detective Clearance Rate Performance",
       "page_name": "Detectives Case Dispositions",
+      "match_pattern": "(?i)detective.clearance.rate.performance",
       "standardized_filename": "detective_clearance_rate_performance",
       "normalized_folder": "detective",
       "data_format": "Long",
@@ -549,6 +679,7 @@
     {
       "visual_name": "Detective Case Dispositions - Performance Review",
       "page_name": "Detectives Case Dispositions",
+      "match_pattern": "(?i)detective.case.dispositions.*performance",
       "match_aliases": [
         "Detective Case Dispositions Performance Review"
       ],
@@ -567,6 +698,7 @@
     {
       "visual_name": "Crime Suppressions Bureau Monthly Activity Analysis",
       "page_name": "Crime Suppression Bureau",
+      "match_pattern": "(?i)crime.suppression.*bureau.*activity|csb.*activity",
       "match_aliases": [
         "Crime Suppressions Bureau Activity Analysis",
         "CSB Monthly Activity Analysis"
@@ -586,6 +718,7 @@
     {
       "visual_name": "School Threat Assessment & Crime Prevention  Part 1",
       "page_name": "STACP_Pt1",
+      "match_pattern": "(?i)school.threat.*part.1|stacp.*part.1",
       "match_aliases": [
         "School Threat Assessment & Crime Prevention Part 1",
         "School Threat Assessment and Crime Prevention Part 1",
@@ -606,6 +739,7 @@
     {
       "visual_name": "School Threat Assessment & Crime Prevention  Part 2",
       "page_name": "STACP_Pt2",
+      "match_pattern": "(?i)school.threat.*part.2|stacp.*part.2",
       "match_aliases": [
         "School Threat Assessment & Crime Prevention Part 2",
         "School Threat Assessment and Crime Prevention Part 2",
@@ -626,6 +760,7 @@
     {
       "visual_name": "Records & Evidence Unit",
       "page_name": "REMU",
+      "match_pattern": "(?i)records.*evidence.unit",
       "match_aliases": [
         "Records and Evidence Unit"
       ],
@@ -644,6 +779,7 @@
     {
       "visual_name": "Safe Streets Operations Control Center - Service Breakdown",
       "page_name": "SSOCC",
+      "match_pattern": "(?i)ssocc.*service.breakdown|safe.streets.*service.breakdown",
       "match_aliases": [
         "Safe Streets Operations Control Center Service Breakdown",
         "SSOCC Service Breakdown"
@@ -663,6 +799,7 @@
     {
       "visual_name": "SSOCC Virtual Patrol TAS Alert and Incident Activity",
       "page_name": "SSOCC",
+      "match_pattern": "(?i)ssocc.*tas.*alert|virtual.patrol.*tas",
       "standardized_filename": "ssocc_tas_alerts_trend",
       "normalized_folder": "ssocc",
       "data_format": "Long",
@@ -682,6 +819,7 @@
     {
       "visual_name": "Officer Summons Activity",
       "page_name": "Summons",
+      "match_pattern": "(?i)officer.summons.activity",
       "standardized_filename": "officer_summons_activity_snapshot",
       "normalized_folder": "summons",
       "data_format": "Long",
@@ -689,22 +827,119 @@
       "date_format": null,
       "time_period": "Single month",
       "requires_normalization": false,
-      "normalizer_format": "summons",
       "is_backfill_required": false,
       "enforce_13_month_window": false,
       "target_folder": "summons",
-      "notes": "From 'data.csv'. Snapshot of officer activity."
+      "notes": "From 'data.csv'. Snapshot of officer activity. NOTE: Visual may not exist on Summons page; 4th visual is Department-Wide Summons."
+    },
+    {
+      "visual_name": "DFR Directed Patrol Summons",
+      "page_name": "Drone",
+      "match_pattern": "(?i)dfr.(directed.patrol.)?summons|dfr_summons",
+      "standardized_filename": "dfr_directed_patrol_summons",
+      "normalized_folder": "drone",
+      "data_format": "Long",
+      "date_column": "Date",
+      "date_format": "YYYY-MM-DD",
+      "time_period": "Rolling 13 months",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "drone",
+      "notes": "DFR summons from dfr_directed_patrol_enforcement.xlsx. Visual to be created. M code: m_code/drone/DFR_Summons.m"
+    },
+    {
+      "visual_name": "Emergency - Total Response",
+      "page_name": "Response Time",
+      "match_pattern": "(?i)emergency.*total.response",
+      "standardized_filename": "emergency_total_response",
+      "normalized_folder": "response_time",
+      "data_format": "Long",
+      "date_column": "Date_Sort_Key",
+      "date_format": "YYYY-MM-DD",
+      "time_period": "Rolling 13 months",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "response_time",
+      "notes": "Emergency total response time series. Value column: RT Trend Total Response (X.X min format)."
+    },
+    {
+      "visual_name": "Routine - Total Response",
+      "page_name": "Response Time",
+      "match_pattern": "(?i)routine.*total.response",
+      "standardized_filename": "routine_total_response",
+      "normalized_folder": "response_time",
+      "data_format": "Long",
+      "date_column": "Date_Sort_Key",
+      "date_format": "YYYY-MM-DD",
+      "time_period": "Rolling 13 months",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "response_time",
+      "notes": "Routine total response time series. Value column: RT Trend Total Response (X.X min format)."
+    },
+    {
+      "visual_name": "Urgent - Total Response",
+      "page_name": "Response Time",
+      "match_pattern": "(?i)urgent.*total.response",
+      "standardized_filename": "urgent_total_response",
+      "normalized_folder": "response_time",
+      "data_format": "Long",
+      "date_column": "Date_Sort_Key",
+      "date_format": "YYYY-MM-DD",
+      "time_period": "Rolling 13 months",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "response_time",
+      "notes": "Urgent total response time series. Value column: Urgent Response (X.X min format)."
+    },
+    {
+      "visual_name": "Response Time Trends by Priority",
+      "page_name": "Response Time",
+      "match_pattern": "(?i)response.time.trends.by.priority",
+      "standardized_filename": "response_time_trends_by_priority",
+      "normalized_folder": "response_time",
+      "data_format": "Long",
+      "date_column": "MM-YY",
+      "date_format": "MM-YY",
+      "time_period": "Rolling 13 months",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": true,
+      "target_folder": "response_time",
+      "notes": "Priority matrix: MM-YY, RT Avg Formatted, Response_Type, Metric_Label. Already Long format."
+    },
+    {
+      "visual_name": "DFR Total Fines YTD",
+      "page_name": "Drone",
+      "match_pattern": "(?i)dfr.total.fines.ytd",
+      "standardized_filename": "dfr_total_fines_ytd",
+      "normalized_folder": "drone",
+      "data_format": "Scalar",
+      "date_column": "None",
+      "date_format": null,
+      "time_period": "YTD Aggregate",
+      "requires_normalization": false,
+      "is_backfill_required": false,
+      "enforce_13_month_window": false,
+      "target_folder": "drone",
+      "notes": "Single-value YTD total fines card. Column: DFR Summons Total Fines."
     }
   ],
   "skip_patterns": [
     "Text Box",
     "Administrative Commander",
-    "Policy & Training Weapons"
+    "Policy & Training Weapons",
+    "_manifest",
+    "25_10_arrest_preview"
   ],
   "metadata": {
-    "version": "2.0.1",
-    "last_updated": "2026-02-17",
-    "total_visuals": 36,
+    "version": "2.2.0",
+    "last_updated": "2026-03-22",
+    "total_visuals": 51,
     "enhanced_with_gemini": true,
     "notes": "Merged configuration combining current working mappings with Gemini's enhanced metadata (page_name, data_format, date_column, date_format, time_period)",
     "merged_from_files": [

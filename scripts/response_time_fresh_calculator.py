@@ -21,7 +21,7 @@ Input Files:
     - config/Response_Type_Mapping.xlsx (incident type mapping)
 
 Output Files:
-    - PowerBI_Date/_DropExports/YYYY_MM_Average_Response_Times__Values_are_in_mmss.csv
+    - PowerBI_Data/_DropExports/YYYY_MM_Average_Response_Times__Values_are_in_mmss.csv
 
 Logic:
     1. Load raw timereport data (yearly + monthly supplement)
@@ -469,7 +469,7 @@ def main():
     base_dir = Path(args.root) if args.root else get_onedrive_root()
     master_auto_dir = base_dir / "Master_Automation"
     timereport_base = base_dir / "05_EXPORTS" / "_CAD" / "timereport"
-    powerbi_drop = base_dir / "PowerBI_Date" / "_DropExports"
+    powerbi_drop = base_dir / "PowerBI_Data" / "_DropExports"
     config_dir = master_auto_dir / "config"
 
     yearly_timereport_base = timereport_base / "yearly"

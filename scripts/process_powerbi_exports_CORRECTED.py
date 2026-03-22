@@ -182,7 +182,7 @@ def process_exports(
     if config.get("source_folder_override"):
         source_dir = Path(config["source_folder_override"])
     processed_root = processed_root or (get_onedrive_root() / "09_Reference" / "Standards" / "Processed_Exports")
-    backfill_root = backfill_root or (get_onedrive_root() / "PowerBI_Date" / "Backfill")
+    backfill_root = backfill_root or (get_onedrive_root() / "PowerBI_Data" / "Backfill")
 
     stats = ProcessingStats()
     if not source_dir.exists():
@@ -337,7 +337,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Process Power BI visual exports from _DropExports.")
     ap.add_argument("--source", type=Path, default=None, help="Source folder (default: Master_Automation/_DropExports)")
     ap.add_argument("--processed", type=Path, default=None, help="Processed exports root (default: 09_Reference/Standards/Processed_Exports)")
-    ap.add_argument("--backfill", type=Path, default=None, help="Backfill root (default: PowerBI_Date/Backfill)")
+    ap.add_argument("--backfill", type=Path, default=None, help="Backfill root (default: PowerBI_Data/Backfill)")
     ap.add_argument("--config", type=Path, default=None, help="Path to visual_export_mapping.json")
     ap.add_argument("--dry-run", action="store_true", help="Do not move or delete files")
     ap.add_argument("--verify-only", action="store_true", help="Only run verify_processing (no process)")

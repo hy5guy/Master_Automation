@@ -367,7 +367,7 @@ def main() -> int:
     parser.add_argument(
         "--backfill-root",
         default=None,
-        help="Root folder containing Backfill\\YYYY_MM\\vcs_time_report\\... (default: <OneDrive>\\PowerBI_Date\\Backfill)",
+        help="Root folder containing Backfill\\YYYY_MM\\vcs_time_report\\... (default: <OneDrive>\\PowerBI_Data\\Backfill)",
     )
     parser.add_argument("--dry-run", action="store_true", help="Show what would happen without executing.")
     args = parser.parse_args()
@@ -376,7 +376,7 @@ def main() -> int:
     overtime_timeoff_dir = root / "02_ETL_Scripts" / "Overtime_TimeOff"
     overtime_dir = root / "05_EXPORTS" / "_Overtime"
     time_off_dir = root / "05_EXPORTS" / "_Time_Off"
-    backfill_root = Path(args.backfill_root) if args.backfill_root else root / "PowerBI_Date" / "Backfill"
+    backfill_root = Path(args.backfill_root) if args.backfill_root else root / "PowerBI_Data" / "Backfill"
 
     paths = Paths(
         overtime_timeoff_dir=overtime_timeoff_dir,

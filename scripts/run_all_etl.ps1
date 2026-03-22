@@ -1,5 +1,13 @@
 # Master ETL Orchestrator
 # Runs all configured Python ETL scripts in order
+#
+# MANUAL PRE-STEP:
+#   Before running this orchestrator each month, ensure Power BI visual exports
+#   have been manually exported (Ctrl+Shift+E from each page) and placed in:
+#     PowerBI_Data\_DropExports\
+#   The process_powerbi_exports.py step will rename, normalize, and route these
+#   CSVs to Processed_Exports/ and Backfill/YYYY_MM/ based on visual_export_mapping.json.
+#   If _DropExports is empty, the processing step will report 0 files and skip.
 
 param(
     [string[]]$ScriptNames = @(),  # Run only specified scripts (empty = all)
@@ -16,10 +24,39 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $automationDir = Split-Path -Parent $scriptDir
 $configPath = Join-Path $automationDir "config\scripts.json"
 
-# OneDrive base for paths (align with Python path_config; enables portability)
-$OneDriveBase = $env:ONEDRIVE_BASE
-if (-not $OneDriveBase) { $OneDriveBase = $env:ONEDRIVE_HACKENSACK }
-if (-not $OneDriveBase) { $OneDriveBase = "C:\Users\carucci_r\OneDrive - City of Hackensack" }
+function Get-OneDriveConfig {
+    <#
+    .SYNOPSIS
+    Loads 06_Workspace_Management\config.json and returns resolved paths.
+    #>
+    $base = $env:ONEDRIVE_BASE; if (-not $base) { $base = $env:ONEDRIVE_HACKENSACK }; if (-not $base) { $base = Join-Path $HOME "OneDrive - City of Hackensack" }
+    $configPath = Join-Path $base "06_Workspace_Management\config.json"
+    if (-not (Test-Path $configPath)) {
+        throw "Config not found: $configPath"
+    }
+    $config = Get-Content -Raw -Path $configPath | ConvertFrom-Json
+    $baseDir = Join-Path -Path $HOME -ChildPath $config.BaseDirectory
+    # Normalize forward slashes for Windows
+    $join = { param($p) Join-Path -Path $baseDir -ChildPath ($p -replace '/', '\') }
+    return @{
+        BaseDir              = $baseDir
+        Templates            = & $join $config.Directories.Templates
+        PowerBI              = & $join $config.Directories.PowerBI
+        SharedFolder         = & $join $config.Directories.SharedFolder
+        SCRPABaseReport      = & $join $config.Files.SCRPABaseReport
+        MonthlyReportTemplate = & $join $config.Files.MonthlyReportTemplate
+    }
+}
+
+# OneDrive base for paths: prefer config.json, fallback to env/hardcoded
+$OneDriveConfig = $null
+try {
+    $OneDriveConfig = Get-OneDriveConfig
+    $OneDriveBase = $OneDriveConfig.BaseDir
+}
+catch {
+    $OneDriveBase = $env:ONEDRIVE_BASE; if (-not $OneDriveBase) { $OneDriveBase = $env:ONEDRIVE_HACKENSACK }; if (-not $OneDriveBase) { $OneDriveBase = "C:\Users\carucci_r\OneDrive - City of Hackensack" }
+}
 
 # Auto-calculate ReportMonth if not provided (previous complete month)
 if (-not $ReportMonth) {
@@ -73,9 +110,14 @@ function Save-MonthlyReport {
     # Format: YYYY_MM_Monthly_Report.pbix (e.g., 2025_12_Monthly_Report.pbix for December 2025)
     $reportFileName = "${year}_${monthNum}_Monthly_Report.pbix"
     
-    # Base paths (use OneDrive base for portability)
-    $templatesDir = Join-Path $OneDriveBase "15_Templates"
-    $monthlyReportsBase = Join-Path $OneDriveBase "Shared Folder\Compstat\Monthly Reports"
+    # Base paths: use config when available (08_Templates, Shared Folder), else fallback
+    if ($OneDriveConfig) {
+        $templatesDir = $OneDriveConfig.Templates
+        $monthlyReportsBase = Join-Path $OneDriveConfig.SharedFolder "Compstat\Monthly Reports"
+    } else {
+        $templatesDir = Join-Path $OneDriveBase "08_Templates"
+        $monthlyReportsBase = Join-Path $OneDriveBase "Shared Folder\Compstat\Monthly Reports"
+    }
     
     # Target directory: YEAR\MONTH_NUMBER_monthname (e.g., 2025\12_december)
     $targetDir = Join-Path $monthlyReportsBase $year
@@ -299,10 +341,10 @@ function Test-RequiredInputs {
         }
         
         "Overtime TimeOff" {
-            # Script uses: 05_EXPORTS\_Overtime, 05_EXPORTS\_Time_Off (raw exports) + PowerBI_Date\Backfill\YYYY_MM\vcs_time_report (visual backfill)
+            # Script uses: 05_EXPORTS\_Overtime, 05_EXPORTS\_Time_Off (raw exports) + PowerBI_Data\Backfill\YYYY_MM\vcs_time_report (visual backfill)
             $otBase = Join-Path $OneDriveBase "05_EXPORTS\_Overtime\export\month"
             $toBase = Join-Path $OneDriveBase "05_EXPORTS\_Time_Off\export\month"
-            $backfillBase = Join-Path $OneDriveBase "PowerBI_Date\Backfill"
+            $backfillBase = if ($OneDriveConfig) { Join-Path $OneDriveConfig.PowerBI "Backfill" } else { Join-Path $OneDriveBase "PowerBI_Data\Backfill" }
             $yyyymm = "$year`_$month"
             $otPath = Join-Path $otBase "$year\$yyyymm`_otactivity.xlsx"
             $toPath = Join-Path $toBase "$year\$yyyymm`_timeoffactivity.xlsx"
@@ -329,7 +371,7 @@ function Test-RequiredInputs {
                 $validationResults += [pscustomobject]@{ File = "Time Off Export"; Path = $toPath; Status = "Missing" }
             }
             if ($vcsFound) {
-                Write-Success "  VCS backfill found: PowerBI_Date\Backfill\$year`_$month\vcs_time_report"
+                Write-Success "  VCS backfill found: PowerBI_Data\Backfill\$year`_$month\vcs_time_report"
                 $validationResults += [pscustomobject]@{ File = "VCS Backfill"; Path = $vcsFolder; Status = "Found" }
             } else {
                 $prevPrev = $prevMonth.AddMonths(-1)
@@ -337,10 +379,10 @@ function Test-RequiredInputs {
                 $ppMonth = $prevPrev.Month.ToString("00")
                 $vcsFallback = Join-Path $backfillBase "$ppYear`_$ppMonth\vcs_time_report"
                 if ((Test-Path $vcsFallback) -and ((Get-ChildItem $vcsFallback -Filter "*onthly*ccrual*.csv" -ErrorAction SilentlyContinue).Count -gt 0)) {
-                    Write-Success "  VCS backfill found (prior month): PowerBI_Date\Backfill\$ppYear`_$ppMonth\vcs_time_report"
+                    Write-Success "  VCS backfill found (prior month): PowerBI_Data\Backfill\$ppYear`_$ppMonth\vcs_time_report"
                     $validationResults += [pscustomobject]@{ File = "VCS Backfill"; Path = $vcsFallback; Status = "Found" }
                 } else {
-                    Write-Warn "  VCS backfill not found: $vcsFolder (script uses PowerBI_Date\Backfill for historical months)"
+                    Write-Warn "  VCS backfill not found: $vcsFolder (script uses PowerBI_Data\Backfill for historical months)"
                     $validationResults += [pscustomobject]@{ File = "VCS Backfill"; Path = $vcsFolder; Status = "Unknown" }
                 }
             }
@@ -557,6 +599,9 @@ foreach ($scriptConfig in $scripts) {
                 $prevMonthToken = (Get-Date).AddMonths(-1).ToString("yyyy-MM")
             }
             $scriptArgs = $scriptArgs -replace '\{REPORT_MONTH\}', $prevMonthToken
+            # Pass actual report month for scripts that process the report month (e.g., Arrests)
+            $reportMonthActual = if ($ReportMonth -match "^\d{4}-\d{2}$") { $ReportMonth } else { (Get-Date).ToString("yyyy-MM") }
+            $scriptArgs = $scriptArgs -replace '\{REPORT_MONTH_ACTUAL\}', $reportMonthActual
             $psi.Arguments = "`"$scriptFile`" $scriptArgs"
         } else {
             $psi.Arguments = $scriptFile
@@ -820,7 +865,7 @@ if ($successCount -eq $results.Count) {
     if (-not $SkipPowerBI) {
         Write-Host ""
         Write-Host "Next step: Run Power BI organization script" -ForegroundColor Cyan
-        Write-Host "  cd `"$OneDriveBase\PowerBI_Date`"" -ForegroundColor Gray
+        $powerbiDir = if ($OneDriveConfig) { $OneDriveConfig.PowerBI } else { Join-Path $OneDriveBase "PowerBI_Data" }; Write-Host "  cd `"$powerbiDir`"" -ForegroundColor Gray
         Write-Host "  .\tools\organize_backfill_exports.ps1" -ForegroundColor Gray
     }
     exit 0
