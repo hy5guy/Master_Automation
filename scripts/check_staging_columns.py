@@ -4,7 +4,7 @@ Check which columns exist in the summons_powerbi_latest.xlsx file
 import pandas as pd
 from pathlib import Path
 
-staging_path = Path(r"C:\Users\RobertCarucci\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx")
+staging_path = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx")
 
 print("Reading Excel file...")
 df = pd.read_excel(staging_path, sheet_name="Summons_Data")

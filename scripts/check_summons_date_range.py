@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 
-staging_file = r'C:\Users\RobertCarucci\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx'
+staging_file = r'C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx'
 
 print(f'File exists: {os.path.exists(staging_file)}')
 print(f'File size: {os.path.getsize(staging_file):,} bytes')

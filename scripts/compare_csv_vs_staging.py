@@ -8,7 +8,7 @@ print("RAW CSV vs STAGING FILE COMPARISON")
 print("="*80)
 
 # Try to load raw CSV with error handling
-csv_path = r'C:\Users\RobertCarucci\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket\2026\month\2026_01_eticket_export.csv'
+csv_path = r'C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket\2026\month\2026_01_eticket_export.csv'
 
 try:
     # Try semicolon delimiter with error handling
@@ -33,7 +33,7 @@ except Exception as e:
     df_csv = None
 
 # Load staging file
-staging_file = r'C:\Users\RobertCarucci\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx'
+staging_file = r'C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx'
 
 print(f"\nLoading staging file...")
 df_staging = pd.read_excel(staging_file, sheet_name='Summons_Data')

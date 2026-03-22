@@ -9,7 +9,7 @@ try:
     import pandas as pd
     
     # Load summons data
-    file_path = Path(r"C:\Users\RobertCarucci\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx")
+    file_path = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_powerbi_latest.xlsx")
     
     print(f"Reading: {file_path.name}")
     df = pd.read_excel(file_path, sheet_name="Summons_Data")
@@ -34,7 +34,7 @@ try:
             print(f"Badge: {badge:6} | {first:15} {last:20} | Count: {count:3}")
         
         # Export to CSV for easy reference
-        output_file = Path(r"C:\Users\RobertCarucci\OneDrive - City of Hackensack\Master_Automation\data\traffic_peo_additions_2026_02_17.csv")
+        output_file = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\data\traffic_peo_additions_2026_02_17.csv")
         summary.to_csv(output_file, index=False)
         print(f"\nExported to: {output_file}")
         
