@@ -64,6 +64,7 @@ VAR YtdEnd = EOMONTH ( ReportMonthStart, 0 )
 | Summons / training ETL + M code | `CHANGELOG.md` **[1.19.2]**; `docs/SUMMONS_DATA_IMPORT_LOGIC_GUIDE.md`; `docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md` |
 | Post-MCP manual steps (Close & Apply, ETL, PQ) | `docs/POST_SESSION_ACTION_ITEMS.md` |
 | Tasks A–F visual build (YTD cards, Summons_YTD page, RT, DFR, contrast) | `docs/TASKS_A_THROUGH_F_DELIVERABLE.md` |
+| **Next session:** tie up loose ends (uncommitted code, MCP vs Desktop) | `docs/handoffs/HANDOFF_Claude_MCP_Loose_Ends_2026_03_24.md` |
 
 ---
 
