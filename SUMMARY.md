@@ -1,8 +1,8 @@
 # 06_Workspace_Management Project Summary
 
 **Last Updated:** 2026-03-23
-**Status:** ✅ v1.19.1 — Phase 2 complete (Summons); v1.18.16–v1.18.17 — Processed_Exports routing, on-disk canonical layout, validation CLIs
-**Version:** 1.19.1 (docs include v1.18.15–1.18.17 pipeline changes — see CHANGELOG)
+**Status:** ✅ v1.19.1 — Phase 2 complete (Summons); v1.18.18 — Power BI YTD DAX / `pReportMonth` vs DAX clarified; v1.18.16–v1.18.17 — Processed_Exports routing, on-disk canonical layout, validation CLIs
+**Version:** 1.19.1 (docs include v1.18.15–1.18.18 — see CHANGELOG)
 
 ---
 

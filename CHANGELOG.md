@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.18] - 2026-03-23
+
+### Documentation
+
+- **`docs/POWER_BI_YTD_MEASURES_AND_PAGE_INSTRUCTIONS.md`** — Documented that **`pReportMonth` is M-only** and invalid as a bare DAX name; standard **`___DimMonth`** bridge for YTD bounds, titles, and subtitles; updated **`Arrests YTD`** and added **Top 5 YTD title/subtitle** samples; noted **`___Arrest_13Month`[`Home_Category`]** is only `Local` / `Out-of-Town` unless M is expanded.
+- **`Claude.md`** — DAX vs M for `pReportMonth`; template path `08_Templates` vs `15_Templates`; migration prompt location under **`docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_Migration/`**; optional **`.cursor/mcp.json`** Power BI MCP note; key-doc links for Desktop template prompt.
+- **`docs/MONTHLY_REPORT_TEMPLATE_WORKFLOW.md`** — Template path clarifies `08_Templates` vs `15_Templates`.
+- **`README.md`**, **`SUMMARY.md`** — Header / quick-facts line for v1.18.18 doc sync.
+
+---
+
 ## [1.18.17] - 2026-03-23
 
 ### Documentation

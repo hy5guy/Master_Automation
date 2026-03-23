@@ -17,7 +17,7 @@ Centralized orchestration hub that runs all Python ETL scripts feeding into Powe
 - **Reporting**: Power BI (via **PowerBI_Data** `_DropExports`, `Backfill`)
 - **Storage**: OneDrive (cloud-backed)
 - **Configuration**: JSON (config/scripts.json)
-- **Parameter**: `pReportMonth` controls all rolling windows (static snapshot per .pbix)
+- **Parameter**: `pReportMonth` controls rolling windows in **Power Query (M)** only; in **DAX measures** use `MAX('___DimMonth'[MonthStart])` or a loaded parameters table (see `docs/POWER_BI_YTD_MEASURES_AND_PAGE_INSTRUCTIONS.md`)
 
 ## HTML Report Styles
 
@@ -44,10 +44,10 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 |------|-------|
 | **Version** | 1.19.1 |
 | **Status** | Phase 2 complete: fee/fine enrichment (FINE_AMOUNT), VIOLATION_CATEGORY, DFR backfill wired; ETL path fixes; DFR reconciliation; ~95 YTD DAX measures spec'd |
-| **pReportMonth** | `#date(2026, 2, 1)` |
+| **pReportMonth** | Set per `.pbix` in Power Query (example: `#date(2026, 3, 1)` for March 2026 report) |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
-| **Report Template** | `15_Templates\Monthly_Report_Template.pbix` |
+| **Report Template** | `Monthly_Report_Template.pbix` under `08_Templates\` or `15_Templates\` (OneDrive layout; same gold-copy file) |
 | **TMDL Export** | `m_code/tmdl_export/` (85 files, full model snapshot) |
 
 ### pReportMonth Migration (COMPLETE)
@@ -59,7 +59,10 @@ EndOfWindow   = Date.EndOfMonth(pReportMonth)
 StartOfWindow = Date.StartOfMonth(Date.AddMonths(pReportMonth, -12))
 ```
 
-Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md` for reference.
+Migration prompt and transcripts: `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_Migration/` (chunked exports + `*_transcript.md`). Older single-file prompt may have been removed; use chatlog folder as source of truth.
+
+### Power BI Desktop MCP (Cursor)
+- Optional project file: `.cursor/mcp.json` registers **powerbi-modeling-mcp** for this repo (machine-specific path to `powerbi-modeling-mcp.exe`). User-level config: `%USERPROFILE%\.cursor\mcp.json`. Connect to an open `.pbix` via `localhost:<port>` (discover port with MCP **ListLocalInstances** when Desktop has the model open).
 
 ### Response Time ETL (updated)
 - `response_time_batch_all_metrics.py` v1.17.21 -- dynamic source discovery, NaT coercion monitoring, per-type configurable bounds
@@ -115,7 +118,8 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 - `README.md` - Project overview
 - `SUMMARY.md` - Quick reference
 - `CHANGELOG.md` - Full version history (detailed logs live here, not in this file)
-- `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md` - 16-query M code migration prompt
+- `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_Migration/` - pReportMonth M migration transcripts and chunks
+- `docs/PROMPT_Claude_Desktop_Monthly_Report_Template_MCP.md` - Claude Desktop prompts for template + MCP
 - `docs/13_MONTH_WINDOW_IMPLEMENTATION_GUIDE.md` - Rolling window deployment
 - `docs/M_CODE_DATETIME_FIX_GUIDE.md` - DateTime.LocalNow() audit
 - `docs/MONTHLY_REPORT_TEMPLATE_WORKFLOW.md` - Template workflow and checklist
@@ -129,6 +133,7 @@ Migration prompt preserved at `docs/PROMPT_Claude_MCP_pReportMonth_Migration.md`
 - `docs/DFR_Summons_Claude_Excel_Development_Log.md` - Claude in Excel development history (29 turns, workbook evolution)
 - `docs/templates/HPD_Report_Style_Prompt.md` - HTML report design system
 - `09_Reference/Standards/ResponseTime_AllMetrics_DataDictionary.md` - Response Time schema
+- `14_Workspace/chatlogs/Directory_Consolidation_Documentation_Update_And_Commit/` - Directory consolidation session (transcript + chunks): canonical path refactors, `PowerBI_Data`, template folder moves (`08_Templates`), Phase 4 M batch context; pair with `_consolidation_project/IMPLEMENTATION_CHECKLIST_Directory_Consolidation.md`
 
 ## How to Work on This Project
 
@@ -272,4 +277,4 @@ Active root returned by path_config.get_onedrive_root():
 
 ---
 
-*Last updated: 2026-03-19 | Format version: 4.3*
+*Last updated: 2026-03-23 | Format version: 4.3*

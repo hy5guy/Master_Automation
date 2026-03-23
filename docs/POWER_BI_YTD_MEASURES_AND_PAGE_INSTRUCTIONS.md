@@ -1,6 +1,6 @@
 # Power BI YTD Measures & Page Enhancement Instructions
 
-**Version:** 1.19.0 | **Date:** 2026-03-21 | **Author:** R. A. Carucci + Claude
+**Version:** 1.19.0 (DAX errata 2026-03-23) | **Date:** 2026-03-21 | **Author:** R. A. Carucci + Claude
 **Target:** `15_Templates\Monthly_Report_Template.pbix`
 
 ---
@@ -33,14 +33,34 @@ Apply in Power BI Desktop: right-click each page tab > Rename.
 
 ## YTD Date Window (Standard Pattern)
 
-All YTD measures use this consistent window derived from `pReportMonth`:
+**Conceptual window** (aligned with the Power Query parameter `pReportMonth`):
 
 ```
-YTD Start = DATE(YEAR(pReportMonth), 1, 1)
-YTD End   = EOMONTH(pReportMonth, 0)
+YTD Start = first day of calendar year for the report year
+YTD End   = end of the report month (same month as pReportMonth)
 ```
 
-This ensures January through report month (inclusive) is captured.
+Example: if `pReportMonth` = 1 March 2026, YTD runs 1 Jan 2026 through 31 Mar 2026.
+
+### CRITICAL: `pReportMonth` is not valid DAX by default
+
+The **`pReportMonth`** query is an **M (Power Query) parameter**. It drives query folding and refresh, but **`pReportMonth` is not a DAX table, variable, or function**. Measures that contain `YEAR(pReportMonth)` or `EOMONTH(pReportMonth, 0)` will fail with:
+
+`Failed to resolve name 'pReportMonth'. It is not a valid table, variable, or function name.`
+
+**Use one of these in DAX instead:**
+
+1. **`___DimMonth` bridge (recommended for this template)** — same report-month axis as rolling 13-month visuals:
+
+```dax
+VAR ReportMonthStart = MAX ( '___DimMonth'[MonthStart] )
+VAR YtdStart = DATE ( YEAR ( ReportMonthStart ), 1, 1 )
+VAR YtdEnd = EOMONTH ( ReportMonthStart, 0 )
+```
+
+2. **Load report month into the model** — e.g. a one-row table `ReportParameters[ReportMonth]` from M, then `VAR RM = MAX ( ReportParameters[ReportMonth] )`.
+
+When adding **titles or subtitles** for YTD visuals, use the same `ReportMonthStart` pattern; do not reference `pReportMonth` inside measure text logic unless exposed as a column.
 
 ---
 
@@ -1093,11 +1113,43 @@ CALCULATE(
 
 ```dax
 Arrests YTD =
-CALCULATE(
-    COUNTROWS('___Arrest_13Month'),
-    '___Arrest_13Month'[Arrest Date] >= DATE(YEAR(pReportMonth), 1, 1),
-    '___Arrest_13Month'[Arrest Date] <= EOMONTH(pReportMonth, 0)
-)
+VAR ReportMonthStart = MAX ( '___DimMonth'[MonthStart] )
+VAR YtdStart = DATE ( YEAR ( ReportMonthStart ), 1, 1 )
+VAR YtdEnd = EOMONTH ( ReportMonthStart, 0 )
+RETURN
+    CALCULATE (
+        COUNTROWS ( '___Arrest_13Month' ),
+        '___Arrest_13Month'[Arrest Date] >= YtdStart,
+        '___Arrest_13Month'[Arrest Date] <= YtdEnd
+    )
+```
+
+**Title / subtitle (examples, DAX-safe):**
+
+```dax
+Title Top 5 Arrests YTD =
+VAR ReportMonthStart = MAX ( '___DimMonth'[MonthStart] )
+VAR YtdStart = DATE ( YEAR ( ReportMonthStart ), 1, 1 )
+VAR YtdEnd = EOMONTH ( ReportMonthStart, 0 )
+RETURN
+    "Top 5 Arresting Officers (YTD "
+        & FORMAT ( YtdStart, "MMM yyyy" )
+        & " - "
+        & FORMAT ( YtdEnd, "MMM yyyy" )
+        & ")"
+```
+
+```dax
+Subtitle Top 5 Arrests YTD =
+VAR ReportMonthStart = MAX ( '___DimMonth'[MonthStart] )
+VAR YtdStart = DATE ( YEAR ( ReportMonthStart ), 1, 1 )
+VAR YtdEnd = EOMONTH ( ReportMonthStart, 0 )
+RETURN
+    "YTD "
+        & FORMAT ( YtdStart, "MMM yyyy" )
+        & " - "
+        & FORMAT ( YtdEnd, "MMM yyyy" )
+        & " - Top 5 by arrest count"
 ```
 
 ### Visual Instructions
@@ -1105,6 +1157,8 @@ CALCULATE(
 2. Rows: `___Arrest_13Month[Officer of Record]`
 3. Values: `[Arrests YTD]`
 4. Filter: Top N = 5 by `[Arrests YTD]`
+
+**`Home_Category` on `___Arrest_13Month`:** Current M (`m_code/arrests/___Arrest_13Month.m`) sets only **`Local`** and **`Out-of-Town`**. Percent-of-total KPIs should use those two buckets (e.g. `Arrest Local %` and `Arrest Out-of-Town %`). Finer **In-County / Out-of-County / Out-of-State** shares require different source logic (e.g. `___Arrest_Distro` enrichment) or expanding the M step that builds `Home_Category`.
 
 ---
 
