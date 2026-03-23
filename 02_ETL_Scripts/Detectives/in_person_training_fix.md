@@ -1,5 +1,7 @@
 # In Person Training Query Fix
 
+**Current state (workspace, 2026-03):** Production M is **`m_code/training/___In_Person_Training.m`**. It loads **`Policy_Training_Monthly.xlsx`** (`Training_Log` / `Training_Log_Clean`), not only `InPerson_Prior_Month_List`. YTD and report-month filtering are in **DAX**. See **`docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md`**. The notes below describe an earlier troubleshooting thread.
+
 ## Issue
 The query `___In_Person_Training` is only showing data from November 2025, but it should be updating with current data.
 

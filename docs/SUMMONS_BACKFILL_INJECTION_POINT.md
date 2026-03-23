@@ -2,7 +2,7 @@
 
 **Purpose:** Fill Department-Wide Summons data gaps for months where no e-ticket export exists, by merging aggregate totals from the organized backfill folder.
 
-**Last Updated:** 2026-03-14
+**Last Updated:** 2026-03-23
 
 ---
 
@@ -16,7 +16,8 @@
 1. `run_summons_etl.py` discovers e-ticket files from both `2025/month/` and `2026/month/`
 2. Calls `normalize_personnel_data()` to load, clean, classify (raw Case Type Code M/P/C), and join to Assignment Master
 3. Calls `merge_missing_summons_months()` to inject backfill for gap months
-4. Writes 3-tier output: RAW CSV, CLEAN Excel (`summons_powerbi_latest.xlsx`), SLIM CSV (`summons_slim_for_powerbi.csv`)
+4. Calls `apply_fine_amount_and_violation_category()` (after merge, before DFR split): **`Penalty`** when present, else statute match on **`municipal-violations-bureau-schedule.json`** under OneDrive `09_Reference/...` (see `CHANGELOG.md` [1.19.2])
+5. Writes 3-tier output: RAW CSV, CLEAN Excel (`summons_powerbi_latest.xlsx`), SLIM CSV (`summons_slim_for_powerbi.csv`)
 
 Power BI M code queries source `summons_slim_for_powerbi.csv` directly.
 

@@ -4,6 +4,8 @@
 **Duration:** 0.39 minutes (23 seconds)  
 **Overall Status:** ✅ **100% SUCCESS** (5/5 scripts after fix)
 
+**Note (2026-03-23):** Historical snapshot. This workspace’s documented summons entry point is **`run_summons_etl.py`** (not necessarily the script names logged below).
+
 ---
 
 ## Script Performance Summary

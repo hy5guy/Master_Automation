@@ -16,9 +16,11 @@
 
 ## Fixes Applied
 
-### 1. Full 13‑Month E-Ticket Load (`summons_etl_enhanced.py`)
+### 1. Full 13‑Month E-Ticket Load (workspace: `run_summons_etl.py`)
 
-- **Before:** Loaded only 2026_01 and 2026_02.
+- **Historical note:** Fixes were also described in terms of `02_ETL_Scripts/Summons/summons_etl_enhanced.py` when orchestration pointed there.
+- **This repo:** Entry point is **`run_summons_etl.py`** (root) + **`scripts/summons_etl_normalize.py`** + **`scripts/summons_backfill_merge.py`** (see **`CHANGELOG.md` [1.19.2]**).
+- **Before (legacy):** Some builds loaded only 2026_01 and 2026_02.
 - **After:** Loads all months in the 13‑month window (e.g., 2025_02 through 2026_02 for Feb 2026 report).
 - File discovery: `YYYY/month/`, `YYYY/`, root.
 
@@ -42,7 +44,7 @@
 
 ## Deployment Checklist
 
-1. **Run Summons ETL** – `.\scripts\run_all_etl.ps1 -ScriptNames Summons` or run `summons_etl_enhanced.py` directly.
+1. **Run Summons ETL** – From workspace: `python run_summons_etl.py` (or your orchestrator if it still calls `summons_etl_enhanced.py`; confirm v2.5+ fee enrichment path per **`docs/SUMMONS_DATA_IMPORT_LOGIC_GUIDE.md`**).
 2. **Update Power BI** – Apply `summons_13month_trend.m` changes in Power Query Editor.
 3. **Refresh report** – Refresh the Summons page and verify visuals.
 

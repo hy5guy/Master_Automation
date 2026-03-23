@@ -1,5 +1,7 @@
 # In Person Training Query Code Review
 
+**Current state (workspace, 2026-03):** Production M is **`m_code/training/___In_Person_Training.m`**. It loads **`Policy_Training_Monthly.xlsx`** (`Training_Log` / `Training_Log_Clean`), not only `InPerson_Prior_Month_List`. YTD and report-month filtering are in **DAX**. See **`docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md`**. The review below applied to an earlier query variant.
+
 ## Code Analysis
 
 ### ✅ Correct Aspects

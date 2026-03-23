@@ -3,6 +3,8 @@
 **Date:** 2026-02-13  
 **Purpose:** Verify personnel file usage and streamline Personnel folder
 
+**Note (2026-03-23):** Summons personnel enrichment in this workspace is driven by **`scripts/summons_etl_normalize.py`** (via **`run_summons_etl.py`**). References below to **`summons_etl_enhanced.py`** describe the older `02_ETL_Scripts/Summons/` script if still in use elsewhere.
+
 ---
 
 ## Key Finding: Assignment_Master_V2.csv Status

@@ -1,14 +1,16 @@
 # Summons ETL v2.3.0 — Deployment Guide
 
+**Historical note (2026-03-23):** The live pipeline is **`run_summons_etl.py`** + **`scripts/summons_etl_normalize.py` v2.5+**. The SLIM CSV is **no longer fixed at 23 columns** — it includes fee/category and related financial columns. See **`CHANGELOG.md` [1.19.2]** and **`docs/SUMMONS_DATA_IMPORT_LOGIC_GUIDE.md`**. This document remains the record of the v2.3.0 drop-in review.
+
 **Date:** 2026-03-04  
-**Status:** ✅ Deployed  
+**Status:** ✅ Deployed (baseline); superseded for SLIM schema by v2.5+  
 **Source:** Claude In Excel Turn 8 + 7-round cross-AI review (Grok, Gemini, Claude)
 
 ---
 
 ## Summary
 
-Claude's complete v2.3.0 package resolves all 12 audit items and produces a true 23-column SLIM CSV with 100% M-code coverage. Deploying this package (not the Grok hybrid) avoids SLIM drift, fragile DQ score logic, and dual codebase maintenance.
+Claude's complete v2.3.0 package resolves all 12 audit items and produces a true 23-column SLIM CSV with 100% M-code coverage (v2.5+ extends the SLIM column set; see note above). Deploying this package (not the Grok hybrid) avoids SLIM drift, fragile DQ score logic, and dual codebase maintenance.
 
 ---
 

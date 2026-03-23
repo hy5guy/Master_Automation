@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.19.2] - 2026-03-23
+
+### Changed — Summons fee enrichment (workspace ETL)
+
+- **`scripts/summons_etl_normalize.py`** — Added **`apply_fine_amount_and_violation_category`**: loads **`09_Reference/LegalCodes/data/Title39/municipal-violations-bureau-schedule.json`** (same relative path as `dfr_reconcile.py`); **`FINE_AMOUNT`** = e-ticket **`Penalty`** when &gt; 0, else fee-schedule match on **`STATUTE`** (normalized candidates: strip parens, trailing alpha segment, case/space-insensitive, ordered suffix match); **`VIOLATION_CATEGORY`** from schedule **`case_type`** or **`TYPE`** (M/P/C); optional **`TOTAL_PAID_AMOUNT` / `COST_AMOUNT` / `MISC_AMOUNT`** when source columns exist; **`Violation Number` → `VIOLATION_NUMBER`** rename. **`write_three_tier_output`** slim columns extended (financials, **`VIOLATION_CATEGORY`**, **`DATA_QUALITY_TIER`**, etc.).
+- **`run_summons_etl.py`** — After **`merge_missing_summons_months`**, calls **`apply_fine_amount_and_violation_category`** so backfill rows get aligned columns before DFR split and export.
+
+### Changed — Policy Training M queries (YTD + source of truth)
+
+- **`m_code/training/___In_Person_Training.m`** — Loads **`Shared Folder/Compstat/Contributions/Policy_Training/Policy_Training_Monthly.xlsx`**; sheet **`Training_Log`** with fallback **`Training_Log_Clean`**; **no** prior-month-only slice in M — **YTD filters live in DAX** (e.g. Training Classes/Duration YTD). Normalizes **Start date** / **Delivery Method** vs **`Delivery_Type`**, **In-Person** filter, currency stripping.
+- **`m_code/training/___Cost_of_Training.m`** — Still reads **`policy_training_outputs.xlsx`** / **`Delivery_Cost_By_Month`**; **period filter** is the union of the existing **13-month rolling window** and **calendar YTD** months through **`pReportMonth`** so **Training Cost YTD** measures see **`Period_Sort`** for Jan through report month (fixes January report edge case).
+
+### Documentation
+
+- **`README.md`**, **`SUMMARY.md`**, **`Claude.md`** — Version **1.19.2**; accurate fee-schedule description; DFR pipeline points to **`run_summons_etl.py`** + **`dfr_export.py`** for this repo.
+- **`docs/MONTHLY_REPORT_TEMPLATE_WORKFLOW.md`** — Training query behavior and last-sync note.
+- **`docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md`** — In-Person source workbook, YTD in DAX, Cost query YTD ∪ 13-month.
+- **`docs/POWER_BI_YTD_MEASURES_AND_PAGE_INSTRUCTIONS.md`** — Training page: Power Query source notes + doc version bump.
+- **`docs/handoffs/HANDOFF_PowerBI_MCP_2026_03_23.md`** — Link to **1.19.2** pipeline changes.
+- **`docs/SUMMONS_DATA_IMPORT_LOGIC_GUIDE.md`** — **FINE_AMOUNT** / fee schedule / slim output.
+- **`docs/SUMMONS_PATHS_AND_DROPEXPORTS.md`** — `run_summons_etl.py` + extended SLIM (not fixed 23 columns).
+- **`docs/SUMMONS_BACKFILL_INJECTION_POINT.md`** — Flow step for **`apply_fine_amount_and_violation_category`** after backfill merge.
+- **`docs/HANDOFF_Summons_ETL_Enhancement_Phase2.md`** — Supersession note vs live fee enrichment.
+- **`docs/SUMMONS_ETL_v2.3.0_DEPLOYMENT.md`**, **`docs/grok_v2.3.0_merged.md`** — Marked historical for SLIM column count.
+- **`docs/DECEMBER_2025_SUMMONS_BACKFILL_AND_PERSONNEL_UPDATES.md`**, **`docs/PERSONNEL_FOLDER_ANALYSIS.md`**, **`docs/ETL_RUN_SUMMARY_2026_02_12.md`** — Canonical **`run_summons_etl.py`** note where **`summons_etl_enhanced.py`** appears.
+- **`02_ETL_Scripts/Detectives/in_person_training_*.md`** — Current **`___In_Person_Training.m`** / DAX YTD banner.
+- **`m_code/summons/summons_revenue_by_violation_category.m`** — Header depends-on line for v2.5+ SLIM.
+- **`README.md`** — Summons section: extended SLIM (not “23 columns” only).
+
+---
+
+## [1.19.3] - 2026-03-24
+
+### Documentation
+
+- **`docs/POST_SESSION_ACTION_ITEMS.md`**, **`docs/TASKS_A_THROUGH_F_DELIVERABLE.md`** — MCP session follow-ups: training/summons root causes, manual build checklists, `Response_Type_Sort` DAX, export mapping notes.
+- **`docs/PROMPT_Claude_Desktop_Monthly_Report_Template_MCP.md`** — Desktop MCP prompt library (path on disk).
+- **`docs/handoffs/HANDOFF_PowerBI_MCP_2026_03_23.md`** — Links to post-session and Tasks A–F deliverables.
+- **`Claude.md`** — Key-doc entries for post-session and Tasks A–F.
+- **`docs/SUMMONS_VISUALS_FIX_2026_03_03.md`** — 13-month load narrative points to **`run_summons_etl.py`** / workspace scripts.
+- Continued alignment: **`README.md`**, **`SUMMARY.md`**, summons/training/backfill docs, Detectives in-person training notes, **`docs/grok_v2.3.0_merged.md`**, **`docs/SUMMONS_ETL_v2.3.0_DEPLOYMENT.md`** (historical SLIM note), personnel/December/ETL run summaries, Response Time golden doc banner.
+
+---
+
 ## [1.18.18] - 2026-03-23
 
 ### Documentation

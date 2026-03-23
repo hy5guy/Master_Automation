@@ -1,8 +1,8 @@
 # 06_Workspace_Management Project Summary
 
-**Last Updated:** 2026-03-23
-**Status:** ✅ v1.19.1 — Phase 2 complete (Summons); v1.18.18 — Power BI YTD DAX / `pReportMonth` vs DAX clarified; v1.18.16–v1.18.17 — Processed_Exports routing, on-disk canonical layout, validation CLIs
-**Version:** 1.19.1 (docs include v1.18.15–1.18.18 — see CHANGELOG)
+**Last Updated:** 2026-03-24
+**Status:** ✅ v1.19.3 — Documentation sync (MCP post-session, Tasks A–F deliverable, handoffs); v1.19.2 — Summons fee enrichment + training M; v1.18.18 — Power BI YTD DAX / `pReportMonth` vs DAX
+**Version:** 1.19.3 (see CHANGELOG; code pipeline baseline v1.19.2)
 
 ---
 
@@ -19,8 +19,8 @@
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.19.1 — Phase 2 complete: fee/fine enrichment, VIOLATION_CATEGORY, DFR backfill wired |
-| **Version** | 1.19.1 |
+| **Status** | ✅ v1.19.2 pipeline + v1.19.3 docs — `POST_SESSION_ACTION_ITEMS`, `TASKS_A_THROUGH_F_DELIVERABLE`, fee enrichment + training M |
+| **Version** | 1.19.3 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -45,7 +45,7 @@
 ✅ **Visual export normalization** - Orchestrator normalizes "Monthly Accrual and Usage Summary" CSVs in _DropExports before organize_backfill  
 ✅ **Summons backfill** - `summons_backfill_merge.py` uses backfill as source of truth for all months in consolidated file (02-25 through 11-25); injection point at `docs/SUMMONS_BACKFILL_INJECTION_POINT.md`
 ✅ **DFR summons split** - `split_dfr_records()` isolates drone/temp-SSOCC records (Polson 0738 always; Ramirez 2025 Feb–Mar 26; Mazzaccaro 0377 Mar 26) and routes them to `dfr_directed_patrol_enforcement.xlsx` via `dfr_export.py`; DFR backfill auto-runs after export; main pipeline sees only non-DFR records
-✅ **Fee/fine enrichment** - Cascading statute lookup (fee schedule → Title39 → CityOrdinances) adds `FINE_AMOUNT` and `VIOLATION_CATEGORY` to all summons rows; SLIM CSV now 25 columns for Summons_YTD revenue KPIs
+✅ **Fee/fine enrichment** — After backfill merge, `apply_fine_amount_and_violation_category` sets `FINE_AMOUNT` from e-ticket **Penalty** (if &gt; 0) else **`09_Reference/LegalCodes/data/Title39/municipal-violations-bureau-schedule.json`** on **STATUTE** (with normalization); sets **`VIOLATION_CATEGORY`**; extended **`summons_slim_for_powerbi.csv`** (financial + category columns). Requires fee schedule JSON on OneDrive for statute-based amounts when Penalty is 0.
 ✅ **DFR Power BI query** - `m_code/drone/DFR_Summons.m` loads DFR workbook with 13-month rolling window, dual dismiss/void filter (Summons_Recall + Summons_Status), schema-resilient Violation_Category/Jurisdiction, Date_Sort_Key, MM-YY, YearMonthKey
 ✅ **Arrest ETL future-proofed** - `--report-month YYYY-MM` (via `{REPORT_MONTH_ACTUAL}`); targeted file discovery in `05_EXPORTS/_Arrest/YYYY/month/`; outputs `YYYY_MM_Arrests_PowerBI_Ready.xlsx` to `01_DataSources/ARREST_DATA/Power_BI/`
 ✅ **13-month rolling window** - 24 Power BI visuals enforced to exactly 13 months (end = previous month); `process_powerbi_exports.py` (match_pattern, enforce_13_month), `validate_13_month_window.py`; docs in `docs/13_MONTH_*.md`
@@ -61,7 +61,7 @@
 | 2 | Community Engagement | `deploy_production.py` | ✅ Enabled |
 | 3 | Overtime TimeOff | `overtime_timeoff_with_backfill.py` | ✅ Enabled (validation: 05_EXPORTS\_Overtime, _Time_Off, PowerBI_Data\Backfill\vcs_time_report) |
 | 4 | Response Times | `process_cad_data_13month_rolling.py` | ✅ Enabled (CallType_Categories.csv fallback; input from report month) |
-| 5 | Summons | `run_summons_etl.py` (v2.4.0); DFR split → `dfr_export.py` → `dfr_directed_patrol_enforcement.xlsx` | ✅ Enabled |
+| 5 | Summons | `run_summons_etl.py`; `summons_etl_normalize.py` v2.5.0; DFR split → `dfr_export.py` → `dfr_directed_patrol_enforcement.xlsx` | ✅ Enabled |
 
 ### Disabled Scripts
 
@@ -254,12 +254,12 @@ Policy Training is managed in its own project folder (enabled in `config/scripts
 - `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Policy_Training_Monthly`
 
 Key output:
-- `...\output\policy_training_outputs.xlsx` (sheets: `Delivery_Cost_By_Month`, `InPerson_Prior_Month_List`, etc.)
+- `...\output\policy_training_outputs.xlsx` (sheets: `Delivery_Cost_By_Month`, `InPerson_Prior_Month_List`, `Training_Log_Clean`, etc.)
 
 Expected behavior:
 - Backfill months match the prior-month backfill export (e.g., `PowerBI_Data\Backfill\2025_10\policy_training\...`)
 - ETL computes rolling 13-month window; **01-26** (and later months) appear in Cost by Delivery Method visual after ETL run when source workbook has that period.
-- In-Person Training visual shows prior-month In-Person courses; zeros when source has no cost (or fill **Cost Per Attendee** in source and re-run ETL for imputation).
+- **Power BI `___In_Person_Training` (repo M):** loads **`Policy_Training_Monthly.xlsx`** (full **`Training_Log`** / **`Training_Log_Clean`**), not only `InPerson_Prior_Month_List`. YTD cards filter in DAX. See **`docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md`**.
 
 Doc:
 - `docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md` – Run location, Cost of Training 13-month fix, In-Person source and error handling.
@@ -279,8 +279,8 @@ Validation helper:
 
 **v1.18.1 (2026-03-10):** Ramirez SSOCC overrides in ETL; UNASSIGNED mapping in all_bureaus; 07-25 filler rows in 13month_trend; `docs/SUMMONS_M_CODE_NOTES.md` for lessons learned.
 
-Power BI source (v2.3.0+):
-- `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv` (23-col SLIM; all 6 summons queries)
+Power BI source (`run_summons_etl.py`, v2.5.0+):
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv` — extended SLIM CSV (**`FINE_AMOUNT`**, **`VIOLATION_CATEGORY`**, financials, etc.); primary source for **`___Summons.m`** and related summons queries
 
 Current month source:
 - `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket\YYYY\YYYY_MM_eticket_export.csv`

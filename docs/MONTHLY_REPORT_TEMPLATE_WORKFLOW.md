@@ -5,6 +5,7 @@
 **Template Location:** `...\08_Templates\Monthly_Report_Template.pbix` (some setups use `15_Templates\`; same gold-copy file under the OneDrive root)
 **Source:** Copied from `2026_01_Monthly_Report.pbix` (January 2026 report)
 **Last MCP Update:** 2026-03-19 — Directory consolidation path corrections + DAX subtitle fixes (see `POWERBI_TEMPLATE_MCP_UPDATE_2026_03_19.md`)
+**Last pipeline sync:** 2026-03-23 — Summons slim CSV: `apply_fine_amount_and_violation_category` + extended columns (**`CHANGELOG.md` [1.19.2]**). Training: **`___In_Person_Training.m`** → **`Policy_Training_Monthly.xlsx`** (full log; YTD in DAX); **`___Cost_of_Training.m`** → union of 13-month rolling labels and calendar YTD through **`pReportMonth`**.
 
 ---
 
@@ -90,7 +91,7 @@ These queries use `ReportMonth = pReportMonth` for date calculations and must be
 | STACP_DIAGNOSTIC | `m_code/stacp/STACP_DIAGNOSTIC.m` | Rolling window (optional) |
 | summons_all_bureaus | `m_code/summons/summons_all_bureaus.m` | Previous-month filter |
 | summons_top5_moving | `m_code/summons/summons_top5_moving.m` | Previous-month filter |
-| ___Cost_of_Training | `m_code/training/___Cost_of_Training.m` | Rolling window |
+| ___Cost_of_Training | `m_code/training/___Cost_of_Training.m` | Rolling 13-month (end = month before `pReportMonth`) **∪** calendar YTD months through report month (for YTD cost DAX) |
 | ___Traffic | `m_code/traffic/___Traffic.m` | Rolling window |
 | summons_top5_parking | `m_code/summons/summons_top5_parking.m` | Previous-month filter |
 
@@ -116,7 +117,7 @@ These do not use `DateTime.LocalNow()` but should still be deployed to ensure th
 | TrackedItems | `m_code/esu/TrackedItems.m` |
 | summons_13month_trend | `m_code/summons/summons_13month_trend.m` |
 | ___Summons_Diagnostic | `m_code/summons/___Summons_Diagnostic.m` |
-| ___In_Person_Training | `m_code/training/___In_Person_Training.m` |
+| ___In_Person_Training | `m_code/training/___In_Person_Training.m` | Source: **`Policy_Training_Monthly.xlsx`** (`Training_Log` / `Training_Log_Clean`); no month slice in M — use DAX YTD on **`Start date`** |
 
 ### Helper Functions (5 queries)
 

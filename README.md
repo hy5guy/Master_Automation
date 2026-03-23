@@ -6,12 +6,14 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the **PowerBI_Data** repository (`_DropExports`, `Backfill`).
 
+**Latest Update (2026-03-24): v1.19.3 — Documentation sync.** Post-MCP checklists (`docs/POST_SESSION_ACTION_ITEMS.md`), Tasks A–F visual deliverable (`docs/TASKS_A_THROUGH_F_DELIVERABLE.md`), handoff links, summons visual fix doc aligned to `run_summons_etl.py`. See **`CHANGELOG.md` [1.19.3]**.
+**Latest Update (2026-03-23): v1.19.2 — Summons + training pipeline.** Summons: `run_summons_etl.py` runs `apply_fine_amount_and_violation_category` after backfill merge; `FINE_AMOUNT` from **Penalty** or **`municipal-violations-bureau-schedule.json`** on **STATUTE**; extended `summons_slim_for_powerbi.csv`. Training: `___In_Person_Training.m` loads **`Policy_Training_Monthly.xlsx`** (full log; YTD in DAX); `___Cost_of_Training.m` keeps 13-month rolling **and** calendar YTD periods through `pReportMonth`. See **`CHANGELOG.md` [1.19.2]**.
 **Latest Update (2026-03-23): v1.18.18 — Power BI DAX documentation.** YTD and title measures must not use bare `pReportMonth` in DAX; use `___DimMonth` or a loaded parameter column. See `docs/POWER_BI_YTD_MEASURES_AND_PAGE_INSTRUCTIONS.md` and `CHANGELOG.md`.
 **Latest Update (2026-03-23): v1.18.17 — Processed_Exports docs & layout tooling.** `canonicalize_processed_exports_layout.py` merges legacy folders on disk (`traffic_mva`→`traffic`, `detectives_pt*` / `detectives_case_dispositions`→`detectives`, `stacp_pt*`→`stacp`) and normalizes PascalCase dirs (`Benchmark`, `Drone`, `NIBRS`, `Other`, `Patrol`, `Summons`, `Traffic`) to lowercase. `process_powerbi_exports.py`: `--scan-processed-exports-inbox` (CSV inbox at Processed_Exports root); with `--report-month`, normalization passes `--13m-window-ends` so partial next-month rows (e.g. 03-26) are excluded from enforced 13-month output. See `CHANGELOG.md`.
 **Latest Update (2026-03-22): v1.18.16 — Processed_Exports routing & validation.** `visual_export_mapping.json` targets consolidated folders (`monthly_accrual_and_usage`, `detectives`, `stacp`, `traffic` for MVA); `processed_exports_routing.py` archives prior CSVs under `Processed_Exports/<category>/archive/YYYY_MM/` before overwrite; `validate_response_time_exports.py` and enhanced `validate_13_month_window.py` (`--report-month`, `--accept-warn`, partial tail month). See `CHANGELOG.md`.
 **Latest Update (2026-03-22): v1.18.15 — PowerBI_Data paths.** Repo `config.json` + `get_powerbi_data_dir()`; `scripts.json` and Python helpers use `PowerBI_Data` (not `PowerBI_Date`). `path_config.get_onedrive_root()` prefers `C:\Users\carucci_r\OneDrive - City of Hackensack` when present (laptop: junction). See `CHANGELOG.md`.
 **Latest Update (2026-03-13): v1.18.6 — Report month window fixes.** Summons (4 queries), Detectives, and Policy Training (Cost + In-Person) M code updated so all visuals include the report month (not previous month). In-Person Training now loads from source workbook directly. See `CHANGELOG.md`.
-**Latest Update (2026-03-21): v1.19.1 — Summons ETL Phase 2 complete.** Fee/fine enrichment (`FINE_AMOUNT`) and `VIOLATION_CATEGORY` columns added to all summons rows via cascading statute lookup (fee schedule → Title39 → CityOrdinances). DFR backfill wired into main ETL pipeline. SLIM CSV now 25 columns for Summons_YTD revenue KPIs. See `CHANGELOG.md`.
+**Latest Update (2026-03-21): v1.19.1 — Summons ETL Phase 2 (design).** Target schema for Summons_YTD revenue KPIs documented; **v1.19.2** implements enrichment in this repo via **municipal fee schedule JSON** + **Penalty** (see `CHANGELOG.md` **[1.19.2]**).
 
 **v1.18.4 (2026-03-11): Summons backfill as source of truth.** For all months in the consolidated backfill file (02-25 through 11-25), e-ticket rows are removed and backfill values used exclusively. Department-Wide Summons visual now matches backfill file exactly. See `CHANGELOG.md`.
 
@@ -54,7 +56,7 @@ Master_Automation/
 │   ├── validate_outputs.py                   # FIXED CSV schema validation
 │   ├── test_pipeline.bat                     # Overtime/TimeOff test suite
 │   ├── summons_backfill_merge.py             # Summons gap-month merge (07-25 only as of 2026-03-10)
-│   ├── summons_etl_normalize.py             # Core summons ETL v2.4.0: DFR split, fee/fine + VIOLATION_CATEGORY enrichment
+│   ├── summons_etl_normalize.py             # Core summons ETL v2.5.0: DFR split, apply_fine_amount_and_violation_category, extended slim CSV
 │   ├── dfr_export.py                        # DFR workbook export (schema map, dedup, formula-col guard)
 │   ├── dfr_backfill_descriptions.py           # DFR description/fine backfill (cascading statute lookup)
 │   ├── normalize_visual_export_for_backfill.py  # Normalize visual exports (13-month window, backfill)
@@ -533,7 +535,7 @@ Run `.\verify_migration.ps1` to verify all paths and configurations are correct.
 - **Entry point:** `run_summons_etl.py` (repo root) — scans both 2025/month and 2026/month for e-ticket exports
 - **Core ETL:** `scripts/summons_etl_normalize.py` — badge lookup, TYPE classification (raw Case Type Code M/P/C), 3-tier output (RAW, CLEAN Excel, SLIM CSV)
 - **Backfill merge:** `scripts/summons_backfill_merge.py` — gap month = July 2025 only (all other 2025 months have e-ticket files)
-- **Power BI source:** `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv` (~47K rows, 23 columns)
+- **Power BI source:** `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv` — extended SLIM (**v2.5+** includes `FINE_AMOUNT`, `VIOLATION_CATEGORY`, financial columns; see `docs/SUMMONS_DATA_IMPORT_LOGIC_GUIDE.md`)
 - **M code queries:** 4 queries in `m_code/summons/` — `summons_13month_trend`, `summons_all_bureaus`, `summons_top5_moving`, `summons_top5_parking`
 - **Key fixes applied (2026-03-10):**
   - TYPE classification: raw `Case Type Code` (M/P/C) replaces broken statute-based lookup that was reclassifying Parking→Criminal

@@ -42,8 +42,8 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.19.1 |
-| **Status** | Phase 2 complete: fee/fine enrichment (FINE_AMOUNT), VIOLATION_CATEGORY, DFR backfill wired; ETL path fixes; DFR reconciliation; ~95 YTD DAX measures spec'd |
+| **Version** | 1.19.3 (docs); pipeline **1.19.2** |
+| **Status** | Same as 1.19.2 plus doc set: `docs/POST_SESSION_ACTION_ITEMS.md`, `docs/TASKS_A_THROUGH_F_DELIVERABLE.md`, `docs/handoffs/HANDOFF_PowerBI_MCP_2026_03_23.md`; template ~101 YTD measures (manual card/visual build per Tasks A–F) |
 | **pReportMonth** | Set per `.pbix` in Power Query (example: `#date(2026, 3, 1)` for March 2026 report) |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
@@ -73,8 +73,12 @@ Migration prompt and transcripts: `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_
 - **Source:** `dfr_directed_patrol_enforcement.xlsx` (Claude in Excel workbook)
 - **Columns:** MM-YY (matrix display), Date_Sort_Key (sort-by-column), DateSortKey (YYYYMMDD), YearMonthKey; Description shortened ("Parking...designated X" → "X"); Violation_Type P/M/C
 - **Filter:** Dual filter — (1) Summons_Recall containing "Dismiss" or "Void"; (2) Summons_Status containing "dismiss" or "void" (catches Dismissed, Void, Voided); en-US locale for text parsing
-- **ETL population:** `summons_etl_enhanced.py` (02_ETL_Scripts/Summons/) appends DFR records (badge 0738, 2025) to workbook after staging save; dedup on Summons Number; target `Shared Folder/Compstat/Contributions/Drone/`
+- **ETL population (this repo):** `run_summons_etl.py` → `split_dfr_records()` → **`scripts/dfr_export.py`** appends DFR rows to the workbook (dedup on Summons Number; skips Excel formula columns). Badge/date rules live in **`scripts/summons_etl_normalize.py`** (`DFR_ASSIGNMENTS`). A separate **`02_ETL_Scripts/Summons/summons_etl_enhanced.py`** may exist on disk for other workflows; **orchestrated path here is `run_summons_etl.py`.**
 - **Docs:** `docs/DFR_Summons_Claude_Excel_Development_Log.md` (29-turn history); `docs/summons_ETL Enhancement.py` (enhancement plan)
+
+### Policy Training queries (m_code/training/)
+- **`___In_Person_Training.m`** — **`Policy_Training_Monthly.xlsx`** under `Shared Folder/Compstat/Contributions/Policy_Training/`; sheet **`Training_Log`** (fallback **`Training_Log_Clean`**). Loads **all** in-person rows; **YTD** = DAX on `Start date` (see `docs/POWER_BI_YTD_MEASURES_AND_PAGE_INSTRUCTIONS.md`).
+- **`___Cost_of_Training.m`** — **`02_ETL_Scripts/Policy_Training_Monthly/output/policy_training_outputs.xlsx`**, sheet **`Delivery_Cost_By_Month`**. M keeps **13-month rolling** periods **and** **calendar YTD** months through **`pReportMonth`** so YTD cost cards resolve (incl. January report month).
 
 ## Project Map
 
@@ -87,7 +91,7 @@ Migration prompt and transcripts: `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_
 - `scripts/validate_exports.py` - Pre-flight check for OT/TimeOff exports
 - `scripts/validate_outputs.py` - CSV schema validation
 - `scripts/test_pipeline.bat` - Overtime/TimeOff test suite
-- `scripts/summons_etl_normalize.py` - Summons ETL v2.4.0; `DFR_ASSIGNMENTS` + `split_dfr_records()` + fee/fine + VIOLATION_CATEGORY enrichment
+- `scripts/summons_etl_normalize.py` - Summons ETL v2.5.0; `DFR_ASSIGNMENTS` + `split_dfr_records()` + `apply_fine_amount_and_violation_category()` (Penalty + municipal fee schedule on STATUTE)
 - `scripts/dfr_export.py` - DFR workbook export; `_map_to_dfr_schema()`, `export_to_dfr_workbook()`
 - `scripts/dfr_backfill_descriptions.py` - DFR description/fine backfill; cascading statute lookup
 - `run_summons_etl.py` - Path-agnostic summons wrapper; DFR split + export wired in
@@ -120,9 +124,16 @@ Migration prompt and transcripts: `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_
 - `CHANGELOG.md` - Full version history (detailed logs live here, not in this file)
 - `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_Migration/` - pReportMonth M migration transcripts and chunks
 - `docs/PROMPT_Claude_Desktop_Monthly_Report_Template_MCP.md` - Claude Desktop prompts for template + MCP
+- `docs/handoffs/HANDOFF_PowerBI_MCP_2026_03_23.md` - Session handoff for Power BI MCP, DAX/`pReportMonth`, Arrest YTD matrix
+- `docs/POST_SESSION_ACTION_ITEMS.md` - After MCP: save pbix, Close & Apply, Summons ETL, manual PQ steps
+- `docs/TASKS_A_THROUGH_F_DELIVERABLE.md` - YTD card placement, Summons_YTD page, page renames, Response Time + DFR specs
 - `docs/13_MONTH_WINDOW_IMPLEMENTATION_GUIDE.md` - Rolling window deployment
 - `docs/M_CODE_DATETIME_FIX_GUIDE.md` - DateTime.LocalNow() audit
 - `docs/MONTHLY_REPORT_TEMPLATE_WORKFLOW.md` - Template workflow and checklist
+- `docs/SUMMONS_DATA_IMPORT_LOGIC_GUIDE.md` - Summons columns, **`apply_fine_amount_and_violation_category`**, slim CSV
+- `docs/SUMMONS_PATHS_AND_DROPEXPORTS.md` - Staging paths vs `_DropExports` (Summons uses `03_Staging`, not DropExports)
+- `docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md` - Policy Training ETL location; **`___In_Person_Training`** / **`___Cost_of_Training`** M behavior
+- `docs/POWER_BI_YTD_MEASURES_AND_PAGE_INSTRUCTIONS.md` - YTD DAX patterns; **`pReportMonth`** not valid bare in DAX; training PQ notes
 - `docs/ESU_POWER_BI_LOAD_AND_PUBLISH.md` - ESU query docs
 - `docs/PROMPT_ETL_Export_Reliability_Diagnostic_Enhanced.md` - ETL export diagnostic prompt (full paths)
 - `docs/PROMPT_Claude_MCP_Create_Missing_Visuals_For_Monthly_Report.md` - Claude MCP prompt for Response Time + DFR visuals

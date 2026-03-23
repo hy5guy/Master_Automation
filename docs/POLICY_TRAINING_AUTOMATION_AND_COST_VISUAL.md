@@ -23,44 +23,52 @@ Policy Training Monthly is **configured** in Master_Automation but is currently 
    - Open a terminal, go to the project folder, and run the entry point you normally use (e.g. `python main.py` if present, or `python -m src.policy_training_etl` / whatever the project uses).
    - Output is written to: `...\Policy_Training_Monthly\output\policy_training_outputs.xlsx`.
 
-The Power BI query **___Cost_of_Training.m** reads that same workbook (sheet `Delivery_Cost_By_Month`).
+The Power BI query **`___Cost_of_Training.m`** reads that workbook (sheet **`Delivery_Cost_By_Month`**).
 
 ---
 
-## Cost of Training visual: 13-month window fix (01-25 → 01-26)
+## Cost of Training M query (13-month rolling + calendar YTD)
 
-**Issue:** The visual was showing 12-24 through 12-25 instead of the standard 13-month window 01-25 through 01-26.
+**Source:** `02_ETL_Scripts\Policy_Training_Monthly\output\policy_training_outputs.xlsx` — sheet **`Delivery_Cost_By_Month`**.
 
-**Cause:** The M code did not filter by date; it showed whatever month columns existed in the Excel. The project standard is a **rolling 13-month window**: same month one year earlier through **previous month** (e.g. in Feb 2026 → 01-25 through 01-26).
+**Behavior (as of 2026-03-23, `m_code/training/___Cost_of_Training.m`):**
 
-**Fix (in `m_code\training\___Cost_of_Training.m`):**
+1. **Rolling 13-month window** (project standard for the wide “Training Cost by Delivery Method” visual): computed from **`pReportMonth`** with **end = calendar month before the report month** and **start = same month one year earlier** (see comments in the M file).
+2. **Calendar YTD through report month:** month labels from **January of the report year** through **`pReportMonth`** are **unioned** with the rolling list so rows exist for **`Period_Sort`** values used by **Training Cost YTD** DAX (see `docs/POWER_BI_YTD_MEASURES_AND_PAGE_INSTRUCTIONS.md`). This also fixes the edge case where a **January** report month left no overlap with the old rolling-only filter.
 
-- Added dynamic 13-month window calculation (same logic as STACP and other project visuals):
-  - End = **report month** (e.g. Feb 2026 report → 02-26).
-  - Start = same month, one year earlier (e.g. 02-25).
-- After unpivoting month columns, the query now **filters** to only keep rows whose `Period` (MM-YY) is in that window.
+After unpivoting month columns, the query **keeps** any row whose **`Period`** (MM-YY) is in **`List.Distinct(List.Combine({ PeriodLabelsMMYY, YTDLabels }))`**.
 
-After refreshing the query in Power BI, the Training Cost by Delivery Method visual will show **02-25 through 02-26** for a Feb 2026 report (and will roll forward automatically each month).
-
-**Deploy:** Copy the updated `___Cost_of_Training.m` into your Power BI report’s query and refresh.
+**Deploy:** Paste the repo **`___Cost_of_Training.m`** into Power BI Advanced Editor and refresh.
 
 ---
 
-## Why 01-26 can be missing in the export
+## Why a month column can be missing in the visual
 
-The M code **only shows months that exist in the source workbook**. It does not create or invent data.
+The M code **only shows months that exist as columns** in the source workbook. It does not invent periods.
 
-- **Source:** `02_ETL_Scripts\Policy_Training_Monthly\output\policy_training_outputs.xlsx` (sheet `Delivery_Cost_By_Month`).
-- If that sheet has columns only for **01-25 through 12-25**, then after unpivot + 13‑month filter you get **01-25 through 12-25** in the visual/export — **no 01-26**.
-- **01-26 will appear only when** the Policy Training ETL has been run so that the output workbook includes a **01-26** column (and that file is what Power BI is reading).
-
-**What to do:** Run the Policy Training ETL so it writes the workbook with a January 2026 column (through "previous month" or at least 01-26). After the workbook is updated and Power BI is refreshed, the Training Cost by Delivery Method visual and its export will include 01-26.
+- If **`Delivery_Cost_By_Month`** has no **03-26** column, March 2026 will not appear until the Policy Training ETL (or manual workbook edit) adds that column.
+- After the workbook is updated and Power BI is refreshed, unpivoted rows for that period appear (if the period is inside the **union** of rolling + YTD lists).
 
 ---
 
-## In-Person Training visual and source
+## In-Person Training visual and source (2026-03-23)
 
-- **In-Person Training** Power BI query (`m_code\training\___In_Person_Training.m`) reads from the **source workbook** `Policy_Training_Monthly.xlsx` (sheet **Training_Log**) directly — not from ETL output. It filters by report month and In-Person delivery. Shows Course Name, Course Duration, Total Cost, Attendees Count. Handles #VALUE! and currency format via `ParseNumber`, `Table.ReplaceErrorValues`, `TrimmedHeaders`.
-- **Zeros in the visual:** If the source workbook (`Policy_Training_Monthly.xlsx` → sheet **Training_Log**) has **Total Cost** and **Cost Per Attendee** blank or zero for that month, the In-Person visual will show 0.00. That is correct behavior.
-- **ETL cost imputation:** When Total Cost is missing or zero, the ETL sets `Total Cost = Course per Attendee × Course Attendees`. So filling **Cost Per Attendee** (and having **Count of Attendees**) in the source will produce non-zero cost after re-running the ETL.
-- **Source column alias:** The source workbook may use **"Cost Per Attendee"** (capital P). The ETL in `02_ETL_Scripts\Policy_Training_Monthly\src\policy_training_etl.py` was updated to recognize this alias (added to `col_per_attendee` list) so that column is used for imputation when Total Cost is zero.
+**Power BI query:** `m_code\training\___In_Person_Training.m`
+
+| Item | Detail |
+|------|--------|
+| **Workbook** | `Shared Folder\Compstat\Contributions\Policy_Training\Policy_Training_Monthly.xlsx` (source of truth; always current) |
+| **Sheets** | **`Training_Log`**, with fallback **`Training_Log_Clean`** |
+| **Filter** | In-Person only: **`Delivery Method`** or **`Delivery_Type`**, normalized (trim, lower case) |
+| **Columns** | **`Start date`**, **`End date`**, **`Course Name`**, **`Course Duration`**, **`Total Cost`**, **`Attendees Count`** (aliases: CourseDuration, TotalCost, Count of Attendees → Attendees Count) |
+| **YTD in Power BI** | The M query loads **all** qualifying in-person rows. **Training Classes YTD**, **Training Duration YTD**, etc., apply **calendar YTD** filters in **DAX** on **`Start date`** (see YTD measures doc). |
+
+**Zeros or blanks:** If **Total Cost** is blank or zero for events in range, cards/measures show 0 or blank as appropriate. The Python ETL can impute cost from **Cost Per Attendee × attendees** when configured.
+
+**Source column alias:** The workbook may use **"Cost Per Attendee"** (capital P). The ETL in `02_ETL_Scripts\Policy_Training_Monthly\src\policy_training_etl.py` recognizes this alias for imputation when Total Cost is zero.
+
+---
+
+## Historical note (superseded paths)
+
+Earlier versions of **`___In_Person_Training.m`** read **`policy_training_outputs.xlsx`** / **`InPerson_Prior_Month_List`** (prior month only). That pattern **does not** support calendar **YTD** DAX on **`Start date`** when the sheet holds only one month. **Repo gold copy = source workbook + full log**, as above.

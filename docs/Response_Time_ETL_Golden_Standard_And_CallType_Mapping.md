@@ -1,6 +1,8 @@
 # Template setup and task completion
 _Exported on 2/26/2026 at 21:06:23 EST from Cursor (2.5.20)_
 
+**Note (2026-03-23):** Log excerpts below reference **`Master_Automation`** and **`summons_etl_enhanced.py`**. In **`06_Workspace_Management`**, the documented summons entry point is **`run_summons_etl.py`** + **`scripts/summons_etl_normalize.py`**.
+
 ---
 
 **User**

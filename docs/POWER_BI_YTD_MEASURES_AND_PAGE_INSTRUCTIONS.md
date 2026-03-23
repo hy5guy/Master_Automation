@@ -1,6 +1,6 @@
 # Power BI YTD Measures & Page Enhancement Instructions
 
-**Version:** 1.19.0 (DAX errata 2026-03-23) | **Date:** 2026-03-21 | **Author:** R. A. Carucci + Claude
+**Version:** 1.19.2 (training PQ notes 2026-03-23) | **Date:** 2026-03-23 | **Author:** R. A. Carucci + Claude
 **Target:** `15_Templates\Monthly_Report_Template.pbix`
 
 ---
@@ -119,6 +119,13 @@ CALCULATE(
 
 **Source tables:** `___In_Person_Training`, `___Cost_of_Training`
 **Date columns:** `___In_Person_Training[Start date]`, `___Cost_of_Training[Period_Sort]` (YYYYMM integer)
+
+**Power Query (repo `m_code/training/`, 2026-03-23):**
+
+- **`___In_Person_Training`** — Loads **`Policy_Training_Monthly.xlsx`** (`Shared Folder\Compstat\Contributions\Policy_Training\`), sheets **`Training_Log`** / **`Training_Log_Clean`**; **full** in-person log (no month trim in M). YTD measures below filter in DAX.
+- **`___Cost_of_Training`** — Loads **`policy_training_outputs.xlsx`** / **`Delivery_Cost_By_Month`**. Period filter = **13-month rolling ∪ calendar YTD** through **`pReportMonth`** so **`Period_Sort`** matches YTD DAX bounds.
+
+**DAX samples below:** Where you see bare **`pReportMonth`**, replace with the **`___DimMonth`** / **`ReportMonthStart`** pattern from **§ CRITICAL: `pReportMonth` is not valid DAX** at the top of this document (those samples were written before the errata).
 
 ### DAX Measures
 

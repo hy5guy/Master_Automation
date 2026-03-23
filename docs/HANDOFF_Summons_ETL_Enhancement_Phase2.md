@@ -1,7 +1,9 @@
 # Handoff Prompt — Summons ETL Enhancement Phase 2
 
-**STATUS: ✅ COMPLETE (v1.19.1, 2026-03-21)**
-All three tasks implemented and verified. Task 4 (DAX measures) is manual/MCP-only.
+**Update 2026-03-23:** Workspace implementation is documented under **`CHANGELOG.md` [1.19.2]**. Main-pipeline fee enrichment is **`apply_fine_amount_and_violation_category`** (municipal **`municipal-violations-bureau-schedule.json`** + **`Penalty`**), not the full Title39/Ordinance cascade described in Task 2 below. Use this file for historical context; use **`docs/SUMMONS_DATA_IMPORT_LOGIC_GUIDE.md`** for current behavior.
+
+**STATUS: ✅ COMPLETE (v1.19.1 design pass, 2026-03-21); v1.19.2 code sync (2026-03-23)**
+Original three-task handoff satisfied in spirit; Task 4 (DAX measures) remains manual/MCP-only.
 
 **Copy everything below this line into a new Claude Code conversation.**
 

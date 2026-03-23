@@ -3,6 +3,8 @@
 **Date:** 2026-02-13  
 **Status:** ✅ COMPLETED
 
+**Note (2026-03-23):** In **`06_Workspace_Management`**, the canonical summons pipeline is **`run_summons_etl.py`** + **`scripts/summons_etl_normalize.py`**. Section 4 below documents a path fix applied to **`02_ETL_Scripts\Summons\summons_etl_enhanced.py`** (may still exist for other orchestrators).
+
 ---
 
 ## Tasks Completed

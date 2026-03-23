@@ -329,12 +329,15 @@ RENAME_MAP = {
 ### Financial Columns
 | Column | Type | Description | Example | Source Column in E-Ticket Export |
 |--------|------|-------------|---------|-----------------------------------|
-| `TOTAL_PAID_AMOUNT` | Number | Total amount paid | `150.00` | *(not in current export - calculated)* |
-| `FINE_AMOUNT` | Number | Fine portion | `100.00` | `Penalty` |
-| `COST_AMOUNT` | Number | Court costs | `33.00` | *(not in current export)* |
-| `MISC_AMOUNT` | Number | Other fees | `17.00` | *(not in current export)* |
+| `TOTAL_PAID_AMOUNT` | Number | Total amount paid | `150.00` | Parsed when a matching column exists; else blank |
+| `FINE_AMOUNT` | Number | Fine portion | `100.00` | **`Penalty`** if numeric **> 0**; else lookup on **`STATUTE`** |
+| `COST_AMOUNT` | Number | Court costs | `33.00` | When present in export; else blank |
+| `MISC_AMOUNT` | Number | Other fees | `17.00` | When present in export; else blank |
+| `VIOLATION_CATEGORY` | Text | Category for revenue / breakdown | `M`, `P`, or description | Derived: fee-schedule **`case_type`** or **`TYPE`** (M/P/C) |
 
-**Note:** The current e-ticket export only includes `Penalty` (mapped to `FINE_AMOUNT`). Court costs and other financial details may need to be obtained from a separate data source or calculated.
+**Fee enrichment (workspace `run_summons_etl.py`, 2026-03-23):** After **`merge_missing_summons_months`**, **`apply_fine_amount_and_violation_category`** runs. It loads **`09_Reference/LegalCodes/data/Title39/municipal-violations-bureau-schedule.json`** (relative to OneDrive root resolved from `Assignment_Master_V2.csv`). **`FINE_AMOUNT`**: use **`Penalty`** when **> 0**; otherwise match **`STATUTE`** to the fee schedule (normalization: strip parenthetical suffixes, trailing letter segments, case/space collapse, ordered suffix match on keys). Rows with **no** penalty and **no** schedule match keep **`FINE_AMOUNT`** empty (NaN in CSV), not a fabricated amount. **`VIOLATION_CATEGORY`** is always set for classification (at minimum from **`TYPE`**).
+
+**Slim CSV (`summons_slim_for_powerbi.csv`):** Includes **`FINE_AMOUNT`**, **`VIOLATION_CATEGORY`**, **`VIOLATION_NUMBER`**, **`VIOLATION_TYPE`**, financial columns when present, **`DATA_QUALITY_TIER`**, **`ASSIGNMENT_FOUND`**, etc., for **`___Summons.m`** and **`summons_revenue_by_violation_category.m`**.
 
 ### Metadata Columns
 | Column | Type | Description | Example |
