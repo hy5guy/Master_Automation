@@ -135,7 +135,7 @@ START
 
 ## 🔧 Quick Reference
 
-### File Paths (All in Master_Automation workspace)
+### File Paths (06_Workspace_Management repo)
 
 **Documentation**:
 ```
@@ -293,7 +293,7 @@ Issue Encountered
 - `BENCHMARK_CLEANUP_STRATEGY_2026_02_09.md`
 - `BENCHMARK_M_CODE_IMPLEMENTATION_2026_02_09.md`
 
-### Master_Automation Project
+### 06_Workspace_Management project
 - `README.md` - Project overview
 - `CLAUDE.md` - AI agent guide
 - `SUMMARY.md` - Quick reference

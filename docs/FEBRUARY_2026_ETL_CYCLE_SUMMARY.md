@@ -115,7 +115,7 @@ All scripts now execute successfully with proper error handling and validation.
 def main() -> int:
     """Main execution function - uses Power BI exports directly"""
     export_path = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Monthly Reports\2026\01_january")
-    output_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\_DropExports")
+    output_dir = Path(r"C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports")
     
     # FILE 1: backfill_summons_summary.csv - Use Power BI export directly
     dept_file = export_path / "Department-Wide Summons  Moving and Parking.csv"
@@ -146,7 +146,7 @@ def main() -> int:
 ## Output Validation
 
 ### Generated Files
-All files written to `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\_DropExports\`:
+All files written to `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports\` (canonical drop; align with `powerbi_drop_path` in `config/scripts.json`):
 
 | File | Rows | Size | Validation Status |
 |------|------|------|-------------------|

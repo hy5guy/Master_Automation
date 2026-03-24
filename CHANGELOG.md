@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.19.4] - 2026-03-24
+
+### Fixed — Summons normalization
+
+- **`scripts/summons_etl_normalize.py`** — Restored **`_load_statute_lookups()`** (Title39 + City Ordinance JSON under `09_Reference/LegalCodes/data/...`); removed dead code that had been left after a `return` inside **`apply_fine_amount_and_violation_category`** (was causing **`NameError: _load_statute_lookups`** during **`run_summons_etl.py`**).
+
+### Changed — Overtime/TimeOff orchestration
+
+- **`config/scripts.json`** — **Overtime TimeOff** entry: **`path`** now points to **`06_Workspace_Management\scripts`** (workspace copy of **`overtime_timeoff_with_backfill.py`**); the old **`Master_Automation\scripts`** path no longer exists on disk and broke **`run_all_etl.ps1`** for that step.
+- **`scripts/overtime_timeoff_with_backfill.py`** — Optional **`--end-month YYYY-MM`** to set the 13-month window end for mid-month / next-report dry runs; when set, invokes v10 with **`--asof`** on the first day of the following calendar month so the rolling window matches that end month. Default behavior unchanged (previous complete month).
+
+### Changed — Summons ETL console output
+
+- **`run_summons_etl.py`** — DFR status line uses ASCII **`->`** instead of Unicode arrow (avoids **`UnicodeEncodeError`** on Windows **`cp1252`** consoles).
+
+### Documentation
+
+- **`README.md`**, **`SUMMARY.md`**, **`docs/PROJECT_STRUCTURE.md`**, **`docs/QUICK_START.md`**, **`docs/QUICK_FIX_Response_Time_M_Code.md`**, **`docs/BENCHMARK_FIX_INDEX.md`**, **`docs/QUICK_REFERENCE_2026_02_09.md`**, **`docs/SUMMONS_M_CODE_TEMPLATE_FIX.md`**, **`docs/FEBRUARY_2026_ETL_CYCLE_SUMMARY.md`**, **`docs/CURSOR_AI_PROMPT.md`** — Canonical workspace root **`06_Workspace_Management`**; **`PowerBI_Data\_DropExports`** where applicable; Response Time calculator path **`m_code\response_time\___ResponseTimeCalculator.m`**.
+
+---
+
 ## [1.19.2] - 2026-03-23
 
 ### Changed — Summons fee enrichment (workspace ETL)

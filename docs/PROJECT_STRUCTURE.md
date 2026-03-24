@@ -1,13 +1,13 @@
-# Master_Automation Project Structure
+# 06_Workspace_Management Project Structure
 
-**Last Updated:** 2026-03-10
+**Last Updated:** 2026-03-24
 
 ---
 
 ## Directory Structure
 
 ```
-Master_Automation/
+06_Workspace_Management/
 ├── README.md                    # Main project documentation
 ├── CHANGELOG.md                 # Version history (v1.18.0+)
 ├── SUMMARY.md                   # Project summary / quick reference
@@ -96,7 +96,7 @@ Master_Automation/
 - ETL scripts write CSV files here
 - Files are then organized by `organize_backfill_exports.ps1`
 - Under OneDrive: `PowerBI_Data\_DropExports\` (folder name from `config.json` / `path_config.get_powerbi_data_dir()`)
-- This folder in Master_Automation is for local testing/staging if needed
+- A `_DropExports` folder under this repo (if present) is for local testing/staging only; production drop is **`PowerBI_Data\_DropExports`**
 
 ---
 
@@ -146,7 +146,7 @@ Master_Automation/
 C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\_DropExports\
 ```
 
-This folder in Master_Automation (`_DropExports/`) is optional and can be used for:
+A repo-local `_DropExports/` (if you create one) is optional and can be used for:
 - Local testing
 - Staging before Power BI organization
 - Development/testing purposes
@@ -171,5 +171,5 @@ This folder in Master_Automation (`_DropExports/`) is optional and can be used f
 ---
 
 **Maintained by:** R. A. Carucci  
-**Last Updated:** 2026-03-10
+**Last Updated:** 2026-03-24
 

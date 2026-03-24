@@ -38,7 +38,7 @@ Update M code to dynamically load files from correct Backfill location with smar
 - **Delete all existing code**
 - **Copy the updated code from**:
   ```
-  C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\m_code\___ResponseTimeCalculator.m
+  C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management\m_code\response_time\___ResponseTimeCalculator.m
   ```
 - **Paste** into Advanced Editor
 - Click "Done"
@@ -118,12 +118,12 @@ WithYearMonth = if Table.HasColumns(WithAvg, "YearMonth")
 
 **Updated M Code**:
 ```
-C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\m_code\___ResponseTimeCalculator.m
+C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management\m_code\response_time\___ResponseTimeCalculator.m
 ```
 
 **Full Documentation**:
 ```
-C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\docs\RESPONSE_TIME_M_CODE_FIX_2026_02_09.md
+C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management\docs\RESPONSE_TIME_M_CODE_FIX_2026_02_09.md
 ```
 
 ---

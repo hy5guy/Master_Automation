@@ -6,6 +6,7 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the **PowerBI_Data** repository (`_DropExports`, `Backfill`).
 
+**Latest Update (2026-03-24): v1.19.4 — Code/doc sync.** `config/scripts.json`: Overtime TimeOff script path → **`06_Workspace_Management\scripts`**. **`overtime_timeoff_with_backfill.py`**: optional **`--end-month YYYY-MM`** + v10 **`--asof`** alignment. **`summons_etl_normalize.py`**: **`_load_statute_lookups`** restored (fixes Summons ETL **`NameError`**). **`run_summons_etl.py`**: ASCII arrow for cp1252 consoles. See **`CHANGELOG.md` [1.19.4]**.
 **Latest Update (2026-03-24): v1.19.3 — Documentation sync.** Post-MCP checklists (`docs/POST_SESSION_ACTION_ITEMS.md`), Tasks A–F visual deliverable (`docs/TASKS_A_THROUGH_F_DELIVERABLE.md`), handoff links, summons visual fix doc aligned to `run_summons_etl.py`. See **`CHANGELOG.md` [1.19.3]**.
 **Latest Update (2026-03-23): v1.19.2 — Summons + training pipeline.** Summons: `run_summons_etl.py` runs `apply_fine_amount_and_violation_category` after backfill merge; `FINE_AMOUNT` from **Penalty** or **`municipal-violations-bureau-schedule.json`** on **STATUTE**; extended `summons_slim_for_powerbi.csv`. Training: `___In_Person_Training.m` loads **`Policy_Training_Monthly.xlsx`** (full log; YTD in DAX); `___Cost_of_Training.m` keeps 13-month rolling **and** calendar YTD periods through `pReportMonth`. See **`CHANGELOG.md` [1.19.2]**.
 **Latest Update (2026-03-23): v1.18.18 — Power BI DAX documentation.** YTD and title measures must not use bare `pReportMonth` in DAX; use `___DimMonth` or a loaded parameter column. See `docs/POWER_BI_YTD_MEASURES_AND_PAGE_INSTRUCTIONS.md` and `CHANGELOG.md`.
@@ -28,13 +29,13 @@ This directory orchestrates all Python data processing scripts from various work
 ## Directory Structure
 
 ```
-Master_Automation/
+06_Workspace_Management/
 ├── README.md                    # This file
 ├── CHANGELOG.md                 # Version history and updates
 ├── SUMMARY.md                   # Project summary / quick reference
 ├── Claude.md                    # AI assistant guide
 ├── verify_migration.ps1         # Automated verification script
-├── Master_Automation.code-workspace  # VS Code workspace
+├── (optional) *.code-workspace    # VS Code multi-root workspace if present
 ├── .gitignore                   # Git ignore rules
 ├── config.json                  # Optional: `"PowerBI": "PowerBI_Data"` for get_powerbi_data_dir()
 ├── requirements.txt             # Python deps (pandas, openpyxl) for validation & Summons backfill
@@ -193,7 +194,7 @@ Edit `config/scripts.json` to add, remove, or modify ETL scripts:
     },
     {
       "name": "Overtime TimeOff",
-      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\scripts",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\06_Workspace_Management\\scripts",
       "script": "overtime_timeoff_with_backfill.py",
       "enabled": true,
       "output_to_powerbi": false,
@@ -231,11 +232,11 @@ All successful outputs are automatically:
 
 ## Key Paths
 
-### Master_Automation
+### 06_Workspace_Management (this repo)
 | Path | Purpose |
 |------|---------|
-| `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation` | Workspace root |
-| `Master_Automation\config\scripts.json` | ETL configuration; `powerbi_drop_path` |
+| `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` | Workspace root (legacy folder name **Master_Automation** may still exist as a junction or old clone) |
+| `06_Workspace_Management\config\scripts.json` | ETL configuration; `powerbi_drop_path` |
 | `...\scripts\process_powerbi_exports.py` | Process _DropExports → Processed_Exports + Backfill (archives prior file per `archive/YYYY_MM/`) |
 | `...\Standards\config\powerbi_visuals\visual_export_mapping.json` | Export-to-folder mapping (canonical targets: `monthly_accrual_and_usage`, `detectives`, `stacp`, etc.) |
 | `<OneDrive>\09_Reference\Standards\Processed_Exports\{target_folder}\` | Renamed exports; legacy folder names resolved via `processed_exports_routing` |
@@ -564,10 +565,10 @@ The manifest provides a machine-readable reference for the entire Master Automat
 
 ---
 
-**Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`  
-**Last Updated:** 2026-03-17  
-**Version:** 1.18.9  
-**Status:** ✅ ETL export reliability; DFR Summons (Dismiss/Void filter); Response Time + DFR visual prompts
+**Location:** `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management`  
+**Last Updated:** 2026-03-24  
+**Version:** 1.19.4  
+**Status:** ✅ ETL export reliability; DFR Summons (Dismiss/Void filter); Response Time + DFR visual prompts; OT wrapper path + `--end-month`; Summons statute lookups restored
 
 
 ## 2026-02-23

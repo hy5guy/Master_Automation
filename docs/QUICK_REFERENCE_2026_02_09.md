@@ -5,7 +5,7 @@
 
 ---
 
-## Master_Automation Execution Model
+## 06_Workspace_Management execution model
 
 **Sequential Execution**: Scripts run in order based on `config\scripts.json`  
 **Error Handling**: One failure does not stop remaining scripts  

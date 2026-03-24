@@ -1,4 +1,6 @@
-# Cursor AI Prompt for Master_Automation Workspace Verification
+# Cursor AI Prompt for workspace verification (historical)
+
+> **Note (2026-03-24):** The live Git repo root is **`06_Workspace_Management`** (`C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management`). Older prompts below may still say **Master_Automation**; treat that as an alias for the same automation hub unless you still use a separate junction clone.
 
 **Copy and paste this entire prompt into Cursor AI:**
 
@@ -15,7 +17,7 @@ I just completed a migration where the PowerBI_Date directory was moved from `C:
 4. ✅ Created verification script (`verify_migration.ps1`)
 
 ### Current Workspace Location:
-`C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation`
+`C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` (or legacy junction **`...\Master_Automation`** if present)
 
 ### New PowerBI_Date Location:
 `C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date`

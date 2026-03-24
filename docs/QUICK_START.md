@@ -4,7 +4,7 @@
 
 **PowerShell:**
 ```powershell
-cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management"
 .\scripts\run_all_etl.ps1
 ```
 

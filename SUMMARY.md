@@ -1,8 +1,8 @@
 # 06_Workspace_Management Project Summary
 
 **Last Updated:** 2026-03-24
-**Status:** ✅ v1.19.3 — Documentation sync (MCP post-session, Tasks A–F deliverable, handoffs); v1.19.2 — Summons fee enrichment + training M; v1.18.18 — Power BI YTD DAX / `pReportMonth` vs DAX
-**Version:** 1.19.3 (see CHANGELOG; code pipeline baseline v1.19.2)
+**Status:** ✅ v1.19.4 — `scripts.json` OT path → workspace `scripts\`; OT wrapper `--end-month` + v10 `--asof`; Summons **`_load_statute_lookups`** restored; `run_summons_etl` cp1252-safe arrow; v1.19.3 docs sync; v1.19.2 fee enrichment + training M
+**Version:** 1.19.4 (see CHANGELOG; code pipeline baseline v1.19.2 + v1.19.4 fixes)
 
 ---
 
@@ -19,8 +19,8 @@
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.19.2 pipeline + v1.19.3 docs — `POST_SESSION_ACTION_ITEMS`, `TASKS_A_THROUGH_F_DELIVERABLE`, fee enrichment + training M |
-| **Version** | 1.19.3 |
+| **Status** | ✅ v1.19.4 pipeline fixes + v1.19.3 docs — OT path, statute lookups, `POST_SESSION_ACTION_ITEMS`, fee enrichment + training M |
+| **Version** | 1.19.4 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | 7 (92% cleaner after consolidation) |
 
@@ -41,11 +41,11 @@
 ✅ **Processed_Exports pipeline** - `processed_exports_routing.py` + `process_powerbi_exports.py`: canonical folder aliases, archive previous CSV under `archive/YYYY_MM/`, idempotent identical-file skip; mapping targets include `monthly_accrual_and_usage`, consolidated `detectives` / `stacp`, MVA → `traffic`; optional `--scan-processed-exports-inbox`; `--report-month` drives `--13m-window-ends` in normalizer (drops partial tail month). **`canonicalize_processed_exports_layout.py`** — optional on-disk merge/rename to lowercase canonical folders (see README).  
 ✅ **Validation CLIs** - `validate_response_time_exports.py` (response_time CSV shapes); `validate_13_month_window.py` with `--report-month`, `--accept-warn`, partial future-month WARN  
 ✅ **Unit tests** - `cd scripts; python -m unittest discover -s tests -p "test_*.py" -v`  
-✅ **Overtime/TimeOff hardening** - Pre-flight validation, strict file discovery, output schema check, test_pipeline.bat  
+✅ **Overtime/TimeOff hardening** - Pre-flight validation, strict file discovery, output schema check, test_pipeline.bat; **`config/scripts.json`** points **`overtime_timeoff_with_backfill.py`** at **`06_Workspace_Management\scripts`**; optional **`--end-month YYYY-MM`** aligns the 13-month window (passes **`--asof`** to v10)  
 ✅ **Visual export normalization** - Orchestrator normalizes "Monthly Accrual and Usage Summary" CSVs in _DropExports before organize_backfill  
 ✅ **Summons backfill** - `summons_backfill_merge.py` uses backfill as source of truth for all months in consolidated file (02-25 through 11-25); injection point at `docs/SUMMONS_BACKFILL_INJECTION_POINT.md`
 ✅ **DFR summons split** - `split_dfr_records()` isolates drone/temp-SSOCC records (Polson 0738 always; Ramirez 2025 Feb–Mar 26; Mazzaccaro 0377 Mar 26) and routes them to `dfr_directed_patrol_enforcement.xlsx` via `dfr_export.py`; DFR backfill auto-runs after export; main pipeline sees only non-DFR records
-✅ **Fee/fine enrichment** — After backfill merge, `apply_fine_amount_and_violation_category` sets `FINE_AMOUNT` from e-ticket **Penalty** (if &gt; 0) else **`09_Reference/LegalCodes/data/Title39/municipal-violations-bureau-schedule.json`** on **STATUTE** (with normalization); sets **`VIOLATION_CATEGORY`**; extended **`summons_slim_for_powerbi.csv`** (financial + category columns). Requires fee schedule JSON on OneDrive for statute-based amounts when Penalty is 0.
+✅ **Fee/fine enrichment** — After backfill merge, `apply_fine_amount_and_violation_category` sets `FINE_AMOUNT` from e-ticket **Penalty** (if &gt; 0) else **`09_Reference/LegalCodes/data/Title39/municipal-violations-bureau-schedule.json`** on **STATUTE** (with normalization); sets **`VIOLATION_CATEGORY`**; extended **`summons_slim_for_powerbi.csv`** (financial + category columns). Uses **`_load_statute_lookups()`** (Title39 + City Ordinance JSON under `09_Reference/LegalCodes/data/...`). Requires fee schedule JSON on OneDrive for statute-based amounts when Penalty is 0.
 ✅ **DFR Power BI query** - `m_code/drone/DFR_Summons.m` loads DFR workbook with 13-month rolling window, dual dismiss/void filter (Summons_Recall + Summons_Status), schema-resilient Violation_Category/Jurisdiction, Date_Sort_Key, MM-YY, YearMonthKey
 ✅ **Arrest ETL future-proofed** - `--report-month YYYY-MM` (via `{REPORT_MONTH_ACTUAL}`); targeted file discovery in `05_EXPORTS/_Arrest/YYYY/month/`; outputs `YYYY_MM_Arrests_PowerBI_Ready.xlsx` to `01_DataSources/ARREST_DATA/Power_BI/`
 ✅ **13-month rolling window** - 24 Power BI visuals enforced to exactly 13 months (end = previous month); `process_powerbi_exports.py` (match_pattern, enforce_13_month), `validate_13_month_window.py`; docs in `docs/13_MONTH_*.md`

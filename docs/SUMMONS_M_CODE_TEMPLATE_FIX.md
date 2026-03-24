@@ -166,7 +166,7 @@ After updating template, verify:
 
 ### 1. Test Current Month (January 2026)
 ```powershell
-cd "C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation"
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management"
 .\scripts\run_all_etl.ps1
 ```
 
