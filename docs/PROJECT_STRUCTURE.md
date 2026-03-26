@@ -1,6 +1,6 @@
 # 06_Workspace_Management Project Structure
 
-**Last Updated:** 2026-03-24
+**Last Updated:** 2026-03-25
 
 ---
 
@@ -11,6 +11,7 @@
 ├── README.md                    # Main project documentation
 ├── CHANGELOG.md                 # Version history (v1.18.0+)
 ├── SUMMARY.md                   # Project summary / quick reference
+├── etl_orchestrator.py          # Python CLI: list, dry-run, run, parse-logs, validate, scorecard
 ├── run_summons_etl.py           # Summons ETL entry point (multi-year discovery, 3-tier output)
 ├── config/
 │   ├── scripts.json            # ETL script configuration
@@ -27,12 +28,15 @@
 │   ├── Pre_Flight_Validation.py     # Pre-flight GO/NO-GO gate
 │   ├── overtime_timeoff_with_backfill.py  # OT/TimeOff monthly wrapper
 │   └── (validation, comparison, and diagnostic scripts)
-├── m_code/                      # Power BI M code queries (45+ queries, 20 page folders)
+├── m_code/                      # Power BI M code queries (47+ queries, 20 page folders)
 │   ├── summons/                # summons_13month_trend, all_bureaus, top5_parking, top5_moving
 │   ├── arrests/                # ___Arrest_Categories, ___Arrest_Distro, etc.
 │   ├── functions/              # fnGetFiles, fnReadCsv, fnEnsureColumns, etc.
+│   ├── ssocc/                # ___SSOCC_Data (legacy MoM), FactServiceLog, DimServiceGroup (Option B), TAS_Dispatcher_Incident
 │   └── (benchmark, chief, community, csb, detectives, drone, esu, ...)
 ├── docs/                        # Project documentation
+│   ├── ETL_SKILL_MEMORY.md            # etl_orchestrator.py scorecard evidence
+│   ├── SSOCC_Service_Log_Excel_And_Power_BI_Rework_2026_03.md  # SSOCC Option B PQ + DAX
 │   ├── SUMMONS_DOC_INDEX.md           # Summons doc suite index
 │   ├── SUMMONS_BACKFILL_INJECTION_POINT.md  # Backfill merge details
 │   ├── PROMPT_Claude_MCP_*.md         # Claude Desktop MCP prompts
@@ -171,5 +175,5 @@ A repo-local `_DropExports/` (if you create one) is optional and can be used for
 ---
 
 **Maintained by:** R. A. Carucci  
-**Last Updated:** 2026-03-24
+**Last Updated:** 2026-03-25
 

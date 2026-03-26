@@ -60,11 +60,12 @@ VAR YtdEnd = EOMONTH ( ReportMonthStart, 0 )
 | Missing visuals spec (Response Time, DFR, etc.) | `docs/PROMPT_Claude_MCP_Create_Missing_Visuals_For_Monthly_Report.md` |
 | pReportMonth **M** migration (transcripts) | `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_Migration/` |
 | Project map + MCP note | `Claude.md` |
-| Changelog doc sync | `CHANGELOG.md` (**[1.19.2]** summons + training pipeline; **[1.18.18]** DAX errata) |
+| Changelog doc sync | `CHANGELOG.md` (**[1.19.7]** documentation sync; **[1.19.6]** outreach M; **[1.19.2]** summons + training; **[1.18.18]** DAX errata) |
 | Summons / training ETL + M code | `CHANGELOG.md` **[1.19.2]**; `docs/SUMMONS_DATA_IMPORT_LOGIC_GUIDE.md`; `docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md` |
 | Post-MCP manual steps (Close & Apply, ETL, PQ) | `docs/POST_SESSION_ACTION_ITEMS.md` |
 | Tasks A–F visual build (YTD cards, Summons_YTD page, RT, DFR, contrast) | `docs/TASKS_A_THROUGH_F_DELIVERABLE.md` |
 | **Next session:** tie up loose ends (uncommitted code, MCP vs Desktop) | `docs/handoffs/HANDOFF_Claude_MCP_Loose_Ends_2026_03_24.md` |
+| **Community Outreach page** (`___Combined_Outreach_All`, subtitles, YTD, filters) | `docs/handoffs/HANDOFF_Community_Outreach_PBIX_2026_03_25.md` |
 
 ---
 

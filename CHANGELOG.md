@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.19.7] - 2026-03-25
+
+### Documentation — sync with repo (SSOCC, Community, orchestrator, handoffs)
+
+- **`Claude.md`** — Version **1.19.7**; `m_code/ssocc/` documents **`FactServiceLog.m`** + **`DimServiceGroup.m`** (Option B) vs legacy **`___SSOCC_Data.m`**; Key Documentation links **`docs/SSOCC_Service_Log_Excel_And_Power_BI_Rework_2026_03.md`** and KB chat path `KB_Shared\04_output\ssocc_claude_in_excel_rework\`.
+- **`README.md`**, **`SUMMARY.md`** — Current version line; `m_code` query counts **47+**; Community Outreach / SSOCC / ETL orchestrator pointers aligned with `CHANGELOG` **[1.19.5]–[1.19.6]**.
+- **`docs/PROJECT_STRUCTURE.md`** — **2026-03-25**; **`etl_orchestrator.py`** in tree; **`m_code`** **47+** queries; **`ssocc/`** Option B M files noted.
+- **`docs/QUICK_START.md`** — Optional **`python etl_orchestrator.py --scorecard`** (with **`PYTHONIOENCODING=utf-8`** on Windows).
+- **`docs/SSOCC_Service_Log_Excel_And_Power_BI_Rework_2026_03.md`** — SSOCC Service Log Excel (`T_YYYY_MM`, **`DimServiceGroup`**), Option B Power Query + DAX migration checklist (source: chunked Claude-in-Excel export).
+- **`docs/cursor_prompt_fix_duration_and_attendees.md`** — Community Engagement ETL: **`safe_duration_to_hours`**, **`clean_and_count_attendees`**, processor wiring (STACP + CE); validation notes (**`02_ETL_Scripts/Community_Engagment/`**).
+- **`docs/ETL_SKILL_MEMORY.md`** — Scorecard / evidence for **`etl_orchestrator.py`** (referenced from README / Claude).
+- **`docs/handoffs/HANDOFF_Community_Outreach_PBIX_2026_03_25.md`** — Community outreach Power BI / ETL handoff (linked from **`docs/handoffs/HANDOFF_PowerBI_MCP_2026_03_23.md`** where applicable).
+- **`docs/POWER_BI_YTD_MEASURES_AND_PAGE_INSTRUCTIONS.md`**, **`docs/handoffs/HANDOFF_PowerBI_MCP_2026_03_23.md`**, and other touched guides — Minor consistency pass with **v1.19.6** outreach YTD / path wording.
+
+---
+
+## [1.19.6] - 2026-03-25
+
+### Changed — Community Outreach M query (dual CSV/XLSX discovery)
+
+- **`m_code/community/___Combined_Outreach_All.m`** — Rewrote file discovery to accept **both `.csv` and `.xlsx`** ETL outputs (previously CSV-only). Picks the newest file by Date modified across both extensions so a fresh XLSX isn't silently skipped in favour of a stale CSV. Added Excel serial number date handling (`Date.AddDays(#date(1899,12,30), ...)`) alongside existing datetime/text fallbacks; robust `try/otherwise` guards on all date, time, and numeric conversions.
+- **`m_code/tmdl_export/tables/___Combined_Outreach_All.tmdl`** — TMDL snapshot updated to reflect current model state (partition M, DAX measures, columns).
+
+### Changed — Power BI YTD measures doc (Community_Outreach page)
+
+- **`docs/POWER_BI_YTD_MEASURES_AND_PAGE_INSTRUCTIONS.md`** — Added **Community_Outreach** YTD DAX measures section: `Outreach Events YTD`, `Outreach Hours YTD`, `Outreach Attendees YTD` — all using the canonical `___DimMonth` / `ReportMonthStart` pattern (not bare `pReportMonth`). Added card visual placement instructions (3 cards, navy/gold style).
+
+---
+
+## [1.19.5] - 2026-03-25
+
+### Added — Python ETL orchestration wrapper
+
+- **`etl_orchestrator.py`** (repo root) — New Python CLI wrapper for the ETL pipeline. Read-only against `config/scripts.json`; all paths resolved through `scripts/path_config.py` (no hardcoded OneDrive paths). Features: `--list` (enabled scripts with profile override applied), `--dry-run` (full execution plan, no subprocess), `--run --script <name>` (single-script execution), `--parse-logs` (scans both `*.log` and `*.log.err`; recent + historical error scan), `--validate [--run]` (all 4 validators against real inputs), `--scorecard` (deterministic 7-criterion binary rubric). Profile key `PD_BCI_LTP` resolves `alt_PD_BCI_LTP_full` > `alt_PD_BCI_LTP` > base for each `config/scripts.json` entry.
+- **`docs/ETL_SKILL_MEMORY.md`** — Audit-ready evidence log for the orchestrator. Contains: binary scorecard with exact command/exit code/snippet for each criterion, iteration history (0–5), failure record (F-1 through F-7), regression tests, validator inventory, validation strict audit, repo safety audit (live `git status --short`), diagnostic findings from real production logs, reusable lessons, remaining gaps.
+
+### Notes
+- `etl_orchestrator.py` does NOT replace `scripts/run_all_etl.ps1`; it wraps it as a Python-native front-end for inspection, dry-run, and log triage.
+- All validators (`validate_outputs.py`, `validate_exports.py`, `validate_13_month_window.py`, `validate_response_time_exports.py`) confirmed executable against real production files. `validate_outputs.py` returns RC=1 due to v10 FIXED CSV schema mismatch — documented in `ETL_SKILL_MEMORY.md` as a pipeline finding requiring user decision.
+
+---
+
 ## [1.19.4] - 2026-03-24
 
 ### Fixed — Summons normalization

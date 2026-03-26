@@ -1,5 +1,7 @@
 # Quick Start - Master ETL Automation
 
+**Doc version:** aligned with workspace **v1.19.7** (2026-03-25).
+
 ## Run All Scripts
 
 **PowerShell:**
@@ -41,6 +43,16 @@ Edit `config\scripts.json` to:
 - Change execution order
 - Modify timeouts
 - Update paths
+
+## Python orchestrator (inspect only; does not replace PowerShell)
+
+From repo root (Windows: `set PYTHONIOENCODING=utf-8` first if Unicode errors):
+
+```powershell
+python etl_orchestrator.py --scorecard
+```
+
+See `docs/ETL_SKILL_MEMORY.md` for the scorecard rubric and evidence log.
 
 ## Troubleshooting
 

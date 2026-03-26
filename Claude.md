@@ -8,10 +8,11 @@ Centralized orchestration hub that runs all Python ETL scripts feeding into Powe
 2. Check `SUMMARY.md` for quick reference and enabled scripts
 3. Review `config/scripts.json` for script configuration
 4. Run verification: `.\verify_migration.ps1` to check paths
+5. Optional (desktop / Python): from repo root, `set PYTHONIOENCODING=utf-8` then `python etl_orchestrator.py --scorecard` — confirms `path_config` + config + validator reachability (see `docs/ETL_SKILL_MEMORY.md`)
 
 ## Tech Stack
 - **Languages**: PowerShell, Python
-- **Orchestration**: PowerShell scripts (run_all_etl.ps1)
+- **Orchestration**: PowerShell scripts (`run_all_etl.ps1`); Python CLI (`etl_orchestrator.py` — list / dry-run / single-script run / log parse / validate / scorecard; does not replace PowerShell orchestrator)
 - **Data Processing**: Python ETL scripts
 - **Output Format**: CSV files
 - **Reporting**: Power BI (via **PowerBI_Data** `_DropExports`, `Backfill`)
@@ -42,8 +43,8 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.19.3 (docs); pipeline **1.19.2** |
-| **Status** | Same as 1.19.2 plus doc set: `docs/POST_SESSION_ACTION_ITEMS.md`, `docs/TASKS_A_THROUGH_F_DELIVERABLE.md`, `docs/handoffs/HANDOFF_PowerBI_MCP_2026_03_23.md`; template ~101 YTD measures (manual card/visual build per Tasks A–F) |
+| **Version** | 1.19.7 |
+| **Status** | v1.19.7: Documentation sync (SSOCC Option B M + rework doc, Community CE/STACP duration prompt, ETL_SKILL_MEMORY / handoffs). v1.19.6: Outreach M dual CSV/XLSX + YTD DAX doc. v1.19.5: `etl_orchestrator.py` + scorecard memory. |
 | **pReportMonth** | Set per `.pbix` in Power Query (example: `#date(2026, 3, 1)` for March 2026 report) |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
@@ -83,6 +84,7 @@ Migration prompt and transcripts: `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_
 ## Project Map
 
 ### Active Code
+- `etl_orchestrator.py` (repo root) - Python ETL inspection wrapper: `--list`, `--dry-run`, `--run --script <name>`, `--parse-logs`, `--validate`, `--scorecard`; read-only `config/scripts.json`; paths via `scripts/path_config.py`
 - `scripts/run_all_etl.ps1` - Main PowerShell orchestrator
 - `scripts/run_all_etl.bat` - Batch wrapper
 - `scripts/run_etl_script.ps1` - Individual script runner
@@ -110,9 +112,10 @@ Migration prompt and transcripts: `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_
 - `config/` - Configuration (scripts.json, response_time_filters.json)
 - `scripts/` - Execution scripts and Python helpers
 - `logs/` - ETL execution logs (auto-created)
-- `docs/` - Documentation, prompts, chatlogs
-- `m_code/` - Power BI M code queries (47 queries across 20 subfolders)
+- `docs/` - Documentation, prompts, chatlogs (incl. `ETL_SKILL_MEMORY.md` — orchestrator scorecard evidence)
+- `m_code/` - Power BI M code queries (47+ queries across 20 subfolders)
   - `arrests/`, `benchmark/`, `chief/`, `community/`, `csb/`, `detectives/`, `drone/`, `esu/`, `functions/`, `nibrs/`, `overtime/`, `parameters/`, `patrol/`, `remu/`, `response_time/`, `shared/`, `social_media/`, `ssocc/`, `stacp/`, `summons/`, `traffic/`, `training/`
+  - `ssocc/FactServiceLog.m` + `ssocc/DimServiceGroup.m` — SSOCC Option B (row-level logs + dimension); legacy MoM query remains `___SSOCC_Data.m` until `.pbix` migration
   - `drone/DFR_Summons.m` - Rolling 13-month window, dual dismiss/void filter (Recall + Status), schema-resilient Violation_Category/Jurisdiction
   - `archive/` - Superseded M code versions
 - `outputs/` - Organized output files (arrests, visual_exports, summons_validation, metadata, community_engagement, misc, large_exports)
@@ -121,10 +124,12 @@ Migration prompt and transcripts: `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_
 ### Key Documentation
 - `README.md` - Project overview
 - `SUMMARY.md` - Quick reference
+- `docs/ETL_SKILL_MEMORY.md` - Python `etl_orchestrator.py` audit trail / scorecard evidence
 - `CHANGELOG.md` - Full version history (detailed logs live here, not in this file)
 - `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_Migration/` - pReportMonth M migration transcripts and chunks
 - `docs/PROMPT_Claude_Desktop_Monthly_Report_Template_MCP.md` - Claude Desktop prompts for template + MCP
 - `docs/handoffs/HANDOFF_PowerBI_MCP_2026_03_23.md` - Session handoff for Power BI MCP, DAX/`pReportMonth`, Arrest YTD matrix
+- `docs/handoffs/HANDOFF_Community_Outreach_PBIX_2026_03_25.md` - Community outreach PBIX / Combined_Outreach / CE ETL handoff
 - `docs/POST_SESSION_ACTION_ITEMS.md` - After MCP: save pbix, Close & Apply, Summons ETL, manual PQ steps
 - `docs/TASKS_A_THROUGH_F_DELIVERABLE.md` - YTD card placement, Summons_YTD page, page renames, Response Time + DFR specs
 - `docs/13_MONTH_WINDOW_IMPLEMENTATION_GUIDE.md` - Rolling window deployment
@@ -134,6 +139,8 @@ Migration prompt and transcripts: `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_
 - `docs/SUMMONS_PATHS_AND_DROPEXPORTS.md` - Staging paths vs `_DropExports` (Summons uses `03_Staging`, not DropExports)
 - `docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md` - Policy Training ETL location; **`___In_Person_Training`** / **`___Cost_of_Training`** M behavior
 - `docs/POWER_BI_YTD_MEASURES_AND_PAGE_INSTRUCTIONS.md` - YTD DAX patterns; **`pReportMonth`** not valid bare in DAX; training PQ notes
+- `docs/SSOCC_Service_Log_Excel_And_Power_BI_Rework_2026_03.md` - SSOCC Service Log workbook (`T_YYYY_MM`, `DimServiceGroup`), Option B Power Query + DAX migration; source chat: `KB_Shared\04_output\ssocc_claude_in_excel_rework\`
+- `docs/cursor_prompt_fix_duration_and_attendees.md` - Community ETL duration → decimal hours + STACP attendee normalization (live code under `02_ETL_Scripts/Community_Engagment/`)
 - `docs/ESU_POWER_BI_LOAD_AND_PUBLISH.md` - ESU query docs
 - `docs/PROMPT_ETL_Export_Reliability_Diagnostic_Enhanced.md` - ETL export diagnostic prompt (full paths)
 - `docs/PROMPT_Claude_MCP_Create_Missing_Visuals_For_Monthly_Report.md` - Claude MCP prompt for Response Time + DFR visuals
@@ -153,6 +160,7 @@ Migration prompt and transcripts: `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_
 2. Review `SUMMARY.md` for enabled scripts
 3. Review relevant docs in `docs/` for context
 4. Run `.\verify_migration.ps1` to ensure paths are correct
+5. After path or config changes on a new machine, run `python etl_orchestrator.py --scorecard` (use `PYTHONIOENCODING=utf-8` on Windows if the console throws Unicode errors)
 
 ### Example Workflow
 **Task**: Add a new ETL script to the orchestration
@@ -172,7 +180,7 @@ Migration prompt and transcripts: `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_
 - Document script-specific details in `docs/`
 
 ### Finding Information
-- **Core orchestration**: `scripts/run_all_etl.ps1`, `scripts/run_etl_script.ps1`
+- **Core orchestration**: `scripts/run_all_etl.ps1`, `scripts/run_etl_script.ps1`, `etl_orchestrator.py` (Python inspection / scorecard)
 - **Configuration**: `config/scripts.json`, `README.md`, `SUMMARY.md`
 - **ETL Scripts**: Individual scripts in `02_ETL_Scripts/` (referenced by config)
 - **Documentation**: `docs/` folder
@@ -288,4 +296,4 @@ Active root returned by path_config.get_onedrive_root():
 
 ---
 
-*Last updated: 2026-03-23 | Format version: 4.3*
+*Last updated: 2026-03-25 | Format version: 4.4*

@@ -6,6 +6,9 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the **PowerBI_Data** repository (`_DropExports`, `Backfill`).
 
+**Latest Update (2026-03-25): v1.19.7 — Documentation sync.** README, SUMMARY, `Claude.md`, `docs/PROJECT_STRUCTURE.md`, `docs/QUICK_START.md`, SSOCC rework doc (`docs/SSOCC_Service_Log_Excel_And_Power_BI_Rework_2026_03.md`), Community duration/attendees prompt (`docs/cursor_prompt_fix_duration_and_attendees.md`), `docs/ETL_SKILL_MEMORY.md`, handoffs. **`m_code/ssocc/`**: `FactServiceLog.m` + `DimServiceGroup.m` (Option B; legacy `___SSOCC_Data.m` until PBIX migration). See **`CHANGELOG.md` [1.19.7]**.
+**Latest Update (2026-03-25): v1.19.6 — Community Outreach M query dual CSV/XLSX.** `m_code/community/___Combined_Outreach_All.m`: discovers newest `.csv` **or** `.xlsx` ETL output by Date modified (fixes stale-CSV issue when Python writes XLSX). Excel serial date handling added. TMDL snapshot updated. `docs/POWER_BI_YTD_MEASURES_AND_PAGE_INSTRUCTIONS.md`: Community_Outreach YTD DAX measures (`Outreach Events/Hours/Attendees YTD`) added using `___DimMonth` pattern. See **`CHANGELOG.md` [1.19.6]**.
+**Latest Update (2026-03-25): v1.19.5 — Python ETL orchestrator.** **`etl_orchestrator.py`** (repo root): CLI for **`--list`**, **`--dry-run`**, **`--run`**, **`--parse-logs`**, **`--validate`**, **`--scorecard`**; paths via **`scripts/path_config.py`**; read-only **`config/scripts.json`**. Evidence log: **`docs/ETL_SKILL_MEMORY.md`**. On Windows, use **`set PYTHONIOENCODING=utf-8`** before `python etl_orchestrator.py …` if the console errors on Unicode. Does not replace **`scripts/run_all_etl.ps1`**. See **`CHANGELOG.md` [1.19.5]**.
 **Latest Update (2026-03-24): v1.19.4 — Code/doc sync.** `config/scripts.json`: Overtime TimeOff script path → **`06_Workspace_Management\scripts`**. **`overtime_timeoff_with_backfill.py`**: optional **`--end-month YYYY-MM`** + v10 **`--asof`** alignment. **`summons_etl_normalize.py`**: **`_load_statute_lookups`** restored (fixes Summons ETL **`NameError`**). **`run_summons_etl.py`**: ASCII arrow for cp1252 consoles. See **`CHANGELOG.md` [1.19.4]**.
 **Latest Update (2026-03-24): v1.19.3 — Documentation sync.** Post-MCP checklists (`docs/POST_SESSION_ACTION_ITEMS.md`), Tasks A–F visual deliverable (`docs/TASKS_A_THROUGH_F_DELIVERABLE.md`), handoff links, summons visual fix doc aligned to `run_summons_etl.py`. See **`CHANGELOG.md` [1.19.3]**.
 **Latest Update (2026-03-23): v1.19.2 — Summons + training pipeline.** Summons: `run_summons_etl.py` runs `apply_fine_amount_and_violation_category` after backfill merge; `FINE_AMOUNT` from **Penalty** or **`municipal-violations-bureau-schedule.json`** on **STATUTE**; extended `summons_slim_for_powerbi.csv`. Training: `___In_Person_Training.m` loads **`Policy_Training_Monthly.xlsx`** (full log; YTD in DAX); `___Cost_of_Training.m` keeps 13-month rolling **and** calendar YTD periods through `pReportMonth`. See **`CHANGELOG.md` [1.19.2]**.
@@ -35,6 +38,7 @@ This directory orchestrates all Python data processing scripts from various work
 ├── SUMMARY.md                   # Project summary / quick reference
 ├── Claude.md                    # AI assistant guide
 ├── verify_migration.ps1         # Automated verification script
+├── etl_orchestrator.py          # Python CLI: list / dry-run / run / parse-logs / validate / scorecard (path_config; read-only scripts.json)
 ├── (optional) *.code-workspace    # VS Code multi-root workspace if present
 ├── .gitignore                   # Git ignore rules
 ├── config.json                  # Optional: `"PowerBI": "PowerBI_Data"` for get_powerbi_data_dir()
@@ -74,6 +78,9 @@ This directory orchestrates all Python data processing scripts from various work
 │   ├── run_summons_with_overrides.py         # Summons: run with injected badge overrides
 │   └── _testing/                             # Benchmark and debug scripts
 ├── docs/                        # Project documentation (migration, verification, guides)
+│   ├── ETL_SKILL_MEMORY.md     # etl_orchestrator.py scorecard evidence / audit log
+│   ├── SSOCC_Service_Log_Excel_And_Power_BI_Rework_2026_03.md  # SSOCC Option B PQ + DAX migration
+│   ├── cursor_prompt_fix_duration_and_attendees.md  # Community ETL hours + STACP attendees (02_ETL_Scripts/CE)
 │   ├── response_time/          # Response Time documentation and reports
 │   │   ├── Response_Time_Correction_Report_Chief_Antista_2026_02_26.html  # Executive report (screen)
 │   │   └── Response_Time_Correction_Report_Chief_Antista_2026_02_26_PRINT.html  # Print version (color, letter)
@@ -84,7 +91,7 @@ This directory orchestrates all Python data processing scripts from various work
 │   ├── FEBRUARY_2026_ETL_CYCLE_SUMMARY.md  # Complete ETL cycle execution results
 │   ├── chatlogs/               # Session transcripts and troubleshooting logs
 │   └── (migration guides, verification reports, troubleshooting docs)
-├── m_code/                      # Power BI M code queries (45 queries, 20 page folders)
+├── m_code/                      # Power BI M code queries (47+ queries, 20 page folders)
 │   ├── arrests/               # ___Arrest_Categories, ___Arrest_Distro, ___Top_5_Arrests
 │   ├── benchmark/             # ___Benchmark
 │   ├── chief/                 # ___Chief2, ___chief_projects
@@ -102,7 +109,7 @@ This directory orchestrates all Python data processing scripts from various work
 │   ├── response_time/         # ___ResponseTime_AllMetrics (primary), ___ResponseTimeCalculator, OutVsCall, DispVsCall (legacy)
 │   ├── shared/                # ___ComprehensiveDateTable, ___DimMonth, ___DimEventType, etc.
 │   ├── social_media/          # ___Social_Media
-│   ├── ssocc/                 # ___SSOCC_Data, TAS_Dispatcher_Incident
+│   ├── ssocc/                 # ___SSOCC_Data (legacy MoM), FactServiceLog, DimServiceGroup (Option B), TAS_Dispatcher_Incident
 │   ├── stacp/                 # ___STACP_pt_1_2, STACP_DIAGNOSTIC
 │   ├── summons/               # summons_13month_trend, top5_parking/moving, all_bureaus, etc.
 │   ├── traffic/               # ___Traffic

@@ -1,6 +1,6 @@
 # Power BI YTD Measures & Page Enhancement Instructions
 
-**Version:** 1.19.2 (training PQ notes 2026-03-23) | **Date:** 2026-03-23 | **Author:** R. A. Carucci + Claude
+**Version:** 1.19.7 (doc sync; Community_Outreach YTD cards in **1.19.6**; training PQ notes in **1.19.2**) | **Date:** 2026-03-25 | **Author:** R. A. Carucci + Claude
 **Target:** `15_Templates\Monthly_Report_Template.pbix`
 
 ---
@@ -80,31 +80,45 @@ If `STACP_Measures` already exists, add measures there. Otherwise create new.
 
 ### DAX Measures
 
+Report month for YTD bounds comes from **`___DimMonth`** (same axis as 13-month visuals), not from `pReportMonth` — see **§ CRITICAL: `pReportMonth` is not valid DAX** above.
+
 ```dax
 Outreach Events YTD =
-CALCULATE(
-    COUNTROWS('___Combined_Outreach_All'),
-    '___Combined_Outreach_All'[Date] >= DATE(YEAR(pReportMonth), 1, 1),
-    '___Combined_Outreach_All'[Date] <= EOMONTH(pReportMonth, 0)
-)
+VAR ReportMonthStart = MAX ( '___DimMonth'[MonthStart] )
+VAR YtdStart = DATE ( YEAR ( ReportMonthStart ), 1, 1 )
+VAR YtdEnd = EOMONTH ( ReportMonthStart, 0 )
+RETURN
+    CALCULATE (
+        COUNTROWS ( '___Combined_Outreach_All' ),
+        '___Combined_Outreach_All'[Date] >= YtdStart,
+        '___Combined_Outreach_All'[Date] <= YtdEnd
+    )
 ```
 
 ```dax
 Outreach Hours YTD =
-CALCULATE(
-    SUM('___Combined_Outreach_All'[Event Duration (Hours)]),
-    '___Combined_Outreach_All'[Date] >= DATE(YEAR(pReportMonth), 1, 1),
-    '___Combined_Outreach_All'[Date] <= EOMONTH(pReportMonth, 0)
-)
+VAR ReportMonthStart = MAX ( '___DimMonth'[MonthStart] )
+VAR YtdStart = DATE ( YEAR ( ReportMonthStart ), 1, 1 )
+VAR YtdEnd = EOMONTH ( ReportMonthStart, 0 )
+RETURN
+    CALCULATE (
+        SUM ( '___Combined_Outreach_All'[Event Duration (Hours)] ),
+        '___Combined_Outreach_All'[Date] >= YtdStart,
+        '___Combined_Outreach_All'[Date] <= YtdEnd
+    )
 ```
 
 ```dax
 Outreach Attendees YTD =
-CALCULATE(
-    SUM('___Combined_Outreach_All'[Number of Police Department Attendees]),
-    '___Combined_Outreach_All'[Date] >= DATE(YEAR(pReportMonth), 1, 1),
-    '___Combined_Outreach_All'[Date] <= EOMONTH(pReportMonth, 0)
-)
+VAR ReportMonthStart = MAX ( '___DimMonth'[MonthStart] )
+VAR YtdStart = DATE ( YEAR ( ReportMonthStart ), 1, 1 )
+VAR YtdEnd = EOMONTH ( ReportMonthStart, 0 )
+RETURN
+    CALCULATE (
+        SUM ( '___Combined_Outreach_All'[Number of Police Department Attendees] ),
+        '___Combined_Outreach_All'[Date] >= YtdStart,
+        '___Combined_Outreach_All'[Date] <= YtdEnd
+    )
 ```
 
 ### Visual Instructions

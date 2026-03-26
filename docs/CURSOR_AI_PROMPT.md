@@ -1,6 +1,6 @@
 # Cursor AI Prompt for workspace verification (historical)
 
-> **Note (2026-03-24):** The live Git repo root is **`06_Workspace_Management`** (`C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management`). Older prompts below may still say **Master_Automation**; treat that as an alias for the same automation hub unless you still use a separate junction clone.
+> **Note (2026-03-25, v1.19.7 doc sync):** The live Git repo root is **`06_Workspace_Management`** (`C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management`). Older prompts below may still say **Master_Automation**; treat that as an alias for the same automation hub unless you still use a separate junction clone.
 
 **Copy and paste this entire prompt into Cursor AI:**
 

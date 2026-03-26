@@ -1,8 +1,8 @@
 # 06_Workspace_Management Project Summary
 
-**Last Updated:** 2026-03-24
-**Status:** ✅ v1.19.4 — `scripts.json` OT path → workspace `scripts\`; OT wrapper `--end-month` + v10 `--asof`; Summons **`_load_statute_lookups`** restored; `run_summons_etl` cp1252-safe arrow; v1.19.3 docs sync; v1.19.2 fee enrichment + training M
-**Version:** 1.19.4 (see CHANGELOG; code pipeline baseline v1.19.2 + v1.19.4 fixes)
+**Last Updated:** 2026-03-25
+**Status:** ✅ v1.19.7 — Documentation sync: SSOCC Option B (`FactServiceLog.m`, `DimServiceGroup.m`, **`docs/SSOCC_Service_Log_Excel_And_Power_BI_Rework_2026_03.md`**), Community CE/STACP duration + attendees (**`docs/cursor_prompt_fix_duration_and_attendees.md`**), **`docs/ETL_SKILL_MEMORY.md`**, handoffs. v1.19.6: Outreach M dual CSV/XLSX + YTD DAX doc. v1.19.5: **`etl_orchestrator.py`**
+**Version:** 1.19.7 (see CHANGELOG)
 
 ---
 
@@ -19,10 +19,10 @@
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.19.4 pipeline fixes + v1.19.3 docs — OT path, statute lookups, `POST_SESSION_ACTION_ITEMS`, fee enrichment + training M |
-| **Version** | 1.19.4 |
+| **Status** | ✅ v1.19.7 docs + SSOCC Option B M sources in repo; v1.19.6 outreach M; v1.19.5 **`etl_orchestrator.py`** |
+| **Version** | 1.19.7 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
-| **Root Files** | 7 (92% cleaner after consolidation) |
+| **Root Files** | Key automation: `verify_migration.ps1`, **`etl_orchestrator.py`**, `run_summons_etl.py`, `config.json`, etc. |
 
 ---
 
@@ -35,6 +35,7 @@
 ✅ **Selective Execution** - Run all, or specific scripts  
 ✅ **Status Reporting** - Summary of what succeeded/failed  
 ✅ **Dry Run Mode** - Preview what would execute  
+✅ **Python ETL orchestrator** — `python etl_orchestrator.py` from repo root: **`--list`**, **`--dry-run`**, **`--run --script "Name"`**, **`--parse-logs`**, **`--validate`**, **`--scorecard`**; uses **`scripts/path_config.py`** (same OneDrive / `PowerBI_Data` resolution as other Python tools). On **Windows desktop**, run `set PYTHONIOENCODING=utf-8` first if the console raises Unicode errors. Audit trail: **`docs/ETL_SKILL_MEMORY.md`**. Complements **`scripts/run_all_etl.ps1`**; does not replace it.  
 ✅ **Input Validation** - Validates required export files before execution  
 ✅ **OneDrive Sync** - All paths synced for cloud backup  
 ✅ **Path portability** - `ONEDRIVE_BASE` / `ONEDRIVE_HACKENSACK` env vars (Python `path_config.py`, PowerShell `$OneDriveBase`); **`get_onedrive_root()`** prefers `C:\Users\carucci_r\OneDrive - City of Hackensack` when it exists (canonical desktop; laptop uses junction). **`get_powerbi_data_dir()`** reads repo **`config.json`** key `"PowerBI"` (default `PowerBI_Data`)  
@@ -80,6 +81,7 @@
 ├── SUMMARY.md                   # This file
 ├── CHANGELOG.md                 # Version history
 ├── Claude.md                    # AI assistant guide
+├── etl_orchestrator.py          # Python CLI: --list / --dry-run / --run / --parse-logs / --validate / --scorecard
 ├── verify_migration.ps1         # Migration verification
 ├── 06_Workspace_Management.code-workspace  # VS Code workspace
 ├── .gitignore                   # Git ignore rules
@@ -100,7 +102,7 @@
 │   ├── validate_outputs.py     # FIXED CSV schema validation
 │   ├── test_pipeline.bat       # Overtime/TimeOff test: validate → dry-run → validate outputs
 │   ├── summons_backfill_merge.py  # Merge gap months into summons df
-│   ├── summons_etl_normalize.py   # Core summons ETL v2.4.0: DFR split, fee/fine + VIOLATION_CATEGORY
+│   ├── summons_etl_normalize.py   # Core summons ETL v2.5.0: DFR split, fee/fine + VIOLATION_CATEGORY
 │   ├── dfr_export.py              # DFR workbook export: schema map, append, dedup, formula-col guard
 │   ├── dfr_backfill_descriptions.py # DFR description/fine backfill (cascading statute lookup)
 │   ├── normalize_visual_export_for_backfill.py  # Normalize visual exports (13-month window, PeriodLabel for OT)
@@ -111,11 +113,14 @@
 │   ├── (other helper Python scripts)
 │   └── _testing/               # Benchmark/debug scripts (4 files)
 ├── docs/                        # Documentation files
+│   ├── ETL_SKILL_MEMORY.md     # etl_orchestrator scorecard / evidence log
+│   ├── SSOCC_Service_Log_Excel_And_Power_BI_Rework_2026_03.md  # SSOCC Option B migration
+│   ├── cursor_prompt_fix_duration_and_attendees.md  # Community ETL duration + STACP attendees
 │   ├── response_time/          # Response Time docs (15 files incl. Chief Antista reports)
 │   ├── templates/              # Reusable AI prompt templates (HPD design system)
 │   ├── archived_workflows/     # Archived workflows
 │   └── (migration guides, reports, troubleshooting)
-├── m_code/                      # Power BI M code (47 queries, 20 page folders)
+├── m_code/                      # Power BI M code (47+ queries, 20 page folders)
 │   ├── arrests/               # 4 queries (Categories, Distro, Top 5, 13Month)
 │   ├── benchmark/             # 1 query
 │   ├── chief/                 # 2 queries (Chief2, chief_projects)
@@ -133,7 +138,7 @@
 │   ├── response_time/         # 1 query (ResponseTimeCalculator)
 │   ├── shared/                # 6 queries (DateTable, DimMonth, DimEventType, etc.)
 │   ├── social_media/          # 1 query (Social_Media)
-│   ├── ssocc/                 # 2 queries (SSOCC_Data, TAS_Dispatcher)
+│   ├── ssocc/                 # ___SSOCC_Data, FactServiceLog, DimServiceGroup, TAS_Dispatcher (4 .m sources)
 │   ├── stacp/                 # 2 queries (STACP_pt_1_2, STACP_DIAGNOSTIC)
 │   ├── summons/               # 5 queries (13month, top5_parking, top5_moving, all_bureaus, dept_wide)
 │   ├── traffic/               # 1 query
