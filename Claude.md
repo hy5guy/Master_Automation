@@ -43,8 +43,8 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.19.7 |
-| **Status** | v1.19.7: Documentation sync (SSOCC Option B M + rework doc, Community CE/STACP duration prompt, ETL_SKILL_MEMORY / handoffs). v1.19.6: Outreach M dual CSV/XLSX + YTD DAX doc. v1.19.5: `etl_orchestrator.py` + scorecard memory. |
+| **Version** | 1.19.8 |
+| **Status** | v1.19.8: Outreach M repo↔TMDL sync (descending sort); DAX measure audit (6 measures confirmed `___DimMonth` pattern); REMU partition verified. v1.19.7: Doc sync (SSOCC Option B, Community CE/STACP, ETL_SKILL_MEMORY). v1.19.6: Outreach M dual CSV/XLSX + YTD DAX doc. |
 | **pReportMonth** | Set per `.pbix` in Power Query (example: `#date(2026, 3, 1)` for March 2026 report) |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
@@ -296,4 +296,4 @@ Active root returned by path_config.get_onedrive_root():
 
 ---
 
-*Last updated: 2026-03-25 | Format version: 4.4*
+*Last updated: 2026-03-26 | Format version: 4.5*

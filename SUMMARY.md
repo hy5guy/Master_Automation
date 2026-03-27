@@ -1,8 +1,8 @@
 # 06_Workspace_Management Project Summary
 
-**Last Updated:** 2026-03-25
-**Status:** ✅ v1.19.7 — Documentation sync: SSOCC Option B (`FactServiceLog.m`, `DimServiceGroup.m`, **`docs/SSOCC_Service_Log_Excel_And_Power_BI_Rework_2026_03.md`**), Community CE/STACP duration + attendees (**`docs/cursor_prompt_fix_duration_and_attendees.md`**), **`docs/ETL_SKILL_MEMORY.md`**, handoffs. v1.19.6: Outreach M dual CSV/XLSX + YTD DAX doc. v1.19.5: **`etl_orchestrator.py`**
-**Version:** 1.19.7 (see CHANGELOG)
+**Last Updated:** 2026-03-26
+**Status:** ✅ v1.19.8 — Outreach M repo↔TMDL sync (descending sort step); DAX measure audit confirmed all 6 Outreach measures use `___DimMonth` bridge (no `pReportMonth` in DAX); REMU partition M verified identical. v1.19.7: Doc sync (SSOCC Option B, Community CE/STACP, ETL_SKILL_MEMORY). v1.19.6: Outreach M dual CSV/XLSX + YTD DAX doc. v1.19.5: **`etl_orchestrator.py`**
+**Version:** 1.19.8 (see CHANGELOG)
 
 ---
 
@@ -19,8 +19,8 @@
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.19.7 docs + SSOCC Option B M sources in repo; v1.19.6 outreach M; v1.19.5 **`etl_orchestrator.py`** |
-| **Version** | 1.19.7 |
+| **Status** | ✅ v1.19.8 Outreach M synced with TMDL; DAX audit clean; REMU verified. v1.19.7 docs + SSOCC Option B. v1.19.6 outreach M. v1.19.5 **`etl_orchestrator.py`** |
+| **Version** | 1.19.8 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | Key automation: `verify_migration.ps1`, **`etl_orchestrator.py`**, `run_summons_etl.py`, `config.json`, etc. |
 

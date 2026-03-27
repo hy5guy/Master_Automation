@@ -1,43 +1,58 @@
-// 🕒 2026-02-21-01-00-00 (EST)
+// 🕒 2026-03-25-12-00-00 (EST)
 // # community/___Combined_Outreach_All.m
 // # Author: R. A. Carucci
-// # Purpose: Load community engagement data from Python ETL CSV output for Power BI.
+// # Purpose: Load community engagement data from latest Python ETL export (.csv or .xlsx) for Power BI.
 
 let
     ReportMonth = pReportMonth,
 
     // === 1. Dynamic File Path Discovery ===
-    // Look for the most recent Python ETL output file
+    // ETL writes BOTH community_engagement_data_*.csv and *.xlsx (same timestamp). If a run only
+    // leaves xlsx (or xlsx is newer on disk), picking "latest CSV only" loads a STALE file (e.g. Jan
+    // CSV while Feb xlsx exists) — YTD/months look wrong. Use newest file by Date modified: .csv OR .xlsx.
     OutputFolder = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\output\",
     
-    // Try to find the most recent community_engagement_data_*.csv file
-    // Pattern: community_engagement_data_YYYYMMDD_HHMMSS.csv
-    PythonETLFile = try 
-        let
-            // Get all CSV files in the output directory
-            Source = Folder.Files(OutputFolder),
-            FilteredFiles = Table.SelectRows(Source, each Text.StartsWith([Name], "community_engagement_data_") and Text.EndsWith([Name], ".csv")),
-            SortedFiles = Table.Sort(FilteredFiles, {{"Date modified", Order.Descending}}),
-            LatestFile = if Table.RowCount(SortedFiles) > 0 
-                        then OutputFolder & SortedFiles{0}[Name]
-                        else error "No Python ETL output files found"
-        in
-            LatestFile
-    otherwise
-        // Fallback to a specific filename pattern if dynamic discovery fails
-        OutputFolder & "community_engagement_combined_" & Date.ToText(ReportMonth, "yyyy-MM-dd") & ".csv",
+    Source = Folder.Files(OutputFolder),
+    FilteredFiles = Table.SelectRows(Source, each 
+        Text.StartsWith([Name], "community_engagement_data_") 
+        and (
+            Text.EndsWith(Text.Lower([Name]), ".csv") 
+            or Text.EndsWith(Text.Lower([Name]), ".xlsx")
+        )
+    ),
+    SortedFiles = Table.Sort(FilteredFiles, {{"Date modified", Order.Descending}}),
+    PythonETLFile = if Table.RowCount(SortedFiles) > 0 
+        then OutputFolder & SortedFiles{0}[Name]
+        else error "No community_engagement_data_*.csv or *.xlsx in output folder",
+    FileExt = Text.Lower(Text.AfterDelimiter(PythonETLFile, ".", {0, RelativePosition.FromEnd})),
 
-    // === 2. Read Python ETL CSV Output ===
-    CSVSource = Csv.Document(File.Contents(PythonETLFile), [Delimiter=",", Columns=null, Encoding=65001, QuoteStyle=QuoteStyle.None]),
-    HeadersPromoted = Table.PromoteHeaders(CSVSource, [PromoteAllScalars=true]),
+    // === 2. Read Python ETL output (CSV or Excel) ===
+    HeadersPromoted = if FileExt = "csv" then
+        let
+            CSVSource = Csv.Document(File.Contents(PythonETLFile), [Delimiter=",", Columns=null, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+            H = Table.PromoteHeaders(CSVSource, [PromoteAllScalars=true])
+        in
+            H
+    else if FileExt = "xlsx" then
+        let
+            RawWB = Excel.Workbook(File.Contents(PythonETLFile), null, true),
+            SheetRows = Table.SelectRows(RawWB, each [Kind] = "Sheet" and [Item] = "Combined_Data"),
+            DataOnly = if Table.RowCount(SheetRows) > 0 then SheetRows{0}[Data] else error "Sheet Combined_Data not found in " & PythonETLFile,
+            H = Table.PromoteHeaders(DataOnly, [PromoteAllScalars=true])
+        in
+            H
+    else
+        error "Unsupported outreach export extension: " & FileExt,
     
     // === 3. Data Type Transformations ===
-    // Handle datetime strings from Python ETL (format: "YYYY-MM-DD HH:MM:SS")
+    // CSV often has text dates; Excel may return date, datetime, or serial — normalize to date.
     DateParsed = Table.TransformColumns(HeadersPromoted, {
         {"date", each 
-            if _ = null or _ = "" 
-            then null 
-            else try DateTime.Date(DateTime.FromText(_)) otherwise Date.FromText(Text.Start(_, 10)), 
+            if _ = null or _ = "" then null
+            else if _ is date then _
+            else if _ is datetime then Date.From(_)
+            else if _ is number then Date.AddDays(#date(1899, 12, 30), Number.From(_))
+            else try DateTime.Date(DateTime.FromText(Text.From(_))) otherwise Date.FromText(Text.Start(Text.From(_), 10)), 
         type date}
     }),
     
@@ -112,9 +127,10 @@ let
     
     // === 6. Final Sort and Output ===
     // Sort by date ascending (same as original M code)
-    FinalData = if Table.RowCount(ValidatedAttendees) > 0 
-                then Table.Sort(ValidatedAttendees, {{"Date", Order.Ascending}}) 
-                else ValidatedAttendees
+    FinalData = if Table.RowCount(ValidatedAttendees) > 0
+                then Table.Sort(ValidatedAttendees, {{"Date", Order.Ascending}})
+                else ValidatedAttendees,
+    #"Sorted Rows" = Table.Sort(FinalData,{{"Date", Order.Descending}})
 
 in
-    FinalData
+    #"Sorted Rows"

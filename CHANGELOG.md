@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.19.8] - 2026-03-26
+
+### Changed — Community Outreach M code synced with PBIX (descending sort)
+
+- **`m_code/community/___Combined_Outreach_All.m`** — Added `#"Sorted Rows" = Table.Sort(FinalData,{{"Date", Order.Descending}})` final step to match the live PBIX partition (Desktop-side edit made after v1.19.6 repo M was written). Repo and TMDL snapshot are now byte-aligned.
+
+### Verified — DAX measure audit (no changes needed)
+
+- **`___Combined_Outreach_All`** — All 6 Outreach DAX measures (`Outreach Sessions`, `Outreach Total Hours`, `Outreach Total Attendees`, `Outreach Events YTD`, `Outreach Hours YTD`, `Outreach Attendees YTD`) confirmed using correct `MAX('___DimMonth'[MonthStart])` bridge pattern with explicit `CALCULATE` filters on `[Date]`. No `pReportMonth` in DAX. Matches `docs/POWER_BI_YTD_MEASURES_AND_PAGE_INSTRUCTIONS.md` exactly.
+- **`___REMU`** — Partition M confirmed identical between repo (`m_code/remu/___REMU.m`) and TMDL snapshot. No changes needed.
+
+### Noted — outstanding items (no code changes)
+
+- **`measure SubtitlePrevMonth`** still in model (TMDL `___Combined_Outreach_All.tmdl` line 4). Confirm no visual uses it → delete from Desktop.
+- **`___REMU` `Rolling12Flag`** calculated column uses `TODAY()` — violates project standard (`pReportMonth` / `___DimMonth`). Future cleanup candidate.
+
+---
+
 ## [1.19.7] - 2026-03-25
 
 ### Documentation — sync with repo (SSOCC, Community, orchestrator, handoffs)
