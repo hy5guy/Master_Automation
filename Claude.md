@@ -44,7 +44,7 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 | Item | Value |
 |------|-------|
 | **Version** | 1.20.0 |
-| **Status** | v1.20.0-rc: `inject_ai_context_reference.py` v3 (zip-safe) — 3 of 10 workbooks injected successfully (CSB, Chief, Drone); 7 still trigger repair dialog (unknown root cause — see `docs/handoffs/HANDOFF_AI_Context_Injection_2026_03_28.md`); Drone_Monthly 11 circ-ref cells fixed via zip XML surgery + calcChain cleanup; `/fix-excel` slash command. v1.19.9: injection prompt doc. v1.19.8: Outreach M repo↔TMDL sync; DAX measure audit; REMU verified. |
+| **Status** | v1.20.0: `inject_ai_context_reference.py` v3 (zip-safe) — 10/10 Tier 1 workbooks injected and verified clean (formula-leak fix: `_get_sample()` escaped formulas + `_build_plain_sheet_xml()` strips `<f>` elements and fixes empty inlineStr cells); Drone_Monthly 11 circ-ref cells fixed via zip XML surgery + calcChain cleanup; `/fix-excel` slash command. v1.19.9: injection prompt doc. v1.19.8: Outreach M repo↔TMDL sync; DAX measure audit; REMU verified. |
 | **pReportMonth** | Set per `.pbix` in Power Query (example: `#date(2026, 3, 1)` for March 2026 report) |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
@@ -298,4 +298,81 @@ Active root returned by path_config.get_onedrive_root():
 
 ---
 
-*Last updated: 2026-03-28 | Format version: 4.6*
+## 6-Repo Workspace Architecture
+
+This workspace orchestrates 6 ETL pipelines under `02_ETL_Scripts/`:
+
+| Repo | Purpose | Production Script | Output Target |
+|------|---------|-------------------|---------------|
+| Benchmark | AG compliance (UoF, SoF, VP) | `benchmark_restructure.py` (via 06_WM) | `current_window.csv` -> Power BI |
+| Community_Engagment | Community outreach tracking | `src/main_processor.py` | `output/*.csv` -> Power BI |
+| Overtime_TimeOff | OT/comp/time-off analytics | `overtime_timeoff_13month_sworn_breakdown_v10.py` | `analytics_output/monthly_breakdown.csv` -> Power BI |
+| Policy_Training_Monthly | Training compliance metrics | `src/policy_training_etl.py` (via `run_etl.bat`) | `output/policy_training_outputs.xlsx` -> Power BI |
+| Response_Times | Dispatch-to-arrival response | `response_time_batch_all_metrics.py` | `PowerBI_Data/response_time_all_metrics/*.csv` -> Power BI |
+| Summons | E-ticket/court summons | `SummonsMaster_Simple.py` | `03_Staging/Summons/summons_powerbi_latest.xlsx` -> Power BI |
+
+Note: Directory name `Community_Engagment` has a typo (missing 'e'). Rename is a coordinated operation.
+
+### Cross-Repo Dependencies
+
+```
+09_Reference/Personnel/Assignment_Master_V2.csv
+  |-- Overtime_TimeOff (sworn/nonsworn classification)
+  |-- Summons (badge -> officer name, bureau)
+  +-- 06_Workspace_Management (local copy -- SHOULD reference canonical)
+
+05_EXPORTS/
+  |-- _Benchmark/     -> Benchmark
+  |-- _CAD/timereport/ -> Response_Times
+  |-- _Overtime/       -> Overtime_TimeOff
+  |-- _Time_Off/       -> Overtime_TimeOff
+  +-- _Summons/E_Ticket/ -> Summons
+
+PowerBI_Data/
+  |-- _DropExports/           -> 06_WM process_powerbi_exports.py
+  |-- Backfill/YYYY_MM/       -> Overtime_TimeOff, Summons, Response_Times
+  +-- response_time_all_metrics/ -> Response_Times output
+```
+
+### Git Topology
+
+All 6 repos are subdirectories of the `02_ETL_Scripts/` parent. The parent directory is the git repo; individual repo directories are NOT standalone git repos (except `git/` artifacts from OneDrive sync in Response_Times, which is a detached copy).
+
+| Repo | Remote | Branch |
+|------|--------|--------|
+| 06_Workspace_Management | (parent repo) | HEAD |
+| Benchmark | (subdir of parent) | -- |
+| Community_Engagment | `racmac57/Community_Engagement.git` | main |
+| Overtime_TimeOff | `racmac57/overtime_timeoff.git` | master |
+| Policy_Training_Monthly | (subdir of parent) | -- |
+| Response_Times | (subdir of parent) | -- |
+| Summons | `racmac57/summons.git` | main |
+
+### Shared Resources
+
+| Resource | Location | Used By |
+|----------|----------|---------|
+| Assignment_Master_V2.csv | `09_Reference/Personnel/` (canonical) | OT, Summons, 06_WM |
+| Assignment_Master_V2.csv | `06_Workspace_Management/` (local copy) | Summons backfill (should use canonical) |
+| CallType_Categories.csv | `09_Reference/Classifications/CallTypes/` | Response_Times |
+| visual_export_mapping.json | `06_WM/Standards/config/powerbi_visuals/` | 06_WM export processing |
+| scripts.json | `06_WM/config/` | 06_WM orchestrator |
+
+### Known Workspace-Level Issues (2026-03-28 Audit)
+
+1. **202 dead scripts** across 6 repos (Response_Times: 91, Summons: 77, Overtime_TimeOff: 19)
+2. **85 orphaned files** across 6 repos (stale CSVs, OneDrive dupes, 0-byte junk files)
+3. **5 of 6 repos missing requirements.txt** (only Policy_Training_Monthly has one)
+4. **Mixed config formats**: JSON (3 repos) vs YAML (1 repo) vs none (2 repos)
+5. **Inconsistent .gitignore patterns**: No standard base template; coverage varies widely
+6. **Dual-ETL ambiguity in Summons**: Two scripts write the same output file
+7. **PII in git**: Benchmark preview CSV contains officer names/badge numbers
+8. **Assignment_Master_V2 copy divergence risk**: Two copies exist (09_Reference and 06_WM)
+9. **`Community_Engagment` directory typo**: Propagated to configs, task scheduler, M code
+10. **Generic template proliferation**: PYTHON_WORKSPACE_AI_GUIDE.md in 3 repos (should be in 08_Templates/)
+
+Full details: `cross_repo_audit.md` and `HUMAN_REVIEW.md` in this directory.
+
+---
+
+*Last updated: 2026-03-28 | Format version: 4.7*

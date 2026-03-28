@@ -1,0 +1,84 @@
+{
+  "repo": "06_Workspace_Management",
+  "run_date": "2026-03-28",
+  "files_created": [
+    "cross_repo_audit.md",
+    "HUMAN_REVIEW.md",
+    "findings.json"
+  ],
+  "files_updated": [
+    "CLAUDE.md"
+  ],
+  "dead_scripts": [
+    "scripts/analyze_detective_workbook.py -- one-off analysis",
+    "scripts/analyze_personnel_folder.py -- one-off analysis",
+    "scripts/analyze_stacp_workbook.py -- one-off analysis",
+    "scripts/check_detective_table_data.py -- one-off check",
+    "scripts/check_detective_tables.py -- one-off check",
+    "scripts/check_jan_26_data.py -- one-off check",
+    "scripts/Cleanup-BenchmarkDirectories.ps1 -- one-off cleanup"
+  ],
+  "orphaned_files": [
+    "Assignment_Master_V2_backup_20260114.csv -- dated backup (canonical at 09_Reference/Personnel/)",
+    "benchmark_DIAGNOSTIC_VERSION.csv -- diagnostic artifact",
+    "benchmark_DIAGNOSTIC_VERSION.xlsx -- diagnostic artifact",
+    "benchmark_ROBUST_VERSION.csv -- diagnostic artifact",
+    "benchmark_ROBUST_VERSION.xlsx -- diagnostic artifact",
+    "benchmark_ULTRA_SIMPLE.csv -- diagnostic artifact",
+    "benchmark_ULTRA_SIMPLE.xlsx -- diagnostic artifact",
+    "benchmark_diagnostic_20260214_001237.json -- one-off diagnostic",
+    "claude_code_prompt_update_mapping_json.md -- AI prompt artifact",
+    "gemini_prompt_extract_visual_export_config.md -- AI prompt artifact",
+    "gemini_visual_export_config logic.json -- AI session output",
+    "gemini_visual_export_config logic.md -- empty file (0 bytes)",
+    "overtime_timeoff_backfill.txt -- one-off reference",
+    "I need the count of Moving (M) and Parking (P) su....xlsx -- ad-hoc query artifact",
+    "CLAUDE 1.md -- outdated CLAUDE.md copy",
+    "arrest_processor.log -- log file at root (should be in logs/)",
+    "summons_etl.log -- log file at root (should be in logs/)",
+    "tree_report_error.log -- log file at root (should be in logs/)",
+    "dry_run_final_20260322.log -- log file at root (should be in logs/)",
+    "create_test_exports.py -- one-off test utility",
+    "M_Code_Audit_Feb2026.docx -- one-off audit doc",
+    "M_Code_ReportMonth_Fixes.m -- one-off M code patch (should be in m_code/)",
+    ".git_corrupt_backup_20260322/ -- git corruption recovery backup",
+    ".tmp.driveupload/ -- OneDrive temp directory",
+    "scripts/10 -- junk file (5 bytes)",
+    "scripts/Power BI benchmark report visualization data issues.zip -- diagnostic archive"
+  ],
+  "doc_inconsistencies": [
+    "CLAUDE.md references Assignment_Master_V3_FINAL.xlsx but Assignment_Master_V2.csv is in repo root",
+    "summons_backfill_13month.py uses 06_Workspace_Management/Assignment_Master_V2.csv instead of 09_Reference/Personnel/ canonical path",
+    "4 log files at repo root instead of logs/ directory (arrest_processor.log, summons_etl.log, tree_report_error.log, dry_run_final_20260322.log)",
+    "CLAUDE 1.md is an outdated copy of CLAUDE.md (should be archived or deleted)",
+    "README.md, SUMMARY.md, and CHANGELOG.md are large (43KB, 55KB, 166KB) and may have accumulated stale content"
+  ],
+  "reorganization_proposals": [
+    "Move 6 benchmark diagnostic files (CSV/XLSX) to archive/benchmark_diagnostics/",
+    "Move 3 AI prompt artifacts (claude_code_prompt, gemini_prompt, gemini_logic) to archive/ai_prompts/",
+    "Move 4 root-level log files to logs/ directory",
+    "Move M_Code_ReportMonth_Fixes.m to m_code/ or archive/",
+    "Archive CLAUDE 1.md to archive/ (outdated copy)",
+    "Archive Assignment_Master_V2_backup_20260114.csv to archive/",
+    "Delete .git_corrupt_backup_20260322/ after confirming git integrity",
+    "Delete .tmp.driveupload/ (OneDrive temp)",
+    "Move scripts/10 (junk file) to archive or delete",
+    "Standardize .gitignore template and propagate to all 6 ETL repos"
+  ],
+  "security_flags": [
+    "Assignment_Master_V2.csv at repo root contains personnel data (officer names, badge numbers, assignments)",
+    "config/powerbi_api_config.json is correctly gitignored (may contain API credentials)"
+  ],
+  "human_review_needed": [
+    "CRITICAL: Community_Engagment directory name typo requires coordinated rename across config.json, task_schedule.xml, M code, PBI data sources",
+    "CRITICAL: Summons dual-ETL ambiguity -- SummonsMaster_Simple.py and summons_etl_enhanced.py both write the same output",
+    "HIGH: 202 dead scripts across 6 repos need bulk archival approval (see cross_repo_audit.md)",
+    "HIGH: 5 of 6 repos missing requirements.txt -- create and pin dependency versions",
+    "HIGH: benchmark_preview_table.csv (PII) in Benchmark repo should be gitignored",
+    "MEDIUM: Assignment_Master_V2.csv exists at both 06_WM root and 09_Reference/Personnel/ -- consolidate to single canonical copy",
+    "MEDIUM: Standardize .gitignore base template across all repos",
+    "MEDIUM: Decide JSON vs YAML as standard config format",
+    "LOW: Review 38 individual human_review_needed items in HUMAN_REVIEW.md"
+  ],
+  "commit_message": "docs(06_Workspace_Management): cross-repo audit, HUMAN_REVIEW.md, workspace CLAUDE.md [swarm-run 2026-03-28]"
+}
