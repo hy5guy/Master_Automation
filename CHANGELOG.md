@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.19.9] - 2026-03-28
+
+### Added — AI_Context_Reference sheet injection prompt
+
+- **`docs/PROMPT_AI_Context_Reference_Sheet_Injection.md`** — Enhanced prompt for programmatically appending an `AI_Context_Reference` worksheet to all HPD shared workbooks. Covers 14 workbooks across two tiers:
+  - **Tier 1 (Staff Data Entry):** 10 workbooks in `Shared Folder/Compstat/Contributions/` — `csb_monthly.xlsm`, `STACP.xlsm`, `patrol_monthly.xlsm`, `Policy_Training_Monthly.xlsx`, `detectives_monthly.xlsx`, `ESU.xlsx`, `Traffic_Monthly.xlsx`, `chief_monthly.xlsx`, `Drone_Monthly.xlsx`, `dfr_directed_patrol_enforcement.xlsx`
+  - **Tier 2 (ETL Output / Reference):** `policy_training_outputs.xlsx`, `Assignment_Master_V3_FINAL.xlsx`, `NIBRS_Monthly_Report.xlsx`, `_SSOCC - Service Log.xlsx`
+- **Per-workbook sections:** Overview, Sheet & Table Directory, Data Dictionary & Validation, ETL & Integration Map (cross-referenced from `config/scripts.json` and `visual_export_mapping.json`), VBA & Macros (for `.xlsm` files), Claude in Excel Quick Start
+- **M Code ↔ Workbook mapping table** — each workbook linked to its consuming M code query, target sheet/table, and month-column format
+- **HPD-branded formatting** — Navy `#1A2744` / Gold `#C8A84B` color scheme from `docs/templates/HPD_Report_Style_Prompt.md`; gold tab color on injected sheet
+- **CLI options** — `--dry-run`, `--workbook`, `--verbose`, `--tier2` flags for flexible execution
+- **VBA preservation** — explicit `keep_vba=True` handling for `.xlsm` files with module inventory
+- **`Claude.md`** — Version 1.19.9; added prompt doc to Key Documentation section
+- **`SUMMARY.md`** — Version 1.19.9; updated status line
+
+---
+
 ## [1.19.8] - 2026-03-26
 
 ### Changed — Community Outreach M code synced with PBIX (descending sort)

@@ -43,8 +43,8 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.19.8 |
-| **Status** | v1.19.8: Outreach M repo↔TMDL sync (descending sort); DAX measure audit (6 measures confirmed `___DimMonth` pattern); REMU partition verified. v1.19.7: Doc sync (SSOCC Option B, Community CE/STACP, ETL_SKILL_MEMORY). v1.19.6: Outreach M dual CSV/XLSX + YTD DAX doc. |
+| **Version** | 1.19.9 |
+| **Status** | v1.19.9: `AI_Context_Reference` sheet injection prompt — covers 14 shared workbooks with M code mappings, ETL cross-refs, Claude in Excel quick-start, HPD-branded formatting. v1.19.8: Outreach M repo↔TMDL sync (descending sort); DAX measure audit (6 measures confirmed `___DimMonth` pattern); REMU partition verified. |
 | **pReportMonth** | Set per `.pbix` in Power Query (example: `#date(2026, 3, 1)` for March 2026 report) |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
@@ -149,6 +149,7 @@ Migration prompt and transcripts: `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_
 - `docs/Visual_Build_Guide_YYYY_MM.md` - MCP-generated manual build guide (e.g., Visual_Build_Guide_2026_02.md, Visual_Build_Guide_2026_02_v2.md)
 - `docs/PROMPT_Claude_In_Excel_DFR_Directed_Patrol_Summons_MCode.md` - DFR Summons M code (13-month window, Dismiss/Void filter)
 - `docs/DFR_Summons_Claude_Excel_Development_Log.md` - Claude in Excel development history (29 turns, workbook evolution)
+- `docs/PROMPT_AI_Context_Reference_Sheet_Injection.md` - Prompt to inject `AI_Context_Reference` worksheet into all 14 shared workbooks (Tier 1 data-entry + Tier 2 ETL/reference); maps each workbook to M code queries, Python ETL scripts, sheet/table targets, and Claude in Excel quick-start context; HPD-branded formatting
 - `docs/templates/HPD_Report_Style_Prompt.md` - HTML report design system
 - `09_Reference/Standards/ResponseTime_AllMetrics_DataDictionary.md` - Response Time schema
 - `14_Workspace/chatlogs/Directory_Consolidation_Documentation_Update_And_Commit/` - Directory consolidation session (transcript + chunks): canonical path refactors, `PowerBI_Data`, template folder moves (`08_Templates`), Phase 4 M batch context; pair with `_consolidation_project/IMPLEMENTATION_CHECKLIST_Directory_Consolidation.md`
