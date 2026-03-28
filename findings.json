@@ -80,5 +80,15 @@
     "MEDIUM: Decide JSON vs YAML as standard config format",
     "LOW: Review 38 individual human_review_needed items in HUMAN_REVIEW.md"
   ],
-  "commit_message": "docs(06_Workspace_Management): cross-repo audit, HUMAN_REVIEW.md, workspace CLAUDE.md [swarm-run 2026-03-28]"
+  "commit_message": "docs(06_Workspace_Management): cross-repo audit, HUMAN_REVIEW.md, workspace CLAUDE.md [swarm-run 2026-03-28]",
+  "resolved_items_2026_03_28_post_swarm": [
+    "STOP Flag 1 — Task Scheduler: no Community_Engagment tasks found, confirmed clean",
+    "STOP Flag 2 — Power BI .pbix: Community_Engagment found in ___Combined_Outreach_All OutputFolder; MCP write BLOCKED, needs manual Power Query fix",
+    "STOP Flag 3 — VS Code workspace: Community_Engagment.code-workspace renamed to Community_Engagement.code-workspace",
+    "apply_peo_rule() ported from SummonsMaster_Simple.py to summons_etl_enhanced.py — PEO/Class I M→P reclassification validated",
+    "Summons PBI column schema: WG1 and WG2 present; WG3, WG4, WG5, TEAM missing from slim CSV and PBI (documented)",
+    "Badge 0388 (LIGGIO) — code references documented; PENDING RAC confirmation of current assignment status",
+    "Policy_Training_Monthly — GitHub remote created, pushed to racmac57/Policy_Training_Monthly",
+    "02_ETL_Scripts parent — gh CLI not installed, cannot create remote from CLI; PENDING manual GitHub repo creation"
+  ]
 }

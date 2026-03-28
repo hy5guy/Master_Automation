@@ -130,11 +130,25 @@ All items requiring human decision-making, aggregated from 6 repository audits.
 
 ## Status Tracking
 
-### Resolved This Session
+### Resolved This Session (swarm run 2026-03-28)
 - [x] Benchmark PII CSV — added to .gitignore (2026-03-28)
 - [x] Community_Engagement production_config.json — removed from git tracking (2026-03-28)
-- [x] Community_Engagement directory typo — rename in progress (Decision 1)
-- [x] Summons dual-ETL ambiguity — resolved, summons_etl_enhanced.py is authoritative (Decision 2)
+- [x] Community_Engagement directory typo — rename completed (Decision 1, 2026-03-28)
+- [x] Summons dual-ETL ambiguity — resolved, summons_etl_enhanced.py is authoritative (Decision 2, 2026-03-28)
+
+### Resolved This Session (post-swarm manual 2026-03-28)
+- [x] STOP Flag 1 — Task Scheduler: No scheduled tasks referenced Community_Engagment — confirmed clean (2026-03-28)
+- [x] STOP Flag 2 — Power BI .pbix: `___Combined_Outreach_All` M code contains `Community_Engagment` in OutputFolder path — **BLOCKED: MCP write declined by user**. Path must be manually updated in Power Query Editor: change `Community_Engagment` → `Community_Engagement` in OutputFolder variable. (2026-03-28)
+- [x] STOP Flag 3 — VS Code workspace: `Community_Engagment.code-workspace` renamed to `Community_Engagement.code-workspace` in `02_ETL_Scripts/Community_Engagement/` (2026-03-28)
+- [x] Summons: `apply_peo_rule()` ported from SummonsMaster_Simple.py to summons_etl_enhanced.py — PEO/Class I M→P reclassification. Validated with synthetic test (2026-03-28)
+- [x] Summons: Power BI column schema verified — WG1, WG2 present; WG3, WG4, WG5, TEAM **missing** from slim CSV and PBI (only existed in deprecated script's ASSIGNMENT_OVERRIDES). Documented in Summons CLAUDE.md (2026-03-28)
+- [x] Policy_Training_Monthly: GitHub remote created and pushed to `racmac57/Policy_Training_Monthly` (2026-03-28)
+
+### Pending — Human Confirmation Required
+- [ ] **Badge 0388 (LIGGIO)** — was hardcoded in deprecated SummonsMaster_Simple.py (Patrol Bureau / Platoon A / A3). Not in summons_etl_enhanced.py or Assignment_Master_V2.csv. RAC must confirm: is LIGGIO still on this assignment? Should badge be added to Assignment Master?
+- [ ] **Power BI OutputFolder path** — `___Combined_Outreach_All` query still references `Community_Engagment` (typo). Must be fixed manually in Power Query Editor (MCP write was blocked).
+- [ ] **WG3/WG4/WG5/TEAM columns** — missing from enhanced ETL pipeline and Power BI. If sub-bureau granularity is needed, these must be added to summons_etl_normalize.py output and PBI M code.
+- [ ] **02_ETL_Scripts parent repo** — needs GitHub remote created (`racmac57/ETL_Scripts` — `gh` CLI not installed, cannot create from CLI). Contains Benchmark and Response_Times commits.
 
 ### Queued for Next Session (HIGH)
 - [ ] Community_Engagement: CSB config inconsistency (sheet_name mismatch) — QUEUED, see TODO.md in repo
@@ -147,7 +161,6 @@ All items requiring human decision-making, aggregated from 6 repository audits.
 - [ ] Response_Times: Confirm production script — QUEUED, see TODO.md in repo
 - [ ] Response_Times: Review ~80 scripts in scripts/ — QUEUED, see TODO.md in repo
 - [ ] Summons: Approve root cleanup (~130 files) — QUEUED, see TODO.md in repo
-- [ ] Summons: Badge override review (0388/LIGGIO, 2025/0738 FIRE LANES) — QUEUED, see TODO.md in repo
 
 ### Backlog (MEDIUM/LOW)
 - Benchmark: 3 MEDIUM, 1 LOW

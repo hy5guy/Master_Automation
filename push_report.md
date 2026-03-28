@@ -7,13 +7,13 @@
 | Overtime_TimeOff | `origin` → racmac57/overtime_timeoff.git | master | SUCCESS | 4f842cb..f1635b1 pushed |
 | Summons | `origin` → racmac57/summons.git | main | SUCCESS | 07412c6..878effb pushed |
 | 06_Workspace_Management | `origin` → racmac57/Master_Automation.git | main | SUCCESS | 180cb57..3bf7ad8 pushed |
-| Policy_Training_Monthly | (none) | main | SKIPPED | No remote configured — standalone repo |
+| Policy_Training_Monthly | `origin` → racmac57/Policy_Training_Monthly.git | main | SUCCESS | Remote added and pushed 2026-03-28 (post-swarm) |
 
 ## Repos Without Remote
 | Repo | Commit SHA | Status | Notes |
 |------|-----------|--------|-------|
-| 02_ETL_Scripts (parent) | 74d8201 | **ACTION NEEDED: create remote** | Contains Benchmark and Response_Times commits. No remote configured. Recommended: `gh repo create racmac57/ETL_Scripts --private` then `git remote add origin <url> && git push -u origin master` |
-| Policy_Training_Monthly | 5a8fc48 | **ACTION NEEDED: create remote** | Standalone repo discovered during commit phase. No remote configured. Recommended: `gh repo create racmac57/Policy_Training_Monthly --private` then `git remote add origin <url> && git push -u origin main` |
+| 02_ETL_Scripts (parent) | 74d8201 | **ACTION NEEDED: create remote** | `gh` CLI not installed — cannot create repo from CLI. RAC must create `racmac57/ETL_Scripts` on GitHub manually, then run: `cd 02_ETL_Scripts && git remote add origin https://github.com/racmac57/ETL_Scripts.git && git push -u origin master` |
+| Policy_Training_Monthly | 5a8fc48 | **DONE** | Remote added and pushed 2026-03-28 (post-swarm). `git remote add origin https://github.com/racmac57/Policy_Training_Monthly.git && git push -u origin main` |
 
 ## Errors (if any)
 None. All pushes completed successfully.

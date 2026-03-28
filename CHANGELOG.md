@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.20.1] - 2026-03-28 — post-swarm manual resolution
+
+### Fixed
+- **Community_Engagment → Community_Engagement**: VS Code workspace file renamed; Task Scheduler confirmed clean (no tasks); Power BI .pbix `___Combined_Outreach_All` OutputFolder still needs manual fix (MCP write blocked)
+- **`apply_peo_rule()` ported** to `summons_etl_enhanced.py`: PEO/Class I officers cannot issue moving violations (TYPE M→P reclassification). Validated with synthetic test. Ported from deprecated SummonsMaster_Simple.py
+- **Summons Power BI column schema verified**: WG1, WG2 present in PBI; WG3, WG4, WG5, TEAM missing (only existed in deprecated script)
+- **Policy_Training_Monthly remote created**: Pushed to `racmac57/Policy_Training_Monthly` on GitHub
+
+### Added
+- Summons CLAUDE.md: updated Business Rules (PEO/Class I rule #5), Key Fields (WG3-WG5/TEAM status), Known Issues (#15 badge 0388, #16 missing columns)
+- HUMAN_REVIEW.md: post-swarm manual resolution section with all stop flag results
+
+### Pending
+- Badge 0388 (LIGGIO) assignment status — requires RAC confirmation
+- Power BI `___Combined_Outreach_All` OutputFolder path — manual Power Query fix needed
+- 02_ETL_Scripts parent repo — needs GitHub remote (gh CLI not installed)
+- WG3/WG4/WG5/TEAM column gap — document only, no action until RAC confirms need
+
+---
+
 ## [1.20.0] - 2026-03-28
 
 ### Added — `scripts/inject_ai_context_reference.py` (v3 — zip-safe)
