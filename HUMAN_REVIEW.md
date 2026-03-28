@@ -3,12 +3,21 @@
 
 All items requiring human decision-making, aggregated from 6 repository audits.
 
+### Security Remediation Status (2026-03-28)
+| Flag | Repo | Action Taken | Status |
+|------|------|-------------|--------|
+| `benchmark_preview_table.csv` PII | Benchmark | Added to .gitignore; was not tracked in git | **RESOLVED** |
+| `production_config.json` credential fields | Community_Engagement | Added to .gitignore; removed from git tracking (`git rm --cached`) | **RESOLVED** |
+| `task_schedule.xml` runs as SYSTEM | Community_Engagement | Deployment concern — not a code fix. Document in ops runbook. | **ACCEPTED RISK** |
+| `config.json` SMTP password field | Overtime_TimeOff | Field is empty; file excluded by .gitignore (`*.json` pattern). Monitor. | **ACCEPTED RISK** |
+| `ASSIGNMENT_OVERRIDES` officer data | Summons | Badge-to-name mappings required for business logic. Cannot be externalized without breaking ETL. | **ACCEPTED RISK** |
+
 ---
 
 ## Benchmark (5 items)
 
 ### HIGH
-- **Decide PII handling**: `benchmark_preview_table.csv` contains officer names, badge numbers, and incident details. Should it remain in the repo, be gitignored, or be deleted? Currently tracked in git.
+- ~~**Decide PII handling**: `benchmark_preview_table.csv` contains officer names, badge numbers, and incident details.~~ **RESOLVED** — added to .gitignore, not tracked in git.
 
 ### MEDIUM
 - **Confirm ___Benchmark_FIXED.m status**: Is the old-path M code still needed or can it be archived?
@@ -20,10 +29,10 @@ All items requiring human decision-making, aggregated from 6 repository audits.
 
 ---
 
-## Community_Engagment (7 items)
+## Community_Engagement (7 items)
 
 ### CRITICAL
-- **Directory name typo**: `Community_Engagment` (missing 'e'). Rename requires coordinated update across config.json, task_schedule.xml, M code paths, PBI data sources, and parent workspace references. This is the most impactful single fix across the entire workspace.
+- **Directory name typo**: `Community_Engagement` (missing 'e'). Rename requires coordinated update across config.json, task_schedule.xml, M code paths, PBI data sources, and parent workspace references. This is the most impactful single fix across the entire workspace.
 
 ### HIGH
 - **CSB config inconsistency**: config.json sheet_name `26_01` does not match csb_processor.py default `CSB_CommOut`. Source is disabled so not currently impactful, but should be resolved before re-enabling.
@@ -91,7 +100,7 @@ All items requiring human decision-making, aggregated from 6 repository audits.
 ## Summons (7 items)
 
 ### CRITICAL
-- **Dual ETL ambiguity**: `SummonsMaster_Simple.py` and `summons_etl_enhanced.py` both write `summons_powerbi_latest.xlsx`. Determine which is the single authoritative production script.
+- **~~Dual ETL ambiguity~~**: RESOLVED 2026-03-28. Decision: `summons_etl_enhanced.py` is authoritative. Action: `SummonsMaster_Simple.py` moved to `archive/deprecated/SummonsMaster_Simple_DEPRECATED_2026-03-28.py`. Full diff analysis: `02_ETL_Scripts/Summons/docs/etl-diff-analysis.md`. Follow-up needed: port PEO/Class I reclassification rule (`apply_peo_rule()`) to enhanced script.
 
 ### HIGH
 - **Approve root cleanup**: ~130 files should be archived/deleted (75 dead Python scripts, 22 stale MDs, 5 junk files, 5 OneDrive dupes). See reorganization_proposal.md.
@@ -111,8 +120,39 @@ All items requiring human decision-making, aggregated from 6 repository audits.
 
 | Priority | Count | Repos |
 |----------|-------|-------|
-| CRITICAL | 2 | Community_Engagment (dir rename), Summons (dual ETL) |
+| CRITICAL | 1 | Community_Engagement (dir rename) ~~, Summons (dual ETL -- RESOLVED 2026-03-28)~~ |
 | HIGH | 12 | All 6 repos |
 | MEDIUM | 15 | All 6 repos |
 | LOW | 9 | All 6 repos |
 | **TOTAL** | **38** | |
+
+---
+
+## Status Tracking
+
+### Resolved This Session
+- [x] Benchmark PII CSV — added to .gitignore (2026-03-28)
+- [x] Community_Engagement production_config.json — removed from git tracking (2026-03-28)
+- [x] Community_Engagement directory typo — rename in progress (Decision 1)
+- [x] Summons dual-ETL ambiguity — resolved, summons_etl_enhanced.py is authoritative (Decision 2)
+
+### Queued for Next Session (HIGH)
+- [ ] Community_Engagement: CSB config inconsistency (sheet_name mismatch) — QUEUED, see TODO.md in repo
+- [ ] Community_Engagement: Verify task_schedule.xml registration — QUEUED, see TODO.md in repo
+- [ ] Overtime_TimeOff: Assignment_Master_V2 file extension (.xlsx vs .csv) — QUEUED, see TODO.md in repo
+- [ ] Overtime_TimeOff: v11 exec() import refactor decision — QUEUED, see TODO.md in repo
+- [ ] Overtime_TimeOff: config.json SMTP exposure review — QUEUED, see TODO.md in repo
+- [ ] Policy_Training_Monthly: Legacy M code retirement (5 files) — QUEUED, see TODO.md in repo
+- [ ] Policy_Training_Monthly: .git/Training_Matrix.csv removal — QUEUED, see TODO.md in repo
+- [ ] Response_Times: Confirm production script — QUEUED, see TODO.md in repo
+- [ ] Response_Times: Review ~80 scripts in scripts/ — QUEUED, see TODO.md in repo
+- [ ] Summons: Approve root cleanup (~130 files) — QUEUED, see TODO.md in repo
+- [ ] Summons: Badge override review (0388/LIGGIO, 2025/0738 FIRE LANES) — QUEUED, see TODO.md in repo
+
+### Backlog (MEDIUM/LOW)
+- Benchmark: 3 MEDIUM, 1 LOW
+- Community_Engagement: 3 MEDIUM, 1 LOW
+- Overtime_TimeOff: 2 MEDIUM, 1 LOW
+- Policy_Training_Monthly: 3 MEDIUM, 2 LOW
+- Response_Times: 3 MEDIUM, 1 LOW
+- Summons: 3 MEDIUM, 1 LOW
