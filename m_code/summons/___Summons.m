@@ -11,7 +11,7 @@ let
     ColumnTypes = {
         {"PADDED_BADGE_NUMBER", type text},
         {"OFFICER_DISPLAY_NAME", type text},
-        {"WG1", type text}, {"WG2", type text}, {"WG3", type text}, {"WG4", type text}, {"WG5", type text},
+        {"WG1", type text}, {"WG2", type text}, {"WG3", type text}, {"WG4", type text}, {"TEAM", type text},
         {"TICKET_NUMBER", type text},
         {"ISSUE_DATE", type datetime},
         {"VIOLATION_NUMBER", type text},

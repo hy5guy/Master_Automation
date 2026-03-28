@@ -138,7 +138,7 @@ All items requiring human decision-making, aggregated from 6 repository audits.
 
 ### Resolved This Session (post-swarm manual 2026-03-28)
 - [x] STOP Flag 1 — Task Scheduler: No scheduled tasks referenced Community_Engagment — confirmed clean (2026-03-28)
-- [x] STOP Flag 2 — Power BI .pbix: `___Combined_Outreach_All` M code contains `Community_Engagment` in OutputFolder path — **BLOCKED: MCP write declined by user**. Path must be manually updated in Power Query Editor: change `Community_Engagment` → `Community_Engagement` in OutputFolder variable. (2026-03-28)
+- [x] STOP Flag 2 — Power BI .pbix: `___Combined_Outreach_All` OutputFolder typo fixed via Claude Desktop MCP (`Community_Engagment` → `Community_Engagement`). Saved. (2026-03-28)
 - [x] STOP Flag 3 — VS Code workspace: `Community_Engagment.code-workspace` renamed to `Community_Engagement.code-workspace` in `02_ETL_Scripts/Community_Engagement/` (2026-03-28)
 - [x] Summons: `apply_peo_rule()` ported from SummonsMaster_Simple.py to summons_etl_enhanced.py — PEO/Class I M→P reclassification. Validated with synthetic test (2026-03-28)
 - [x] Summons: Power BI column schema verified — WG1, WG2 present; WG3, WG4, WG5, TEAM **missing** from slim CSV and PBI (only existed in deprecated script's ASSIGNMENT_OVERRIDES). Documented in Summons CLAUDE.md (2026-03-28)
@@ -146,7 +146,7 @@ All items requiring human decision-making, aggregated from 6 repository audits.
 
 ### Pending — Human Confirmation Required
 - [ ] **Badge 0388 (LIGGIO)** — was hardcoded in deprecated SummonsMaster_Simple.py (Patrol Bureau / Platoon A / A3). Not in summons_etl_enhanced.py or Assignment_Master_V2.csv. RAC must confirm: is LIGGIO still on this assignment? Should badge be added to Assignment Master?
-- [ ] **Power BI OutputFolder path** — `___Combined_Outreach_All` query still references `Community_Engagment` (typo). Must be fixed manually in Power Query Editor (MCP write was blocked).
+- [x] ~~**Power BI OutputFolder path**~~ — RESOLVED via Claude Desktop MCP (2026-03-28)
 - [ ] **WG3/WG4/WG5/TEAM columns** — missing from enhanced ETL pipeline and Power BI. If sub-bureau granularity is needed, these must be added to summons_etl_normalize.py output and PBI M code.
 - [ ] **02_ETL_Scripts parent repo** — needs GitHub remote created (`racmac57/ETL_Scripts` — `gh` CLI not installed, cannot create from CLI). Contains Benchmark and Response_Times commits.
 

@@ -1,10 +1,11 @@
 """
 summons_etl_normalize.py
 Core normalization module with badge-based officer cleanup + statute lookup
-Version 2.4.0 — DFR split support (badge 738/Polson always, badge 2025/Ramirez & 377/Mazzaccaro
-by date range); DFR records are excluded from the main summons pipeline.
+Version 2.5.0 — DFR split (badge 738/Polson always; 2025/Ramirez & 377/Mazzaccaro by date range);
+DFR records excluded from main pipeline. Fee enrichment: apply_fine_amount_and_violation_category()
+uses municipal-violations-bureau-schedule.json + e-ticket Penalty; extended slim CSV for Power BI.
 
-Resolves all 12 audit items: int badge key, column renames, true 23-col SLIM,
+Resolves all 12 audit items: int badge key, column renames, slim CSV (financial + VIOLATION_CATEGORY),
 WG1/WG2/TEAM correct, statute classification, RANK, robust DQ score, graceful degradation.
 """
 
@@ -12,10 +13,12 @@ import csv
 import json
 import logging
 import os
+import re
 import shutil
 from datetime import datetime, date as _date
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -63,6 +66,8 @@ def _build_personnel_lookup(master_path: str) -> dict:
         if not standard_name or standard_name.lower() == "nan":
             initial = first[0] if first else ""
             standard_name = f"{initial}. {last} #{padded}".strip()
+        wg3 = str(row.get("WG3", "")).strip()
+        wg4 = str(row.get("WG4", "")).strip()
         rank = str(row.get("RANK", "")).strip() or title
         lookup[badge] = {
             "FIRST_NAME": first,
@@ -71,6 +76,8 @@ def _build_personnel_lookup(master_path: str) -> dict:
             "TEAM": team,
             "WG1": wg1,
             "WG2": wg2,
+            "WG3": wg3,
+            "WG4": wg4,
             "PADDED_BADGE_NUMBER": padded,
             "STANDARD_NAME": standard_name,
             "RANK": rank,
@@ -78,12 +85,48 @@ def _build_personnel_lookup(master_path: str) -> dict:
     return lookup
 
 
-def _load_statute_lookups(base_dir: Path):
-    """Load Title39 and CityOrdinances JSONs. Graceful degradation if missing."""
+def _load_municipal_fee_schedule(base_dir: Path) -> dict[str, dict]:
+    """Load municipal-violations-bureau-schedule.json (statute → fine, case_type, description)."""
+    path = (
+        base_dir
+        / "09_Reference"
+        / "LegalCodes"
+        / "data"
+        / "Title39"
+        / "municipal-violations-bureau-schedule.json"
+    )
+    if not path.exists():
+        logger.warning("Municipal fee schedule not found at %s", path)
+        return {}
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception as e:
+        logger.warning("Could not load municipal fee schedule: %s", e)
+        return {}
+    result: dict[str, dict] = {}
+    for v in data.get("violations", []):
+        statute = str(v.get("statute", "")).strip()
+        if not statute:
+            continue
+        try:
+            fine = float(v.get("fine_amount", 0) or 0)
+        except (TypeError, ValueError):
+            fine = 0.0
+        result[statute] = {
+            "description": str(v.get("description", "")).strip(),
+            "fine_amount": fine,
+            "case_type": str(v.get("case_type", "")).strip().upper(),
+        }
+    return result
+
+
+def _load_statute_lookups(base_dir: Path) -> tuple[dict, dict]:
+    """Load Title39 and city ordinance statute lookups (optional; empty dicts if missing)."""
     title39_path = base_dir / "09_Reference" / "LegalCodes" / "data" / "Title39" / "Title39_Lookup_Dict.json"
     ordinance_path = base_dir / "09_Reference" / "LegalCodes" / "data" / "CityOrdinances" / "CityOrdinances_Lookup_Dict.json"
-    title39_dict = {}
-    ordinance_dict = {}
+    title39_dict: dict = {}
+    ordinance_dict: dict = {}
     if title39_path.exists():
         try:
             with open(title39_path, encoding="utf-8") as f:
@@ -101,6 +144,185 @@ def _load_statute_lookups(base_dir: Path):
     else:
         logger.warning("Ordinance lookup not found at %s", ordinance_path)
     return title39_dict, ordinance_dict
+
+
+def _statute_lookup_candidates(raw: str) -> list[str]:
+    """Ordered statute keys for fee lookup (exact, strip parens, strip trailing alpha segment)."""
+    statute = str(raw).strip() if raw is not None and not (isinstance(raw, float) and np.isnan(raw)) else ""
+    if not statute or statute.lower() == "nan":
+        return []
+    candidates = [statute]
+    stripped = re.sub(r"\([^)]*\)$", "", statute).strip()
+    if stripped and stripped not in candidates:
+        candidates.append(stripped)
+    stripped2 = re.sub(r"[A-Za-z]+$", "", stripped).rstrip("-").strip()
+    if stripped2 and stripped2 not in candidates:
+        candidates.append(stripped2)
+    collapsed = re.sub(r"\s+", " ", statute)
+    if collapsed not in candidates:
+        candidates.append(collapsed)
+    return candidates
+
+
+def _fee_schedule_match(statute: str, fee_schedule: dict[str, dict]) -> tuple[dict | None, str | None]:
+    """Return (entry, matched_key) for first matching candidate, else (None, None)."""
+    for cand in _statute_lookup_candidates(statute):
+        if cand in fee_schedule:
+            return fee_schedule[cand], cand
+    # Case-insensitive / whitespace-insensitive
+    norm_map = {re.sub(r"\s+", "", k.lower()): (k, v) for k, v in fee_schedule.items()}
+    for cand in _statute_lookup_candidates(statute):
+        nk = re.sub(r"\s+", "", cand.lower())
+        if nk in norm_map:
+            orig_k, entry = norm_map[nk]
+            return entry, orig_k
+    # Suffix / prefix tie-break (short keys can false-positive; require min length)
+    if len(statute) >= 4:
+        for key in sorted(fee_schedule.keys(), key=len, reverse=True):
+            if len(key) >= 4 and (statute.endswith(key) or key.endswith(statute)):
+                return fee_schedule[key], key
+    return None, None
+
+
+def _violation_category_from_entry(
+    case_type: str | None, type_letter: str | None, description: str | None
+) -> str:
+    """Human-readable category for Power BI (non-blank when TYPE is known)."""
+    ct = (case_type or "").strip().upper()
+    if ct in ("P", "M", "C"):
+        return ct
+    t = (type_letter or "").strip().upper()
+    if t in ("P", "M", "C"):
+        return t
+    desc = (description or "").strip()
+    if desc:
+        return desc[:120]
+    return t if t else "Unclassified"
+
+
+def apply_fine_amount_and_violation_category(df: pd.DataFrame, base_dir: Path) -> pd.DataFrame:
+    """
+    Populate FINE_AMOUNT (from Penalty when > 0, else municipal fee schedule on STATUTE),
+    VIOLATION_CATEGORY, and financial aliases for Power BI slim output.
+    Rows with no trustworthy amount stay NaN for FINE_AMOUNT (not forced to 0).
+    """
+    if df.empty:
+        return df
+    df = df.copy()
+    fee_schedule = _load_municipal_fee_schedule(base_dir)
+
+    if "Penalty" in df.columns:
+        penalty_num = pd.to_numeric(df["Penalty"].astype(str).str.replace(",", "", regex=False), errors="coerce")
+    else:
+        penalty_num = pd.Series(np.nan, index=df.index)
+
+    fines: list[float] = []
+    categories: list[str] = []
+    unmapped_statutes: set[str] = set()
+
+    for i in df.index:
+        p = penalty_num.loc[i] if i in penalty_num.index else np.nan
+        statute_val = df.at[i, "STATUTE"] if "STATUTE" in df.columns else ""
+        statute_s = str(statute_val).strip() if pd.notna(statute_val) else ""
+        type_letter = df.at[i, "TYPE"] if "TYPE" in df.columns else ""
+
+        entry_match = None
+        if statute_s and fee_schedule:
+            entry_match, _matched_key = _fee_schedule_match(statute_s, fee_schedule)
+
+        if pd.notna(p) and float(p) > 0:
+            fine_out = float(p)
+        elif entry_match is not None:
+            fine_out = float(entry_match.get("fine_amount", 0) or 0)
+        else:
+            fine_out = np.nan
+
+        if (
+            fee_schedule
+            and np.isnan(fine_out)
+            and statute_s
+            and statute_s.lower() != "nan"
+            and entry_match is None
+        ):
+            unmapped_statutes.add(statute_s[:80])
+
+        cat = _violation_category_from_entry(
+            entry_match.get("case_type") if entry_match else None,
+            str(type_letter) if pd.notna(type_letter) else None,
+            entry_match.get("description") if entry_match else None,
+        )
+        fines.append(fine_out)
+        categories.append(cat)
+
+    df["FINE_AMOUNT"] = np.array(fines, dtype=float)
+    df["VIOLATION_CATEGORY"] = categories
+
+    # Optional e-ticket financial columns (aliases)
+    def _coerce_money(col: str) -> pd.Series:
+        if col not in df.columns:
+            return pd.Series(np.nan, index=df.index)
+        return pd.to_numeric(
+            df[col].astype(str).str.replace(r"[$,]", "", regex=True), errors="coerce"
+        )
+
+    if "TOTAL_PAID_AMOUNT" not in df.columns:
+        paid_col = next((c for c in df.columns if "paid" in str(c).lower() and "total" in str(c).lower()), None)
+        if paid_col:
+            df["TOTAL_PAID_AMOUNT"] = _coerce_money(paid_col)
+        else:
+            df["TOTAL_PAID_AMOUNT"] = np.nan
+    else:
+        df["TOTAL_PAID_AMOUNT"] = _coerce_money("TOTAL_PAID_AMOUNT")
+
+    if "COST_AMOUNT" not in df.columns:
+        cost_col = next((c for c in df.columns if str(c).lower() == "cost amount"), None)
+        df["COST_AMOUNT"] = _coerce_money(cost_col) if cost_col else np.nan
+    else:
+        df["COST_AMOUNT"] = _coerce_money("COST_AMOUNT")
+
+    if "MISC_AMOUNT" not in df.columns:
+        df["MISC_AMOUNT"] = np.nan
+    else:
+        df["MISC_AMOUNT"] = _coerce_money("MISC_AMOUNT")
+
+    if "VIOLATION_NUMBER" not in df.columns:
+        df["VIOLATION_NUMBER"] = ""
+    else:
+        df["VIOLATION_NUMBER"] = df["VIOLATION_NUMBER"].astype(str).str.strip().replace({"nan": ""})
+
+    if "VIOLATION_TYPE" not in df.columns:
+        vt = next(
+            (c for c in df.columns if "violation" in str(c).lower() and "type" in str(c).lower()),
+            None,
+        )
+        if vt:
+            df["VIOLATION_TYPE"] = df[vt].astype(str)
+        else:
+            df["VIOLATION_TYPE"] = df["TYPE"].astype(str) if "TYPE" in df.columns else ""
+
+    if not fee_schedule:
+        logger.warning(
+            "Fine lookup skipped or incomplete: municipal-violations-bureau-schedule.json not found under "
+            "09_Reference/LegalCodes/data/Title39/ — FINE_AMOUNT will only come from Penalty when present."
+        )
+    elif unmapped_statutes:
+        sample = list(unmapped_statutes)[:12]
+        logger.info(
+            "Fine amount still blank for some rows (no Penalty and no fee-schedule match). "
+            "Sample statutes: %s%s",
+            sample,
+            " ..." if len(unmapped_statutes) > 12 else "",
+        )
+
+    if "DATA_QUALITY_TIER" not in df.columns and "DATA_QUALITY_SCORE" in df.columns:
+        df["DATA_QUALITY_TIER"] = df["DATA_QUALITY_SCORE"].apply(
+            lambda s: "High" if pd.notna(s) and int(s) >= 80 else "Standard"
+        )
+
+    if "ASSIGNMENT_FOUND" not in df.columns:
+        df["ASSIGNMENT_FOUND"] = True
+
+    return df
 
 
 def _classify_violation(row, title39_dict, ordinance_dict):
@@ -247,6 +469,8 @@ def normalize_personnel_data(summons_path: str, master_path: str, output_path: s
             df.at[idx, "TEAM"] = info["TEAM"]
             df.at[idx, "WG1"] = info["WG1"]
             df.at[idx, "WG2"] = info["WG2"]
+            df.at[idx, "WG3"] = info["WG3"]
+            df.at[idx, "WG4"] = info["WG4"]
             df.at[idx, "PADDED_BADGE_NUMBER"] = info["PADDED_BADGE_NUMBER"]
             df.at[idx, "RANK"] = info["RANK"]
             df.at[idx, "_MATCHED"] = 1
@@ -261,6 +485,8 @@ def normalize_personnel_data(summons_path: str, master_path: str, output_path: s
             df.at[idx, "PADDED_BADGE_NUMBER"] = str(badge).zfill(4) if badge is not None else (badge_str.zfill(4) if badge_str else "")
             df.at[idx, "WG1"] = "UNKNOWN"
             df.at[idx, "WG2"] = "UNKNOWN"
+            df.at[idx, "WG3"] = ""
+            df.at[idx, "WG4"] = ""
             df.at[idx, "RANK"] = ""
 
     if unmatched:
@@ -302,6 +528,7 @@ def normalize_personnel_data(summons_path: str, master_path: str, output_path: s
         "Case Status Code": "STATUS",
         "Statute": "STATUTE",
         "Violation Description": "VIOLATION_DESCRIPTION",
+        "Violation Number": "VIOLATION_NUMBER",
     }
     if date_col and date_col != "ISSUE_DATE":
         rename_map[date_col] = "ISSUE_DATE"
@@ -311,7 +538,7 @@ def normalize_personnel_data(summons_path: str, master_path: str, output_path: s
 
 
 def write_three_tier_output(df: pd.DataFrame, output_xlsx: str, original_summons_path: str) -> None:
-    """Write 3 output tiers: RAW (copy), CLEAN (Excel), SLIM (23-col CSV for Power BI)."""
+    """Write 3 output tiers: RAW (copy), CLEAN (Excel), SLIM CSV for Power BI (incl. FINE_AMOUNT, VIOLATION_CATEGORY)."""
     output_dir = Path(output_xlsx).parent
     base_name = datetime.now().strftime("%Y_%m") + "_eticket_export"
 
@@ -323,14 +550,44 @@ def write_three_tier_output(df: pd.DataFrame, output_xlsx: str, original_summons
     logger.info("CLEAN full saved: %s (%s rows)", Path(output_xlsx).name, len(df))
 
     slim_cols = [
-        "TICKET_NUMBER", "STATUS", "ISSUE_DATE", "STATUTE", "VIOLATION_DESCRIPTION",
-        "OFFICER_DISPLAY_NAME", "PADDED_BADGE_NUMBER", "TYPE", "WG1", "WG2",
-        "YearMonthKey", "Month_Year", "Year", "Month", "TICKET_COUNT", "IS_AGGREGATE",
-        "ETL_VERSION", "DATA_QUALITY_SCORE", "OFFICER_NAME_RAW", "SOURCE_FILE",
-        "PROCESSING_TIMESTAMP", "TITLE", "RANK",
+        "TICKET_NUMBER",
+        "STATUS",
+        "ISSUE_DATE",
+        "STATUTE",
+        "VIOLATION_NUMBER",
+        "VIOLATION_DESCRIPTION",
+        "VIOLATION_TYPE",
+        "VIOLATION_CATEGORY",
+        "OFFICER_DISPLAY_NAME",
+        "PADDED_BADGE_NUMBER",
+        "TYPE",
+        "WG1",
+        "WG2",
+        "WG3",
+        "WG4",
+        "TEAM",
+        "YearMonthKey",
+        "Month_Year",
+        "Year",
+        "Month",
+        "TICKET_COUNT",
+        "IS_AGGREGATE",
+        "ETL_VERSION",
+        "DATA_QUALITY_SCORE",
+        "DATA_QUALITY_TIER",
+        "OFFICER_NAME_RAW",
+        "SOURCE_FILE",
+        "PROCESSING_TIMESTAMP",
+        "TITLE",
+        "RANK",
+        "TOTAL_PAID_AMOUNT",
+        "FINE_AMOUNT",
+        "COST_AMOUNT",
+        "MISC_AMOUNT",
+        "ASSIGNMENT_FOUND",
     ]
     slim_df = df[[c for c in slim_cols if c in df.columns]].copy()
-    for col in ("WG1", "WG2"):
+    for col in ("WG1", "WG2", "WG3", "WG4", "TEAM"):
         if col in slim_df.columns:
             slim_df[col] = slim_df[col].fillna("").replace("nan", "")
     slim_path = output_dir / "summons_slim_for_powerbi.csv"

@@ -1,6 +1,53 @@
 table ___Summons
 	lineageTag: 517dd132-c0e6-496e-bdbb-801045e4dff9
 
+	/// Total summons fine revenue YTD all bureaus.
+	measure 'Summons Revenue All Bureaus YTD' =
+			VAR ReportMonthStart = MAX('___DimMonth'[MonthStart])
+			VAR YtdStart = DATE(YEAR(ReportMonthStart), 1, 1)
+			VAR YtdEnd = EOMONTH(ReportMonthStart, 0)
+			RETURN
+			    CALCULATE(
+			        SUM('___Summons'[FINE_AMOUNT]),
+			        '___Summons'[ISSUE_DATE] >= YtdStart,
+			        '___Summons'[ISSUE_DATE] <= YtdEnd
+			    )
+		formatString: $#,0
+		displayFolder: Summons YTD
+		lineageTag: 09c7b952-017e-44eb-a89d-2339dc6bd11d
+
+	/// Total moving summons fine revenue YTD.
+	measure 'Summons Revenue Moving YTD' =
+			VAR ReportMonthStart = MAX('___DimMonth'[MonthStart])
+			VAR YtdStart = DATE(YEAR(ReportMonthStart), 1, 1)
+			VAR YtdEnd = EOMONTH(ReportMonthStart, 0)
+			RETURN
+			    CALCULATE(
+			        SUM('___Summons'[FINE_AMOUNT]),
+			        '___Summons'[TYPE] = "M",
+			        '___Summons'[ISSUE_DATE] >= YtdStart,
+			        '___Summons'[ISSUE_DATE] <= YtdEnd
+			    )
+		formatString: $#,0
+		displayFolder: Summons YTD
+		lineageTag: a1995373-4ecc-4bf5-add2-07fef54c347c
+
+	/// Total parking summons fine revenue YTD.
+	measure 'Summons Revenue Parking YTD' =
+			VAR ReportMonthStart = MAX('___DimMonth'[MonthStart])
+			VAR YtdStart = DATE(YEAR(ReportMonthStart), 1, 1)
+			VAR YtdEnd = EOMONTH(ReportMonthStart, 0)
+			RETURN
+			    CALCULATE(
+			        SUM('___Summons'[FINE_AMOUNT]),
+			        '___Summons'[TYPE] = "P",
+			        '___Summons'[ISSUE_DATE] >= YtdStart,
+			        '___Summons'[ISSUE_DATE] <= YtdEnd
+			    )
+		formatString: $#,0
+		displayFolder: Summons YTD
+		lineageTag: 4f04bee6-8186-4e7b-b768-007d0cd72280
+
 	column OFFICER_NAME_RAW
 		dataType: string
 		lineageTag: e58246d1-3230-46bc-a926-5d0dc6bfb96a
@@ -271,7 +318,7 @@ table ___Summons
 				    ColumnTypes = {
 				        {"PADDED_BADGE_NUMBER", type text},
 				        {"OFFICER_DISPLAY_NAME", type text},
-				        {"WG1", type text}, {"WG2", type text}, {"WG3", type text}, {"WG4", type text}, {"WG5", type text},
+				        {"WG1", type text}, {"WG2", type text}, {"WG3", type text}, {"WG4", type text}, {"TEAM", type text},
 				        {"TICKET_NUMBER", type text},
 				        {"ISSUE_DATE", type datetime},
 				        {"VIOLATION_NUMBER", type text},
