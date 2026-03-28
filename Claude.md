@@ -43,8 +43,8 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.19.9 |
-| **Status** | v1.19.9: `AI_Context_Reference` sheet injection prompt — covers 14 shared workbooks with M code mappings, ETL cross-refs, Claude in Excel quick-start, HPD-branded formatting. v1.19.8: Outreach M repo↔TMDL sync (descending sort); DAX measure audit (6 measures confirmed `___DimMonth` pattern); REMU partition verified. |
+| **Version** | 1.20.0 |
+| **Status** | v1.20.0: `scripts/inject_ai_context_reference.py` — executed injection of `AI_Context_Reference` sheet into 11 shared workbooks (3 Tier 2 not on disk); fixed 13 circular-reference / copy-error cells in `Drone_Monthly.xlsx`. v1.19.9: injection prompt doc. v1.19.8: Outreach M repo↔TMDL sync; DAX measure audit; REMU verified. |
 | **pReportMonth** | Set per `.pbix` in Power Query (example: `#date(2026, 3, 1)` for March 2026 report) |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
@@ -96,6 +96,7 @@ Migration prompt and transcripts: `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_
 - `scripts/summons_etl_normalize.py` - Summons ETL v2.5.0; `DFR_ASSIGNMENTS` + `split_dfr_records()` + `apply_fine_amount_and_violation_category()` (Penalty + municipal fee schedule on STATUTE)
 - `scripts/dfr_export.py` - DFR workbook export; `_map_to_dfr_schema()`, `export_to_dfr_workbook()`
 - `scripts/dfr_backfill_descriptions.py` - DFR description/fine backfill; cascading statute lookup
+- `scripts/inject_ai_context_reference.py` - Inject `AI_Context_Reference` worksheet into shared workbooks; `--dry-run`, `--tier2`, `--workbook`, `--verbose`; reads `config/scripts.json` + `visual_export_mapping.json` for ETL cross-refs; HPD-branded formatting; idempotent
 - `run_summons_etl.py` - Path-agnostic summons wrapper; DFR split + export wired in
 - `scripts/summons_backfill_merge.py` - Merge gap months into summons
 - `scripts/normalize_visual_export_for_backfill.py` - Visual export normalization; `--enforce-13-month` with optional `--13m-window-ends YYYY-MM` (exclude partial months after window end)
@@ -297,4 +298,4 @@ Active root returned by path_config.get_onedrive_root():
 
 ---
 
-*Last updated: 2026-03-26 | Format version: 4.5*
+*Last updated: 2026-03-28 | Format version: 4.6*
