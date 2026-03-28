@@ -35,7 +35,7 @@ This checklist addresses all known issues from previous runs to ensure a clean e
 
 ```powershell
 # Check for latest successful output file
-Test-Path "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\output\community_engagement_data_20260112_193127.csv"
+Test-Path "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagement\output\community_engagement_data_20260112_193127.csv"
 
 # Expected: True
 ```
@@ -46,7 +46,7 @@ Test-Path "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Commu
 
 ```powershell
 # Quick check of file size (should be substantial, not tiny)
-Get-Item "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\output\community_engagement_data_20260112_193127.csv" | Select-Object Name, Length
+Get-Item "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagement\output\community_engagement_data_20260112_193127.csv" | Select-Object Name, Length
 
 # Expected: Length > 50KB (file has 558 records)
 ```
@@ -70,7 +70,7 @@ Get-Item $ceSource, $stacpSource | Select-Object Name, LastWriteTime | Format-Ta
 ```
 
 **Action Required**:
-- [ ] If source files updated since 2026-01-12, run: `python src\main_processor.py` in Community_Engagment directory
+- [ ] If source files updated since 2026-01-12, run: `python src\main_processor.py` in Community_Engagement directory
 - [ ] If files not updated, Community Engagement is ready to go ✅
 
 ---
@@ -236,7 +236,7 @@ $stacpSource = "C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\COMM
 Get-Item $ceSource, $stacpSource -ErrorAction SilentlyContinue | Select-Object Name, LastWriteTime
 
 # If files updated since 2026-01-12, re-run Community Engagement ETL first:
-cd "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment"
+cd "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagement"
 python src\main_processor.py
 ```
 

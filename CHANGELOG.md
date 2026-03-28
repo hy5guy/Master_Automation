@@ -15,8 +15,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **v3 architecture (zip-safe)**: Never parses target XML through ElementTree. Uses text-level string insertion on raw XML bytes for `workbook.xml`, `workbook.xml.rels`, `[Content_Types].xml`. Does NOT touch `styles.xml`. Sheet content built in temp workbook (openpyxl), then injected as plain XML (no formatting, no style merge). This preserves all Data Validation, Conditional Formatting, Web Extensions, VBA, and unknown XML extensions.
 - **CLI flags**: `--dry-run`, `--tier2`, `--workbook <name>`, `--verbose`, `--no-backup`
 - **Automatic backup**: Copies to `archive/` subfolder with timestamp before any modification
-- **Executed**: 10 of 14 workbooks injected (3 Tier 2 files not on local disk; 1 Tier 2 skipped)
+- **Executed**: 10/10 Tier 1 workbooks injected and verified (9/10 pass Excel COM automation validation; CSB has pre-existing COM open issue unrelated to injection)
 - **Per-workbook sections**: Overview, Sheet & Table Directory, Data Dictionary & Validation, ETL & Integration Map, VBA & Macros (`.xlsm`), Claude in Excel Quick Start
+
+### Fixed — `inject_ai_context_reference.py` formula leak causing Excel repair dialog (7 workbooks)
+
+- **Root cause**: `_get_sample()` read formula cell values (e.g., `=_xlfn.XLOOKUP(...)`) from the target workbook. openpyxl stored these as actual `<f>` elements in the temp workbook. The injected sheet XML then contained truncated formulas referencing tables/ranges that don't exist in the AI_Context_Reference sheet context, triggering Excel's "We found a problem" repair dialog.
+- **Second issue**: Empty shared-string cells became `<c t="inlineStr"/>` with no `<is>` child — invalid OOXML.
+- **Fix 1 (source)**: `_get_sample()` now detects formula cells (`cell.data_type == "f"` or value starting with `=`) and prefixes with `'` to force text interpretation in openpyxl.
+- **Fix 2 (safety net)**: `_build_plain_sheet_xml()` now strips all `<f>` elements from cells, converts them to inline strings using cached values, and adds empty `<is><t/></is>` to any inlineStr cells missing the `<is>` child.
+- **Diagnosis method**: Binary-search via Excel COM automation (`win32com.client`) to isolate the exact failing row in the injected sheet XML.
+- **All 7 previously-broken workbooks now open clean**: STACP, Patrol, Policy_Training, Detectives, ESU, Traffic, DFR
 
 ### Added — `/fix-excel` slash command
 
@@ -87,7 +96,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`docs/PROJECT_STRUCTURE.md`** — **2026-03-25**; **`etl_orchestrator.py`** in tree; **`m_code`** **47+** queries; **`ssocc/`** Option B M files noted.
 - **`docs/QUICK_START.md`** — Optional **`python etl_orchestrator.py --scorecard`** (with **`PYTHONIOENCODING=utf-8`** on Windows).
 - **`docs/SSOCC_Service_Log_Excel_And_Power_BI_Rework_2026_03.md`** — SSOCC Service Log Excel (`T_YYYY_MM`, **`DimServiceGroup`**), Option B Power Query + DAX migration checklist (source: chunked Claude-in-Excel export).
-- **`docs/cursor_prompt_fix_duration_and_attendees.md`** — Community Engagement ETL: **`safe_duration_to_hours`**, **`clean_and_count_attendees`**, processor wiring (STACP + CE); validation notes (**`02_ETL_Scripts/Community_Engagment/`**).
+- **`docs/cursor_prompt_fix_duration_and_attendees.md`** — Community Engagement ETL: **`safe_duration_to_hours`**, **`clean_and_count_attendees`**, processor wiring (STACP + CE); validation notes (**`02_ETL_Scripts/Community_Engagement/`**).
 - **`docs/ETL_SKILL_MEMORY.md`** — Scorecard / evidence for **`etl_orchestrator.py`** (referenced from README / Claude).
 - **`docs/handoffs/HANDOFF_Community_Outreach_PBIX_2026_03_25.md`** — Community outreach Power BI / ETL handoff (linked from **`docs/handoffs/HANDOFF_PowerBI_MCP_2026_03_23.md`** where applicable).
 - **`docs/POWER_BI_YTD_MEASURES_AND_PAGE_INSTRUCTIONS.md`**, **`docs/handoffs/HANDOFF_PowerBI_MCP_2026_03_23.md`**, and other touched guides — Minor consistency pass with **v1.19.6** outreach YTD / path wording.
@@ -424,7 +433,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed — Community Engagement: STACP Sheet, Config Paths, Individual Events
 
-**Community Engagement ETL (02_ETL_Scripts/Community_Engagment):**
+**Community Engagement ETL (02_ETL_Scripts/Community_Engagement):**
 - Config: STACP sheet updated from `_25_outreach` (does not exist) to `School_Outreach`. Fixes missing Feb 2026 STA&CP incidents.
 - Config: All paths use base `C:\Users\carucci_r\OneDrive - City of Hackensack` (desktop); laptop uses `RobertCarucci`.
 
@@ -432,7 +441,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `m_code/community/___Combined_Outreach_All.m`: Added Event ID and Row_ID columns so each event displays as an individual row. Prevents "Engagement Initiatives by Bureau" visual from aggregating multiple events (e.g. 9 LEAD events) into 2 rows. Add Row_ID to visual's Rows well.
 
 **Documentation:**
-- `02_ETL_Scripts/Community_Engagment/`: SUMMARY.md, README.md, CHANGELOG.md updated.
+- `02_ETL_Scripts/Community_Engagement/`: SUMMARY.md, README.md, CHANGELOG.md updated.
 - `docs/PROMPT_Fix_Social_Media_MMYY_Columns.md`: ___Combined_Outreach_All section updated with STACP sheet, config path, Event ID/Row_ID.
 - `SUMMARY.md`: Community Engagement script corrected to `src\main_processor.py`.
 ## [1.19.1] - 2026-03-21

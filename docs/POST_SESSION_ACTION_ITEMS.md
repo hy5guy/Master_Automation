@@ -138,4 +138,17 @@ All measures are created. Next session should focus on:
 
 ---
 
+## Community Outreach — follow-ups (2026-03-26, MCP transcript)
+
+See [handoffs/HANDOFF_Community_Outreach_PBIX_2026_03_25.md](handoffs/HANDOFF_Community_Outreach_PBIX_2026_03_25.md) and [chatlogs/community_outreach_claude_mcp/](chatlogs/community_outreach_claude_mcp/).
+
+| Task | Notes |
+|------|--------|
+| **Matrix vs report month** | If “previous month” matrix shows wrong totals vs subtitle, add **`___DimMonth[MonthLabel]`** on that visual **or** add **Previous month** DAX measures (`EDATE` / `EOMONTH`). |
+| **`measure SubtitlePrevMonth`** | Confirm no visual uses it; delete if orphaned. |
+| **ETL output path** | Optional: wire **`output_settings.output_directory`** in **`main_processor.py`** to match **`config.json`** (M already reads `Community_Engagement\output\`). |
+| **Save + refresh** | After ETL fixes: **Ctrl+S** PBIX, **Refresh**; re-export **`m_code/tmdl_export`** if repo parity required. |
+
+---
+
 *Session complete. Save .pbix → Close & Apply → verify.*

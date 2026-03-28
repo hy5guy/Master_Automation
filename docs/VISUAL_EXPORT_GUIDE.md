@@ -15,7 +15,7 @@ These visuals show historical data across multiple months and need to be preserv
 | Monthly Accrual and Usage Summary | `vcs_time_report` | overtime_timeoff |
 | Response Times | `response_time` | Response_Times |
 | Summons Data | `summons` | Summons |
-| Community Engagement Data | `community_outreach` | Community_Engagment |
+| Community Engagement Data | `community_outreach` | Community_Engagement |
 | Policy Training Monthly | `policy_training` | Policy_Training_Monthly |
 
 ### 📁 Archive Visuals (Single Month Data)
@@ -81,7 +81,7 @@ cd "C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data"
 ### 3. Community Engagement
 **Visual Name:** (Check Power BI report)
 **Category:** `community_outreach`
-**Script:** `02_ETL_Scripts\Community_Engagment\deploy_production.py`
+**Script:** `02_ETL_Scripts\Community_Engagement\deploy_production.py`
 **Export Location:** `Backfill\YYYY_MM\community_outreach\`
 **Filename Pattern:** Contains "community", "outreach", or "engagement"
 

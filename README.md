@@ -24,7 +24,7 @@ This directory orchestrates all Python data processing scripts from various work
 
 **v1.18.0 (2026-03-10): Summons Pipeline Overhaul.** Full ETL rewrite: TYPE classification fixed (raw Case Type Code M/P/C instead of broken statute lookup), multi-year file discovery (2025+2026), BOM/quote-wrapped CSV handling, `summons_slim_for_powerbi.csv` as primary Power BI source. M code: 13-month trend window aligned to `pReportMonth - 1`, WG2 filter removed from dept-wide trend, `List.Sum([TICKET_COUNT])` replaces `Table.RowCount`, all_bureaus Total null coalesce. See `CHANGELOG.md`.
 
-**v1.17.28 (2026-03-05):** Community Engagement ETL — Patrol processor v2 deployed. Enhanced attendee parsing (rank stripping, expanded delimiters, non-name detection), new `attendee_names` column in output. scripts.json updated for `output\*.csv` file discovery. See `Claude.md` and Community_Engagment `CHANGELOG.md`.
+**v1.17.28 (2026-03-05):** Community Engagement ETL — Patrol processor v2 deployed. Enhanced attendee parsing (rank stripping, expanded delimiters, non-name detection), new `attendee_names` column in output. scripts.json updated for `output\*.csv` file discovery. See `Claude.md` and Community_Engagement `CHANGELOG.md`.
 
 **v1.17.19 (2026-02-27):** Peer-review corrections: Suspicious Person, Suspicious Vehicle, Missing Person (Adult/Juvenile), NARCAN/Overdose Juvenile, Juvenile Complaint (Criminal), and ESU - Response moved from excluded to included (citizen-initiated dispatched calls). Normalization enhanced for unicode dash variants. All 25 monthly CSVs regenerated. See `CHANGELOG.md` for full detail. **Power BI refresh required.**
 
@@ -194,7 +194,7 @@ Edit `config/scripts.json` to add, remove, or modify ETL scripts:
     },
     {
       "name": "Community Engagement",
-      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagment",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagement",
       "script": "deploy_production.py",
       "enabled": true,
       "output_to_powerbi": true,

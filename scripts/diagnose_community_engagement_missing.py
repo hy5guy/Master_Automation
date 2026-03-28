@@ -10,7 +10,7 @@ from datetime import datetime
 # Source file paths
 CE_FILE = r"C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Community_Engagement\Community_Engagement_Monthly.xlsx"
 STACP_FILE = r"C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\STACP\STACP.xlsm"
-ETL_OUTPUT = r"C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\output\community_engagement_data_20251210_024452.csv"
+ETL_OUTPUT = r"C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagement\output\community_engagement_data_20251210_024452.csv"
 
 def check_source_data():
     """Check source Excel files for December 2025 events"""

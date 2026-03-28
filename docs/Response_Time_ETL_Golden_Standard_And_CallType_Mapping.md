@@ -227,7 +227,7 @@ command results below:
 [OK]   Copied 2 file(s) to Power BI drop folder
 
 >> Processing: Community Engagement
-  Script: C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\src\main_processor.py
+  Script: C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagement\src\main_processor.py
   Order: 2
   Executing Python script...
   Log: C:\Users\carucci_r\OneDrive - City of Hackensack\Master_Automation\logs\2026-02-26_16-46-24_Community Engagement.log
@@ -405,7 +405,7 @@ I refreshed ___Combined_Outreach_All which is the Community Engagement, the visu
 let
     // === 1. Dynamic File Path Discovery ===
     // Look for the most recent Python ETL output file
-    OutputFolder = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\output\",
+    OutputFolder = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagement\output\",
     
     // Try to find the most recent community_engagement_data_*.csv file
     // Pattern: community_engagement_data_YYYYMMDD_HHMMSS.csv

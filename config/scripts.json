@@ -73,7 +73,7 @@
     },
     {
       "name": "Community Engagement",
-      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagment",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagement",
       "script": "src\\main_processor.py",
       "enabled": true,
       "output_to_powerbi": true,
@@ -107,7 +107,7 @@
     },
     {
       "name": "Overtime TimeOff",
-      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\Master_Automation\\scripts",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\06_Workspace_Management\\scripts",
       "script": "overtime_timeoff_with_backfill.py",
       "enabled": true,
       "output_to_powerbi": false,

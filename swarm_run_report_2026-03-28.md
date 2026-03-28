@@ -5,7 +5,7 @@
 | Agent | Repo/Scope | Status | Duration | Notes |
 |-------|-----------|--------|----------|-------|
 | Doc Agent | Benchmark | COMPLETE | ~5m | 7 created, 4 updated. 3 dead scripts, PII flag. |
-| Doc Agent | Community_Engagment | COMPLETE | ~6.5m | 8 created, 3 updated. 7 dead scripts, dir typo flagged. |
+| Doc Agent | Community_Engagement | COMPLETE | ~6.5m | 8 created, 3 updated. 7 dead scripts, dir typo flagged. |
 | Doc Agent | Overtime_TimeOff | COMPLETE | ~6m | 8 created, 3 updated. 19 dead scripts, SMTP exposure. |
 | Doc Agent | Policy_Training_Monthly | COMPLETE | ~6m | 10 created, 1 updated. 5 dead scripts, dupe function. |
 | Doc Agent | Response_Times | COMPLETE | ~7m | 12 created, 0 updated. 91 dead scripts — worst clutter. |
@@ -23,7 +23,7 @@
 | Repo | Files Created |
 |------|--------------|
 | Benchmark | `docs/etl-pipeline.md`, `docs/file-inventory.md`, `docs/config-reference.md`, `.gitignore`, `CONTRIBUTING.md`, `reorganization_proposal.md`, `findings.json` |
-| Community_Engagment | `CLAUDE.md` (new, replacing `Claude.md`), `docs/etl-pipeline.md`, `docs/file-inventory.md`, `docs/config-reference.md`, `.gitignore`, `CONTRIBUTING.md`, `reorganization_proposal.md`, `findings.json` |
+| Community_Engagement | `CLAUDE.md` (new, replacing `Claude.md`), `docs/etl-pipeline.md`, `docs/file-inventory.md`, `docs/config-reference.md`, `.gitignore`, `CONTRIBUTING.md`, `reorganization_proposal.md`, `findings.json` |
 | Overtime_TimeOff | `CLAUDE.md`, `CHANGELOG.md`, `docs/etl-pipeline.md`, `docs/file-inventory.md`, `docs/config-reference.md`, `CONTRIBUTING.md`, `reorganization_proposal.md`, `findings.json` |
 | Policy_Training_Monthly | `CLAUDE.md`, `CHANGELOG.md`, `SUMMARY.md`, `docs/etl-pipeline.md`, `docs/file-inventory.md`, `docs/config-reference.md`, `.gitignore`, `CONTRIBUTING.md`, `reorganization_proposal.md`, `findings.json` |
 | Response_Times | `CLAUDE.md`, `README.md`, `CHANGELOG.md`, `SUMMARY.md`, `docs/etl-pipeline.md`, `docs/file-inventory.md`, `docs/config-reference.md`, `.gitignore`, `CONTRIBUTING.md`, `reorganization_proposal.md`, `findings.json` |
@@ -35,7 +35,7 @@
 | Repo | Files Updated |
 |------|--------------|
 | Benchmark | `CLAUDE.md`, `README.md`, `CHANGELOG.md`, `SUMMARY.md` |
-| Community_Engagment | `README.md`, `CHANGELOG.md`, `SUMMARY.md` |
+| Community_Engagement | `README.md`, `CHANGELOG.md`, `SUMMARY.md` |
 | Overtime_TimeOff | `README.md`, `SUMMARY.md`, `DOCUMENTATION_INDEX.md` |
 | Policy_Training_Monthly | `README.md` |
 | Summons | `CLAUDE.md`, `README.md`, `.gitignore`, `docs/etl-pipeline.md`, `docs/file-inventory.md`, `docs/config-reference.md` |
@@ -48,7 +48,7 @@
 | Repo | Dead Scripts | Orphaned Files | Top Offenders |
 |------|-------------|----------------|---------------|
 | Benchmark | 3 | 5 | `BM_Measures.dax`, `Benchmar_Calendar.dax` reference defunct tables |
-| Community_Engagment | 7 | 12 | Debug/scaffold utilities no longer called |
+| Community_Engagement | 7 | 12 | Debug/scaffold utilities no longer called |
 | Overtime_TimeOff | 19 | 30 | 12 pre-v10 Python iterations, 7 one-off utilities |
 | Policy_Training_Monthly | 5 | 11 | Legacy M code, OneDrive `(1)` duplicates |
 | Response_Times | 91 | 12 | ~80 dead scripts in `scripts/`, 19 Notepad++ backups |
@@ -62,8 +62,8 @@
 | Repo | Flag | Severity |
 |------|------|----------|
 | Benchmark | `benchmark_preview_table.csv` contains officer names, badge numbers, incident details (LE PII) — tracked in git | **HIGH** |
-| Community_Engagment | `production_config.json` has blank credential fields (SMTP, PBI client_id/secret) | MEDIUM |
-| Community_Engagment | `task_schedule.xml` runs as NT AUTHORITY\SYSTEM | LOW |
+| Community_Engagement | `production_config.json` has blank credential fields (SMTP, PBI client_id/secret) | MEDIUM |
+| Community_Engagement | `task_schedule.xml` runs as NT AUTHORITY\SYSTEM | LOW |
 | Overtime_TimeOff | `config.json` contains SMTP password field (currently empty) | MEDIUM |
 | Overtime_TimeOff | `config.json` was committed before `.gitignore` existed | MEDIUM |
 | Summons | `ASSIGNMENT_OVERRIDES` contains officer names/badge numbers | LOW |
@@ -79,7 +79,7 @@ Each repo has a `reorganization_proposal.md` at its root. Summary:
 | Repo | Files Proposed for Archive | Key Proposals |
 |------|---------------------------|---------------|
 | Benchmark | 8 | Archive 3 dead DAX/M scripts, 5 orphaned CSVs/logs |
-| Community_Engagment | 18 | Archive 13 clutter files, 5 dead scripts; flag dir typo rename |
+| Community_Engagement | 18 | Archive 13 clutter files, 5 dead scripts; flag dir typo rename |
 | Overtime_TimeOff | 42 | Archive 19 legacy scripts, 12 AI/verification MDs, 11 verification scripts |
 | Policy_Training_Monthly | 15+ | Archive stale/dupe files, move generic templates to `08_Templates/` |
 | Response_Times | 100+ | Mass archive of `scripts/` directory, AI prompt artifacts, junk files |
@@ -95,7 +95,7 @@ Key patterns:
 - **Mixed CHANGELOG format:** Benchmark and Policy_Training_Monthly use semver; others use date-based entries
 - **README structure varies:** One repo uses RST-style underlines; content depth inconsistent
 - **Generic templates in wrong location:** `PYTHON_WORKSPACE_AI_GUIDE.md` and `PYTHON_WORKSPACE_TEMPLATE.md` in 3 repos (should be in `08_Templates/`)
-- **Missing requirements.txt:** 5 of 6 repos (Community_Engagment README even references one that doesn't exist)
+- **Missing requirements.txt:** 5 of 6 repos (Community_Engagement README even references one that doesn't exist)
 - **CLAUDE.md section coverage:** Response_Times missing running instructions; several repos lack explicit path resolution sections
 
 ---
@@ -116,7 +116,7 @@ Full details in `06_Workspace_Management/cross_repo_audit.md`. Highlights:
 
 | Repo | Git Root | Commit SHA | Files Staged | Status |
 |------|----------|------------|-------------|--------|
-| Community_Engagment | Own repo | `d0fc57d` | 11 | OK |
+| Community_Engagement | Own repo | `d0fc57d` | 11 | OK |
 | Overtime_TimeOff | Own repo | `f1635b1` | 11 | OK |
 | Summons | Own repo | `878effb` | 11 | OK |
 | 06_Workspace_Management | Own repo | `3bf7ad8` | 4 | OK |
@@ -125,7 +125,7 @@ Full details in `06_Workspace_Management/cross_repo_audit.md`. Highlights:
 
 **Topology discovery:** Policy_Training_Monthly was expected to be a subdirectory of the parent repo but has its own `.git` — committed as standalone.
 
-**Git corruption note:** Community_Engagment had a corrupted object for old `Claude.md`; commit succeeded, old file removed from tracking.
+**Git corruption note:** Community_Engagement had a corrupted object for old `Claude.md`; commit succeeded, old file removed from tracking.
 
 ---
 
@@ -133,7 +133,7 @@ Full details in `06_Workspace_Management/cross_repo_audit.md`. Highlights:
 
 | Repo | Remote | Branch | Status |
 |------|--------|--------|--------|
-| Community_Engagment | `racmac57/Community_Engagement.git` | master | PUSHED (`93b7d58..d0fc57d`) |
+| Community_Engagement | `racmac57/Community_Engagement.git` | master | PUSHED (`93b7d58..d0fc57d`) |
 | Overtime_TimeOff | `racmac57/overtime_timeoff.git` | master | PUSHED (`4f842cb..f1635b1`) |
 | Summons | `racmac57/summons.git` | main | PUSHED (`07412c6..878effb`) |
 | 06_Workspace_Management | `racmac57/Master_Automation.git` | main | PUSHED (`180cb57..3bf7ad8`) |
@@ -148,9 +148,9 @@ Full details in `06_Workspace_Management/cross_repo_audit.md`. Highlights:
 
 **38 items total** — see `06_Workspace_Management/HUMAN_REVIEW.md` for full list.
 
-### CRITICAL (2)
-1. **Community_Engagment directory typo** — `Engagment` missing 'e'. Rename requires coordinated update across config.json, task_schedule.xml, M code paths, Power BI data sources, and parent workspace references.
-2. **Summons dual-ETL ambiguity** — `SummonsMaster_Simple.py` and `summons_etl_enhanced.py` both write `summons_powerbi_latest.xlsx`. Determine which is authoritative.
+### CRITICAL (2) — both RESOLVED
+1. ~~**Community_Engagement directory typo**~~ — **RESOLVED 2026-03-28**. Renamed from `Community_Engagment` to `Community_Engagement`, all downstream refs updated.
+2. ~~**Summons dual-ETL ambiguity**~~ — **RESOLVED 2026-03-28**. `summons_etl_enhanced.py` is authoritative; `SummonsMaster_Simple.py` archived.
 
 ### HIGH (12)
 - PII files in git (Benchmark preview CSV)
@@ -168,8 +168,8 @@ Config inconsistencies, output retention policies, unit test gaps, DAX consolida
 ## Recommended Next Improvements
 
 ### Priority 1 — Act Now
-1. Rename `Community_Engagment` → `Community_Engagement` (coordinate downstream refs)
-2. Add PII files to `.gitignore` (Benchmark, Community_Engagment)
+1. Rename `Community_Engagement` → `Community_Engagement` (coordinate downstream refs)
+2. Add PII files to `.gitignore` (Benchmark, Community_Engagement)
 3. Create `requirements.txt` for 5 repos missing it
 4. Resolve Summons dual-ETL: pick one authoritative script
 
@@ -187,7 +187,7 @@ Config inconsistencies, output retention policies, unit test gaps, DAX consolida
 
 ### Priority 4 — Backlog
 13. Add unit tests (most repos have zero coverage)
-14. Eliminate `sys.path.append()` hacks in Community_Engagment
+14. Eliminate `sys.path.append()` hacks in Community_Engagement
 15. Consolidate DAX files in Response_Times
 16. Standardize config format (JSON vs YAML — pick one)
 17. Remove 0-byte junk files across repos

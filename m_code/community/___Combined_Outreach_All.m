@@ -10,7 +10,7 @@ let
     // ETL writes BOTH community_engagement_data_*.csv and *.xlsx (same timestamp). If a run only
     // leaves xlsx (or xlsx is newer on disk), picking "latest CSV only" loads a STALE file (e.g. Jan
     // CSV while Feb xlsx exists) — YTD/months look wrong. Use newest file by Date modified: .csv OR .xlsx.
-    OutputFolder = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\output\",
+    OutputFolder = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagement\output\",
     
     Source = Folder.Files(OutputFolder),
     FilteredFiles = Table.SelectRows(Source, each 
@@ -126,7 +126,8 @@ let
     }),
     
     // === 6. Final Sort and Output ===
-    // Sort by date ascending (same as original M code)
+    // Intermediate ascending sort (legacy); final step matches PBIX partition — Date descending for preview.
+    // Row order does not affect DAX aggregations on this table.
     FinalData = if Table.RowCount(ValidatedAttendees) > 0
                 then Table.Sort(ValidatedAttendees, {{"Date", Order.Ascending}})
                 else ValidatedAttendees,

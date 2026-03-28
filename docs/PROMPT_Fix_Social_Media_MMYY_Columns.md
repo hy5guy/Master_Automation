@@ -13,7 +13,7 @@ Follow docs/PROMPT_Fix_Social_Media_MMYY_Columns.md for full instructions. Tasks
 
 2. ___Arrest_Categories: Fix blank "Arrest Categories by Type and Gender" visual. Query filters to previous month from pReportMonth; verify source file path and that latest PowerBI_Ready file contains Feb 2026 data. Path: C:\Users\carucci_r\OneDrive - City of Hackensack\01_DataSources\ARREST_DATA\Power_BI
 
-3. ___Combined_Outreach_All: Investigate why the visual on Out-Reach page is blank. Check source path (Community_Engagment\output\), ETL output files, and query logic.
+3. ___Combined_Outreach_All: Investigate why the visual on Out-Reach page is blank. Check source path (Community_Engagement\output\), ETL output files, and query logic.
 
 4. Detectives Case Dispositions: Investigate why visuals are missing 02-25 and have extra 03-26. Query: ___Det_case_dispositions_clearance. Source: detectives_monthly.xlsx, table _CCD_MOM. Fix 13-month window logic.
 
@@ -156,7 +156,7 @@ in
 
 **Query:** `___Combined_Outreach_All`  
 **Visual:** On Out-Reach page; "Engagement Initiatives by Bureau"  
-**Source:** `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\output\`  
+**Source:** `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagement\output\`  
 **Pattern:** `community_engagement_data_*.csv`
 
 **ETL config (2026-03-11):** STACP sheet = `School_Outreach` (not `_25_outreach`). Config paths use `carucci_r` base (desktop); laptop uses `RobertCarucci`.
@@ -165,7 +165,7 @@ in
 
 **Investigate:**
 - Do any `community_engagement_data_*.csv` files exist in that folder?
-- Is the path correct? (Note: folder is `Community_Engagment` – typo in name)
+- Is the path correct? (Note: folder is `Community_Engagement` – typo in name)
 - Has the Community Engagement ETL been run recently?
 - Does the query’s dynamic file discovery find a file, or does it error/return empty?
 - Check column names: `date`, `duration_hours`, `event_name`, `location`, `attendee_count`, `office`, `Event ID`, `Row_ID`

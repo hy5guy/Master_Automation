@@ -70,7 +70,7 @@
     "config/powerbi_api_config.json is correctly gitignored (may contain API credentials)"
   ],
   "human_review_needed": [
-    "CRITICAL: Community_Engagment directory name typo requires coordinated rename across config.json, task_schedule.xml, M code, PBI data sources",
+    "CRITICAL: Community_Engagement directory name typo requires coordinated rename across config.json, task_schedule.xml, M code, PBI data sources",
     "CRITICAL: Summons dual-ETL ambiguity -- SummonsMaster_Simple.py and summons_etl_enhanced.py both write the same output",
     "HIGH: 202 dead scripts across 6 repos need bulk archival approval (see cross_repo_audit.md)",
     "HIGH: 5 of 6 repos missing requirements.txt -- create and pin dependency versions",

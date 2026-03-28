@@ -28,7 +28,7 @@ Verification of all script paths in `config/scripts.json` has been completed.
 - **Action Required**: Updated config to use `arrest_python_processor.py`
 
 #### 2. Community Engagement
-- **Path**: `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment`
+- **Path**: `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagement`
 - **Status**: ✅ Directory exists
 - **Original Script**: `main.py` ❌ Not found
 - **Found Script**: `src\main_processor.py`
@@ -103,7 +103,7 @@ Verification of all script paths in `config/scripts.json` has been completed.
    - Create a Python processing script for NIBRS data, or
    - Remove the NIBRS entry from the config if it's not needed
 
-4. **Directory Naming**: The "Community_Engagment" directory has a typo ("Engagment" instead of "Engagement"). Consider renaming for consistency.
+4. **Directory Naming**: The "Community_Engagement" directory has a typo ("Engagment" instead of "Engagement"). Consider renaming for consistency.
 
 5. **Create Main.py Wrappers** (Optional): For better consistency, create `main.py` files in each directory that import and call the actual processing scripts:
    ```python

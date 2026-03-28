@@ -1,0 +1,161 @@
+// 🕒 2026-03-25-12-00-00 (EST)
+// # community/___Combined_Outreach_All.m
+// # Author: R. A. Carucci
+// # Purpose: Load community engagement data from latest Python ETL export (.csv or .xlsx) for Power BI.
+let
+    ReportMonth = pReportMonth,
+    // === 1. Dynamic File Path Discovery ===
+    // ETL writes BOTH community_engagement_data_*.csv and *.xlsx (same timestamp). If a run only
+    // leaves xlsx (or xlsx is newer on disk), picking "latest CSV only" loads a STALE file (e.g. Jan
+    // CSV while Feb xlsx exists) — YTD/months look wrong. Use newest file by Date modified: .csv OR .xlsx.
+    OutputFolder = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagement\output\",
+    Source = Folder.Files(OutputFolder),
+    FilteredFiles = Table.SelectRows(
+        Source,
+        each
+            Text.StartsWith([Name], "community_engagement_data_")
+            and (Text.EndsWith(Text.Lower([Name]), ".csv") or Text.EndsWith(Text.Lower([Name]), ".xlsx"))
+    ),
+    SortedFiles = Table.Sort(FilteredFiles, {{"Date modified", Order.Descending}}),
+    PythonETLFile =
+        if Table.RowCount(SortedFiles) > 0 then
+            OutputFolder & SortedFiles{0}[Name]
+        else
+            error "No community_engagement_data_*.csv or *.xlsx in output folder",
+    FileExt = Text.Lower(Text.AfterDelimiter(PythonETLFile, ".", {0, RelativePosition.FromEnd})),
+    // === 2. Read Python ETL output (CSV or Excel) ===
+    HeadersPromoted =
+        if FileExt = "csv" then
+            let
+                CSVSource = Csv.Document(
+                    File.Contents(PythonETLFile),
+                    [
+                        Delimiter = ",",
+                        Columns = null,
+                        Encoding = 65001,
+                        QuoteStyle = QuoteStyle.None
+                    ]
+                ),
+                H = Table.PromoteHeaders(CSVSource, [PromoteAllScalars = true])
+            in
+                H
+        else if FileExt = "xlsx" then
+            let
+                RawWB = Excel.Workbook(File.Contents(PythonETLFile), null, true),
+                SheetRows = Table.SelectRows(RawWB, each [Kind] = "Sheet" and [Item] = "Combined_Data"),
+                DataOnly =
+                    if Table.RowCount(SheetRows) > 0 then
+                        SheetRows{0}[Data]
+                    else
+                        error "Sheet Combined_Data not found in " & PythonETLFile,
+                H = Table.PromoteHeaders(DataOnly, [PromoteAllScalars = true])
+            in
+                H
+        else
+            error "Unsupported outreach export extension: " & FileExt,
+    // === 3. Data Type Transformations ===
+    // CSV often has text dates; Excel may return date, datetime, or serial — normalize to date.
+    DateParsed = Table.TransformColumns(
+        HeadersPromoted,
+        {
+            {
+                "date",
+                each
+                    if _ = null or _ = "" then
+                        null
+                    else if _ is date then
+                        _
+                    else if _ is datetime then
+                        Date.From(_)
+                    else if _ is number then
+                        Date.AddDays(#date(1899, 12, 30), Number.From(_))
+                    else
+                        try
+                            DateTime.Date(DateTime.FromText(Text.From(_)))
+                        otherwise
+                            Date.FromText(Text.Start(Text.From(_), 10)),
+                type date
+            }
+        }
+    ),
+    // Handle time columns safely (may be in various formats from Python)
+    TimeParsed = Table.TransformColumns(
+        DateParsed,
+        {
+            {"start_time", each try Time.FromText(_) otherwise null, type time},
+            {"end_time", each try Time.FromText(_) otherwise null, type time}
+        }
+    ),
+    TypedData = Table.TransformColumnTypes(
+        TimeParsed,
+        {
+            {"event_name", type text},
+            {"location", type text},
+            {"duration_hours", type number},
+            {"attendee_count", Int64.Type},
+            {"office", type text},
+            {"division", type text}
+        }
+    ),
+    // Handle any duration_hours conversion issues (Python ETL may have NaNs)
+    SafeDuration = Table.TransformColumns(
+        TypedData,
+        {
+            {
+                "duration_hours",
+                each if _ = null or _ = "" or Text.From(_) = "nan" then 0.5 else try Number.From(_) otherwise 0.5,
+                type number
+            }
+        }
+    ),
+    // Handle any attendee_count conversion issues
+    SafeAttendees = Table.TransformColumns(
+        SafeDuration, {{"attendee_count", each try Number.From(_) otherwise 1, Int64.Type}}
+    ),
+    // === 4. Column Selection and Renaming ===
+    // Select only the columns needed for Power BI
+    SelectedColumns = Table.SelectColumns(
+        SafeAttendees, {"date", "duration_hours", "event_name", "location", "attendee_count", "office"}
+    ),
+    // Rename columns to match exact Power BI expectations
+    RenamedColumns = Table.RenameColumns(
+        SelectedColumns,
+        {
+            {"date", "Date"},
+            {"duration_hours", "Event Duration (Hours)"},
+            {"event_name", "Event Name"},
+            {"location", "Location of Event"},
+            {"attendee_count", "Number of Police Department Attendees"},
+            {"office", "Office"}
+        }
+    ),
+    // === 5. Data Quality and Filtering ===
+    // Remove rows with null dates (same as original M code)
+    FilteredData = Table.SelectRows(RenamedColumns, each [Date] <> null),
+    // Ensure Event Duration is reasonable (0.1 to 24 hours)
+    ValidatedDuration = Table.TransformColumns(
+        FilteredData,
+        {
+            {
+                "Event Duration (Hours)",
+                each if _ = null or _ <= 0 then 0.5 else if _ > 24 then 8.0 else Number.Round(_, 2),
+                type number
+            }
+        }
+    ),
+    // Ensure attendee count is at least 1 if null/zero
+    ValidatedAttendees = Table.TransformColumns(
+        ValidatedDuration,
+        {{"Number of Police Department Attendees", each if _ = null or _ <= 0 then 1 else _, Int64.Type}}
+    ),
+    // === 6. Final Sort and Output ===
+    // Intermediate ascending sort (legacy); final step matches PBIX partition — Date descending for preview.
+    // Row order does not affect DAX aggregations on this table.
+    FinalData =
+        if Table.RowCount(ValidatedAttendees) > 0 then
+            Table.Sort(ValidatedAttendees, {{"Date", Order.Ascending}})
+        else
+            ValidatedAttendees,
+    #"Sorted Rows" = Table.Sort(FinalData, {{"Date", Order.Descending}})
+in
+    #"Sorted Rows"

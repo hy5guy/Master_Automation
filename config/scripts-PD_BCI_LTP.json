@@ -21,7 +21,7 @@
     },
     {
       "name": "Community Engagement",
-      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagment",
+      "path": "C:\\Users\\carucci_r\\OneDrive - City of Hackensack\\02_ETL_Scripts\\Community_Engagement",
       "script": "src\\main_processor.py",
       "enabled": true,
       "output_to_powerbi": true,

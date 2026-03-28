@@ -195,7 +195,7 @@ df['attendee_names'] = attendee_results.apply(lambda x: x[1])
 
 ## File locations
 
-- ETL scripts: C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\
+- ETL scripts: C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagement\
 - Main processor: main_processor.py
 - STACP processor: processors/stacp_processor.py
 - CE processor: processors/community_engagement_processor.py
@@ -249,4 +249,4 @@ print("PASS: Duration conversion working correctly")
 - **`processors/stacp_processor.py`**: Maps **Total Time** → `pre_calculated_duration`; `duration_hours` = `safe_duration_to_hours` combined with `calculate_duration`; `parse_attendees` uses `clean_and_count_attendees`.
 - **`processors/community_engagement_processor.py`**: `process_duration` uses the same pattern on **Event Duration9** → `pre_calculated_duration`.
 
-**Smoke run** (`python src/main_processor.py`): Feb 2026 STACP `duration_hours` sum **8.5** (9 rows); Jan 2026 sum **2.0** (3 rows); Mar 2026 sum **7.0** (7 rows); Feb `attendee_count` sum **18**. Latest export: `02_ETL_Scripts/Community_Engagment/output/community_engagement_data_20260325_194010.csv`.
+**Smoke run** (`python src/main_processor.py`): Feb 2026 STACP `duration_hours` sum **8.5** (9 rows); Jan 2026 sum **2.0** (3 rows); Mar 2026 sum **7.0** (7 rows); Feb `attendee_count` sum **18**. Latest export: `02_ETL_Scripts/Community_Engagement/output/community_engagement_data_20260325_194010.csv`.

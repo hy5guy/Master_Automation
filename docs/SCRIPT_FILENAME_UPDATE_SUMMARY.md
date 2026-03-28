@@ -62,7 +62,7 @@
 
 ### Community Engagement
 - **Script:** `deploy_production.py`
-- **Location:** `02_ETL_Scripts\Community_Engagment\`
+- **Location:** `02_ETL_Scripts\Community_Engagement\`
 - **Last Modified:** 2025-09-04
 - **Size:** 16.64 KB
 - **Entry Point:** ✅ Has `if __name__ == "__main__"`

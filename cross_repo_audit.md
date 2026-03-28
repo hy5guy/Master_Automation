@@ -3,7 +3,7 @@
 
 ## Aggregate Statistics
 
-| Metric | Benchmark | Community_Engagment | Overtime_TimeOff | Policy_Training_Monthly | Response_Times | Summons | TOTAL |
+| Metric | Benchmark | Community_Engagement | Overtime_TimeOff | Policy_Training_Monthly | Response_Times | Summons | TOTAL |
 |--------|-----------|---------------------|------------------|-------------------------|----------------|---------|-------|
 | Files Created | 7 | 8 | 8 | 10 | 12 | 5 | **50** |
 | Files Updated | 4 | 3 | 3 | 1 | 0 | 6 | **17** |
@@ -18,7 +18,7 @@
 - **Response_Times**: 91 dead scripts (worst offender -- `scripts/` directory alone has ~80 dead files)
 - **Summons**: 77 dead scripts (75 dead Python scripts + 2 dead batch files)
 - **Overtime_TimeOff**: 19 dead scripts (12 pre-v10 iterations + 7 one-off utilities)
-- **Community_Engagment**: 7 dead scripts (debug/scaffold utilities)
+- **Community_Engagement**: 7 dead scripts (debug/scaffold utilities)
 - **Policy_Training_Monthly**: 5 dead scripts (legacy M code)
 - **Benchmark**: 3 dead scripts (DAX/M referencing defunct tables)
 
@@ -40,7 +40,7 @@
 
 | Repo | Config Format | File |
 |------|--------------|------|
-| Community_Engagment | JSON | `config.json`, `production_config.json` |
+| Community_Engagement | JSON | `config.json`, `production_config.json` |
 | Overtime_TimeOff | JSON | `config.json` |
 | Policy_Training_Monthly | YAML | `configs/config.yaml` |
 | Summons | YAML (stale) | `config.yaml`, `emergency_config.yaml` (neither loaded by active scripts) |
@@ -66,7 +66,7 @@
 
 | Issue | Repo | Severity |
 |-------|------|----------|
-| `Community_Engagment` (missing 'e') | Community_Engagment | CRITICAL -- typo in directory name, propagated to configs, task scheduler, M code paths |
+| ~~`Community_Engagment` (missing 'e')~~ | Community_Engagement | ~~CRITICAL~~ RESOLVED 2026-03-28 -- renamed, all refs updated |
 
 ---
 
@@ -74,7 +74,7 @@
 
 Required sections: Purpose, File Inventory, ETL Pipeline, Dependencies, Business Logic, Known Issues
 
-| Section | Benchmark | Community_Engagment | Overtime_TimeOff | Policy_Training_Monthly | Response_Times | Summons |
+| Section | Benchmark | Community_Engagement | Overtime_TimeOff | Policy_Training_Monthly | Response_Times | Summons |
 |---------|-----------|---------------------|------------------|-------------------------|----------------|---------|
 | Purpose | Yes | Yes (numbered) | Yes | Yes | Yes | Yes |
 | File Inventory | Yes | Yes (numbered) | Yes | Yes | Partial (active only) | Yes |
@@ -87,7 +87,7 @@ Required sections: Purpose, File Inventory, ETL Pipeline, Dependencies, Business
 
 ### Structural Differences
 
-- **Community_Engagment**: Uses numbered sections (1-10), most detailed with Output Schema and Architecture diagram
+- **Community_Engagement**: Uses numbered sections (1-10), most detailed with Output Schema and Architecture diagram
 - **Summons**: Most comprehensive overall -- includes Validation Checklist, Safe Editing Rules, Common User Questions
 - **Response_Times**: Leanest -- no explicit dependency section or running instructions
 - **Benchmark**: Includes External Documentation section (cross-references 06_Workspace_Management docs)
@@ -109,7 +109,7 @@ Required sections: Purpose, File Inventory, ETL Pipeline, Dependencies, Business
 
 ### Coverage Matrix
 
-| Pattern Category | 06_WM | Benchmark | Community_Engagment | Overtime_TimeOff | Policy_Training_Monthly | Response_Times | Summons |
+| Pattern Category | 06_WM | Benchmark | Community_Engagement | Overtime_TimeOff | Policy_Training_Monthly | Response_Times | Summons |
 |-----------------|-------|-----------|---------------------|------------------|-------------------------|----------------|---------|
 | `__pycache__/` | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
 | `*.py[cod]` | Yes | Yes | Yes | Yes (codz) | Yes | Yes | Yes (codz) |
@@ -134,10 +134,10 @@ Required sections: Purpose, File Inventory, ETL Pipeline, Dependencies, Business
 |-----|---------------|------|
 | No .gitignore at all | None (all have one now) | Resolved by swarm agents |
 | Missing output directory ignores | Benchmark | Data files could be committed |
-| Missing `*.log` ignores | Benchmark, Community_Engagment | Log files tracked in git |
+| Missing `*.log` ignores | Benchmark, Community_Engagement | Log files tracked in git |
 | Missing OneDrive dupe pattern | Benchmark, Overtime_TimeOff, Response_Times, Summons, 06_WM | `(1)` files not auto-ignored |
-| Missing virtual env ignores | Community_Engagment, Response_Times | venv could be committed |
-| No data file ignores | Benchmark, Community_Engagment | CSVs/XLSX tracked unnecessarily |
+| Missing virtual env ignores | Community_Engagement, Response_Times | venv could be committed |
+| No data file ignores | Benchmark, Community_Engagement | CSVs/XLSX tracked unnecessarily |
 | Overtime_TimeOff uses comprehensive template | Overtime_TimeOff, Summons | Over-broad: may ignore files that should be tracked |
 
 ### Recommendations
@@ -155,7 +155,7 @@ Required sections: Purpose, File Inventory, ETL Pipeline, Dependencies, Business
 | Repo | requirements.txt | Declared Deps |
 |------|-----------------|---------------|
 | Benchmark | Missing | None declared (no Python ETL in this repo) |
-| Community_Engagment | Missing | README references it but file does not exist. Needs: pandas, openpyxl, pytz |
+| Community_Engagement | Missing | README references it but file does not exist. Needs: pandas, openpyxl, pytz |
 | Overtime_TimeOff | Missing | Needs: pandas, openpyxl, python-dateutil |
 | Policy_Training_Monthly | Present | pandas>=2.2, openpyxl>=3.1, pyyaml>=6.0, pytest>=8.0 |
 | Response_Times | Missing | Needs: pandas, openpyxl |
@@ -168,7 +168,7 @@ Required sections: Purpose, File Inventory, ETL Pipeline, Dependencies, Business
 |---------|---------|----------------|
 | pandas | All 6 | Only Policy_Training_Monthly (>=2.2) |
 | openpyxl | All 6 | Only Policy_Training_Monthly (>=3.1) |
-| pytz | Community_Engagment | Not pinned anywhere |
+| pytz | Community_Engagement | Not pinned anywhere |
 | pyyaml | Policy_Training_Monthly, 06_WM | Policy_Training (>=6.0), 06_WM (no version) |
 | python-dateutil | Overtime_TimeOff | Not pinned |
 | fuzzywuzzy | Summons (optional) | Not pinned, not in any requirements.txt |
@@ -179,9 +179,9 @@ Required sections: Purpose, File Inventory, ETL Pipeline, Dependencies, Business
 
 1. **5 of 6 repos have no requirements.txt** -- only Policy_Training_Monthly declares dependencies
 2. **No version pinning** outside Policy_Training_Monthly
-3. **Community_Engagment README references `pip install -r requirements.txt`** but the file does not exist
+3. **Community_Engagement README references `pip install -r requirements.txt`** but the file does not exist
 4. **fuzzywuzzy** in Summons is undeclared and may require `python-Levenshtein` for performance
-5. **sys.path.append() hacks** used in Community_Engagment processors instead of proper package structure
+5. **sys.path.append() hacks** used in Community_Engagement processors instead of proper package structure
 
 ---
 
@@ -189,7 +189,7 @@ Required sections: Purpose, File Inventory, ETL Pipeline, Dependencies, Business
 
 ### README.md Structure Comparison
 
-| Element | Benchmark | Community_Engagment | Overtime_TimeOff | Policy_Training_Monthly | Response_Times | Summons |
+| Element | Benchmark | Community_Engagement | Overtime_TimeOff | Policy_Training_Monthly | Response_Times | Summons |
 |---------|-----------|---------------------|------------------|-------------------------|----------------|---------|
 | Title style | `# Benchmark ETL` | `Community Engagement ETL` (rst-style underline) | `# Overtime_TimeOff` | `# Policy Training Monthly ETL` | `# Response Times ETL Pipeline` | `# Summons ETL Scripts` |
 | Status badge/line | Yes (inline) | No | No | Yes (blockquote) | No | No |
@@ -197,11 +197,11 @@ Required sections: Purpose, File Inventory, ETL Pipeline, Dependencies, Business
 | File structure tree | No | Yes | No | Yes | No | No |
 | Prerequisites | No | No | No | Yes | No | No |
 
-**Finding:** README title formatting varies -- one uses RST-style underlines (Community_Engagment), rest use ATX-style `#` headers. Content depth varies significantly.
+**Finding:** README title formatting varies -- one uses RST-style underlines (Community_Engagement), rest use ATX-style `#` headers. Content depth varies significantly.
 
 ### CHANGELOG.md Format Comparison
 
-| Element | Benchmark | Community_Engagment | Overtime_TimeOff | Policy_Training_Monthly | Response_Times | Summons |
+| Element | Benchmark | Community_Engagement | Overtime_TimeOff | Policy_Training_Monthly | Response_Times | Summons |
 |---------|-----------|---------------------|------------------|-------------------------|----------------|---------|
 | KaC reference | Yes | Yes | No | No | No | No |
 | Version format | `[1.2.0]` | `[2026-03-28]` | `[2026-03-28]` | `[1.0.0]` | `2026-03-28` | `2026-03-28` |
@@ -220,8 +220,8 @@ Required sections: Purpose, File Inventory, ETL Pipeline, Dependencies, Business
 | `docs/etl-pipeline.md` | All 6 (created by swarm) |
 | `docs/file-inventory.md` | All 6 (created by swarm) |
 | `docs/config-reference.md` | All 6 (created by swarm) |
-| `PYTHON_WORKSPACE_AI_GUIDE.md` | Community_Engagment, Overtime_TimeOff, Policy_Training_Monthly |
-| `PYTHON_WORKSPACE_TEMPLATE.md` | Community_Engagment, Overtime_TimeOff, Policy_Training_Monthly |
+| `PYTHON_WORKSPACE_AI_GUIDE.md` | Community_Engagement, Overtime_TimeOff, Policy_Training_Monthly |
+| `PYTHON_WORKSPACE_TEMPLATE.md` | Community_Engagement, Overtime_TimeOff, Policy_Training_Monthly |
 
 **Finding:** `PYTHON_WORKSPACE_AI_GUIDE.md` and `PYTHON_WORKSPACE_TEMPLATE.md` are generic templates present in 3 repos. These should be moved to `08_Templates/` or deleted.
 
@@ -267,8 +267,8 @@ Required sections: Purpose, File Inventory, ETL Pipeline, Dependencies, Business
 | Repo | Flag | Severity |
 |------|------|----------|
 | Benchmark | `benchmark_preview_table.csv` contains officer names, badge numbers, incident details (PII/LE sensitive) | HIGH |
-| Community_Engagment | `production_config.json` has blank credential fields (SMTP, PBI client_id/secret) | MEDIUM |
-| Community_Engagment | `task_schedule.xml` runs as NT AUTHORITY\SYSTEM | LOW |
+| Community_Engagement | `production_config.json` has blank credential fields (SMTP, PBI client_id/secret) | MEDIUM |
+| Community_Engagement | `task_schedule.xml` runs as NT AUTHORITY\SYSTEM | LOW |
 | Overtime_TimeOff | `config.json` contains SMTP password field (currently empty) | MEDIUM |
 | Overtime_TimeOff | `config.json` committed before .gitignore was added | MEDIUM |
 | Summons | ASSIGNMENT_OVERRIDES contains officer names/badge numbers (personnel data) | LOW |
@@ -276,7 +276,7 @@ Required sections: Purpose, File Inventory, ETL Pipeline, Dependencies, Business
 ### Recommendations
 
 1. Add `benchmark_preview_table.csv` to Benchmark `.gitignore` immediately
-2. Add `production_config.json` to Community_Engagment `.gitignore`
+2. Add `production_config.json` to Community_Engagement `.gitignore`
 3. Ensure no config files with credential fields are committed with real values
 4. Consider `.gitignore`-ing all `config.json` files across repos and providing `config.json.example` templates
 
@@ -286,8 +286,8 @@ Required sections: Purpose, File Inventory, ETL Pipeline, Dependencies, Business
 
 ### Priority 1 -- Critical (Act Now)
 
-1. **Rename `Community_Engagment` to `Community_Engagement`** -- coordinate downstream references (config.json, task_schedule.xml, M code, Power BI)
-2. **Add PII files to .gitignore** -- `benchmark_preview_table.csv` in Benchmark, `production_config.json` in Community_Engagment
+1. ~~**Rename `Community_Engagment` to `Community_Engagement`**~~ -- **RESOLVED 2026-03-28**. All downstream refs updated. Task Scheduler needs manual re-import.
+2. **Add PII files to .gitignore** -- `benchmark_preview_table.csv` in Benchmark, `production_config.json` in Community_Engagement
 3. **Create requirements.txt** for 5 repos missing it (Benchmark exempt -- no Python ETL)
 
 ### Priority 2 -- High (This Sprint)
@@ -308,7 +308,7 @@ Required sections: Purpose, File Inventory, ETL Pipeline, Dependencies, Business
 ### Priority 4 -- Low (Backlog)
 
 13. **Add unit tests** -- Policy_Training_Monthly has minimal coverage; others have none
-14. **Eliminate `sys.path.append()` hacks** in Community_Engagment
+14. **Eliminate `sys.path.append()` hacks** in Community_Engagement
 15. **Consolidate DAX files** in Response_Times (3 files referencing different table names)
 16. **Standardize config format** -- decide JSON vs YAML and stick with it
 17. **Remove 0-byte junk files** across repos (`#`, `cd`, `echo`, `python`, `_ul`, `cutoff]`, `10)`, `120`)

@@ -42,8 +42,8 @@ Total Records: 558
 ```
 
 **New Output Files:**
-- CSV: `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\output\community_engagement_data_20260112_193127.csv`
-- Excel: `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\output\community_engagement_data_20260112_193127.xlsx`
+- CSV: `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagement\output\community_engagement_data_20260112_193127.csv`
+- Excel: `C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagement\output\community_engagement_data_20260112_193127.xlsx`
 
 ### Verification
 
@@ -94,7 +94,7 @@ The Power BI report needs to be refreshed to load the new ETL output file:
 
 **File to Load:**
 ```
-C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\output\community_engagement_data_20260112_193127.csv
+C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagement\output\community_engagement_data_20260112_193127.csv
 ```
 
 **Power BI M Code Query:** `___Combined_Outreach_All`
@@ -121,7 +121,7 @@ To prevent this issue in the future, consider implementing:
 - Run the ETL script manually when source files are updated
 - Command:
   ```powershell
-  cd "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment"
+  cd "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagement"
   python src\main_processor.py
   ```
 
@@ -159,12 +159,12 @@ Created diagnostic tool for future troubleshooting:
 2. `2026_01_12_Community_Engagement_Missing_Records_RESOLVED.md` - This report
 
 ### New ETL Output Files:
-1. `02_ETL_Scripts\Community_Engagment\output\community_engagement_data_20260112_193127.csv`
-2. `02_ETL_Scripts\Community_Engagment\output\community_engagement_data_20260112_193127.xlsx`
+1. `02_ETL_Scripts\Community_Engagement\output\community_engagement_data_20260112_193127.csv`
+2. `02_ETL_Scripts\Community_Engagement\output\community_engagement_data_20260112_193127.xlsx`
 
 ### Old ETL Output (Archived):
-1. `02_ETL_Scripts\Community_Engagment\output\community_engagement_data_20251210_024452.csv` (outdated)
-2. `02_ETL_Scripts\Community_Engagment\output\community_engagement_data_20251210_024452.xlsx` (outdated)
+1. `02_ETL_Scripts\Community_Engagement\output\community_engagement_data_20251210_024452.csv` (outdated)
+2. `02_ETL_Scripts\Community_Engagement\output\community_engagement_data_20251210_024452.xlsx` (outdated)
 
 ## Conclusion
 

@@ -26,7 +26,7 @@ Master_Automation/
 02_ETL_Scripts/
 ├── Arrests/                   # ETL project
 ├── Overtime_TimeOff/          # ETL project
-├── Community_Engagment/       # ETL project
+├── Community_Engagement/       # ETL project
 ├── Policy_Training_Monthly/   # ETL project
 ├── Response_Times/            # ETL project ⭐
 ├── Summons/                   # ETL project
@@ -46,7 +46,7 @@ Looking at `config/scripts.json`, all scripts reference external paths:
 | Script | Current Path |
 |--------|-------------|
 | Arrests | `C:\...\02_ETL_Scripts\Arrests` |
-| Community Engagement | `C:\...\02_ETL_Scripts\Community_Engagment` |
+| Community Engagement | `C:\...\02_ETL_Scripts\Community_Engagement` |
 | Overtime TimeOff | `C:\...\02_ETL_Scripts\Overtime_TimeOff` |
 | Policy Training | `C:\...\02_ETL_Scripts\Policy_Training_Monthly` |
 | **Response Times** | `C:\...\02_ETL_Scripts\Response_Times` ⭐ |

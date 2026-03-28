@@ -1,36 +1,17 @@
 table ___Combined_Outreach_All
 	lineageTag: 753d11b5-040d-4b09-b4f4-fd8b71b2e560
 
-	measure DateInPrevMonth = ```
+	measure 'measure SubtitlePrevMonth' = ```
 			
-			VAR PrevMonthNum       = MONTH ( TODAY() ) - 1
-			VAR PrevYearAdjustment = IF ( PrevMonthNum = 0, 1, 0 )
-			VAR PrevYear           = YEAR ( TODAY() ) - PrevYearAdjustment
-			VAR PrevMonth          = IF ( PrevMonthNum = 0, 12, PrevMonthNum )
-			VAR StartDate          = DATE ( PrevYear, PrevMonth, 1 )
-			VAR EndDate            = EOMONTH ( StartDate, 0 )
-			RETURN
-			    IF (
-			        MIN ( '___Combined_Outreach_All'[Date] ) >= StartDate
-			            && MAX ( '___Combined_Outreach_All'[Date] ) <= EndDate,
-			        1,
-			        0
-			    )
-			
-			```
-		formatString: 0
-		lineageTag: 70737782-f54c-4056-9d85-04ca9ba87368
-
-	measure SubtitlePrevMonth = ```
-			
-			VAR MinD = MIN( '___Combined_Outreach_All'[Date] )
-			RETURN
-			    IF(
-			        NOT ISBLANK( MinD ),
-			        FORMAT( MinD, "MMMM yyyy" ),
-			        ""
-			    )
-			
+						
+						VAR MinD = MIN ( '___Combined_Outreach_All'[Date] )
+						RETURN
+						    IF (
+						        NOT ISBLANK ( MinD ),
+						        "Tracking community outreach and engagement initiatives by bureau | "
+						            & FORMAT ( MinD, "MMMM yyyy" ),
+						        "Tracking community outreach and engagement initiatives by bureau"
+						    )
 			```
 		lineageTag: 179369e4-d47e-4126-862d-a24951ded0cf
 
@@ -41,71 +22,120 @@ table ___Combined_Outreach_All
 			```
 		lineageTag: 4b7e84be-4903-4d3d-8010-ec48f2054c50
 
-	measure 'Engagement Subtitle' = ```
-			
-			'UI'[UI PrevMonth Label]   -- e.g., "October 2025" on Nov 2, 2025
-			
-			```
+	/// Dynamic subtitle using actual data range instead of TODAY(). Reflects pReportMonth-driven M code window.
+	measure 'Engagement Subtitle' =
+			VAR MaxDate = MAX('___Combined_Outreach_All'[Date])
+			VAR MinDate = MIN('___Combined_Outreach_All'[Date])
+			RETURN
+			"Tracking community outreach and engagement initiatives by bureau. " &
+			"Rolling 13-Month Overview (" &
+			    FORMAT(MinDate, "MMMM yyyy") & " - " & FORMAT(MaxDate, "MMMM yyyy") & ")"
 		lineageTag: 8b353243-42e4-4f4e-9657-5c6df05edca6
 
-	measure 'Prev Month Flag' =
+	/// Count of outreach sessions in the report month, using ___DimMonth bridge. Updated 2026-03-25.
+	measure 'Outreach Sessions' =
 			
-			VAR StartPrev =
-			    EOMONTH ( TODAY(), -2 ) + 1        -- first day of the prior month
-			VAR EndPrev =
-			    EOMONTH ( TODAY(), -1 )            -- last day of the prior month
+			VAR ReportMonthStart = MAX ( '___DimMonth'[MonthStart] )
+			VAR MonthEnd = EOMONTH ( ReportMonthStart, 0 )
 			RETURN
-			    IF (
-			        MIN ( 'preview_table'[Date] ) >= StartPrev
-			            && MAX ( 'preview_table'[Date] ) <= EndPrev,
-			        1,
-			        0
+			    CALCULATE (
+			        COUNTROWS ( '___Combined_Outreach_All' ),
+			        '___Combined_Outreach_All'[Date] >= ReportMonthStart,
+			        '___Combined_Outreach_All'[Date] <= MonthEnd
 			    )
-		lineageTag: fcc69c01-0cb2-4228-9664-14cf27d53c40
+		formatString: #,0
+		displayFolder: Summary
+		lineageTag: dadfd36f-e25e-4aed-90ab-cedced4aebd8
 
-	column IsPrevMonth = ```
+	/// Total event hours in the report month, using ___DimMonth bridge. Updated 2026-03-25.
+	measure 'Outreach Total Hours' =
 			
-			VAR PrevMonthNum       = MONTH ( TODAY() ) - 1
-			VAR PrevYearAdjustment = IF ( PrevMonthNum = 0, 1, 0 )
-			VAR PrevYear           = YEAR ( TODAY() ) - PrevYearAdjustment
-			VAR PrevMonth          = IF ( PrevMonthNum = 0, 12, PrevMonthNum )
-			VAR StartDate          = DATE ( PrevYear, PrevMonth, 1 )
-			VAR EndDate            = EOMONTH ( StartDate, 0 )
+			VAR ReportMonthStart = MAX ( '___DimMonth'[MonthStart] )
+			VAR MonthEnd = EOMONTH ( ReportMonthStart, 0 )
 			RETURN
-			    IF(
-			        '___Combined_Outreach_All'[Date] >= StartDate
-			            && '___Combined_Outreach_All'[Date] <= EndDate,
-			        TRUE(),
-			        FALSE()
+			    CALCULATE (
+			        SUM ( '___Combined_Outreach_All'[Event Duration (Hours)] ),
+			        '___Combined_Outreach_All'[Date] >= ReportMonthStart,
+			        '___Combined_Outreach_All'[Date] <= MonthEnd
 			    )
+		formatString: #,0.0
+		displayFolder: Summary
+		lineageTag: 9ef45900-6504-48c3-b036-d8461de1af0a
+
+	/// Total PD attendees in the report month, using ___DimMonth bridge. Updated 2026-03-25.
+	measure 'Outreach Total Attendees' =
 			
-			```
-		formatString: """TRUE"";""TRUE"";""FALSE"""
-		lineageTag: ba1515b7-5633-49d4-a9d2-f51324711dff
-		summarizeBy: none
+			VAR ReportMonthStart = MAX ( '___DimMonth'[MonthStart] )
+			VAR MonthEnd = EOMONTH ( ReportMonthStart, 0 )
+			RETURN
+			    CALCULATE (
+			        SUM ( '___Combined_Outreach_All'[Number of Police Department Attendees] ),
+			        '___Combined_Outreach_All'[Date] >= ReportMonthStart,
+			        '___Combined_Outreach_All'[Date] <= MonthEnd
+			    )
+		formatString: #,0
+		displayFolder: Summary
+		lineageTag: 1b3ca607-2fb0-469e-b206-797baa6b4c3f
 
-		annotation SummarizationSetBy = Automatic
-
-	column DateDisplay = ```
-			FORMAT( '___Combined_Outreach_All'[Date], "MM/dd/yyyy" )
+	/// Total community outreach events YTD using ___DimMonth bridge.
+	measure 'Outreach Events YTD' =
 			
-			```
-		lineageTag: db85e4ed-5b2e-41f6-8175-421754ba276f
-		summarizeBy: none
+			VAR ReportMonthStart = MAX ( '___DimMonth'[MonthStart] )
+			VAR YtdStart = DATE ( YEAR ( ReportMonthStart ), 1, 1 )
+			VAR YtdEnd = EOMONTH ( ReportMonthStart, 0 )
+			RETURN
+			    CALCULATE (
+			        COUNTROWS ( '___Combined_Outreach_All' ),
+			        '___Combined_Outreach_All'[Date] >= YtdStart,
+			        '___Combined_Outreach_All'[Date] <= YtdEnd
+			    )
+		formatString: #,0
+		displayFolder: Summary
+		lineageTag: d04972b8-ef58-41f4-baa4-9a227b1ac203
 
-		annotation SummarizationSetBy = Automatic
+	/// Total outreach hours YTD.
+	measure 'Outreach Hours YTD' =
+			
+			VAR ReportMonthStart = MAX ( '___DimMonth'[MonthStart] )
+			VAR YtdStart = DATE ( YEAR ( ReportMonthStart ), 1, 1 )
+			VAR YtdEnd = EOMONTH ( ReportMonthStart, 0 )
+			RETURN
+			    CALCULATE (
+			        SUM ( '___Combined_Outreach_All'[Event Duration (Hours)] ),
+			        '___Combined_Outreach_All'[Date] >= YtdStart,
+			        '___Combined_Outreach_All'[Date] <= YtdEnd
+			    )
+		displayFolder: Summary
+		lineageTag: 24f42562-1a49-47bd-b9cc-c542a234ddff
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Total PD attendees at outreach events YTD.
+	measure 'Outreach Attendees YTD' =
+			
+			VAR ReportMonthStart = MAX ( '___DimMonth'[MonthStart] )
+			VAR YtdStart = DATE ( YEAR ( ReportMonthStart ), 1, 1 )
+			VAR YtdEnd = EOMONTH ( ReportMonthStart, 0 )
+			RETURN
+			    CALCULATE (
+			        SUM ( '___Combined_Outreach_All'[Number of Police Department Attendees] ),
+			        '___Combined_Outreach_All'[Date] >= YtdStart,
+			        '___Combined_Outreach_All'[Date] <= YtdEnd)
+		formatString: #,0
+		displayFolder: Summary
+		lineageTag: bc4a3580-f0df-438a-9bba-07e2ea2090ff
 
 	column Date
 		dataType: dateTime
 		formatString: Long Date
-		lineageTag: b3733b77-694e-4851-b2e2-996f4c2e9866
+		lineageTag: 04d8dac6-5001-4b63-8540-df35fa4c7ea1
 		summarizeBy: none
 		sourceColumn: Date
 
 		variation Variation
 			isDefault
-			relationship: 3f57bc3d-de1b-4ada-91cc-3a03185263f6
-			defaultHierarchy: LocalDateTable_a92b67c9-2529-42b5-8346-6475d25fa653.'Date Hierarchy'
+			relationship: fb7c4c3e-c5a3-43fb-b11e-1aacaaca8b54
+			defaultHierarchy: LocalDateTable_21720304-fb4b-477e-b055-ce01af18a0ef.'Date Hierarchy'
 
 		annotation SummarizationSetBy = Automatic
 
@@ -113,7 +143,7 @@ table ___Combined_Outreach_All
 
 	column 'Event Duration (Hours)'
 		dataType: double
-		lineageTag: 04e97106-8971-47e8-9bec-c52a0e3f1b00
+		lineageTag: a41eb847-0692-481a-b04c-bca01d647532
 		summarizeBy: sum
 		sourceColumn: Event Duration (Hours)
 
@@ -123,7 +153,7 @@ table ___Combined_Outreach_All
 
 	column 'Event Name'
 		dataType: string
-		lineageTag: fcdecffb-4a09-4426-8cc4-908010c250a7
+		lineageTag: 0ced9bd0-864b-4b1f-aa1e-26cb3cf66ab7
 		summarizeBy: none
 		sourceColumn: Event Name
 
@@ -131,7 +161,7 @@ table ___Combined_Outreach_All
 
 	column 'Location of Event'
 		dataType: string
-		lineageTag: f6aeeea7-aa2e-4046-9396-9bc678b1fb5d
+		lineageTag: 5d7f2c31-4e09-46d3-9565-234f56aa0ca8
 		summarizeBy: none
 		sourceColumn: Location of Event
 
@@ -140,7 +170,7 @@ table ___Combined_Outreach_All
 	column 'Number of Police Department Attendees'
 		dataType: int64
 		formatString: 0
-		lineageTag: 5272e8f2-cc7d-4761-8550-4caf0f59607d
+		lineageTag: 01283d8b-c4e3-4928-974a-6ff8d49a9093
 		summarizeBy: sum
 		sourceColumn: Number of Police Department Attendees
 
@@ -148,62 +178,70 @@ table ___Combined_Outreach_All
 
 	column Office
 		dataType: string
-		lineageTag: eeeea241-a25d-4bc3-8ba8-204e2221b1e9
+		lineageTag: b7917414-e0b7-41a1-8a7d-f8e213514354
 		summarizeBy: none
 		sourceColumn: Office
-
-		annotation SummarizationSetBy = Automatic
-
-	column 'Prev Month Flag Column' =
-			
-			VAR StartPrev = EOMONTH ( TODAY(), -2 ) + 1
-			VAR EndPrev = EOMONTH ( TODAY(), -1 )
-			RETURN IF ( '___Combined_Outreach_All'[Date] >= StartPrev && '___Combined_Outreach_All'[Date].[Date] <= EndPrev, 1, 0 )
-		formatString: 0
-		lineageTag: 2569366f-00d7-4d07-ad42-416452394600
-		summarizeBy: sum
 
 		annotation SummarizationSetBy = Automatic
 
 	partition ___Combined_Outreach_All = m
 		mode: import
 		source = ```
-				// 🐍 Combined_Outreach_All — Using Python ETL Output
-				// Simplified M code that reads from centralized Python ETL CSV output
-				// Maintains exact same column structure for Power BI compatibility
-				let
-				    // === 1. Dynamic File Path Discovery ===
-				    // Look for the most recent Python ETL output file
-				    OutputFolder = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagment\output\",
-				    
-				    // Try to find the most recent community_engagement_data_*.csv file
-				    // Pattern: community_engagement_data_YYYYMMDD_HHMMSS.csv
-				    PythonETLFile = try 
-				        let
-				            // Get all CSV files in the output directory
-				            Source = Folder.Files(OutputFolder),
-				            FilteredFiles = Table.SelectRows(Source, each Text.StartsWith([Name], "community_engagement_data_") and Text.EndsWith([Name], ".csv")),
-				            SortedFiles = Table.Sort(FilteredFiles, {{"Date modified", Order.Descending}}),
-				            LatestFile = if Table.RowCount(SortedFiles) > 0 
-				                        then OutputFolder & SortedFiles{0}[Name]
-				                        else error "No Python ETL output files found"
-				        in
-				            LatestFile
-				    otherwise
-				        // Fallback to a specific filename pattern if dynamic discovery fails
-				        OutputFolder & "community_engagement_combined_" & Date.ToText(DateTime.Date(DateTime.LocalNow()), "yyyy-MM-dd") & ".csv",
+				// 🕒 2026-03-25-12-00-00 (EST)
+				// # community/___Combined_Outreach_All.m
+				// # Author: R. A. Carucci
+				// # Purpose: Load community engagement data from latest Python ETL export (.csv or .xlsx) for Power BI.
 				
-				    // === 2. Read Python ETL CSV Output ===
-				    CSVSource = Csv.Document(File.Contents(PythonETLFile), [Delimiter=",", Columns=null, Encoding=65001, QuoteStyle=QuoteStyle.None]),
-				    HeadersPromoted = Table.PromoteHeaders(CSVSource, [PromoteAllScalars=true]),
+				let
+				    ReportMonth = pReportMonth,
+				
+				    // === 1. Dynamic File Path Discovery ===
+				    // ETL writes BOTH community_engagement_data_*.csv and *.xlsx (same timestamp). If a run only
+				    // leaves xlsx (or xlsx is newer on disk), picking "latest CSV only" loads a STALE file (e.g. Jan
+				    // CSV while Feb xlsx exists) — YTD/months look wrong. Use newest file by Date modified: .csv OR .xlsx.
+				    OutputFolder = "C:\Users\carucci_r\OneDrive - City of Hackensack\02_ETL_Scripts\Community_Engagement\output\",
+				    
+				    Source = Folder.Files(OutputFolder),
+				    FilteredFiles = Table.SelectRows(Source, each 
+				        Text.StartsWith([Name], "community_engagement_data_") 
+				        and (
+				            Text.EndsWith(Text.Lower([Name]), ".csv") 
+				            or Text.EndsWith(Text.Lower([Name]), ".xlsx")
+				        )
+				    ),
+				    SortedFiles = Table.Sort(FilteredFiles, {{"Date modified", Order.Descending}}),
+				    PythonETLFile = if Table.RowCount(SortedFiles) > 0 
+				        then OutputFolder & SortedFiles{0}[Name]
+				        else error "No community_engagement_data_*.csv or *.xlsx in output folder",
+				    FileExt = Text.Lower(Text.AfterDelimiter(PythonETLFile, ".", {0, RelativePosition.FromEnd})),
+				
+				    // === 2. Read Python ETL output (CSV or Excel) ===
+				    HeadersPromoted = if FileExt = "csv" then
+				        let
+				            CSVSource = Csv.Document(File.Contents(PythonETLFile), [Delimiter=",", Columns=null, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+				            H = Table.PromoteHeaders(CSVSource, [PromoteAllScalars=true])
+				        in
+				            H
+				    else if FileExt = "xlsx" then
+				        let
+				            RawWB = Excel.Workbook(File.Contents(PythonETLFile), null, true),
+				            SheetRows = Table.SelectRows(RawWB, each [Kind] = "Sheet" and [Item] = "Combined_Data"),
+				            DataOnly = if Table.RowCount(SheetRows) > 0 then SheetRows{0}[Data] else error "Sheet Combined_Data not found in " & PythonETLFile,
+				            H = Table.PromoteHeaders(DataOnly, [PromoteAllScalars=true])
+				        in
+				            H
+				    else
+				        error "Unsupported outreach export extension: " & FileExt,
 				    
 				    // === 3. Data Type Transformations ===
-				    // Handle datetime strings from Python ETL (format: "YYYY-MM-DD HH:MM:SS")
+				    // CSV often has text dates; Excel may return date, datetime, or serial — normalize to date.
 				    DateParsed = Table.TransformColumns(HeadersPromoted, {
 				        {"date", each 
-				            if _ = null or _ = "" 
-				            then null 
-				            else try DateTime.Date(DateTime.FromText(_)) otherwise Date.FromText(Text.Start(_, 10)), 
+				            if _ = null or _ = "" then null
+				            else if _ is date then _
+				            else if _ is datetime then Date.From(_)
+				            else if _ is number then Date.AddDays(#date(1899, 12, 30), Number.From(_))
+				            else try DateTime.Date(DateTime.FromText(Text.From(_))) otherwise Date.FromText(Text.Start(Text.From(_), 10)), 
 				        type date}
 				    }),
 				    
@@ -280,10 +318,11 @@ table ___Combined_Outreach_All
 				    // Sort by date ascending (same as original M code)
 				    FinalData = if Table.RowCount(ValidatedAttendees) > 0 
 				                then Table.Sort(ValidatedAttendees, {{"Date", Order.Ascending}}) 
-				                else ValidatedAttendees
+				                else ValidatedAttendees,
+				    #"Sorted Rows" = Table.Sort(FinalData,{{"Date", Order.Descending}})
 				
 				in
-				    FinalData
+				    #"Sorted Rows"
 				```
 
 	annotation PBI_NavigationStepName = Navigation
