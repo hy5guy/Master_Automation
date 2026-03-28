@@ -141,13 +141,13 @@ All items requiring human decision-making, aggregated from 6 repository audits.
 - [x] STOP Flag 2 — Power BI .pbix: `___Combined_Outreach_All` OutputFolder typo fixed via Claude Desktop MCP (`Community_Engagment` → `Community_Engagement`). Saved. (2026-03-28)
 - [x] STOP Flag 3 — VS Code workspace: `Community_Engagment.code-workspace` renamed to `Community_Engagement.code-workspace` in `02_ETL_Scripts/Community_Engagement/` (2026-03-28)
 - [x] Summons: `apply_peo_rule()` ported from SummonsMaster_Simple.py to summons_etl_enhanced.py — PEO/Class I M→P reclassification. Validated with synthetic test (2026-03-28)
-- [x] Summons: Power BI column schema verified — WG1, WG2 present; WG3, WG4, WG5, TEAM **missing** from slim CSV and PBI (only existed in deprecated script's ASSIGNMENT_OVERRIDES). Documented in Summons CLAUDE.md (2026-03-28)
+- [x] Summons: Power BI column schema verified — WG1, WG2 present; WG3, WG4, TEAM now populated in slim CSV and PBI M code (WG5 removed — never in Assignment Master). Verified 2026-03-28 via MCP refresh.
 - [x] Policy_Training_Monthly: GitHub remote created and pushed to `racmac57/Policy_Training_Monthly` (2026-03-28)
 
 ### Pending — Human Confirmation Required
 - [ ] **Badge 0388 (LIGGIO)** — was hardcoded in deprecated SummonsMaster_Simple.py (Patrol Bureau / Platoon A / A3). Not in summons_etl_enhanced.py or Assignment_Master_V2.csv. RAC must confirm: is LIGGIO still on this assignment? Should badge be added to Assignment Master?
 - [x] ~~**Power BI OutputFolder path**~~ — RESOLVED via Claude Desktop MCP (2026-03-28)
-- [ ] **WG3/WG4/WG5/TEAM columns** — missing from enhanced ETL pipeline and Power BI. If sub-bureau granularity is needed, these must be added to summons_etl_normalize.py output and PBI M code.
+- [x] ~~**WG3/WG4/TEAM columns**~~ — RESOLVED 2026-03-28: WG5 removed (never in Assignment Master); WG3/WG4/TEAM populated in slim CSV from Assignment_Master_V2.csv; PBI M code `___Summons` updated (WG5→TEAM in ColumnTypes). Verified: 9,839 rows, WG3 (6,688), WG4 (1,629), TEAM (9,800).
 - [ ] **02_ETL_Scripts parent repo** — needs GitHub remote created (`racmac57/ETL_Scripts` — `gh` CLI not installed, cannot create from CLI). Contains Benchmark and Response_Times commits.
 
 ### Queued for Next Session (HIGH)

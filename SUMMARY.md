@@ -1,8 +1,8 @@
 # 06_Workspace_Management Project Summary
 
 **Last Updated:** 2026-03-28
-**Status:** ⚠️ v1.20.0-rc — `inject_ai_context_reference.py` v3: 3/10 workbooks injected (CSB, Chief, Drone); 7 trigger Excel repair dialog (see handoff doc); Drone 11 circ-ref cells fixed; `/fix-excel` command. v1.19.9: injection prompt doc. v1.19.8: Outreach M sync. v1.19.5: **`etl_orchestrator.py`**
-**Version:** 1.20.0 (see CHANGELOG)
+**Status:** ✅ v1.20.2 — PBI MCP: `___Combined_Outreach_All` OutputFolder fixed; `___Summons` WG5→TEAM + WG3/WG4/TEAM populated (36 cols). v1.20.1: post-swarm STOP flags. v1.20.0: `inject_ai_context_reference.py` v3; `/fix-excel` command.
+**Version:** 1.20.2 (see CHANGELOG)
 
 ---
 
@@ -19,8 +19,8 @@
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ⚠️ v1.20.0-rc: 3/10 injected (CSB, Chief, Drone); 7 need fix — see handoff. v1.19.9 injection prompt. v1.19.8 Outreach M synced. v1.19.5 **`etl_orchestrator.py`** |
-| **Version** | 1.20.0 |
+| **Status** | ✅ v1.20.2: PBI MCP — Outreach OutputFolder fixed; Summons WG3/WG4/TEAM populated (36 cols, 9,839 rows). v1.20.1: post-swarm STOP flags. v1.20.0: AI_Context_Reference v3 |
+| **Version** | 1.20.2 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | Key automation: `verify_migration.ps1`, **`etl_orchestrator.py`**, `run_summons_etl.py`, `config.json`, etc. |
 
@@ -285,7 +285,8 @@ Validation helper:
 **v1.18.1 (2026-03-10):** Ramirez SSOCC overrides in ETL; UNASSIGNED mapping in all_bureaus; 07-25 filler rows in 13month_trend; `docs/SUMMONS_M_CODE_NOTES.md` for lessons learned.
 
 Power BI source (`run_summons_etl.py`, v2.5.0+):
-- `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv` — extended SLIM CSV (**`FINE_AMOUNT`**, **`VIOLATION_CATEGORY`**, financials, etc.); primary source for **`___Summons.m`** and related summons queries
+- `C:\Users\carucci_r\OneDrive - City of Hackensack\03_Staging\Summons\summons_slim_for_powerbi.csv` — extended SLIM CSV (36 columns: **WG1–WG4**, **TEAM**, **`FINE_AMOUNT`**, **`VIOLATION_CATEGORY`**, **`DATA_QUALITY_TIER`**, financials, etc.); primary source for **`___Summons.m`** and related summons queries
+- **WG3/WG4/TEAM** populated from `Assignment_Master_V2.csv` (WG5 removed — never existed in source). M code `___Summons` updated 2026-03-28.
 
 Current month source:
 - `C:\Users\carucci_r\OneDrive - City of Hackensack\05_EXPORTS\_Summons\E_Ticket\YYYY\YYYY_MM_eticket_export.csv`

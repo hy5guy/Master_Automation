@@ -43,8 +43,8 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.20.1 |
-| **Status** | v1.20.1: Post-swarm manual resolution — STOP flags resolved (Task Scheduler clean, VS Code workspace renamed, PBI `___Combined_Outreach_All` OutputFolder needs manual fix); `apply_peo_rule()` ported to Summons ETL; PBI Summons schema verified (WG3-5/TEAM missing from pipeline); Policy_Training_Monthly remote created; Badge 0388 pending RAC. v1.20.0: `inject_ai_context_reference.py` v3 (zip-safe); Drone_Monthly circ-ref fixes; `/fix-excel` slash command. |
+| **Version** | 1.20.2 |
+| **Status** | v1.20.2: PBI MCP session — `___Combined_Outreach_All` OutputFolder fixed (`Community_Engagment` → `Community_Engagement`); `___Summons` M code WG5→TEAM rename + WG3/WG4/TEAM now populated in slim CSV (6,688/1,629/9,800 non-blank of 9,839 rows); schema expanded to 36 columns (added DATA_QUALITY_TIER, VIOLATION_CATEGORY, VIOLATION_NUMBER, VIOLATION_TYPE). v1.20.1: post-swarm STOP flags; `apply_peo_rule()` ported; Policy_Training_Monthly remote. Badge 0388 pending RAC. v1.20.0: `inject_ai_context_reference.py` v3 (zip-safe); Drone_Monthly circ-ref fixes; `/fix-excel` slash command. |
 | **pReportMonth** | Set per `.pbix` in Power Query (example: `#date(2026, 3, 1)` for March 2026 report) |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
@@ -368,7 +368,7 @@ All 6 repos are subdirectories of the `02_ETL_Scripts/` parent. The parent direc
 6. **~~Dual-ETL ambiguity in Summons~~**: RESOLVED 2026-03-28 -- `summons_etl_enhanced.py` is authoritative; `SummonsMaster_Simple.py` archived
 7. **PII in git**: Benchmark preview CSV contains officer names/badge numbers
 8. **Assignment_Master_V2 copy divergence risk**: Two copies exist (09_Reference and 06_WM)
-9. **~~`Community_Engagment` directory typo~~**: RESOLVED 2026-03-28 -- renamed to `Community_Engagement`, all downstream refs updated. Task Scheduler confirmed clean (no tasks). VS Code workspace file renamed. **PBI `___Combined_Outreach_All` OutputFolder still needs manual Power Query fix** (MCP write blocked).
+9. **~~`Community_Engagment` directory typo~~**: FULLY RESOLVED 2026-03-28 -- directory renamed, all downstream refs updated, Task Scheduler clean, VS Code workspace renamed, **PBI `___Combined_Outreach_All` OutputFolder fixed** via claude.ai PBI MCP (partition saved).
 10. **Generic template proliferation**: PYTHON_WORKSPACE_AI_GUIDE.md in 3 repos (should be in 08_Templates/)
 
 Full details: `cross_repo_audit.md` and `HUMAN_REVIEW.md` in this directory.

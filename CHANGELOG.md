@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.20.2] - 2026-03-28 — PBI MCP session: Summons WG3/WG4/TEAM + Outreach OutputFolder
+
+### Fixed
+- **`___Combined_Outreach_All` OutputFolder** — Fixed via claude.ai PBI MCP: `Community_Engagment` → `Community_Engagement` in M code path. Partition saved. Fully resolves the directory rename issue end-to-end.
+- **`___Summons` M code ColumnTypes** — Replaced `WG5` (never existed in Assignment Master) with `TEAM`. WG3, WG4 were already in M code; CSV now populates them from Assignment_Master_V2.csv.
+- **Summons slim CSV schema verified post-refresh** — 9,839 rows; WG3 (6,688 non-blank), WG4 (1,629), TEAM (9,800). Schema expanded to 36 columns (added DATA_QUALITY_TIER, VIOLATION_CATEGORY, VIOLATION_NUMBER, VIOLATION_TYPE).
+
+### Changed
+- **`pReportMonth`** remains `#date(2026, 2, 1)` (February 2026 report month)
+
+### Notes
+- MCP/XMLA Full refresh does NOT detect new columns from source CSV. Desktop UI (Transform Data → Close & Apply) required for schema-change refreshes.
+
+### Pending (carried from 1.20.1)
+- Badge 0388 (LIGGIO) assignment status — requires RAC confirmation
+- 02_ETL_Scripts parent repo — needs GitHub remote (gh CLI not installed)
+
+---
+
 ## [1.20.1] - 2026-03-28 — post-swarm manual resolution
 
 ### Fixed
@@ -20,10 +39,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HUMAN_REVIEW.md: post-swarm manual resolution section with all stop flag results
 
 ### Pending
+- ~~Power BI `___Combined_Outreach_All` OutputFolder path~~ — RESOLVED in v1.20.2
+- ~~WG3/WG4/WG5/TEAM column gap~~ — RESOLVED in v1.20.2 (WG5 removed; WG3/WG4/TEAM populated)
 - Badge 0388 (LIGGIO) assignment status — requires RAC confirmation
-- Power BI `___Combined_Outreach_All` OutputFolder path — manual Power Query fix needed
 - 02_ETL_Scripts parent repo — needs GitHub remote (gh CLI not installed)
-- WG3/WG4/WG5/TEAM column gap — document only, no action until RAC confirms need
 
 ---
 
