@@ -141,7 +141,7 @@ Migration prompt and transcripts: `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_
 - `docs/POLICY_TRAINING_AUTOMATION_AND_COST_VISUAL.md` - Policy Training ETL location; **`___In_Person_Training`** / **`___Cost_of_Training`** M behavior
 - `docs/POWER_BI_YTD_MEASURES_AND_PAGE_INSTRUCTIONS.md` - YTD DAX patterns; **`pReportMonth`** not valid bare in DAX; training PQ notes
 - `docs/SSOCC_Service_Log_Excel_And_Power_BI_Rework_2026_03.md` - SSOCC Service Log workbook (`T_YYYY_MM`, `DimServiceGroup`), Option B Power Query + DAX migration; source chat: `KB_Shared\04_output\ssocc_claude_in_excel_rework\`
-- `docs/cursor_prompt_fix_duration_and_attendees.md` - Community ETL duration → decimal hours + STACP attendee normalization (live code under `02_ETL_Scripts/Community_Engagment/`)
+- `docs/cursor_prompt_fix_duration_and_attendees.md` - Community ETL duration → decimal hours + STACP attendee normalization (live code under `02_ETL_Scripts/Community_Engagement/`)
 - `docs/ESU_POWER_BI_LOAD_AND_PUBLISH.md` - ESU query docs
 - `docs/PROMPT_ETL_Export_Reliability_Diagnostic_Enhanced.md` - ETL export diagnostic prompt (full paths)
 - `docs/PROMPT_Claude_MCP_Create_Missing_Visuals_For_Monthly_Report.md` - Claude MCP prompt for Response Time + DFR visuals
@@ -305,13 +305,13 @@ This workspace orchestrates 6 ETL pipelines under `02_ETL_Scripts/`:
 | Repo | Purpose | Production Script | Output Target |
 |------|---------|-------------------|---------------|
 | Benchmark | AG compliance (UoF, SoF, VP) | `benchmark_restructure.py` (via 06_WM) | `current_window.csv` -> Power BI |
-| Community_Engagment | Community outreach tracking | `src/main_processor.py` | `output/*.csv` -> Power BI |
+| Community_Engagement | Community outreach tracking | `src/main_processor.py` | `output/*.csv` -> Power BI |
 | Overtime_TimeOff | OT/comp/time-off analytics | `overtime_timeoff_13month_sworn_breakdown_v10.py` | `analytics_output/monthly_breakdown.csv` -> Power BI |
 | Policy_Training_Monthly | Training compliance metrics | `src/policy_training_etl.py` (via `run_etl.bat`) | `output/policy_training_outputs.xlsx` -> Power BI |
 | Response_Times | Dispatch-to-arrival response | `response_time_batch_all_metrics.py` | `PowerBI_Data/response_time_all_metrics/*.csv` -> Power BI |
-| Summons | E-ticket/court summons | `SummonsMaster_Simple.py` | `03_Staging/Summons/summons_powerbi_latest.xlsx` -> Power BI |
+| Summons | E-ticket/court summons | `summons_etl_enhanced.py` (authoritative; `SummonsMaster_Simple.py` deprecated 2026-03-28) | `03_Staging/Summons/summons_powerbi_latest.xlsx` -> Power BI |
 
-Note: Directory name `Community_Engagment` has a typo (missing 'e'). Rename is a coordinated operation.
+Note: Directory was renamed from `Community_Engagment` to `Community_Engagement` on 2026-03-28. All references updated.
 
 ### Cross-Repo Dependencies
 
@@ -342,7 +342,7 @@ All 6 repos are subdirectories of the `02_ETL_Scripts/` parent. The parent direc
 |------|--------|--------|
 | 06_Workspace_Management | (parent repo) | HEAD |
 | Benchmark | (subdir of parent) | -- |
-| Community_Engagment | `racmac57/Community_Engagement.git` | main |
+| Community_Engagement | `racmac57/Community_Engagement.git` | main |
 | Overtime_TimeOff | `racmac57/overtime_timeoff.git` | master |
 | Policy_Training_Monthly | (subdir of parent) | -- |
 | Response_Times | (subdir of parent) | -- |
@@ -365,10 +365,10 @@ All 6 repos are subdirectories of the `02_ETL_Scripts/` parent. The parent direc
 3. **5 of 6 repos missing requirements.txt** (only Policy_Training_Monthly has one)
 4. **Mixed config formats**: JSON (3 repos) vs YAML (1 repo) vs none (2 repos)
 5. **Inconsistent .gitignore patterns**: No standard base template; coverage varies widely
-6. **Dual-ETL ambiguity in Summons**: Two scripts write the same output file
+6. **~~Dual-ETL ambiguity in Summons~~**: RESOLVED 2026-03-28 -- `summons_etl_enhanced.py` is authoritative; `SummonsMaster_Simple.py` archived
 7. **PII in git**: Benchmark preview CSV contains officer names/badge numbers
 8. **Assignment_Master_V2 copy divergence risk**: Two copies exist (09_Reference and 06_WM)
-9. **`Community_Engagment` directory typo**: Propagated to configs, task scheduler, M code
+9. **~~`Community_Engagment` directory typo~~**: RESOLVED 2026-03-28 -- renamed to `Community_Engagement`, all downstream refs updated. Task Scheduler needs manual re-import.
 10. **Generic template proliferation**: PYTHON_WORKSPACE_AI_GUIDE.md in 3 repos (should be in 08_Templates/)
 
 Full details: `cross_repo_audit.md` and `HUMAN_REVIEW.md` in this directory.

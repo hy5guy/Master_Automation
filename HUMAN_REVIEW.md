@@ -32,7 +32,7 @@ All items requiring human decision-making, aggregated from 6 repository audits.
 ## Community_Engagement (7 items)
 
 ### CRITICAL
-- **Directory name typo**: `Community_Engagement` (missing 'e'). Rename requires coordinated update across config.json, task_schedule.xml, M code paths, PBI data sources, and parent workspace references. This is the most impactful single fix across the entire workspace.
+- ~~**Directory name typo**: `Community_Engagment` (missing 'e').~~ **RESOLVED 2026-03-28** -- Renamed to `Community_Engagement`. All config, M code, script, and doc references updated. Task Scheduler XML needs manual re-import. See `rename_log_Community_Engagment.md`.
 
 ### HIGH
 - **CSB config inconsistency**: config.json sheet_name `26_01` does not match csb_processor.py default `CSB_CommOut`. Source is disabled so not currently impactful, but should be resolved before re-enabling.
