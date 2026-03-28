@@ -9,29 +9,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.20.0] - 2026-03-28
 
-### Added — `scripts/inject_ai_context_reference.py`
+### Added — `scripts/inject_ai_context_reference.py` (v3 — zip-safe)
 
-- **New script**: Programmatically injects an `AI_Context_Reference` worksheet into HPD shared workbooks. Reads `config/scripts.json` and `visual_export_mapping.json` for ETL cross-references. HPD-branded formatting (Navy/Gold palette, freeze panes, gold tab color).
-- **CLI flags**: `--dry-run`, `--tier2`, `--workbook <name>`, `--verbose`
-- **Executed**: 11 of 14 workbooks injected (3 Tier 2 files not on local disk — `Assignment_Master_V3_FINAL.xlsx`, `NIBRS_Monthly_Report.xlsx`, `_SSOCC - Service Log.xlsx`)
+- **New script**: Programmatically injects an `AI_Context_Reference` worksheet into HPD shared workbooks. Reads `config/scripts.json` and `visual_export_mapping.json` for ETL cross-references.
+- **v3 architecture (zip-safe)**: Never parses target XML through ElementTree. Uses text-level string insertion on raw XML bytes for `workbook.xml`, `workbook.xml.rels`, `[Content_Types].xml`. Does NOT touch `styles.xml`. Sheet content built in temp workbook (openpyxl), then injected as plain XML (no formatting, no style merge). This preserves all Data Validation, Conditional Formatting, Web Extensions, VBA, and unknown XML extensions.
+- **CLI flags**: `--dry-run`, `--tier2`, `--workbook <name>`, `--verbose`, `--no-backup`
+- **Automatic backup**: Copies to `archive/` subfolder with timestamp before any modification
+- **Executed**: 10 of 14 workbooks injected (3 Tier 2 files not on local disk; 1 Tier 2 skipped)
 - **Per-workbook sections**: Overview, Sheet & Table Directory, Data Dictionary & Validation, ETL & Integration Map, VBA & Macros (`.xlsm`), Claude in Excel Quick Start
 
-### Fixed — Drone_Monthly.xlsx circular references and copy-error formulas (13 cells)
+### Added — `/fix-excel` slash command
 
+- **`.claude/commands/fix-excel.md`** — Slash command for safe zip-level Excel cell editing. Documents the full process: inspect cell XML, build exact string replacements, clean `calcChain.xml`, preserve `ZipInfo` metadata, backup first. Prevents the openpyxl/ElementTree corruption issues discovered during this release.
+
+### Fixed — Drone_Monthly.xlsx circular references and copy-error formulas (11 cells)
+
+- All fixes applied via zip-level XML surgery (no openpyxl save) with `calcChain.xml` cleanup
 - **DFR Activity sheet**:
-  - `K10`, `L10`, `M10` — circular self-reference (`=$K$9+$K$10`) → `0:00:00` (Training Flights; zero confirmed by hardcoded totals matching row 9)
-  - `K11`, `L11`, `M11` — hardcoded values (swapped with row 10) → restored `=$X$9+$X$10` formulas (Total Flight Time)
-  - `K3`, `L3`, `M3` — wrong formula (flight-time sum in arrest row) → `0` (Assisted Arrests Oct/Nov/Dec-25; data unrecoverable)
-  - `M4` — wrong formula → `0` (Deployments Avoided Dec-25; data unrecoverable)
+  - `K3`, `L3`, `M3` — shared formula group (`si=0/1/2`) with wrong formula (`=$K$9+$K$10`) → plain value `0` (Assisted Arrests; data unrecoverable)
+  - `M4` — shared ref inheriting wrong formula → plain value `0`
+  - `K10`, `L10`, `M10` — shared ref causing circular self-reference → plain value `0` (Training Flights)
   - `C11` — copy error (`=$B$9+$B$10`) → `=$C$9+$C$10`
 - **Non-DFR sheet**:
-  - `C4`, `D4`, `H4` — copy error (all referenced column B) → corrected to own-column formulas
-- **Claude Log**: Updated with Turn 5 documenting all fixes
-- **AI_Context_Reference**: Re-injected post-fix to reflect corrected state
+  - `C4` — shared formula master with wrong column (`=$B$2+$B$3`) → `=$C$2+$C$3`
+  - `D4`, `H4` — shared refs inheriting wrong formula → explicit own-column formulas
+- **calcChain.xml**: 7 orphaned entries removed for cells converted from formula to value
+- **Key lesson**: Removing formulas without cleaning calcChain.xml triggers Excel repair dialog
 
 ### Changed — docs
 
-- **`CLAUDE.md`** — Version 1.20.0; `inject_ai_context_reference.py` added to Active Code
+- **`CLAUDE.md`** — Version 1.20.0; `inject_ai_context_reference.py` added to Active Code; updated status
 - **`SUMMARY.md`** — Version 1.20.0; status updated
 
 ---

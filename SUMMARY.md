@@ -1,7 +1,7 @@
 # 06_Workspace_Management Project Summary
 
 **Last Updated:** 2026-03-28
-**Status:** ✅ v1.20.0 — `scripts/inject_ai_context_reference.py` executed: 11 workbooks injected with `AI_Context_Reference` sheet; 13 circular-ref/copy-error cells fixed in `Drone_Monthly.xlsx`. v1.19.9: injection prompt doc. v1.19.8: Outreach M repo↔TMDL sync; DAX measure audit. v1.19.7: Doc sync. v1.19.6: Outreach M dual CSV/XLSX + YTD DAX doc. v1.19.5: **`etl_orchestrator.py`**
+**Status:** ✅ v1.20.0 — `inject_ai_context_reference.py` v3 (zip-safe): 10 workbooks injected; Drone_Monthly 11 circular-ref cells fixed via zip XML surgery + calcChain cleanup; `/fix-excel` slash command added. v1.19.9: injection prompt doc. v1.19.8: Outreach M sync; DAX audit. v1.19.7: Doc sync. v1.19.5: **`etl_orchestrator.py`**
 **Version:** 1.20.0 (see CHANGELOG)
 
 ---
@@ -19,7 +19,7 @@
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.20.0 `inject_ai_context_reference.py` — 11 workbooks injected; Drone_Monthly circular refs fixed. v1.19.9 injection prompt. v1.19.8 Outreach M synced; DAX audit. v1.19.7 docs + SSOCC. v1.19.6 outreach M. v1.19.5 **`etl_orchestrator.py`** |
+| **Status** | ✅ v1.20.0 `inject_ai_context_reference.py` v3 zip-safe — 10 workbooks injected; Drone_Monthly 11 circ-ref cells fixed; `/fix-excel` command. v1.19.9 injection prompt. v1.19.8 Outreach M synced; DAX audit. v1.19.7 docs + SSOCC. v1.19.5 **`etl_orchestrator.py`** |
 | **Version** | 1.20.0 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | Key automation: `verify_migration.ps1`, **`etl_orchestrator.py`**, `run_summons_etl.py`, `config.json`, etc. |
