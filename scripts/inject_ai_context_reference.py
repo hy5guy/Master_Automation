@@ -674,7 +674,24 @@ def _build_plain_sheet_xml(temp_wb_path):
     # Keep it simple -- just sheetData + mergeCells
     buf = io.BytesIO()
     sheet_tree.write(buf, xml_declaration=True, encoding="UTF-8")
-    return buf.getvalue()
+    xml_bytes = buf.getvalue()
+
+    # Post-process: fix XML declaration and add required namespace declarations.
+    # ElementTree produces: <?xml version='1.0' encoding='UTF-8'?>
+    #                       <worksheet xmlns="...">
+    # Excel requires:       <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    #                       <worksheet xmlns="..." xmlns:r="..." xmlns:mc="..." mc:Ignorable="x14ac">
+    xml_str = xml_bytes.decode("utf-8")
+    xml_str = xml_str.replace(
+        "<?xml version='1.0' encoding='UTF-8'?>",
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+    )
+    xml_str = xml_str.replace(
+        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"',
+        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"'
+        ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"',
+    )
+    return xml_str.encode("utf-8")
 
 
 def _escape_xml(text):

@@ -44,7 +44,7 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 | Item | Value |
 |------|-------|
 | **Version** | 1.20.0 |
-| **Status** | v1.20.0: `inject_ai_context_reference.py` v3 (zip-safe) — 10 workbooks injected via text-level XML insertion (no openpyxl save, no ElementTree on target); Drone_Monthly 11 circ-ref cells fixed via zip XML surgery + calcChain cleanup; `/fix-excel` slash command. v1.19.9: injection prompt doc. v1.19.8: Outreach M repo↔TMDL sync; DAX measure audit; REMU verified. |
+| **Status** | v1.20.0-rc: `inject_ai_context_reference.py` v3 (zip-safe) — 3 of 10 workbooks injected successfully (CSB, Chief, Drone); 7 still trigger repair dialog (unknown root cause — see `docs/handoffs/HANDOFF_AI_Context_Injection_2026_03_28.md`); Drone_Monthly 11 circ-ref cells fixed via zip XML surgery + calcChain cleanup; `/fix-excel` slash command. v1.19.9: injection prompt doc. v1.19.8: Outreach M repo↔TMDL sync; DAX measure audit; REMU verified. |
 | **pReportMonth** | Set per `.pbix` in Power Query (example: `#date(2026, 3, 1)` for March 2026 report) |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
