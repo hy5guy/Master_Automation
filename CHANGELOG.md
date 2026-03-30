@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.21.0] - 2026-03-30 — Claude Skills framework + repo analysis report
+
+### Added
+- **7 Claude Code slash commands** (`.claude/commands/`): unified ETL workflow skills replacing fragmented manual steps
+  - `/diagnose-pipeline` — Targeted diagnostics for any ETL pipeline (summons, arrests, overtime, response-time, community, exports, personnel)
+  - `/fix-excel` — Safe zip-level XML surgery for Excel workbooks (existed since v1.20.0; now part of skills suite)
+  - `/monthly-cycle` — Full monthly ETL cycle orchestration (preflight → exports → ETL execution → validation)
+  - `/preflight` — Pre-flight validation gate for source data, config, and personnel files
+  - `/process-exports` — Power BI visual export routing from `_DropExports` with dry-run preview
+  - `/sync-personnel` — Assignment Master validation, sync, and gap detection
+  - `/validate-window` — 13-month rolling window completeness checks
+- **`docs/CLAUDE_SKILLS_ANALYSIS_REPORT.md`** — Comprehensive repo architecture review: pipeline inventory, workflow bottleneck analysis, and skill design rationale (273 lines)
+
+### Notes
+- Skills wrap existing orchestration scripts and validators; no changes to ETL logic or `config/scripts.json`
+- All skills support guided workflows with structured output (tables, status indicators, next-step prompts)
+- Merged via PR #17 (`claude/analyze-repo-extend-claude-VBBxc`)
+
+### Pending (carried from 1.20.2)
+- Badge 0388 (LIGGIO) assignment status — requires RAC confirmation
+- 02_ETL_Scripts parent repo — needs GitHub remote (gh CLI not installed)
+
+---
+
 ## [1.20.2] - 2026-03-28 — PBI MCP session: Summons WG3/WG4/TEAM + Outreach OutputFolder
 
 ### Fixed

@@ -6,6 +6,7 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the **PowerBI_Data** repository (`_DropExports`, `Backfill`).
 
+**Latest Update (2026-03-30): v1.21.0 — Claude Skills framework.** 7 slash commands in `.claude/commands/` for guided ETL workflows: `/monthly-cycle`, `/preflight`, `/diagnose-pipeline`, `/validate-window`, `/process-exports`, `/sync-personnel`, `/fix-excel`. Architecture analysis in `docs/CLAUDE_SKILLS_ANALYSIS_REPORT.md`. See `CHANGELOG.md [1.21.0]`.
 **Latest Update (2026-03-28): v1.20.1 — Post-swarm manual resolution.** STOP flags resolved (Task Scheduler clean, VS Code workspace renamed, PBI path needs manual fix). `apply_peo_rule()` ported to Summons ETL. Policy_Training_Monthly remote created. Badge 0388 documented pending RAC. See `CHANGELOG.md [1.20.1]`.
 **Latest Update (2026-03-26): v1.19.8 — Outreach M & DAX audit.** `m_code/community/___Combined_Outreach_All.m` synced with TMDL (descending sort step added in Desktop). All 6 Outreach DAX measures (`Outreach Sessions/Hours/Attendees` + YTD variants) confirmed using `___DimMonth` bridge — no `pReportMonth` in DAX. `___REMU` partition M verified identical between repo and TMDL. Flagged `measure SubtitlePrevMonth` (orphan) and `Rolling12Flag` (`TODAY()` usage) for future cleanup. See **`CHANGELOG.md` [1.19.8]**.
 **Latest Update (2026-03-25): v1.19.7 — Documentation sync.** README, SUMMARY, `Claude.md`, `docs/PROJECT_STRUCTURE.md`, `docs/QUICK_START.md`, SSOCC rework doc (`docs/SSOCC_Service_Log_Excel_And_Power_BI_Rework_2026_03.md`), Community duration/attendees prompt (`docs/cursor_prompt_fix_duration_and_attendees.md`), `docs/ETL_SKILL_MEMORY.md`, handoffs. **`m_code/ssocc/`**: `FactServiceLog.m` + `DimServiceGroup.m` (Option B; legacy `___SSOCC_Data.m` until PBIX migration). See **`CHANGELOG.md` [1.19.7]**.
@@ -45,6 +46,16 @@ This directory orchestrates all Python data processing scripts from various work
 ├── .gitignore                   # Git ignore rules
 ├── config.json                  # Optional: `"PowerBI": "PowerBI_Data"` for get_powerbi_data_dir()
 ├── requirements.txt             # Python deps (pandas, openpyxl) for validation & Summons backfill
+├── .claude/
+│   ├── commands/               # Claude Code slash command skills (7 files)
+│   │   ├── diagnose-pipeline.md
+│   │   ├── fix-excel.md
+│   │   ├── monthly-cycle.md
+│   │   ├── preflight.md
+│   │   ├── process-exports.md
+│   │   ├── sync-personnel.md
+│   │   └── validate-window.md
+│   └── settings.local.json     # Tool permission allowlist
 ├── config/
 │   ├── scripts.json            # Configuration for all ETL scripts
 │   ├── response_time_filters.json  # Response Time filter configuration

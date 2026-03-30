@@ -43,13 +43,14 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.20.2 |
-| **Status** | v1.20.2: PBI MCP session — `___Combined_Outreach_All` OutputFolder fixed (`Community_Engagment` → `Community_Engagement`); `___Summons` M code WG5→TEAM rename + WG3/WG4/TEAM now populated in slim CSV (6,688/1,629/9,800 non-blank of 9,839 rows); schema expanded to 36 columns (added DATA_QUALITY_TIER, VIOLATION_CATEGORY, VIOLATION_NUMBER, VIOLATION_TYPE). v1.20.1: post-swarm STOP flags; `apply_peo_rule()` ported; Policy_Training_Monthly remote. Badge 0388 pending RAC. v1.20.0: `inject_ai_context_reference.py` v3 (zip-safe); Drone_Monthly circ-ref fixes; `/fix-excel` slash command. |
+| **Version** | 1.21.0 |
+| **Status** | v1.21.0: 7 Claude Code slash commands (`.claude/commands/`) for guided ETL workflows — `/monthly-cycle`, `/preflight`, `/diagnose-pipeline`, `/validate-window`, `/process-exports`, `/sync-personnel`, `/fix-excel`; `docs/CLAUDE_SKILLS_ANALYSIS_REPORT.md` (architecture review + skill design). v1.20.2: PBI MCP — Outreach OutputFolder fixed; Summons WG3/WG4/TEAM populated (36 cols). v1.20.0: `inject_ai_context_reference.py` v3; `/fix-excel` command. |
 | **pReportMonth** | Set per `.pbix` in Power Query (example: `#date(2026, 3, 1)` for March 2026 report) |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
 | **Report Template** | `Monthly_Report_Template.pbix` under `08_Templates\` or `15_Templates\` (OneDrive layout; same gold-copy file) |
-| **TMDL Export** | `m_code/tmdl_export/` (85 files, full model snapshot) |
+| **TMDL Export** | `m_code/tmdl_export/` (88 files, full model snapshot) |
+| **Claude Skills** | 7 slash commands in `.claude/commands/` (monthly-cycle, preflight, diagnose-pipeline, validate-window, process-exports, sync-personnel, fix-excel) |
 
 ### pReportMonth Migration (COMPLETE)
 All 16 M code queries migrated from `DateTime.LocalNow()` to `pReportMonth` via Claude Desktop MCP on 2026-03-09. Each `.pbix` is now an immutable snapshot -- changing `pReportMonth` and saving-as produces a new month's report without altering historical files.
@@ -81,6 +82,21 @@ Migration prompt and transcripts: `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_
 - **`___In_Person_Training.m`** — **`Policy_Training_Monthly.xlsx`** under `Shared Folder/Compstat/Contributions/Policy_Training/`; sheet **`Training_Log`** (fallback **`Training_Log_Clean`**). Loads **all** in-person rows; **YTD** = DAX on `Start date` (see `docs/POWER_BI_YTD_MEASURES_AND_PAGE_INSTRUCTIONS.md`).
 - **`___Cost_of_Training.m`** — **`02_ETL_Scripts/Policy_Training_Monthly/output/policy_training_outputs.xlsx`**, sheet **`Delivery_Cost_By_Month`**. M keeps **13-month rolling** periods **and** **calendar YTD** months through **`pReportMonth`** so YTD cost cards resolve (incl. January report month).
 
+### Claude Code Skills (`.claude/commands/`)
+7 slash commands for guided ETL workflows. Each skill wraps existing scripts and validators — no new ETL logic.
+
+| Command | Purpose |
+|---------|---------|
+| `/diagnose-pipeline` | Targeted diagnostics for any ETL pipeline (summons, arrests, overtime, response-time, community, exports, personnel) |
+| `/fix-excel` | Safe zip-level XML surgery for Excel workbooks (no openpyxl save) |
+| `/monthly-cycle` | Full monthly ETL cycle: preflight → exports → ETL execution → validation |
+| `/preflight` | Pre-flight validation gate for source data, config, and personnel files |
+| `/process-exports` | Route Power BI visual exports from `_DropExports` with dry-run preview |
+| `/sync-personnel` | Assignment Master validation, sync, and gap detection |
+| `/validate-window` | 13-month rolling window completeness checks |
+
+Architecture analysis: `docs/CLAUDE_SKILLS_ANALYSIS_REPORT.md`
+
 ## Project Map
 
 ### Active Code
@@ -110,6 +126,7 @@ Migration prompt and transcripts: `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_
 - `verify_migration.ps1` - Path verification
 
 ### Data Directories
+- `.claude/commands/` - Claude Code slash command skills (7 `.md` files)
 - `config/` - Configuration (scripts.json, response_time_filters.json)
 - `scripts/` - Execution scripts and Python helpers
 - `logs/` - ETL execution logs (auto-created)
@@ -151,6 +168,7 @@ Migration prompt and transcripts: `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_
 - `docs/PROMPT_Claude_In_Excel_DFR_Directed_Patrol_Summons_MCode.md` - DFR Summons M code (13-month window, Dismiss/Void filter)
 - `docs/DFR_Summons_Claude_Excel_Development_Log.md` - Claude in Excel development history (29 turns, workbook evolution)
 - `docs/PROMPT_AI_Context_Reference_Sheet_Injection.md` - Prompt to inject `AI_Context_Reference` worksheet into all 14 shared workbooks (Tier 1 data-entry + Tier 2 ETL/reference); maps each workbook to M code queries, Python ETL scripts, sheet/table targets, and Claude in Excel quick-start context; HPD-branded formatting
+- `docs/CLAUDE_SKILLS_ANALYSIS_REPORT.md` - Repo architecture review, pipeline inventory, skill design rationale
 - `docs/templates/HPD_Report_Style_Prompt.md` - HTML report design system
 - `09_Reference/Standards/ResponseTime_AllMetrics_DataDictionary.md` - Response Time schema
 - `14_Workspace/chatlogs/Directory_Consolidation_Documentation_Update_And_Commit/` - Directory consolidation session (transcript + chunks): canonical path refactors, `PowerBI_Data`, template folder moves (`08_Templates`), Phase 4 M batch context; pair with `_consolidation_project/IMPLEMENTATION_CHECKLIST_Directory_Consolidation.md`
@@ -242,7 +260,7 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override. 
 | `06_Workspace_Management\config.json` | Optional `PowerBI` folder name under OneDrive root |
 | `06_Workspace_Management\Standards\config\powerbi_visuals\visual_export_mapping.json` | Export-to-folder mapping |
 | `06_Workspace_Management\Standards\config\powerbi_visuals\schema_v2.json` | Archive/cleaning rules |
-| `06_Workspace_Management\m_code\` | Power BI M code (47 queries, 87 TMDL export) |
+| `06_Workspace_Management\m_code\` | Power BI M code (47+ queries, 88 TMDL export) |
 | `06_Workspace_Management\docs\` | Documentation, prompts, chatlogs |
 
 ### PowerBI_Data (Power BI data root)
@@ -375,4 +393,4 @@ Full details: `cross_repo_audit.md` and `HUMAN_REVIEW.md` in this directory.
 
 ---
 
-*Last updated: 2026-03-28 | Format version: 4.7*
+*Last updated: 2026-03-30 | Format version: 4.8*

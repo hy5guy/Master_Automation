@@ -1,8 +1,8 @@
 # 06_Workspace_Management Project Summary
 
-**Last Updated:** 2026-03-28
-**Status:** ✅ v1.20.2 — PBI MCP: `___Combined_Outreach_All` OutputFolder fixed; `___Summons` WG5→TEAM + WG3/WG4/TEAM populated (36 cols). v1.20.1: post-swarm STOP flags. v1.20.0: `inject_ai_context_reference.py` v3; `/fix-excel` command.
-**Version:** 1.20.2 (see CHANGELOG)
+**Last Updated:** 2026-03-30
+**Status:** ✅ v1.21.0 — 7 Claude Code slash commands (`.claude/commands/`) for guided ETL workflows; `docs/CLAUDE_SKILLS_ANALYSIS_REPORT.md`. v1.20.2: PBI MCP — Outreach OutputFolder fixed; Summons WG3/WG4/TEAM populated (36 cols). v1.20.0: `inject_ai_context_reference.py` v3; `/fix-excel` command.
+**Version:** 1.21.0 (see CHANGELOG)
 
 ---
 
@@ -19,8 +19,8 @@
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.20.2: PBI MCP — Outreach OutputFolder fixed; Summons WG3/WG4/TEAM populated (36 cols, 9,839 rows). v1.20.1: post-swarm STOP flags. v1.20.0: AI_Context_Reference v3 |
-| **Version** | 1.20.2 |
+| **Status** | ✅ v1.21.0: 7 Claude Skills for guided ETL workflows; architecture analysis report. v1.20.2: PBI MCP — Outreach OutputFolder + Summons WG3/WG4/TEAM (36 cols). v1.20.0: AI_Context_Reference v3 |
+| **Version** | 1.21.0 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | Key automation: `verify_migration.ps1`, **`etl_orchestrator.py`**, `run_summons_etl.py`, `config.json`, etc. |
 
@@ -50,7 +50,24 @@
 ✅ **DFR Power BI query** - `m_code/drone/DFR_Summons.m` loads DFR workbook with 13-month rolling window, dual dismiss/void filter (Summons_Recall + Summons_Status), schema-resilient Violation_Category/Jurisdiction, Date_Sort_Key, MM-YY, YearMonthKey
 ✅ **Arrest ETL future-proofed** - `--report-month YYYY-MM` (via `{REPORT_MONTH_ACTUAL}`); targeted file discovery in `05_EXPORTS/_Arrest/YYYY/month/`; outputs `YYYY_MM_Arrests_PowerBI_Ready.xlsx` to `01_DataSources/ARREST_DATA/Power_BI/`
 ✅ **13-month rolling window** - 24 Power BI visuals enforced to exactly 13 months (end = previous month); `process_powerbi_exports.py` (match_pattern, enforce_13_month), `validate_13_month_window.py`; docs in `docs/13_MONTH_*.md`
-✅ **Assignment Master sync path-agnostic** - `09_Reference/Personnel/scripts/sync_assignment_master.py` (or `run_sync.bat`); uses BASE_DIR = parent of scripts/; works on desktop (**carucci_r**) and laptop (**junction** `carucci_r` → profile or `ONEDRIVE_BASE`)  
+✅ **Assignment Master sync path-agnostic** - `09_Reference/Personnel/scripts/sync_assignment_master.py` (or `run_sync.bat`); uses BASE_DIR = parent of scripts/; works on desktop (**carucci_r**) and laptop (**junction** `carucci_r` → profile or `ONEDRIVE_BASE`)
+✅ **Claude Code Skills** — 7 slash commands in `.claude/commands/` for guided ETL workflows (see table below)
+
+---
+
+## Claude Code Skills (Slash Commands)
+
+| Command | Purpose |
+|---------|---------|
+| `/diagnose-pipeline` | Targeted diagnostics for any ETL pipeline |
+| `/fix-excel` | Safe zip-level XML surgery for Excel workbooks |
+| `/monthly-cycle` | Full monthly ETL cycle: preflight → exports → execution → validation |
+| `/preflight` | Pre-flight validation gate for source data, config, and personnel |
+| `/process-exports` | Route Power BI visual exports from `_DropExports` |
+| `/sync-personnel` | Assignment Master validation, sync, and gap detection |
+| `/validate-window` | 13-month rolling window completeness checks |
+
+Details: `docs/CLAUDE_SKILLS_ANALYSIS_REPORT.md`
 
 ---
 
@@ -87,6 +104,9 @@
 ├── .gitignore                   # Git ignore rules
 ├── config.json                  # Optional: Power BI root folder name for get_powerbi_data_dir()
 ├── requirements.txt             # Python deps (pandas, openpyxl) for validation & summons backfill
+├── .claude/                     # Claude Code configuration
+│   ├── commands/               # 7 slash command skills (diagnose-pipeline, fix-excel, monthly-cycle, preflight, process-exports, sync-personnel, validate-window)
+│   └── settings.local.json     # Tool permission allowlist
 ├── config/                      # Configuration files
 │   ├── scripts.json            # ETL script configuration
 │   ├── response_time_filters.json  # Response Time filters
