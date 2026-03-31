@@ -43,8 +43,8 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.21.0 |
-| **Status** | v1.21.0: 7 Claude Code slash commands (`.claude/commands/`) for guided ETL workflows — `/monthly-cycle`, `/preflight`, `/diagnose-pipeline`, `/validate-window`, `/process-exports`, `/sync-personnel`, `/fix-excel`; `docs/CLAUDE_SKILLS_ANALYSIS_REPORT.md` (architecture review + skill design). v1.20.2: PBI MCP — Outreach OutputFolder fixed; Summons WG3/WG4/TEAM populated (36 cols). v1.20.0: `inject_ai_context_reference.py` v3; `/fix-excel` command. |
+| **Version** | 1.21.1 |
+| **Status** | v1.21.1: Skill hardening pass (all 6 skills T9=1); `Pre_Flight_Validation.py` bug fixes (paths, personnel, OT/TimeOff checks); `parse_cad_assignment.py` (CAD-vs-Master); `sync_assignment_master.py` BADGE_NUMBER coercion; Personnel v1.6.0 (173 records, 2 adds, 5 reassignments, 1 departure). v1.21.0: 7 Claude Code slash commands; architecture analysis report. |
 | **pReportMonth** | Set per `.pbix` in Power Query (example: `#date(2026, 3, 1)` for March 2026 report) |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
@@ -290,7 +290,7 @@ Paths are portable: set `ONEDRIVE_BASE` (or `ONEDRIVE_HACKENSACK`) to override. 
 M code references `C:\Users\carucci_r\...` (desktop). Laptop has `C:\Users\RobertCarucci\...`. A Windows junction (`mklink /J`) enables path compatibility without modifying M code.
 
 ### Personnel Master
-`Assignment_Master_V3_FINAL.xlsx` (25 cols, 166 records). Schema at `09_Reference/Personnel/Assignment_Master_SCHEMA.md`. Sync scripts in `09_Reference/Personnel/scripts/`.
+`Assignment_Master_GOLD.xlsx` (25 cols, 173 records as of v1.6.0). Schema at `09_Reference/Personnel/Assignment_Master_SCHEMA.md`. Sync scripts in `09_Reference/Personnel/scripts/` (includes `parse_cad_assignment.py` for CAD-vs-Master reconciliation). Sync normalizes both `BADGE_NUMBER` (strips `.0` float suffix) and `PADDED_BADGE_NUMBER` (4-digit zero-padded).
 
 ### 13-Month Rolling Window
 24 of 32 Power BI visuals enforce exactly 13 full months. Config at `Standards/config/powerbi_visuals/visual_export_mapping.json`. Validation script: `scripts/validate_13_month_window.py`.

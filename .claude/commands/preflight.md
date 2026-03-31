@@ -14,9 +14,10 @@ If no argument is provided, default to the previous complete month.
 ### Step 1: Run the pre-flight validator
 
 ```bash
-cd /path/to/Master_Automation
 python scripts/Pre_Flight_Validation.py --report-month {REPORT_MONTH}
 ```
+
+Run from the `06_Workspace_Management` repo root. Set `PYTHONIOENCODING=utf-8` on Windows if needed.
 
 ### Step 2: Check export file presence
 
@@ -24,17 +25,18 @@ For each enabled ETL script in `config/scripts.json`, verify that the expected i
 
 | Pipeline | Expected Location |
 |----------|-------------------|
-| Arrests | `05_EXPORTS/_Arrest/{YYYY}/{month_name}/` |
-| Overtime | `05_EXPORTS/_Overtime/export/month/{YYYY}/` and `05_EXPORTS/_Time_Off/export/month/{YYYY}/` |
-| Response Times | `05_EXPORTS/_CAD_Incident_Downloads/` |
-| Summons | `05_EXPORTS/_Summons/E_Ticket/{YYYY}/{month_name}/` |
-| Community Engagement | `02_ETL_Scripts/Community_Engagement/` inputs |
+| Arrests | `05_EXPORTS/_Arrest/{YYYY}/month/{YYYY}_{MM}_*.xlsx` |
+| Overtime | `05_EXPORTS/_Overtime/export/month/{YYYY}/{YYYY}_{MM}_otactivity.xlsx` |
+| TimeOff | `05_EXPORTS/_Time_Off/export/month/{YYYY}/{YYYY}_{MM}_timeoffactivity.xlsx` |
+| Response Times | `05_EXPORTS/_CAD/timereport/monthly/{YYYY}_{MM}_timereport.xlsx` |
+| Summons | `05_EXPORTS/_Summons/E_Ticket/{YYYY}/month/{YYYY}_{MM}_eticket_export.csv` |
+| Community Engagement | Shared Folder workbooks (config-driven, not file-based exports) |
 
 For each, report: file count, total size, and newest file date.
 
 ### Step 3: Validate Personnel data
 
-Check that `09_Reference/Personnel/Assignment_Master_V2.csv` exists, has > 50 rows, and contains required columns (Badge, Last_Name, First_Name, Assignment, WG2, Rank).
+Check that `09_Reference/Personnel/Assignment_Master_V2.csv` exists, has >= 50 rows, and contains required columns (BADGE_NUMBER, LAST_NAME, FIRST_NAME, WG2, RANK). Note: actual row count is ~170+; the 50-row threshold is a minimum sanity check.
 
 ### Step 4: Validate visual export mapping
 
@@ -52,7 +54,7 @@ Present results as a checklist:
 Pre-Flight Validation: {REPORT_MONTH}
 =====================================
 [PASS] Config files valid
-[PASS] Assignment_Master_V2.csv (247 rows)
+[PASS] Assignment_Master_V2.csv (171 rows, columns: BADGE_NUMBER LAST_NAME FIRST_NAME WG2 RANK)
 [PASS] Arrest exports found (3 files, 1.2 MB)
 [FAIL] Overtime exports missing for {YYYY_MM}
 [WARN] 4 unprocessed CSVs in _DropExports

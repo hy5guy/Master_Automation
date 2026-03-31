@@ -5,30 +5,49 @@ Matches exported CSV files to the visual export mapping, renames them to standar
 ## Input
 
 The user provides:
-- `$ARGUMENTS` — the report month in YYYY_MM format (e.g. 2026_02), optionally followed by flags
+- `$ARGUMENTS` — the report month, optionally followed by flags
+
+Accepted month formats (all equivalent):
+- `2026_02` (YYYY_MM with underscore)
+- `2026-02` (YYYY-MM with hyphen)
+- `202602` (YYYYMM compact)
+
+The skill normalizes any of these to `YYYY-MM` (hyphen) before passing to `--report-month`.
 
 Supported flags:
 - `--dry-run` — preview what would happen without moving files
 - `--verify-only` — report current state of Processed_Exports
+- `--scan-processed-exports-inbox` — also process stray CSVs at Processed_Exports root
 
-If no argument is provided, default to the previous complete month in YYYY_MM format.
+If no argument is provided, default to the previous complete month.
 
 ## Process
+
+### Step 0: Normalize the month input
+
+Parse the user-provided month string into `YYYY-MM` (hyphen) format, which is what the script expects:
+- `2026_02` -> `2026-02`
+- `202602` -> `2026-02`
+- `2026-02` -> `2026-02` (already correct)
+
+Store the normalized value as `{YYYY-MM}`.
 
 ### Step 1: Preview with dry-run
 
 Always start with a dry-run to show the user what will happen:
 
 ```bash
-python scripts/process_powerbi_exports.py --report-month {YYYY_MM} --dry-run
+python scripts/process_powerbi_exports.py --report-month {YYYY-MM} --dry-run
 ```
 
 Show the output, which lists:
 - Each CSV found in _DropExports
-- Its matched visual mapping entry (or "UNMATCHED")
+- Its matched visual mapping entry (or "[WARN] No mapping for:" = UNMATCHED)
 - The target destination path
 - Whether normalization will be applied
 - Whether backfill copy will occur
+
+Explicitly call out any UNMATCHED files (tagged `[WARN]`) so the user can decide whether to add a mapping entry or ignore them.
 
 ### Step 2: Confirm with user
 
@@ -37,7 +56,7 @@ Ask the user to confirm before proceeding. List any UNMATCHED files that will be
 ### Step 3: Execute processing
 
 ```bash
-python scripts/process_powerbi_exports.py --report-month {YYYY_MM}
+python scripts/process_powerbi_exports.py --report-month {YYYY-MM}
 ```
 
 ### Step 4: Post-processing validation
@@ -62,9 +81,9 @@ python scripts/process_powerbi_exports.py --scan-processed-exports-inbox
 
 - **Source**: `PowerBI_Data/_DropExports/` (raw CSV exports from Power BI Ctrl+Shift+E)
 - **Mapping**: `Standards/config/powerbi_visuals/visual_export_mapping.json`
-- **Destination**: `PowerBI_Data/Processed_Exports/{category}/`
+- **Destination**: `09_Reference/Standards/Processed_Exports/{category}/`
 - **Backfill**: `PowerBI_Data/Backfill/{YYYY_MM}/{category}/`
-- **Archive**: Previous files archived under `archive/YYYY_MM/` before overwrite
+- **Archive**: Previous files archived under `archive/YYYY_MM/` within each category folder before overwrite
 
 ## Normalization Formats
 

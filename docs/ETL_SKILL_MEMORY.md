@@ -852,3 +852,42 @@ Conclusion: SAFE
 | 7 | Repo Safety | **1** | git status --short RC=0; no protected modifications |
 
 **Validation (Strict) = 1. All 7 tests = 1. Final result: PASS.**
+
+---
+
+## Skill Hardening Session — 2026-03-30
+
+### Summary
+6 Claude Code slash commands hardened to T9 = 1 (all binary tests pass).
+
+### Skills Hardened
+| Skill | Type | T9 | Key Fixes |
+|-------|------|----|-----------|
+| validate-window | READ-ONLY | 1 | Added --scan-folder/--verbose flags; enforced count 38 (was 24); added --no-partial-tail |
+| preflight | READ-ONLY | 1 | Fixed Master_Automation→06_WM path; personnel V2.csv with columns; added Arrest/CE checks |
+| diagnose-pipeline | READ-ONLY | 1 | Added 4 missing scripts (summons_missing_months, personnel diagnostics); GAP-1 documented |
+| sync-personnel | HYBRID | 1 | WG2 list corrected to match actual data (ALL-CAPS); badge-as-string verified |
+| process-exports | WRITE-CAPABLE | 1 | Fixed YYYY_MM→YYYY-MM format; destination 09_Reference/Standards/Processed_Exports |
+| monthly-cycle | WRITE-CAPABLE | 1 | Community ETL: deploy_production→src/main_processor; format conversion table added |
+
+### Artifacts
+- Master tracker: `docs/SKILL_HARDENING_MASTER.md`
+- Per-skill memory: `docs/skill_memory/{skill}_MEMORY.md` (6 files)
+- Regression inventory: `docs/skill_memory/REGRESSION_TESTS.md` (12 checks)
+
+### Script Fixed
+- `scripts/Pre_Flight_Validation.py`: Master_Automation→06_Workspace_Management, personnel→V2.csv at canonical path, column validation + row threshold, visual mapping count not hardcoded, added Arrest + Community checks
+
+---
+
+## Fixup Pass v3 — 2026-03-30
+
+### Changes
+1. **preflight.md**: Fixed stale example (247→171 rows), corrected all export paths to match disk
+2. **Pre_Flight_Validation.py**: Fixed eticket path (`month/` not `{MM}_{monthname}`), fixed arrest path (`{YYYY}/month/`), added Overtime + TimeOff checks, replaced CE `inputs/` with config.json check
+3. **sync-personnel.md**: Added sync mode safety warning block, added `find-unmapped cad` mode
+4. **parse_cad_assignment.py**: New script at `09_Reference/Personnel/scripts/` — compares CAD shift assignment CSV against Assignment_Master_V2.csv, produces Personnel Change Report (new badges, reassignments, departures)
+
+### Test Evidence
+- `Pre_Flight_Validation.py --report-month 2026-02` → exit 0, Gate: GO, 0 FAIL, 1 WARN, 10 PASS
+- `parse_cad_assignment.py` → exit 0, 12 new badges, 5 reassignments, 1 departure, 5 data notes

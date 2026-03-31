@@ -40,6 +40,10 @@ Supported pipelines:
    ```bash
    python scripts/diagnose_summons_top5_vs_deptwide.py
    ```
+6. Check for missing months in staging workbook vs backfill:
+   ```bash
+   python scripts/diagnose_summons_missing_months.py
+   ```
 
 ### For `arrests`:
 
@@ -81,6 +85,18 @@ Supported pipelines:
 3. Check for duplicate badge numbers
 4. Verify badge format consistency (numeric, no leading zeros dropped)
 5. Report unmapped personnel (badges appearing in exports but not in Assignment_Master)
+6. Run blank-bureau diagnostic to find unmapped badges:
+   ```bash
+   python scripts/diagnose_summons_blank_bureau.py
+   ```
+7. Check traffic badges against Assignment Master:
+   ```bash
+   python scripts/check_traffic_badges_in_master.py
+   ```
+8. Find unknown badges across all pipelines:
+   ```bash
+   python scripts/find_unknown_badges.py
+   ```
 
 ### For `exports`:
 

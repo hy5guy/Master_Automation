@@ -25,8 +25,8 @@ The user provides:
    - Badge format issues (non-numeric, unexpected lengths)
    - Last-modified timestamp of the file
 3. Cross-reference against known organizational structure:
-   - Valid WG2 values: Patrol Division, Detective Division, Administrative Division, Traffic Bureau, etc.
-   - Flag any WG2 values not in the known set
+   - Valid WG2 values: PATROL DIVISION, DETECTIVE BUREAU, TRAFFIC BUREAU, ADMINSTIVE COMMANDER, OPERATIONS COMMANDER, COMMUNICATIONS, CSB, SSOCC, STACP, RECODS AND EVIDENCE MANAGEMENT, Office of Community and Engagement
+   - Flag any WG2 values not in the known set (note: source data contains typos like "ADMINSTIVE" and "RECODS" — these are canonical spellings in the CSV)
 
 ### For `sync`:
 
@@ -40,6 +40,20 @@ Or via batch file:
 ```
 
 Uses `BASE_DIR = parent of scripts/` — works on both desktop and laptop.
+
+> **WRITE OPERATION** — This will overwrite Assignment_Master_V2.csv.
+>
+> Before running sync:
+> - Verify Assignment_Master_GOLD.xlsx is up to date (this is the source)
+> - The sync script reads from: `09_Reference/Personnel/Assignment_Master_GOLD.xlsx`
+>   (sheet: `Assignment_Master_V2`)
+> - A timestamped backup of GOLD is automatically saved to:
+>   `09_Reference/Personnel/Archive/` before any CSV is overwritten
+> - A backup of the previous CSV is saved to:
+>   `09_Reference/Personnel/backups/` before overwrite
+>
+> The sync script does NOT read from CAD or POSS directly.
+> It only reads GOLD.xlsx and writes V2.csv + schema.
 
 ### For `compare {badge}`:
 
@@ -56,6 +70,15 @@ Uses `BASE_DIR = parent of scripts/` — works on both desktop and laptop.
 2. Compare against Assignment_Master_V2.csv
 3. Report badges that appear in data but not in the master
 4. For summons: also run `python scripts/diagnose_summons_blank_bureau.py`
+
+### For `find-unmapped cad`:
+Run the CAD assignment parser against the most recent export:
+```bash
+python 09_Reference/Personnel/scripts/parse_cad_assignment.py
+```
+Reviews the most recent `*_assignment.csv` in `05_EXPORTS/_Assignment_Resource/`.
+Produces: new badges, possible reassignments, possible departures.
+After reviewing output, edit Assignment_Master_GOLD.xlsx, then run sync.
 
 ## Critical Rules
 

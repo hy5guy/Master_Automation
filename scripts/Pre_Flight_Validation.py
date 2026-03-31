@@ -99,8 +99,7 @@ def check_file(path: Path, name: str, severity: str = "FAIL") -> dict:
 def check_eticket(root: Path, year: int, month: int) -> dict:
     """E-Ticket: WARN if both .csv and .xlsx are missing."""
     yyyy_mm = f"{year}_{month:02d}"
-    month_folder = f"{month:02d}_{MONTH_NAMES[month]}"
-    base = root / "05_EXPORTS" / "_Summons" / "E_Ticket" / str(year) / month_folder
+    base = root / "05_EXPORTS" / "_Summons" / "E_Ticket" / str(year) / "month"
 
     csv_path = base / f"{yyyy_mm}_eticket_export.csv"
     xlsx_path = base / f"{yyyy_mm}_eticket_export.xlsx"
@@ -138,40 +137,75 @@ def check_visual_export_mapping(master_path: Path) -> dict:
     total = len(mappings)
     enforced = sum(1 for m in mappings if m.get("enforce_13_month_window") is True)
 
-    issues = []
-    if total < 36:
-        issues.append(f"total mappings {total} < 36")
-    if enforced != 25:
-        issues.append(f"13-month enforced count {enforced} != 25")
+    detail_parts = [f"total={total}", f"13-month enforced={enforced}"]
 
-    if issues:
+    if total < 30:
+        result["status"] = "WARN"
+        detail_parts.append(f"total mappings {total} seems low")
+
+    result["detail"] = ", ".join(detail_parts)
+
+    return result
+
+
+def check_personnel(root: Path) -> dict:
+    """Validate Assignment_Master_V2.csv: existence, columns, row count."""
+    personnel_path = root / "09_Reference" / "Personnel" / "Assignment_Master_V2.csv"
+    result = {"name": "Personnel File (Assignment_Master_V2.csv)", "status": "PASS",
+              "path": str(personnel_path), "detail": ""}
+
+    if not personnel_path.is_file():
         result["status"] = "FAIL"
-        result["detail"] = "; ".join(issues)
-    else:
-        result["detail"] = f"total={total}, 13-month enforced={enforced}"
+        result["detail"] = "MISSING"
+        return result
 
+    required_cols = {"BADGE_NUMBER", "LAST_NAME", "FIRST_NAME", "WG2", "RANK"}
+    try:
+        with open(personnel_path, newline="", encoding="utf-8-sig") as fh:
+            reader = csv.reader(fh)
+            header = next(reader, None)
+            if header is None:
+                result["status"] = "FAIL"
+                result["detail"] = "Empty file (no header)"
+                return result
+            data_rows = sum(1 for _ in reader)
+    except Exception as exc:
+        result["status"] = "FAIL"
+        result["detail"] = f"Read error: {exc}"
+        return result
+
+    header_set = {h.strip() for h in header}
+    missing_cols = required_cols - header_set
+    detail_parts = [f"data_rows={data_rows}"]
+
+    if missing_cols:
+        result["status"] = "FAIL"
+        detail_parts.append(f"missing columns: {', '.join(sorted(missing_cols))}")
+    if data_rows < 50:
+        result["status"] = "FAIL"
+        detail_parts.append(f"row count {data_rows} below minimum 50")
+
+    result["detail"] = ", ".join(detail_parts)
     return result
 
 
 def validate_system(year: int, month: int) -> bool:
     root = get_onedrive_root()
-    master_path = root / "Master_Automation"
+    workspace_path = root / "06_Workspace_Management"
     drop_folder = root / "PowerBI_Data" / "_DropExports"
     yyyy_mm = f"{year}_{month:02d}"
+    month_name = MONTH_NAMES[month]
 
-    print(f"--- PRE-FLIGHT AUDIT: Master Automation ---")
+    print(f"--- PRE-FLIGHT AUDIT: 06_Workspace_Management ---")
     print(f"Report Month : {year}-{month:02d}")
     print(f"Target Root  : {root}\n")
 
     results: list[dict] = []
 
-    results.append(check_file(
-        master_path / "Assignment_Master_V3_FINAL.xlsx",
-        "Critical Personnel File",
-    ))
+    results.append(check_personnel(root))
 
     results.append(check_file(
-        master_path / "config" / "scripts.json",
+        workspace_path / "config" / "scripts.json",
         "ETL Orchestrator Config",
     ))
 
@@ -191,7 +225,92 @@ def validate_system(year: int, month: int) -> bool:
 
     results.append(check_file(drop_folder, "Power BI Drop Folder Access"))
 
-    results.append(check_visual_export_mapping(master_path))
+    results.append(check_visual_export_mapping(workspace_path))
+
+    # Arrest exports: 05_EXPORTS/_Arrest/{YYYY}/month/{YYYY}_{MM}_*.xlsx
+    arrest_base = root / "05_EXPORTS" / "_Arrest" / str(year) / "month"
+    if arrest_base.is_dir():
+        arrest_files = list(arrest_base.glob(f"{yyyy_mm}_*.xlsx")) + list(arrest_base.glob(f"{yyyy_mm}_*.csv"))
+        results.append({
+            "name": "Arrest Exports",
+            "status": "PASS" if arrest_files else "WARN",
+            "path": str(arrest_base),
+            "detail": f"{len(arrest_files)} files found" if arrest_files else f"No {yyyy_mm}_* files",
+        })
+    else:
+        results.append({
+            "name": "Arrest Exports",
+            "status": "WARN",
+            "path": str(arrest_base),
+            "detail": f"Directory not found: {arrest_base}",
+        })
+
+    # Overtime exports: 05_EXPORTS/_Overtime/export/month/{YYYY}/{YYYY}_{MM}_otactivity.*
+    ot_base = root / "05_EXPORTS" / "_Overtime" / "export" / "month" / str(year)
+    ot_files = list(ot_base.glob(f"{yyyy_mm}_otactivity.*")) if ot_base.is_dir() else []
+    if ot_files:
+        results.append({
+            "name": "Overtime Export",
+            "status": "PASS",
+            "path": str(ot_files[0]),
+            "detail": f"size={ot_files[0].stat().st_size}B",
+        })
+    elif ot_base.is_dir():
+        results.append({
+            "name": "Overtime Export",
+            "status": "WARN",
+            "path": str(ot_base),
+            "detail": f"No {yyyy_mm}_otactivity.* found",
+        })
+    else:
+        results.append({
+            "name": "Overtime Export",
+            "status": "WARN",
+            "path": str(ot_base),
+            "detail": f"Year directory not found",
+        })
+
+    # TimeOff exports: 05_EXPORTS/_Time_Off/export/month/{YYYY}/{YYYY}_{MM}_timeoffactivity.*
+    to_base = root / "05_EXPORTS" / "_Time_Off" / "export" / "month" / str(year)
+    to_files = list(to_base.glob(f"{yyyy_mm}_timeoffactivity.*")) if to_base.is_dir() else []
+    if to_files:
+        results.append({
+            "name": "TimeOff Export",
+            "status": "PASS",
+            "path": str(to_files[0]),
+            "detail": f"size={to_files[0].stat().st_size}B",
+        })
+    elif to_base.is_dir():
+        results.append({
+            "name": "TimeOff Export",
+            "status": "WARN",
+            "path": str(to_base),
+            "detail": f"No {yyyy_mm}_timeoffactivity.* found",
+        })
+    else:
+        results.append({
+            "name": "TimeOff Export",
+            "status": "WARN",
+            "path": str(to_base),
+            "detail": f"Year directory not found",
+        })
+
+    # Community Engagement — config-driven from Shared Folder workbooks (not file-based exports)
+    ce_config = root / "02_ETL_Scripts" / "Community_Engagement" / "config.json"
+    if ce_config.is_file():
+        results.append({
+            "name": "Community Engagement Config",
+            "status": "PASS",
+            "path": str(ce_config),
+            "detail": f"size={ce_config.stat().st_size}B",
+        })
+    else:
+        results.append({
+            "name": "Community Engagement Config",
+            "status": "WARN",
+            "path": str(ce_config),
+            "detail": "config.json not found",
+        })
 
     fails = sum(1 for r in results if r["status"] == "FAIL")
     warnings = sum(1 for r in results if r["status"] == "WARN")

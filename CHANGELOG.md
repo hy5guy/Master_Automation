@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.21.1] - 2026-03-30 — Skill hardening + Personnel v1.6.0
+
+### Fixed
+- **`Pre_Flight_Validation.py`** — Fixed `Master_Automation` → `06_Workspace_Management` base path; personnel check now uses `09_Reference/Personnel/Assignment_Master_V2.csv` (was V3_FINAL.xlsx); fixed eticket path (`month/` not `{MM}_{monthname}`); fixed arrest path (`{YYYY}/month/`); added Overtime and TimeOff export checks; CE check uses `config.json` (was nonexistent `inputs/`); visual mapping enforced count no longer hardcoded
+- **`.claude/commands/process-exports.md`** — Report month format `YYYY_MM` → `YYYY-MM`; destination path corrected to `09_Reference/Standards/Processed_Exports/`
+- **`.claude/commands/monthly-cycle.md`** — Community ETL script `deploy_production.py` → `src/main_processor.py`; format conversion table added
+- **`.claude/commands/diagnose-pipeline.md`** — Added 4 missing diagnostic scripts to inventory
+- **`.claude/commands/validate-window.md`** — Added `--scan-folder`, `--no-partial-tail`, `--verbose` flags; enforced visual count target
+- **`.claude/commands/preflight.md`** — Fixed stale example (247→171 rows), corrected column names and export path table
+
+### Added
+- **`09_Reference/Personnel/scripts/parse_cad_assignment.py`** — CAD "Assign Shift" CSV parser; compares against Assignment_Master_V2.csv; reports new badges, reassignments, departures, data notes; moves processed file to `_processed/`
+- **`.claude/commands/sync-personnel.md`** — `find-unmapped cad` mode; sync safety warning; WG2 list corrected to actual ALL-CAPS values
+
+### Changed
+- **`09_Reference/Personnel/scripts/sync_assignment_master.py`** — Added BADGE_NUMBER coercion (strips `.0` float suffix from Excel numeric badges before CSV export)
+- **Personnel v1.6.0** — 173 records: added Yoon (715), Santiago (2034); reassigned Henao/C.Lara-Nunez→STACP, G.Lara-Nunez→DET, Taha-Zeidan→PATROL, Peralta/Revi→OCE; Garcia badge 9999→531; Swaby (381) INACTIVE
+- **Skill hardening** — All 6 Claude Skills passed T1-T9 binary test framework; memory files and regression tests documented in `docs/skill_memory/`
+
+### Notes
+- `docs/SKILL_HARDENING_MASTER.md` — Global tracker (6/6 PASS)
+- `docs/skill_memory/` — Per-skill evidence logs and regression tests
+
+---
+
 ## [1.21.0] - 2026-03-30 — Claude Skills framework + repo analysis report
 
 ### Added

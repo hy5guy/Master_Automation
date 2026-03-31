@@ -1,8 +1,8 @@
 # 06_Workspace_Management Project Summary
 
 **Last Updated:** 2026-03-30
-**Status:** ✅ v1.21.0 — 7 Claude Code slash commands (`.claude/commands/`) for guided ETL workflows; `docs/CLAUDE_SKILLS_ANALYSIS_REPORT.md`. v1.20.2: PBI MCP — Outreach OutputFolder fixed; Summons WG3/WG4/TEAM populated (36 cols). v1.20.0: `inject_ai_context_reference.py` v3; `/fix-excel` command.
-**Version:** 1.21.0 (see CHANGELOG)
+**Status:** ✅ v1.21.1 — Skill hardening (all 6 skills T9=1); Pre_Flight_Validation.py fixes; parse_cad_assignment.py; sync BADGE_NUMBER coercion; Personnel v1.6.0 (173 records). v1.21.0: 7 Claude Skills framework. v1.20.2: PBI MCP — Outreach OutputFolder + Summons WG3/WG4/TEAM.
+**Version:** 1.21.1 (see CHANGELOG)
 
 ---
 
@@ -19,8 +19,8 @@
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.21.0: 7 Claude Skills for guided ETL workflows; architecture analysis report. v1.20.2: PBI MCP — Outreach OutputFolder + Summons WG3/WG4/TEAM (36 cols). v1.20.0: AI_Context_Reference v3 |
-| **Version** | 1.21.0 |
+| **Status** | ✅ v1.21.1: Skill hardening + Personnel v1.6.0 (173 records, BADGE_NUMBER coercion, CAD parser). v1.21.0: 7 Claude Skills. v1.20.2: PBI MCP — Outreach + Summons WG3/WG4/TEAM (36 cols). |
+| **Version** | 1.21.1 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | Key automation: `verify_migration.ps1`, **`etl_orchestrator.py`**, `run_summons_etl.py`, `config.json`, etc. |
 
@@ -50,7 +50,7 @@
 ✅ **DFR Power BI query** - `m_code/drone/DFR_Summons.m` loads DFR workbook with 13-month rolling window, dual dismiss/void filter (Summons_Recall + Summons_Status), schema-resilient Violation_Category/Jurisdiction, Date_Sort_Key, MM-YY, YearMonthKey
 ✅ **Arrest ETL future-proofed** - `--report-month YYYY-MM` (via `{REPORT_MONTH_ACTUAL}`); targeted file discovery in `05_EXPORTS/_Arrest/YYYY/month/`; outputs `YYYY_MM_Arrests_PowerBI_Ready.xlsx` to `01_DataSources/ARREST_DATA/Power_BI/`
 ✅ **13-month rolling window** - 24 Power BI visuals enforced to exactly 13 months (end = previous month); `process_powerbi_exports.py` (match_pattern, enforce_13_month), `validate_13_month_window.py`; docs in `docs/13_MONTH_*.md`
-✅ **Assignment Master sync path-agnostic** - `09_Reference/Personnel/scripts/sync_assignment_master.py` (or `run_sync.bat`); uses BASE_DIR = parent of scripts/; works on desktop (**carucci_r**) and laptop (**junction** `carucci_r` → profile or `ONEDRIVE_BASE`)
+✅ **Assignment Master sync path-agnostic** - `09_Reference/Personnel/scripts/sync_assignment_master.py` (or `run_sync.bat`); uses BASE_DIR = parent of scripts/; normalizes `BADGE_NUMBER` (strips `.0`) and `PADDED_BADGE_NUMBER` (4-digit zero-pad); `parse_cad_assignment.py` compares CAD shift exports against Master; works on desktop (**carucci_r**) and laptop (**junction** `carucci_r` → profile or `ONEDRIVE_BASE`)
 ✅ **Claude Code Skills** — 7 slash commands in `.claude/commands/` for guided ETL workflows (see table below)
 
 ---
