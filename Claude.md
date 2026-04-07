@@ -43,14 +43,14 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.21.1 |
-| **Status** | v1.21.1: Skill hardening pass (all 6 skills T9=1); `Pre_Flight_Validation.py` bug fixes (paths, personnel, OT/TimeOff checks); `parse_cad_assignment.py` (CAD-vs-Master); `sync_assignment_master.py` BADGE_NUMBER coercion; Personnel v1.6.0 (173 records, 2 adds, 5 reassignments, 1 departure). v1.21.0: 7 Claude Code slash commands; architecture analysis report. |
+| **Version** | 1.22.0 |
+| **Status** | v1.22.0: `/find-stale-sources` skill + `check_source_freshness.py` (10 pipeline sources, content-first evidence hierarchy, read-only). v1.21.1: Skill hardening (all 6 skills T9=1); Personnel v1.6.0. |
 | **pReportMonth** | Set per `.pbix` in Power Query (example: `#date(2026, 3, 1)` for March 2026 report) |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
 | **Report Template** | `Monthly_Report_Template.pbix` under `08_Templates\` or `15_Templates\` (OneDrive layout; same gold-copy file) |
 | **TMDL Export** | `m_code/tmdl_export/` (88 files, full model snapshot) |
-| **Claude Skills** | 7 slash commands in `.claude/commands/` (monthly-cycle, preflight, diagnose-pipeline, validate-window, process-exports, sync-personnel, fix-excel) |
+| **Claude Skills** | 8 slash commands in `.claude/commands/` (monthly-cycle, preflight, diagnose-pipeline, validate-window, process-exports, sync-personnel, fix-excel, find-stale-sources) |
 
 ### pReportMonth Migration (COMPLETE)
 All 16 M code queries migrated from `DateTime.LocalNow()` to `pReportMonth` via Claude Desktop MCP on 2026-03-09. Each `.pbix` is now an immutable snapshot -- changing `pReportMonth` and saving-as produces a new month's report without altering historical files.
@@ -83,11 +83,12 @@ Migration prompt and transcripts: `docs/chatlogs/PROMPT_Claude_MCP_pReportMonth_
 - **`___Cost_of_Training.m`** — **`02_ETL_Scripts/Policy_Training_Monthly/output/policy_training_outputs.xlsx`**, sheet **`Delivery_Cost_By_Month`**. M keeps **13-month rolling** periods **and** **calendar YTD** months through **`pReportMonth`** so YTD cost cards resolve (incl. January report month).
 
 ### Claude Code Skills (`.claude/commands/`)
-7 slash commands for guided ETL workflows. Each skill wraps existing scripts and validators — no new ETL logic.
+8 slash commands for guided ETL workflows. Each skill wraps existing scripts and validators — no new ETL logic.
 
 | Command | Purpose |
 |---------|---------|
 | `/diagnose-pipeline` | Targeted diagnostics for any ETL pipeline (summons, arrests, overtime, response-time, community, exports, personnel) |
+| `/find-stale-sources` | Identify source files not updated through target report month (content-first evidence, read-only) |
 | `/fix-excel` | Safe zip-level XML surgery for Excel workbooks (no openpyxl save) |
 | `/monthly-cycle` | Full monthly ETL cycle: preflight → exports → ETL execution → validation |
 | `/preflight` | Pre-flight validation gate for source data, config, and personnel files |
@@ -106,6 +107,7 @@ Architecture analysis: `docs/CLAUDE_SKILLS_ANALYSIS_REPORT.md`
 - `scripts/run_etl_script.ps1` - Individual script runner
 - `scripts/path_config.py` - `get_onedrive_root()`, `get_powerbi_data_dir()` (repo `config.json` / `PowerBI_Data`), `get_powerbi_paths()` from `scripts.json`
 - `scripts/overtime_timeoff_with_backfill.py` - Overtime/TimeOff monthly wrapper
+- `scripts/check_source_freshness.py` - Source freshness checker for all ETL pipelines; `--report-month YYYY-MM`; content-first evidence; outputs table + `logs/stale_sources_YYYYMM.log`
 - `scripts/validate_exports.py` - Pre-flight check for OT/TimeOff exports
 - `scripts/validate_outputs.py` - CSV schema validation
 - `scripts/test_pipeline.bat` - Overtime/TimeOff test suite

@@ -1,8 +1,8 @@
 # 06_Workspace_Management Project Summary
 
-**Last Updated:** 2026-03-30
-**Status:** ✅ v1.21.1 — Skill hardening (all 6 skills T9=1); Pre_Flight_Validation.py fixes; parse_cad_assignment.py; sync BADGE_NUMBER coercion; Personnel v1.6.0 (173 records). v1.21.0: 7 Claude Skills framework. v1.20.2: PBI MCP — Outreach OutputFolder + Summons WG3/WG4/TEAM.
-**Version:** 1.21.1 (see CHANGELOG)
+**Last Updated:** 2026-04-07
+**Status:** ✅ v1.22.0 — `/find-stale-sources` skill + `check_source_freshness.py` helper (10 pipeline sources, content-first evidence). v1.21.1: Skill hardening (all 6 skills T9=1); Personnel v1.6.0. v1.21.0: 7 Claude Skills framework.
+**Version:** 1.22.0 (see CHANGELOG)
 
 ---
 
@@ -51,7 +51,7 @@
 ✅ **Arrest ETL future-proofed** - `--report-month YYYY-MM` (via `{REPORT_MONTH_ACTUAL}`); targeted file discovery in `05_EXPORTS/_Arrest/YYYY/month/`; outputs `YYYY_MM_Arrests_PowerBI_Ready.xlsx` to `01_DataSources/ARREST_DATA/Power_BI/`
 ✅ **13-month rolling window** - 24 Power BI visuals enforced to exactly 13 months (end = previous month); `process_powerbi_exports.py` (match_pattern, enforce_13_month), `validate_13_month_window.py`; docs in `docs/13_MONTH_*.md`
 ✅ **Assignment Master sync path-agnostic** - `09_Reference/Personnel/scripts/sync_assignment_master.py` (or `run_sync.bat`); uses BASE_DIR = parent of scripts/; normalizes `BADGE_NUMBER` (strips `.0`) and `PADDED_BADGE_NUMBER` (4-digit zero-pad); `parse_cad_assignment.py` compares CAD shift exports against Master; works on desktop (**carucci_r**) and laptop (**junction** `carucci_r` → profile or `ONEDRIVE_BASE`)
-✅ **Claude Code Skills** — 7 slash commands in `.claude/commands/` for guided ETL workflows (see table below)
+✅ **Claude Code Skills** — 8 slash commands in `.claude/commands/` for guided ETL workflows (see table below)
 
 ---
 
@@ -65,6 +65,7 @@
 | `/preflight` | Pre-flight validation gate for source data, config, and personnel |
 | `/process-exports` | Route Power BI visual exports from `_DropExports` |
 | `/sync-personnel` | Assignment Master validation, sync, and gap detection |
+| `/find-stale-sources` | Identify source files not updated through target report month |
 | `/validate-window` | 13-month rolling window completeness checks |
 
 Details: `docs/CLAUDE_SKILLS_ANALYSIS_REPORT.md`

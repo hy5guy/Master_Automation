@@ -6,8 +6,8 @@ Centralized automation hub for running all Python ETL scripts that feed into Pow
 
 This directory orchestrates all Python data processing scripts from various workspaces and manages their output to the **PowerBI_Data** repository (`_DropExports`, `Backfill`).
 
-**Latest Update (2026-03-30): v1.21.1 — Skill hardening + Personnel v1.6.0.** All 6 Claude Skills hardened to T9=1; `Pre_Flight_Validation.py` bug fixes (paths, personnel file, OT/TimeOff checks); `parse_cad_assignment.py` (CAD-vs-Master reconciliation); `sync_assignment_master.py` BADGE_NUMBER coercion (strips `.0` float suffix); Personnel updated to 173 records (2 adds, 5 reassignments, 1 departure). See `CHANGELOG.md [1.21.1]`.
-**Previous (2026-03-30): v1.21.0 — Claude Skills framework.** 7 slash commands in `.claude/commands/`. See `CHANGELOG.md [1.21.0]`.
+**Latest Update (2026-04-07): v1.22.0 — /find-stale-sources skill.** New `/find-stale-sources` slash command + `scripts/check_source_freshness.py` helper. Checks all 10 ETL pipeline sources against a target report month using content-first evidence (date column max > tab-name > file timestamp). Read-only. See `CHANGELOG.md [1.22.0]`.
+**Previous (2026-03-30): v1.21.1 — Skill hardening + Personnel v1.6.0.** All 6 Claude Skills hardened to T9=1. See `CHANGELOG.md [1.21.1]`.
 **Latest Update (2026-03-28): v1.20.1 — Post-swarm manual resolution.** STOP flags resolved (Task Scheduler clean, VS Code workspace renamed, PBI path needs manual fix). `apply_peo_rule()` ported to Summons ETL. Policy_Training_Monthly remote created. Badge 0388 documented pending RAC. See `CHANGELOG.md [1.20.1]`.
 **Latest Update (2026-03-26): v1.19.8 — Outreach M & DAX audit.** `m_code/community/___Combined_Outreach_All.m` synced with TMDL (descending sort step added in Desktop). All 6 Outreach DAX measures (`Outreach Sessions/Hours/Attendees` + YTD variants) confirmed using `___DimMonth` bridge — no `pReportMonth` in DAX. `___REMU` partition M verified identical between repo and TMDL. Flagged `measure SubtitlePrevMonth` (orphan) and `Rolling12Flag` (`TODAY()` usage) for future cleanup. See **`CHANGELOG.md` [1.19.8]**.
 **Latest Update (2026-03-25): v1.19.7 — Documentation sync.** README, SUMMARY, `Claude.md`, `docs/PROJECT_STRUCTURE.md`, `docs/QUICK_START.md`, SSOCC rework doc (`docs/SSOCC_Service_Log_Excel_And_Power_BI_Rework_2026_03.md`), Community duration/attendees prompt (`docs/cursor_prompt_fix_duration_and_attendees.md`), `docs/ETL_SKILL_MEMORY.md`, handoffs. **`m_code/ssocc/`**: `FactServiceLog.m` + `DimServiceGroup.m` (Option B; legacy `___SSOCC_Data.m` until PBIX migration). See **`CHANGELOG.md` [1.19.7]**.
@@ -48,8 +48,9 @@ This directory orchestrates all Python data processing scripts from various work
 ├── config.json                  # Optional: `"PowerBI": "PowerBI_Data"` for get_powerbi_data_dir()
 ├── requirements.txt             # Python deps (pandas, openpyxl) for validation & Summons backfill
 ├── .claude/
-│   ├── commands/               # Claude Code slash command skills (7 files)
+│   ├── commands/               # Claude Code slash command skills (8 files)
 │   │   ├── diagnose-pipeline.md
+│   │   ├── find-stale-sources.md
 │   │   ├── fix-excel.md
 │   │   ├── monthly-cycle.md
 │   │   ├── preflight.md
@@ -71,6 +72,7 @@ This directory orchestrates all Python data processing scripts from various work
 │   ├── Pre_Flight_Validation.py          # Pre-flight GO/NO-GO gate (argparse, evidence checks, mapping validation)
 │   ├── summons_derived_outputs_simple.py  # Summons derived outputs (argparse, dynamic filenames, IS_AGGREGATE)
 │   ├── overtime_timeoff_with_backfill.py     # Overtime/TimeOff monthly wrapper (v10 + backfill)
+│   ├── check_source_freshness.py             # Source freshness check for all ETL pipelines (--report-month)
 │   ├── validate_exports.py                  # Pre-flight OT/TimeOff export validation
 │   ├── validate_outputs.py                   # FIXED CSV schema validation
 │   ├── test_pipeline.bat                     # Overtime/TimeOff test suite

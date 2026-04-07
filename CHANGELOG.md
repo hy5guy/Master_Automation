@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.22.0] - 2026-04-07 — /find-stale-sources skill + check_source_freshness.py
+
+### Added
+- **`scripts/check_source_freshness.py`** — Read-only helper that checks all 10 ETL pipeline source files against a target report month. Evidence hierarchy: workbook content (date column max) > tab-name pattern > file modification timestamp. Outputs formatted table + `logs/stale_sources_YYYYMM.log`. Resolves all paths via `path_config.get_onedrive_root()`.
+- **`.claude/commands/find-stale-sources.md`** — 8th Claude Code slash command (`/find-stale-sources`). Identifies source files that do not appear updated through a target report month. Delegates to `check_source_freshness.py`.
+
+### Notes
+- Covers: Arrests, Overtime, TimeOff, Response Times, Summons (E-Ticket + Staging), Community Engagement (CE Monthly, STACP, Patrol), Policy Training
+- Status values: READY (data present), STALE (data missing), UNKNOWN (file not found or inconclusive)
+- Exit code 1 when any source is STALE (useful for CI/pre-flight gating)
+
+---
+
 ## [1.21.1] - 2026-03-30 — Skill hardening + Personnel v1.6.0
 
 ### Fixed
