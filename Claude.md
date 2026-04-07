@@ -43,8 +43,8 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.22.0 |
-| **Status** | v1.22.0: `/find-stale-sources` skill + `check_source_freshness.py` (10 pipeline sources, content-first evidence hierarchy, read-only). v1.21.1: Skill hardening (all 6 skills T9=1); Personnel v1.6.0. |
+| **Version** | 1.22.1 |
+| **Status** | v1.22.1: Summons ETL fixes — `run_summons_etl.py` YYYYMM path parsing, `e_ticket_export` glob pattern, watchdog keyword match. v1.22.0: `/find-stale-sources` skill + `check_source_freshness.py`. |
 | **pReportMonth** | Set per `.pbix` in Power Query (example: `#date(2026, 3, 1)` for March 2026 report) |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |

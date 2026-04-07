@@ -1,8 +1,8 @@
 # 06_Workspace_Management Project Summary
 
 **Last Updated:** 2026-04-07
-**Status:** ✅ v1.22.0 — `/find-stale-sources` skill + `check_source_freshness.py` helper (10 pipeline sources, content-first evidence). v1.21.1: Skill hardening (all 6 skills T9=1); Personnel v1.6.0. v1.21.0: 7 Claude Skills framework.
-**Version:** 1.22.0 (see CHANGELOG)
+**Status:** ✅ v1.22.1 — Summons ETL path/keyword/glob fixes (`run_summons_etl.py` YYYYMM parsing, `e_ticket_export` glob, watchdog keyword). v1.22.0: `/find-stale-sources` skill. v1.21.1: Skill hardening; Personnel v1.6.0.
+**Version:** 1.22.1 (see CHANGELOG)
 
 ---
 

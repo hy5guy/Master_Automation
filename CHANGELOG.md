@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.22.1] - 2026-04-07 — Summons ETL path, keyword, and glob fixes
+
+### Fixed
+- **`run_summons_etl.py`** — `--month` argument parsing now accepts `YYYYMM`, `YYYY_MM`, and `YYYY-MM` formats; previously `202603` was treated as the year, producing `202603/month/` instead of `2026/month/`
+- **`run_summons_etl.py`** — `_discover_summons_files()` glob widened from `*_eticket_export*.csv` to `*ticket_export*.csv` with dual `endswith` checks to match both `eticket_export` and `e_ticket_export` naming conventions
+- **`02_ETL_Scripts/Export_File_Watchdog/watchdog_service.py`** — Added `'e_ticket_export'` to the E_Ticket `keywords` list so the watchdog matches filenames with underscore between `e` and `ticket`; existing `year_based: True` + `month_subfolder: True` config now routes correctly to `_Summons/E_Ticket/YYYY/month/`
+
+---
+
 ## [1.22.0] - 2026-04-07 — /find-stale-sources skill + check_source_freshness.py
 
 ### Added

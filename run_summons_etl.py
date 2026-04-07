@@ -17,6 +17,7 @@ sys.path.insert(0, str(_scripts))
 
 from path_config import get_onedrive_root
 from summons_etl_normalize import (
+    apply_fine_amount_and_violation_category,
     normalize_personnel_data,
     write_three_tier_output,
     load_and_concatenate_summons,
@@ -29,13 +30,14 @@ def _discover_summons_files(month_dir: Path) -> list[Path]:
     """Discover e-ticket exports. Prefer _FIXED.csv (DOpus cleaned) when both exist.
     Fall back to raw when _FIXED has 0 data rows (header-only)."""
     seen = {}
-    for f in sorted(month_dir.glob("*_eticket_export*.csv")):
+    # Match both naming conventions: eticket_export and e_ticket_export
+    for f in sorted(month_dir.glob("*ticket_export*.csv")):
         name = f.name
         if "_FIXED" in name:
-            base = name.replace("_eticket_export_FIXED.csv", "")
+            base = name.replace("_eticket_export_FIXED.csv", "").replace("_e_ticket_export_FIXED.csv", "")
             seen[base] = f
-        elif name.endswith("_eticket_export.csv"):
-            base = name.replace("_eticket_export.csv", "")
+        elif name.endswith("_eticket_export.csv") or name.endswith("_e_ticket_export.csv"):
+            base = name.replace("_eticket_export.csv", "").replace("_e_ticket_export.csv", "")
             if base not in seen:
                 seen[base] = f
 
@@ -75,7 +77,15 @@ def main():
     master_path = base / "09_Reference" / "Personnel" / "Assignment_Master_V2.csv"
     output_xlsx = base / "03_Staging" / "Summons" / "summons_powerbi_latest.xlsx"
 
-    end_year = int(args.month.split("_")[0])
+    # Normalize month argument: accept YYYYMM, YYYY_MM, or YYYY-MM
+    month_clean = args.month.strip().replace("-", "_")
+    if "_" in month_clean:
+        end_year = int(month_clean.split("_")[0])
+    elif len(month_clean) == 6 and month_clean.isdigit():
+        end_year = int(month_clean[:4])
+    else:
+        print(f"  ERROR: Cannot parse --month '{args.month}'. Use YYYY_MM, YYYY-MM, or YYYYMM.")
+        sys.exit(1)
     years_to_scan = sorted({str(end_year - 1), str(end_year)})
 
     paths = []
@@ -123,6 +133,9 @@ def main():
         merged.loc[backfill_mask, "IS_AGGREGATE"] = True
         print(f"  Backfill merged: {len(merged) - len(final_data)} rows added.")
 
+    base_dir = Path(master_path).resolve().parents[2]
+    merged = apply_fine_amount_and_violation_category(merged, base_dir)
+
     # ----------------------------------------------------------------
     # DFR split: separate drone-operator records from the main pipeline.
     # Polson (badge 0738) is always DFR; Ramirez (2025) and Mazzaccaro (0377)
@@ -133,7 +146,7 @@ def main():
     dfr_records, main_records = split_dfr_records(merged)
 
     if len(dfr_records) > 0:
-        print(f"  DFR records isolated: {len(dfr_records)} row(s) → dfr_directed_patrol_enforcement.xlsx")
+        print(f"  DFR records isolated: {len(dfr_records)} row(s) -> dfr_directed_patrol_enforcement.xlsx")
         dfr_workbook = (
             base
             / "Shared Folder"
