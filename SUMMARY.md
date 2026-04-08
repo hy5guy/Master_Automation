@@ -1,8 +1,8 @@
 # 06_Workspace_Management Project Summary
 
-**Last Updated:** 2026-04-07
-**Status:** ✅ v1.22.1 — Summons ETL path/keyword/glob fixes (`run_summons_etl.py` YYYYMM parsing, `e_ticket_export` glob, watchdog keyword). v1.22.0: `/find-stale-sources` skill. v1.21.1: Skill hardening; Personnel v1.6.0.
-**Version:** 1.22.1 (see CHANGELOG)
+**Last Updated:** 2026-04-08
+**Status:** ✅ v1.24.0 — `Save-MonthlyReport` hardened (`$ReportMonth`, canonical template, idempotent, dry-run gate); `deploy_monthly_template.ps1` deprecated. v1.23.1: ATS export retired. v1.23.0: Skill optimization swarm.
+**Version:** 1.24.0 (see CHANGELOG)
 
 ---
 
@@ -19,8 +19,8 @@
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.21.1: Skill hardening + Personnel v1.6.0 (173 records, BADGE_NUMBER coercion, CAD parser). v1.21.0: 7 Claude Skills. v1.20.2: PBI MCP — Outreach + Summons WG3/WG4/TEAM (36 cols). |
-| **Version** | 1.21.1 |
+| **Status** | ✅ v1.24.0: Save-MonthlyReport hardened; deploy_monthly_template deprecated. v1.23.1: ATS export retired. |
+| **Version** | 1.24.0 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | Key automation: `verify_migration.ps1`, **`etl_orchestrator.py`**, `run_summons_etl.py`, `config.json`, etc. |
 
@@ -113,8 +113,9 @@ Details: `docs/CLAUDE_SKILLS_ANALYSIS_REPORT.md`
 │   ├── response_time_filters.json  # Response Time filters
 │   └── scripts.json.bak        # Backup configuration
 ├── scripts/                     # PowerShell execution scripts
-│   ├── run_all_etl.ps1         # Main orchestrator
+│   ├── run_all_etl.ps1         # Main orchestrator (incl. Save-MonthlyReport)
 │   ├── run_all_etl.bat         # Batch wrapper
+│   ├── deploy_monthly_template.ps1  # DEPRECATED — folded into run_all_etl.ps1
 │   ├── run_etl_script.ps1      # Single script runner
 │   ├── path_config.py          # get_onedrive_root(), get_powerbi_data_dir(), get_powerbi_paths()
 │   ├── processed_exports_routing.py  # Processed_Exports canonical dirs + archive helper
@@ -196,7 +197,7 @@ pip install -r requirements.txt
 
 ```powershell
 cd "C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management"
-.\scripts\run_all_etl.ps1
+.\scripts\run_all_etl.ps1 -ReportMonth 2026-03
 ```
 
 ### Run Specific Script
@@ -208,7 +209,7 @@ cd "C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management"
 ### Dry Run (Preview)
 
 ```powershell
-.\scripts\run_all_etl.ps1 -DryRun
+.\scripts\run_all_etl.ps1 -ReportMonth 2026-03 -DryRun
 ```
 
 ### Verify Configuration

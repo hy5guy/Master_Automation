@@ -99,25 +99,24 @@ function Save-MonthlyReport {
     Saves a copy of the monthly Power BI report to the correct directory structure.
     #>
     
-    # Calculate previous month (subtract 1 calendar month from current date)
-    $now = Get-Date
-    $prevMonth = $now.AddMonths(-1)
-    $year = $prevMonth.Year
-    $monthNum = $prevMonth.Month.ToString("00")
-    $monthName = $prevMonth.ToString("MMMM")
-    $monthNameLower = $monthName.ToLower()
+    # Derive year/month from the script-level $ReportMonth parameter (YYYY-MM)
+    $rmDate         = [datetime]::ParseExact($ReportMonth, "yyyy-MM", $null)
+    $year           = $rmDate.Year
+    $monthNum       = $rmDate.Month.ToString("00")
+    $monthNameLower = $rmDate.ToString("MMMM").ToLower()
     
     # Format: YYYY_MM_Monthly_Report.pbix (e.g., 2025_12_Monthly_Report.pbix for December 2025)
     $reportFileName = "${year}_${monthNum}_Monthly_Report.pbix"
     
-    # Base paths: use config when available (08_Templates, Shared Folder), else fallback
-    if ($OneDriveConfig) {
-        $templatesDir = $OneDriveConfig.Templates
-        $monthlyReportsBase = Join-Path $OneDriveConfig.SharedFolder "Compstat\Monthly Reports"
-    } else {
-        $templatesDir = Join-Path $OneDriveBase "08_Templates"
-        $monthlyReportsBase = Join-Path $OneDriveBase "Shared Folder\Compstat\Monthly Reports"
+    # Resolve OneDrive root locally (guard against incomplete config.json)
+    $localOD = $OneDriveBase
+    if (-not (Test-Path (Join-Path $localOD "08_Templates") -PathType Container)) {
+        $localOD = Join-Path $HOME "OneDrive - City of Hackensack"
     }
+
+    # Base paths: always use validated $localOD (config-based template is handled by Fix 2 below)
+    $templatesDir = Join-Path $localOD "08_Templates"
+    $monthlyReportsBase = Join-Path $localOD "Shared Folder\Compstat\Monthly Reports"
     
     # Target directory: YEAR\MONTH_NUMBER_monthname (e.g., 2025\12_december)
     $targetDir = Join-Path $monthlyReportsBase $year
@@ -125,25 +124,32 @@ function Save-MonthlyReport {
     
     # Find source template/report file
     $sourceFile = $null
-    
-    # First, check if there's a template in 15_Templates
-    # Prioritize files with "Template" in the name
-    $templateFiles = Get-ChildItem -Path $templatesDir -Filter "*.pbix" -ErrorAction SilentlyContinue
-    if ($templateFiles) {
-        # Look for files with "Template" in the name first
-        $templateNamed = $templateFiles | Where-Object { $_.Name -like "*Template*" }
-        if ($templateNamed) {
-            # Use the most recent template-named file
-            $sourceFile = $templateNamed | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-            Write-Log "Found template file: $($sourceFile.FullName)"
-        }
-        else {
-            # Fall back to most recent file in Templates folder
-            $sourceFile = $templateFiles | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-            Write-Log "Found template file: $($sourceFile.FullName)"
+
+    # Try canonical MonthlyReportTemplate path from config.json first
+    if ($OneDriveConfig -and $OneDriveConfig.MonthlyReportTemplate -and
+        (Test-Path $OneDriveConfig.MonthlyReportTemplate -PathType Leaf)) {
+        $sourceFile = Get-Item $OneDriveConfig.MonthlyReportTemplate -ErrorAction SilentlyContinue
+        Write-Log "Using canonical template: $($sourceFile.FullName)"
+    }
+
+    # Fall back: scan templates directory for .pbix files
+    if (-not $sourceFile) {
+        # Prioritize files with "Template" in the name
+        $templateFiles = Get-ChildItem -Path $templatesDir -Filter "*.pbix" -ErrorAction SilentlyContinue
+        if ($templateFiles) {
+            # Look for files with "Template" in the name first
+            $templateNamed = $templateFiles | Where-Object { $_.Name -like "*Template*" }
+            if ($templateNamed) {
+                $sourceFile = $templateNamed | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+                Write-Log "Found template file: $($sourceFile.FullName)"
+            }
+            else {
+                $sourceFile = $templateFiles | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+                Write-Log "Found template file: $($sourceFile.FullName)"
+            }
         }
     }
-    
+
     # If no template found, look for the most recent report in Monthly Reports
     if (-not $sourceFile) {
         $existingReports = Get-ChildItem -Path $monthlyReportsBase -Filter "*.pbix" -Recurse -ErrorAction SilentlyContinue
@@ -161,16 +167,29 @@ function Save-MonthlyReport {
         return
     }
     
+    $targetFile = Join-Path $targetDir $reportFileName
+
+    if ($DryRun) {
+        Write-Log "[DRY RUN] Would copy template to: $targetFile"
+        Write-Host "  [DRY RUN] Source : $($sourceFile.FullName)" -ForegroundColor Gray
+        Write-Host "  [DRY RUN] Target : $targetFile" -ForegroundColor Gray
+        return
+    }
+
     try {
         # Create target directory if it doesn't exist
         if (-not (Test-Path $targetDir)) {
             New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
             Write-Log "Created directory: $targetDir"
         }
-        
-        # Copy to monthly reports directory
-        $targetFile = Join-Path $targetDir $reportFileName
-        Copy-Item -Path $sourceFile.FullName -Destination $targetFile -Force
+
+        # Skip if destination already exists (idempotent)
+        if (Test-Path $targetFile) {
+            Write-Warn "Report already exists, skipping copy: $targetFile"
+            Write-Log "SKIP: Target already exists: $targetFile"
+            return
+        }
+        Copy-Item -Path $sourceFile.FullName -Destination $targetFile
         Write-Success "Saved monthly report: $targetFile"
         Write-Log "Copied report to: $targetFile"
         

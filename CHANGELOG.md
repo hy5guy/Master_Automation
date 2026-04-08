@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.24.0] - 2026-04-08 — Save-MonthlyReport hardening and deploy_monthly_template deprecation
+
+### Fixed
+- **`scripts/run_all_etl.ps1` → `Save-MonthlyReport`** — Date derivation now uses the script-level `$ReportMonth` parameter (`ParseExact` on `yyyy-MM`) instead of `Get-Date` / `AddMonths(-1)`, ensuring the correct `MM_monthname` folder is targeted regardless of system date.
+- **`scripts/run_all_etl.ps1` → `Save-MonthlyReport`** — Added local `$localOD` guard that validates `$OneDriveBase` before trusting it; falls back to `Join-Path $HOME "OneDrive - City of Hackensack"` when `config.json` lacks `BaseDirectory`/`Directories`/`Files` keys.
+
+### Added
+- **`scripts/run_all_etl.ps1` → `Save-MonthlyReport`** — Canonical template resolution via `$OneDriveConfig.MonthlyReportTemplate` (`-PathType Leaf` guard) runs before the wildcard `Get-ChildItem` fallback scan.
+- **`scripts/run_all_etl.ps1` → `Save-MonthlyReport`** — Idempotent skip: `Test-Path $targetFile` check before `Copy-Item` prevents overwriting an existing report.
+- **`scripts/run_all_etl.ps1` → `Save-MonthlyReport`** — Dry-run gate: function now respects the `-DryRun` switch (previews source/target, no side effects).
+
+### Deprecated
+- **`scripts/deploy_monthly_template.ps1`** — Logic folded into `run_all_etl.ps1` `Save-MonthlyReport`. Script retained on disk with DEPRECATED header; do not use.
+
+---
+
+## [1.23.1] - 2026-04-08 — Remove retired ATS export check
+
+### Removed
+- **`Pre_Flight_Validation.py`** — Removed ATS export check (`05_EXPORTS/_ATS/YYYY_MM_ats_export.csv`). ATS data access retired April 2026. Check count drops from 11 to 10.
+
+### Added
+- **`02_ETL_Scripts/Export_File_Watchdog/WATCHDOG_EXPORT_REFERENCE.md`** — Added `## Retired Export Types` section with ATS retirement note to authoritative watchdog reference (removed orphan stub from `docs/`).
+
+### Updated
+- **`docs/skill_memory/preflight_MEMORY.md`** — Removed ATS from WARN lists and updated check counts.
+- **`docs/skill_memory/monthly-cycle_MEMORY.md`** — Updated evidence log to reflect ATS removal.
+
+---
+
+## [1.23.0] - 2026-04-08 — Skill optimization swarm: all 8 skills at T9=1
+
+### Fixed
+- **`fix-excel.md`** — Critical step-ordering bug: backup (was Step 5) now executes before write (was Step 4). Added explicit PermissionError pre-check and expanded backup code example with `shutil.copy2` to `archive/` subfolder. Updated Critical Rule #6 to reference new step numbers.
+- **`sync-personnel.md`** — Added `PADDED_BADGE_NUMBER` (4-digit zero-padded) validation to `check` mode and Critical Rule #4. Catches `.0` float suffix leaks and missing zero-padding.
+- **`diagnose-pipeline.md`** — Added `## Environment` section requiring `PYTHONIOENCODING=utf-8` on Windows. Added Critical Rule #5 mandating `path_config.py` for OneDrive path resolution.
+
+### Verified
+- All 8 skills pass binary evaluation against global constraints (no hardcoded paths, no DateTime.LocalNow, no openpyxl save, read-only safety, correct evidence hierarchies)
+- All 14 diagnostic scripts referenced by `/diagnose-pipeline` confirmed to exist
+- All CLI interfaces verified: flags match between skill definitions and actual script `--help` output
+- `enforce_13_month_window: true` count = 38 (matches `/validate-window` target)
+- `Pre_Flight_Validation.py` 50-row personnel threshold confirmed at line 184
+
+---
+
 ## [1.22.1] - 2026-04-07 — Summons ETL path, keyword, and glob fixes
 
 ### Fixed

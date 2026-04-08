@@ -43,8 +43,8 @@ When generating formatted HTML reports for Hackensack PD, use the design system 
 
 | Item | Value |
 |------|-------|
-| **Version** | 1.22.1 |
-| **Status** | v1.22.1: Summons ETL fixes — `run_summons_etl.py` YYYYMM path parsing, `e_ticket_export` glob pattern, watchdog keyword match. v1.22.0: `/find-stale-sources` skill + `check_source_freshness.py`. |
+| **Version** | 1.24.0 |
+| **Status** | v1.24.0: `Save-MonthlyReport` hardened — uses `$ReportMonth`, canonical template path, idempotent skip, dry-run gate, OneDrive fallback; `deploy_monthly_template.ps1` deprecated. v1.23.1: ATS export check retired. v1.23.0: Skill optimization swarm — all 8 skills at T9=1. |
 | **pReportMonth** | Set per `.pbix` in Power Query (example: `#date(2026, 3, 1)` for March 2026 report) |
 | **Enabled Scripts** | 5 (Arrests, Community, Overtime, Response Times, Summons) |
 | **Power BI Queries** | 47+ queries; all use `pReportMonth` (zero `DateTime.LocalNow()`) |
@@ -102,8 +102,9 @@ Architecture analysis: `docs/CLAUDE_SKILLS_ANALYSIS_REPORT.md`
 
 ### Active Code
 - `etl_orchestrator.py` (repo root) - Python ETL inspection wrapper: `--list`, `--dry-run`, `--run --script <name>`, `--parse-logs`, `--validate`, `--scorecard`; read-only `config/scripts.json`; paths via `scripts/path_config.py`
-- `scripts/run_all_etl.ps1` - Main PowerShell orchestrator
+- `scripts/run_all_etl.ps1` - Main PowerShell orchestrator; `Save-MonthlyReport` copies template to `Shared Folder\Compstat\Monthly Reports\YYYY\MM_monthname\`; uses `-ReportMonth`, canonical config path, idempotent skip, dry-run gate
 - `scripts/run_all_etl.bat` - Batch wrapper
+- `scripts/deploy_monthly_template.ps1` - **DEPRECATED** — logic folded into `run_all_etl.ps1` `Save-MonthlyReport`; retained on disk, do not use
 - `scripts/run_etl_script.ps1` - Individual script runner
 - `scripts/path_config.py` - `get_onedrive_root()`, `get_powerbi_data_dir()` (repo `config.json` / `PowerBI_Data`), `get_powerbi_paths()` from `scripts.json`
 - `scripts/overtime_timeoff_with_backfill.py` - Overtime/TimeOff monthly wrapper
@@ -395,4 +396,4 @@ Full details: `cross_repo_audit.md` and `HUMAN_REVIEW.md` in this directory.
 
 ---
 
-*Last updated: 2026-03-30 | Format version: 4.8*
+*Last updated: 2026-04-08 | Format version: 5.0*
