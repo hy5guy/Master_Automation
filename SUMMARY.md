@@ -1,8 +1,8 @@
 # 06_Workspace_Management Project Summary
 
-**Last Updated:** 2026-04-08
-**Status:** ✅ v1.24.0 — `Save-MonthlyReport` hardened (`$ReportMonth`, canonical template, idempotent, dry-run gate); `deploy_monthly_template.ps1` deprecated. v1.23.1: ATS export retired. v1.23.0: Skill optimization swarm.
-**Version:** 1.24.0 (see CHANGELOG)
+**Last Updated:** 2026-04-09
+**Status:** ✅ v1.24.2 — Window logic aligned to project standard (ResponseTime, Cost_of_Training); CSB preflight check added; CSB contributor data entry pending; Training ETL March run pending. v1.24.1: March 2026 cycle complete. v1.24.0: Save-MonthlyReport hardened.
+**Version:** 1.24.2 (see CHANGELOG)
 
 ---
 
@@ -19,8 +19,8 @@
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.24.0: Save-MonthlyReport hardened; deploy_monthly_template deprecated. v1.23.1: ATS export retired. |
-| **Version** | 1.24.0 |
+| **Status** | ✅ v1.24.2: Window logic aligned, CSB preflight added; pending: CSB contributor data + Training ETL March run. |
+| **Version** | 1.24.2 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | Key automation: `verify_migration.ps1`, **`etl_orchestrator.py`**, `run_summons_etl.py`, `config.json`, etc. |
 

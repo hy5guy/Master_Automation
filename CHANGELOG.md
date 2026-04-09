@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.24.2] - 2026-04-09 — Window logic alignment, CSB preflight check, ResponseTime disk sync
+
+### Fixed
+- **`m_code/response_time/___ResponseTime_AllMetrics.m`** — Synced disk copy to match live .pbix: path `PowerBI_Date` → `PowerBI_Data` (documented typo fix); `EndDate` aligned to `Date.EndOfMonth(pReportMonth)` (project standard, was `Date.AddMonths(pReportMonth, -1)`).
+- **`m_code/training/___Cost_of_Training.m`** — Window logic aligned to project standard: `Report_End_Date = Date.StartOfMonth(pReportMonth)` (was previous-month pattern ending at `CurrentMonth - 1`). With `pReportMonth = #date(2026,3,1)`, window now correctly includes 03-25 through 03-26. All `//` comments converted to `/* */` block syntax. Disk file updated; live .pbix partition update pending via PBI MCP.
+
+### Added
+- **`scripts/Pre_Flight_Validation.py`** — New `check_csb()` function validates CSB monthly workbook: (1) file exists and > 1024 bytes; (2) MoM worksheet present; (3) expected MM-YY column header exists (derived from report month using project-standard window convention); (4) at least one non-zero value under that column. All-zeros triggers FAIL with contributor contact message. Uses openpyxl read-only mode.
+
+### Identified (pending data actions)
+- **CSB audit**: `03-26` column exists in `csb_monthly.xlsm` MoM sheet but all 26 tracked items are zero — contributor has not entered March 2026 data into the `26_03` sheet.
+- **Training ETL**: March 2026 ETL not yet run — `03-26` column absent from `policy_training_outputs.xlsx` `Delivery_Cost_By_Month` sheet.
+
+---
+
+## [1.24.1] - 2026-04-08 — March 2026 cycle completion, config path fixes, validation
+
+### Fixed
+- config/scripts.json: fixed Master_Automation\scripts path refs for
+  Response Times Fresh Calculator (line 238) and Summons Derived Outputs
+  (line 319) — both now point to 06_Workspace_Management\scripts\
+
+### Completed
+- March 2026 ETL cycle: 5/7 core scripts succeeded, 50/55 exports routed
+  to Processed_Exports/, .pbix deployed to Shared Folder\Compstat\Monthly
+  Reports\2026\03_march\2026_03_Monthly_Report.pbix
+- 13-month window validation run: response_time 0P/4W/5F, out_reach 0P/0W/3F,
+  summons 0P/0W/8F, other 0P/0W/7F (stale exports from prior months expected)
+- Cleared 2 arrest_preview residuals from _DropExports (skip_patterns, not mapped)
+
+---
+
 ## [1.24.0] - 2026-04-08 — Save-MonthlyReport hardening and deploy_monthly_template deprecation
 
 ### Fixed

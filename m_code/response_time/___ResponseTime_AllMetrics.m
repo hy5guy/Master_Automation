@@ -5,19 +5,19 @@
 //            into one long table for consolidated visualization.
 //
 // Rolling 13-Month Window (driven by pReportMonth):
-//   End   = month BEFORE pReportMonth  (last complete month)
-//   Start = 12 months before End       (13 months total, inclusive)
+//   End   = Date.EndOfMonth(pReportMonth)  (include report month)
+//   Start = 12 months before pReportMonth  (13 months total, inclusive)
 //
 // Metric_Label: "Total Response" | "Travel Time" | "Dispatch Queue"
 // Metric_Sort: 1=Dispatch Queue, 2=Travel Time, 3=Total Response
 
 let
-    EndDate   = Date.AddMonths(DateTime.Date(pReportMonth), -1),
-    StartDate = Date.AddMonths(EndDate, -12),
+    EndDate   = Date.EndOfMonth(DateTime.Date(pReportMonth)),
+    StartDate = Date.StartOfMonth(Date.AddMonths(DateTime.Date(pReportMonth), -12)),
     EndYM     = Date.Year(EndDate)   * 100 + Date.Month(EndDate),
     StartYM   = Date.Year(StartDate) * 100 + Date.Month(StartDate),
 
-    AllFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Date\response_time_all_metrics"),
+    AllFiles = Folder.Files("C:\Users\carucci_r\OneDrive - City of Hackensack\PowerBI_Data\response_time_all_metrics"),
     CSVFiles = Table.SelectRows(AllFiles, each Text.EndsWith([Name], "_response_times.csv")),
     WithFullPath = Table.AddColumn(CSVFiles, "FullPath", each [Folder Path] & [Name], type text),
 

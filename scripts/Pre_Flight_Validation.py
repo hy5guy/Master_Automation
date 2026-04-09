@@ -148,6 +148,107 @@ def check_visual_export_mapping(master_path: Path) -> dict:
     return result
 
 
+def check_csb(root: Path, year: int, month: int) -> dict:
+    """Validate CSB monthly workbook has data for the report month.
+
+    Expected column is derived from pReportMonth using the project-standard
+    window convention: Date.EndOfMonth(pReportMonth) — the report month
+    itself is the last month in the 13-month window.
+    """
+    mm_yy = f"{month:02d}-{str(year)[-2:]}"
+    csb_path = (
+        root / "Shared Folder" / "Compstat" / "Contributions"
+        / "CSB" / "csb_monthly.xlsm"
+    )
+    result = {
+        "name": "CSB Monthly Data",
+        "status": "PASS",
+        "path": str(csb_path),
+        "detail": "",
+    }
+
+    if not csb_path.is_file():
+        result["status"] = "FAIL"
+        result["detail"] = "MISSING"
+        return result
+
+    if csb_path.stat().st_size < MIN_EXCEL_BYTES:
+        result["status"] = "FAIL"
+        result["detail"] = f"File too small ({csb_path.stat().st_size} bytes)"
+        return result
+
+    try:
+        import openpyxl
+
+        wb = openpyxl.load_workbook(
+            str(csb_path), read_only=True, data_only=True, keep_links=False
+        )
+        if "MoM" not in wb.sheetnames:
+            result["status"] = "FAIL"
+            result["detail"] = "MoM worksheet not found"
+            wb.close()
+            return result
+
+        ws = wb["MoM"]
+
+        # Read row 1 headers to find the target column index
+        headers = []
+        for row in ws.iter_rows(min_row=1, max_row=1):
+            for cell in row:
+                headers.append((cell.column - 1, str(cell.value).strip() if cell.value is not None else ""))
+
+        col_idx = None
+        for idx, hdr in headers:
+            if hdr == mm_yy:
+                col_idx = idx
+                break
+
+        if col_idx is None:
+            wb.close()
+            result["status"] = "FAIL"
+            result["detail"] = (
+                f"PREFLIGHT FAIL - CSB: No column for {mm_yy} "
+                f"in csb_monthly.xlsm MoM sheet. "
+                f"Contact CSB contributor before running ETL."
+            )
+            return result
+
+        # Check for at least one non-zero value under the target column
+        has_nonzero = False
+        for row in ws.iter_rows(min_row=2):
+            if len(row) > col_idx:
+                val = row[col_idx].value
+                if val is not None and val != "" and val != 0:
+                    try:
+                        if float(val) != 0:
+                            has_nonzero = True
+                            break
+                    except (ValueError, TypeError):
+                        pass
+
+        wb.close()
+
+        if not has_nonzero:
+            result["status"] = "FAIL"
+            result["detail"] = (
+                f"CSB {mm_yy} column exists but all values are zero — "
+                f"contributor has not entered {MONTH_NAMES[month].capitalize()} data. "
+                f"Contact CSB contributor before running ETL."
+            )
+            return result
+
+        result["detail"] = f"Column '{mm_yy}' found with non-zero data"
+
+    except ImportError:
+        result["status"] = "WARN"
+        result["detail"] = "openpyxl not installed - cannot validate CSB content"
+    except Exception as exc:
+        result["status"] = "WARN"
+        result["detail"] = f"Could not read workbook: {exc}"
+
+    return result
+
+
 def check_personnel(root: Path) -> dict:
     """Validate Assignment_Master_V2.csv: existence, columns, row count."""
     personnel_path = root / "09_Reference" / "Personnel" / "Assignment_Master_V2.csv"
@@ -214,13 +315,6 @@ def validate_system(year: int, month: int) -> bool:
     results.append(check_file(
         root / "05_EXPORTS" / "_CAD" / "timereport" / "monthly" / f"{yyyy_mm}_timereport.xlsx",
         "Response Time Source (CAD timereport)",
-    ))
-
-    # ATS file — advisory only
-    results.append(check_file(
-        root / "05_EXPORTS" / "_ATS" / f"{yyyy_mm}_ats_export.csv",
-        "ATS Export",
-        severity="WARN",
     ))
 
     results.append(check_file(drop_folder, "Power BI Drop Folder Access"))
@@ -311,6 +405,9 @@ def validate_system(year: int, month: int) -> bool:
             "path": str(ce_config),
             "detail": "config.json not found",
         })
+
+    # CSB Monthly — workbook exists, expected month column present, non-zero data
+    results.append(check_csb(root, year, month))
 
     fails = sum(1 for r in results if r["status"] == "FAIL")
     warnings = sum(1 for r in results if r["status"] == "WARN")
