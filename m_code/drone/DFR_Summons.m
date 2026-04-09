@@ -51,11 +51,12 @@ let
     FilteredRenames = List.Select(RenameMap, each List.Contains(ExistingColsForRename, _{0})),
     RenamedCols = Table.RenameColumns(RawData, FilteredRenames),
 
-    // === SCHEMA-RESILIENT TYPE MAPPING (en-US for text Date/Fine_Amount) ===
+    /* === SCHEMA-RESILIENT TYPE MAPPING (en-US; Date parsed defensively per row) === */
     ExistingCols = Table.ColumnNames(RenamedCols),
-    TypeMap = {
+
+    /* Apply all non-Date types via bulk coercion (safe — all text/number) */
+    NonDateTypeMap = {
         {"Summons_ID", type text},
-        {"Date", type date},
         {"Time", type text},
         {"Summons_Number", type text},
         {"Location", type text},
@@ -75,8 +76,23 @@ let
         {"Full_Summons_Number", type text},
         {"Jurisdiction", type text}
     },
-    FilteredTypes = List.Select(TypeMap, each List.Contains(ExistingCols, _{0})),
-    ChangedType = Table.TransformColumnTypes(RenamedCols, FilteredTypes, "en-US"),
+    FilteredNonDateTypes = List.Select(NonDateTypeMap, each List.Contains(ExistingCols, _{0})),
+    TypedNonDate = Table.TransformColumnTypes(RenamedCols, FilteredNonDateTypes, "en-US"),
+
+    /* Parse Date column defensively: try/otherwise null prevents DataFormat.Error on bad rows */
+    ChangedType = if List.Contains(ExistingCols, "Date") then
+        Table.TransformColumns(TypedNonDate, {
+            {"Date", each
+                if _ = null or _ = "" then null
+                else if _ is date then _
+                else if _ is datetime then Date.From(_)
+                else if _ is number then Date.AddDays(#date(1899, 12, 30), Number.From(_))
+                else try Date.FromText(Text.From(_), [Format="M/d/yyyy", Culture="en-US"])
+                     otherwise try Date.From(_)
+                     otherwise null,
+            type date}
+        })
+    else TypedNonDate,
 
     // === CLEAN: Replace null Fine_Amount with 0 for DAX compatibility ===
     CleanedFines =
