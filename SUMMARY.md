@@ -1,7 +1,7 @@
 # 06_Workspace_Management Project Summary
 
 **Last Updated:** 2026-04-09
-**Status:** ✅ v1.24.2 — Window logic aligned to project standard (ResponseTime, Cost_of_Training); CSB preflight check added; CSB contributor data entry pending; Training ETL March run pending. v1.24.1: March 2026 cycle complete. v1.24.0: Save-MonthlyReport hardened.
+**Status:** ⚠️ v1.24.2 — March 2026 Power BI diagnostic complete. Code fixes done. Pending contributor/RAC actions: (1) CSB contributor enters March data; (2) RAC runs Training ETL for March; (3) RAC confirms CE config.json path fix then re-runs CE ETL; (4) Patrol contributor enters Dec 2025–Mar 2026 events; (5) CE contributor enters Feb–Mar 2026 events. E3 (SSOCC) closed — working as designed.
 **Version:** 1.24.2 (see CHANGELOG)
 
 ---
@@ -19,7 +19,7 @@
 | **Location** | `C:\Users\carucci_r\OneDrive - City of Hackensack\06_Workspace_Management` |
 | **Purpose** | ETL Script Orchestration & Power BI Integration |
 | **Language** | PowerShell, Python |
-| **Status** | ✅ v1.24.2: Window logic aligned, CSB preflight added; pending: CSB contributor data + Training ETL March run. |
+| **Status** | ⚠️ v1.24.2: All code fixes done. 5 pending actions require contributors/RAC: CSB data entry, Training ETL March run, CE config fix + re-run, Patrol data entry, CE data entry. E3 (SSOCC) closed — working as designed. |
 | **Version** | 1.24.2 |
 | **ETL Scripts** | 5 Enabled, 3 Disabled |
 | **Root Files** | Key automation: `verify_migration.ps1`, **`etl_orchestrator.py`**, `run_summons_etl.py`, `config.json`, etc. |
@@ -467,6 +467,37 @@ Documentation:
 - Check `powerbi_drop_path` exists
 - Verify OneDrive sync status
 - Check file permissions
+
+---
+
+## Recent Updates (2026-04-09)
+
+### v1.24.2 — March 2026 Power BI Diagnostic & Fix (In Progress)
+
+**Context:** After the March 2026 ETL cycle, multiple Power BI visuals were missing data or erroring. A full diagnostic was run (8 issues A–F). Step 0 confirmed the window convention: all queries must use `Date.EndOfMonth(pReportMonth)`.
+
+**Completed fixes (disk + live .pbix via PBI MCP):**
+
+| Issue | Fix |
+|-------|-----|
+| C | `___ResponseTime_AllMetrics.m` disk sync: path `PowerBI_Date` → `PowerBI_Data`; EndDate aligned to `Date.EndOfMonth`. Live .pbix was already correct. |
+| B | `___Cost_of_Training.m` window aligned to project standard — now includes 03-26 when pReportMonth = `#date(2026,3,1)`. Disk + live .pbix updated. |
+| A | `Pre_Flight_Validation.py` — `check_csb()` added. Validates file, MoM sheet, expected MM-YY column, non-zero values. Currently FAILing correctly (CSB data missing). |
+| E1 | `DFR_Summons.m` — Defensive per-row date parsing replaces bulk `TransformColumnTypes`. Handles ISO 8601 with `T`/milliseconds. DFR_Summons loaded 23 rows on refresh. Disk + live .pbix updated. |
+
+**Pending data actions (not code defects):**
+- **CSB (Issue F)**: `03-26` column exists in `csb_monthly.xlsm` but all zeros — CSB contributor must populate the `26_03` sheet.
+- **Training ETL (Issue B)**: Policy Training ETL not run for March 2026 — `03-26` absent from `policy_training_outputs.xlsx`.
+
+**Closed investigations:**
+- **Issue D (CE)**: Root cause confirmed — CE `config.json` has two broken source paths (`2025_Master` → `Master_Log`, `School_Outreach` → `Master_Outreach`). Patrol source missing Dec 2025–Mar 2026; CE source missing Feb–Mar 2026. Config fix awaiting RAC confirmation before applying and re-running ETL.
+- **Issue E2 (DFR workbook)**: 55 ISO datetime cells fixed via zip-level XML surgery (backup archived). Named table creation and empty row cleanup deferred — non-blocking (M code handles fallback).
+- **Issue E3 (SSOCC)**: Closed — working as designed. 153 SSOCC rows in pipeline; no SSOCC summons issued in Feb 2026 window. Not a code defect.
+
+**Key decisions made this session:**
+- Window convention confirmed: `Date.EndOfMonth(pReportMonth)` is the single standard for all queries.
+- `___ResponseTime_AllMetrics` and `___CSB_Monthly` were already compliant. Only `___Cost_of_Training` needed alignment.
+- Do NOT use openpyxl load+save on any shared workbook — read-only mode or zip-level XML surgery only.
 
 ---
 

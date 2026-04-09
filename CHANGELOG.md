@@ -7,18 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.24.2] - 2026-04-09 — Window logic alignment, CSB preflight check, ResponseTime disk sync
+## [1.24.2] - 2026-04-09 — March 2026 Power BI diagnostic fixes (Issues A–E1)
 
 ### Fixed
-- **`m_code/response_time/___ResponseTime_AllMetrics.m`** — Synced disk copy to match live .pbix: path `PowerBI_Date` → `PowerBI_Data` (documented typo fix); `EndDate` aligned to `Date.EndOfMonth(pReportMonth)` (project standard, was `Date.AddMonths(pReportMonth, -1)`).
-- **`m_code/training/___Cost_of_Training.m`** — Window logic aligned to project standard: `Report_End_Date = Date.StartOfMonth(pReportMonth)` (was previous-month pattern ending at `CurrentMonth - 1`). With `pReportMonth = #date(2026,3,1)`, window now correctly includes 03-25 through 03-26. All `//` comments converted to `/* */` block syntax. Disk file updated; live .pbix partition update pending via PBI MCP.
+- **`m_code/response_time/___ResponseTime_AllMetrics.m`** — Synced disk copy to match live .pbix: path `PowerBI_Date` → `PowerBI_Data` (documented typo fix); `EndDate` aligned to `Date.EndOfMonth(pReportMonth)` (project standard, was `Date.AddMonths(pReportMonth, -1)`). Live .pbix was already correct — disk-only sync.
+- **`m_code/training/___Cost_of_Training.m`** — Window logic aligned to project standard: `Report_End_Date = Date.StartOfMonth(pReportMonth)` (was previous-month pattern ending at `CurrentMonth - 1`). With `pReportMonth = #date(2026,3,1)`, window now correctly includes 03-25 through 03-26. All `//` comments converted to `/* */` block syntax. Disk + live .pbix updated via PBI MCP (Cursor session).
+- **`m_code/drone/DFR_Summons.m`** (Issue E1) — Replaced bulk `Table.TransformColumnTypes` Date coercion with per-row `try/otherwise null` defensive parsing. Handles: null, blank string, date, datetime (incl. ISO 8601 with `T` and milliseconds), Excel serial number, US-format text, and falls back to `Date.From()` before returning null. Prevents `DataFormat.Error` on malformed rows. Non-Date columns retain bulk coercion (safe for text/number). Disk + live .pbix updated via PBI MCP; DFR_Summons loaded 23 rows (2026-02-19 through 2026-03-16) on refresh.
 
 ### Added
-- **`scripts/Pre_Flight_Validation.py`** — New `check_csb()` function validates CSB monthly workbook: (1) file exists and > 1024 bytes; (2) MoM worksheet present; (3) expected MM-YY column header exists (derived from report month using project-standard window convention); (4) at least one non-zero value under that column. All-zeros triggers FAIL with contributor contact message. Uses openpyxl read-only mode.
+- **`scripts/Pre_Flight_Validation.py`** — New `check_csb()` function validates CSB monthly workbook: (1) file exists and > 1024 bytes; (2) MoM worksheet present; (3) expected MM-YY column header exists (derived from report month using project-standard window convention — single label, not dual-check); (4) at least one non-zero value under that column. All-zeros triggers FAIL with contributor contact message. Uses openpyxl read-only mode only.
 
-### Identified (pending data actions)
-- **CSB audit**: `03-26` column exists in `csb_monthly.xlsm` MoM sheet but all 26 tracked items are zero — contributor has not entered March 2026 data into the `26_03` sheet.
-- **Training ETL**: March 2026 ETL not yet run — `03-26` column absent from `policy_training_outputs.xlsx` `Delivery_Cost_By_Month` sheet.
+### Identified (pending data actions — not code defects)
+- **Issue F / CSB data**: `03-26` column exists in `csb_monthly.xlsm` MoM sheet with correct MM-YY format, but all 26 tracked items are zero. The `26_03` data entry sheet is blank. Action: contact CSB contributor to populate March 2026 data. XLOOKUP formulas on MoM will propagate automatically once entered.
+- **Issue B / Training ETL**: `___Cost_of_Training` window fix applied correctly; `03-26` absent from Period column because the Policy Training ETL has not been run for March 2026. Action: run `02_ETL_Scripts/Policy_Training_Monthly` ETL to generate the `03-26` column in `policy_training_outputs.xlsx`.
+
+### Investigated and Closed (Steps 6–8)
+- **Issue E1 / DFR workbook (E2 follow-up)**: 55 ISO datetime cells (`2026-02-17T13:14:53.416` format) fixed via zip-level XML surgery on `dfr_directed_patrol_enforcement.xlsx` (backup in `archive/`). Named `DFR_Summons` table creation and deletion of ~476 empty formula rows (rows 2–476) deferred — non-blocking since M code fallback handles both (sheet path + `[Date] <> null` filter eliminates blank rows at query time).
+- **Issue D / Community Engagement**: Root cause confirmed — CE `config.json` has two broken source paths: `2025_Master` (should be `Master_Log`) and `School_Outreach` (should be `Master_Outreach`). Additionally, Patrol source is missing Dec 2025–Mar 2026 events, and CE source is missing Feb–Mar 2026 events. **Awaiting RAC confirmation before applying config fix and re-running ETL.**
+- **Issue E3 / SSOCC summons**: Closed — working as designed. 153 SSOCC rows exist in `summons_slim_for_powerbi.csv` but all fall outside the Feb 2026 window (`summons_all_bureaus.m` shows previous complete month). No SSOCC summons were issued in Feb 2026. Not a code defect.
+
+### Pending (RAC or Contributor Action Required)
+| # | Action | Owner | Blocker |
+|---|--------|-------|---------|
+| 1 | CSB data entry: populate `26_03` sheet in `csb_monthly.xlsm` | CSB contributor | Blocks CSB visual |
+| 2 | Training ETL: run for March 2026 to generate `03-26` column | RAC | Blocks Training Cost visual |
+| 3 | CE `config.json` fix: `2025_Master` → `Master_Log`, `School_Outreach` → `Master_Outreach`; then re-run CE ETL | RAC confirmation | Blocks CE visuals (2 of 3 sources broken) |
+| 4 | Patrol data entry: Dec 2025–Mar 2026 outreach events | Patrol contributor | Missing months in Patrol source |
+| 5 | CE data entry: Feb–Mar 2026 events | CE contributor | Latest date is Jan 2026 |
 
 ---
 

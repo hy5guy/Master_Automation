@@ -1,0 +1,406 @@
+table DFR_Summons
+	lineageTag: f1c92346-d7fa-4409-849c-38da4c21c922
+
+	/// Total count of DFR directed patrol summons in filter context.
+	measure 'DFR Summons Count' = COUNTROWS('DFR_Summons')
+		formatString: #,0
+		displayFolder: DFR Measures
+		lineageTag: 58544b7c-869d-4e04-a55b-165cf2bbe0aa
+
+	/// Sum of fine amounts for DFR directed patrol summons.
+	measure 'DFR Summons Total Fines' = SUM('DFR_Summons'[Fine_Amount])
+		formatString: $#,0.00
+		displayFolder: DFR Measures
+		lineageTag: 6de67502-4d1d-4d78-a3b7-54303828bccd
+
+	/// Static title for DFR summons visual.
+	measure 'DFR Summons Title' = "DFR Directed Patrol Summons"
+		displayFolder: DFR Measures
+		lineageTag: 8be09f06-09a0-48ec-9891-f17339d5b594
+
+	/// Dynamic subtitle showing count and latest month.
+	measure 'DFR Summons Subtitle' =
+			VAR _rpt = FORMAT(DATE(YEAR(MAX('DFR_Summons'[Date])), MONTH(MAX('DFR_Summons'[Date])), 1), "MMMM YYYY")
+			VAR _cnt = [DFR Summons Count]
+			RETURN
+			_cnt & " summons through " & _rpt
+		displayFolder: DFR Measures
+		lineageTag: af6d6227-7efa-42b8-9246-2905e23d7470
+
+	column Summons_ID
+		dataType: string
+		lineageTag: f6719ebe-de11-4d00-8046-1e7f7da7fd15
+		summarizeBy: none
+		sourceColumn: Summons_ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: cad563b5-b5a0-45ec-9c33-046dd537c9f7
+		summarizeBy: none
+		sourceColumn: Date
+
+		variation Variation
+			isDefault
+			relationship: abda1821-e9c6-4066-8523-0a81b7dc617c
+			defaultHierarchy: LocalDateTable_450654a7-73e1-476d-b628-36ff92b7b112.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Time
+		dataType: string
+		lineageTag: 84322d83-11dc-4df9-9604-abcad56dd320
+		summarizeBy: none
+		sourceColumn: Time
+
+		annotation SummarizationSetBy = Automatic
+
+	column Summons_Number
+		dataType: string
+		lineageTag: 59c5eacb-ad63-4f67-9df3-7814bf2450a3
+		summarizeBy: none
+		sourceColumn: Summons_Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column Location
+		dataType: string
+		lineageTag: 9dadec41-0714-4e82-b98a-bdfa1049adc0
+		summarizeBy: none
+		sourceColumn: Location
+
+		annotation SummarizationSetBy = Automatic
+
+	column Statute
+		dataType: string
+		lineageTag: f15c130e-5437-431d-a1c9-786111bef83b
+		summarizeBy: none
+		sourceColumn: Statute
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 7ce8fd46-d3cd-4abc-aad8-0811e21c35e6
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column Fine_Amount
+		dataType: double
+		lineageTag: c6706966-7044-46e3-ac0c-cb827d7e5056
+		summarizeBy: sum
+		sourceColumn: Fine_Amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Source_Type
+		dataType: string
+		lineageTag: fd3a6ba2-0d60-4f8a-9908-6ee1472dfd74
+		summarizeBy: none
+		sourceColumn: Source_Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column Violation_Type
+		dataType: string
+		lineageTag: a6d8eae3-517f-4823-ae50-f21e28b5b730
+		summarizeBy: none
+		sourceColumn: Violation_Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column DFR_Operator
+		dataType: string
+		lineageTag: 0c84aff8-6757-49c2-b41e-c53647cfb47d
+		summarizeBy: none
+		sourceColumn: DFR_Operator
+
+		annotation SummarizationSetBy = Automatic
+
+	column Issuing_Officer
+		dataType: string
+		lineageTag: 6b041947-6cba-4b47-9926-1e41b3a79471
+		summarizeBy: none
+		sourceColumn: Issuing_Officer
+
+		annotation SummarizationSetBy = Automatic
+
+	column Summons_Status
+		dataType: string
+		lineageTag: 0c471d9b-0f56-458a-8a56-b7a914dff265
+		summarizeBy: none
+		sourceColumn: Summons_Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column DFR_Unit_ID
+		dataType: string
+		lineageTag: f7e73b56-3764-4089-bf76-99292c450fe5
+		summarizeBy: none
+		sourceColumn: DFR_Unit_ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Notes
+		dataType: string
+		lineageTag: 77fe24e7-4a3e-4511-bc50-6ab10c55947c
+		summarizeBy: none
+		sourceColumn: Notes
+
+		annotation SummarizationSetBy = Automatic
+
+	column OCA
+		dataType: string
+		lineageTag: f57e6266-1148-4134-b7da-3f6bccdc17cf
+		summarizeBy: none
+		sourceColumn: OCA
+
+		annotation SummarizationSetBy = Automatic
+
+	column Summons_Recall
+		dataType: string
+		lineageTag: 14e923ac-0bc6-45ba-b571-9cbed5fc59ea
+		summarizeBy: none
+		sourceColumn: Summons_Recall
+
+		annotation SummarizationSetBy = Automatic
+
+	column Full_Summons_Number
+		dataType: string
+		lineageTag: 2d2f9114-d4cc-4500-b369-1c33e3b45b17
+		summarizeBy: none
+		sourceColumn: Full_Summons_Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateSortKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 4576ab93-2466-4ca5-828d-fc58dbbf3716
+		summarizeBy: count
+		sourceColumn: DateSortKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column YearMonthKey
+		dataType: int64
+		formatString: 0
+		lineageTag: d9bdf13b-7489-40e9-acb4-cb317b446a25
+		summarizeBy: count
+		sourceColumn: YearMonthKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date_Sort_Key
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: befe789b-725f-40e5-9b04-ec6692514b03
+		summarizeBy: none
+		sourceColumn: Date_Sort_Key
+
+		variation Variation
+			isDefault
+			relationship: 9546344e-6132-4f33-891d-c4ead3a32e39
+			defaultHierarchy: LocalDateTable_e0f54043-d8b1-488b-9ca4-2079b80e90ce.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column MM-YY
+		dataType: string
+		lineageTag: 21e20b26-ccf6-4520-8094-504a907beff9
+		summarizeBy: none
+		sourceColumn: MM-YY
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DFR_Summons = m
+		mode: import
+		source =
+				// # drone/DFR_Summons.m
+				// # Author: R. A. Carucci
+				// # Purpose: Load DFR_Summons table from dfr_directed_patrol_enforcement.xlsx
+				// #          Apply rolling 13-month window driven by pReportMonth parameter.
+				// #          Standardize column names, types; add DateSortKey, Date_Sort_Key, MM-YY, YearMonthKey.
+				// #          Description: shorten "Parking...designated X" -> "X"; source is ALL CAPS from Excel.
+				// #          Filter out summons marked Dismiss/Void in Summons_Recall or Summons_Status.
+				// # Violation_Type (from Excel): P=Parking/Reg/Equipment/Fire, M=Moving (reserved), C=Complaint (Parks & Rec)
+				// # Source: C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Drone\dfr_directed_patrol_enforcement.xlsx
+				// # Last updated: 2026-03-19 (FilteredStatus; exclude Dismissed/Void/Voided via Text.Contains)
+				let
+				    // === PARAMETERS ===
+				    ReportMonth = Date.From(pReportMonth),
+				    EndDate = Date.EndOfMonth(ReportMonth),
+				    StartDate = Date.StartOfMonth(Date.AddMonths(ReportMonth, -12)),
+				
+				    // === SOURCE: Load Excel workbook ===
+				    FilePath = "C:\Users\carucci_r\OneDrive - City of Hackensack\Shared Folder\Compstat\Contributions\Drone\dfr_directed_patrol_enforcement.xlsx",
+				    Source = Excel.Workbook(File.Contents(FilePath), null, true),
+				
+				    // === TABLE/SHEET FALLBACK: Try named Table first, then Sheet ===
+				    RawData =
+				        let
+				            TableResult = try Source{[Item = "DFR_Summons", Kind = "Table"]}[Data]
+				        in
+				            if TableResult[HasError] then
+				                let
+				                    SheetData = Source{[Name = "DFR Summons Log", Kind = "Sheet"]}[Data]
+				                in
+				                    Table.PromoteHeaders(SheetData, [PromoteAllScalars = true])
+				            else
+				                TableResult[Value],
+				
+				    // === RENAME COLUMNS: Standardize spaces to underscores ===
+				    RenameMap = {
+				        {"Summons ID", "Summons_ID"},
+				        {"Summons Number", "Summons_Number"},
+				        {"Fine Amount", "Fine_Amount"},
+				        {"Source Type", "Source_Type"},
+				        {"Violation Type", "Violation_Type"},
+				        {"DFR Operator", "DFR_Operator"},
+				        {"Issuing Officer", "Issuing_Officer"},
+				        {"Summons Status", "Summons_Status"},
+				        {"DFR Unit ID", "DFR_Unit_ID"},
+				        {"Summons Recall", "Summons_Recall"},
+				        {"Full Summons Number", "Full_Summons_Number"}
+				    },
+				    ExistingColsForRename = Table.ColumnNames(RawData),
+				    FilteredRenames = List.Select(RenameMap, each List.Contains(ExistingColsForRename, _{0})),
+				    RenamedCols = Table.RenameColumns(RawData, FilteredRenames),
+				
+				    // === SCHEMA-RESILIENT TYPE MAPPING (en-US for text Date/Fine_Amount) ===
+				    ExistingCols = Table.ColumnNames(RenamedCols),
+				    TypeMap = {
+				        {"Summons_ID", type text},
+				        {"Date", type date},
+				        {"Time", type text},
+				        {"Summons_Number", type text},
+				        {"Location", type text},
+				        {"Statute", type text},
+				        {"Description", type text},
+				        {"Fine_Amount", type number},
+				        {"Source_Type", type text},
+				        {"Violation_Type", type text},
+				        {"DFR_Operator", type text},
+				        {"Issuing_Officer", type text},
+				        {"Summons_Status", type text},
+				        {"DFR_Unit_ID", type text},
+				        {"Notes", type text},
+				        {"OCA", type text},
+				        {"Summons_Recall", type text},
+				        {"Full_Summons_Number", type text}
+				    },
+				    FilteredTypes = List.Select(TypeMap, each List.Contains(ExistingCols, _{0})),
+				    ChangedType = Table.TransformColumnTypes(RenamedCols, FilteredTypes, "en-US"),
+				
+				    // === CLEAN: Replace null Fine_Amount with 0 for DAX compatibility ===
+				    CleanedFines =
+				        if List.Contains(ExistingCols, "Fine_Amount") then
+				            Table.ReplaceValue(ChangedType, null, 0, Replacer.ReplaceValue, {"Fine_Amount"})
+				        else
+				            ChangedType,
+				
+				    // === FILTER: Remove rows with no Date (empty formula rows in Excel table) ===
+				    FilteredBlanks = Table.SelectRows(CleanedFines, each [Date] <> null),
+				
+				    // === FILTER: Exclude Voided or Dismissed summons (Summons_Recall contains "Dismiss" or "Void") ===
+				    FilteredRecalls =
+				        if List.Contains(Table.ColumnNames(FilteredBlanks), "Summons_Recall") then
+				            Table.SelectRows(FilteredBlanks, each
+				                let recall = [Summons_Recall] in
+				                recall = null or recall = ""
+				                or (not Text.Contains(Text.Lower(recall), "dismiss") and not Text.Contains(Text.Lower(recall), "void"))
+				            )
+				        else
+				            FilteredBlanks,
+				
+				    // === FILTER: Exclude Dismissed/Void/Voided status (Summons_Status; Text.Contains catches all variants) ===
+				    FilteredStatus =
+				        if List.Contains(Table.ColumnNames(FilteredRecalls), "Summons_Status") then
+				            Table.SelectRows(FilteredRecalls, each
+				                let status = [Summons_Status],
+				                    cleaned = Text.Trim(Text.Lower(status ?? ""))
+				                in
+				                status = null or status = ""
+				                or (not Text.Contains(cleaned, "dismiss") and not Text.Contains(cleaned, "void"))
+				            )
+				        else
+				            FilteredRecalls,
+				
+				    // === FILTER: Rolling 13-month window (report month + 12 months prior) ===
+				    FilteredData = Table.SelectRows(FilteredStatus, each [Date] >= StartDate and [Date] <= EndDate),
+				
+				    // === STANDARDIZE: Shorten "Parking or stopping in designated X" -> "X" (source is ALL CAPS from Excel) ===
+				    ShortenPrefix = "Parking or stopping in designated ",
+				    ShortenedDescription = Table.TransformColumns(FilteredData, {
+				        {"Description", each
+				            if _ = null or _ = "" then _
+				            else if Text.StartsWith(Text.Lower(_), Text.Lower(ShortenPrefix)) then
+				                Text.Upper(Text.Middle(_, Text.Length(ShortenPrefix)))
+				            else Text.Upper(_),
+				        type text}
+				    }),
+				
+				    // === ADD: DateSortKey (YYYYMMDD integer, e.g., 20260316) for row-level sorting ===
+				    AddedDateSortKey = Table.AddColumn(ShortenedDescription, "DateSortKey",
+				        each Date.Year([Date]) * 10000 + Date.Month([Date]) * 100 + Date.Day([Date]), Int64.Type),
+				
+				    // === ADD: Date_Sort_Key (first of month) for MM-YY column sort-by in Power BI ===
+				    AddedDateSortKeyCol = Table.AddColumn(AddedDateSortKey, "Date_Sort_Key", each Date.StartOfMonth([Date]), type date),
+				
+				    // === ADD: MM-YY (text, e.g., "03-26") for matrix column display; sorts by Date_Sort_Key ===
+				    AddedMMYY = Table.AddColumn(AddedDateSortKeyCol, "MM-YY",
+				        each Text.PadStart(Text.From(Date.Month([Date])), 2, "0") & "-" & Text.End(Text.From(Date.Year([Date])), 2),
+				        type text),
+				
+				    // === ADD: YearMonthKey (e.g., 202603) for grouping/trending; backward compat for visuals ===
+				    AddedYearMonthKey = Table.AddColumn(AddedMMYY, "YearMonthKey",
+				        each Date.Year([Date]) * 100 + Date.Month([Date]), Int64.Type),
+				
+				    // === SELECT: Final column order ===
+				    FinalColumns = Table.SelectColumns(
+				        AddedYearMonthKey,
+				        List.Select(
+				            {
+				                "Summons_ID",
+				                "Date",
+				                "DateSortKey",
+				                "Date_Sort_Key",
+				                "MM-YY",
+				                "Time",
+				                "Summons_Number",
+				                "Location",
+				                "Statute",
+				                "Description",
+				                "Fine_Amount",
+				                "Source_Type",
+				                "Violation_Type",
+				                "DFR_Operator",
+				                "Issuing_Officer",
+				                "Summons_Status",
+				                "DFR_Unit_ID",
+				                "Notes",
+				                "OCA",
+				                "Summons_Recall",
+				                "Full_Summons_Number",
+				                "YearMonthKey"
+				            },
+				            each List.Contains(Table.ColumnNames(AddedYearMonthKey), _)
+				        )
+				    )
+				in
+				    FinalColumns
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
